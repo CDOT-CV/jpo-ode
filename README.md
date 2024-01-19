@@ -164,6 +164,13 @@ ODE configuration can be customized for every deployment environment using envir
 **Important!**
 You must rename `sample.env` to `.env` for Docker to automatically read the file. This file will contain AWS access keys and other private information. Do not push this file to source control.
 
+***Mongo Connector:***
+
+For using the kafka to MongoDB connector, a connect_start.sh configuration file must be filled out in the `jpo-s3-deposit/mongo-connector` directory. After this is filled out,  environmental varibles in the sample.env can be changed to configure the destination MongoDB database by the URL and port. To spin up a MongoDB and kafka connector along with the rest of the ODE use the [docker-compose-mongo.yml](docker_compose_mongo.yml) as follows: 
+```bash
+docker compose -f docker-compose-mongo.yml up -d 
+```
+
 [Back to top](#toc)
 
 <!--
