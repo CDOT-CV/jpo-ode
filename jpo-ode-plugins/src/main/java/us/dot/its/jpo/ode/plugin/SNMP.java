@@ -124,7 +124,7 @@ public class SNMP extends OdeObject {
       this.status = status;
    }
 
-   public static String snmpTimestampFromIso(String isoTimestamp) throws ParseException {
+   public static String snmpTimestampFromIso(String isoTimestamp) throws ParseException { // from wyocv apps: 2024-03-01T20:29:33.033Z
       ZonedDateTime zdt = DateTimeUtils.isoDateTime(isoTimestamp);
 
       
@@ -136,7 +136,7 @@ public class SNMP extends OdeObject {
       sb.append(String.format("%02X", zdt.getHour()));
       sb.append(String.format("%02X", zdt.getMinute()));
       sb.append(String.format("%02X", zdt.getSecond()));
-      sb.append(String.format("%02X", zdt.getNano()));
+      sb.append(String.format("%02X", zdt.getNano()).substring(0, 2));
       return sb.toString();
    }
 
