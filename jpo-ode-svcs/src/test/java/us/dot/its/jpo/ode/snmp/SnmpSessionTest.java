@@ -16,8 +16,11 @@
 package us.dot.its.jpo.ode.snmp;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -30,6 +33,7 @@ import org.snmp4j.ScopedPDU;
 import org.snmp4j.Snmp;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.UserTarget;
+import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.security.USM;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
@@ -208,5 +212,40 @@ public class SnmpSessionTest {
 		assertEquals("P-Encoding failed for " + bsm_hex,"20", vb2.toValueString());
 		assertEquals("P-Encoding failed for " + data_log_transfer_hex,"e0:00:00:0e", vb3.toValueString());
 		assertEquals("P-Encoding failed for " + ota_update_hex,"e0:00:00:0f", vb4.toValueString());
+	}
+
+	@Test
+	public void testSet_success() throws IOException {
+		// Arrange
+		PDU mockPDU = Mockito.mock(PDU.class);
+		Snmp mockSnmp = Mockito.mock(Snmp.class);
+		UserTarget mockTarget = Mockito.mock(UserTarget.class);
+		Mockito.when(mockTarget.getAddress()).thenReturn(Mockito.any());
+		Mockito.when(mockSnmp.discoverAuthoritativeEngineID(Mockito.any(), 1000L)).thenReturn(new byte[] { 0x01, 0x02, 0x03 });
+		Mockito.when(mockSnmp.set(mockPDU, mockTarget)).thenReturn(Mockito.mock(ResponseEvent.class));
+		
+		ResponseEvent responseEvent = snmpSession.set(mockPDU, mockSnmp, mockTarget, false);
+
+		// Assert
+		assertNotNull(responseEvent);
+		Mockito.verify(mockSnmp).set(mockPDU, mockTarget);
+		Mockito.verify(mockSnmp).discoverAuthoritativeEngineID(eq(mockTarget.getAddress()), eq(1000L));
+	}
+
+	@Test
+	public void testSet_failure_cannot_retrieve_authengineid() throws IOException {
+		// Arrange
+		PDU mockPDU = Mockito.mock(PDU.class);
+		Snmp mockSnmp = Mockito.mock(Snmp.class);
+		UserTarget mockTarget = Mockito.mock(UserTarget.class);
+		Mockito.when(mockTarget.getAddress()).thenReturn(Mockito.any());
+		Mockito.when(mockSnmp.discoverAuthoritativeEngineID(Mockito.any(), 1000L)).thenReturn(null);
+
+		// Act
+		ResponseEvent responseEvent = snmpSession.set(mockPDU, mockSnmp, mockTarget, false);
+
+		// Assert
+		assertNull(responseEvent);
+		Mockito.verify(mockSnmp, Mockito.times(4)).discoverAuthoritativeEngineID(Mockito.any(), Mockito.anyLong());
 	}
 }

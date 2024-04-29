@@ -134,17 +134,18 @@ public class SnmpSession {
       // Try to send the SNMP request (synchronously)
       ResponseEvent responseEvent = null;
       try {
-         byte[] authEngineID = snmpob.discoverAuthoritativeEngineID(targetob.getAddress(), 1000);
-         if (authEngineID != null && authEngineID.length > 0) {
+         byte[] authEngineID = retrieveAuthEngineID(snmpob, targetob);
+         if (authEngineID == null) {
+            logger.error("Unable to send TIM to RSU {}: failed to retrieve authEngineID", targetob.getAddress());
+            return null;
+         }
+
+         if (authEngineID.length > 0) {
             targetob.setAuthoritativeEngineID(authEngineID);
          }
-         if (authEngineID != null) {
-            responseEvent = snmpob.set(pdu, targetob);
-            if (!keepOpen) {
-               snmpob.close();
-            }
-         } else {
-            logger.error("Unable to send TIM to RSU {}: authEngineID is null", targetob.getAddress());
+         responseEvent = snmpob.set(pdu, targetob);
+         if (!keepOpen) {
+            snmpob.close();
          }
       } catch (IOException e) {
          throw new IOException("Failed to send SNMP request: " + e);
@@ -409,5 +410,33 @@ public class SnmpSession {
          pdu.setType(PDU.SET);
 
          return pdu;
+   }
+
+   /**
+    * Retrieve the authoritative engine ID for the target
+    * Upon failure, retry with exponential backoff up to 3 times
+    *
+    * @param snmpob SNMP object
+    * @param targetob UserTarget object
+    * @return byte[] authEngineID
+    */
+   private byte[] retrieveAuthEngineID(Snmp snmpob, UserTarget targetob) throws IOException {
+      int timeout = 1000;
+      int retries = 3;
+      byte[] authEngineID = snmpob.discoverAuthoritativeEngineID(targetob.getAddress(), timeout);
+      if (authEngineID == null) {
+         // retry with exponential backoff
+         for (int i = 0; i < retries; i++) {
+            timeout = timeout * 2;
+            authEngineID = snmpob.discoverAuthoritativeEngineID(targetob.getAddress(), timeout);
+            if (authEngineID != null) {
+               break;
+            }
+         }
+      }
+      if (authEngineID == null) {
+         logger.warn("Unable to retrieve authEngineID for RSU {} after {} retries. The RSU may not be reachable.", targetob.getAddress(), retries);
+      }
+      return authEngineID;
    }
 }
