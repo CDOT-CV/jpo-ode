@@ -139,21 +139,23 @@ public class SnmpSession {
       // Try to send the SNMP request (synchronously)
       ResponseEvent responseEvent = null;
       try {
+         // discover auth engine ID
          byte[] authEngineID = snmpob.discoverAuthoritativeEngineID(targetob.getAddress(), 1000);
          if (authEngineID != null && authEngineID.length > 0) {
             targetob.setAuthoritativeEngineID(authEngineID);
          }
-         if (authEngineID != null) {
-            responseEvent = snmpob.set(pdu, targetob);
-            if (!keepOpen) {
-               snmpob.close();
-            }
-         } else {
+         if (authEngineID == null) {
             problems.add("Failed to discover authoritative engine ID");
+         }
+
+         // make request
+         responseEvent = snmpob.set(pdu, targetob);
+         if (!keepOpen) {
+            snmpob.close();
          }
       } catch (IOException e) {
          if (!problems.isEmpty()) {
-            logger.error("Problems sending TIM to RSU {}: {}", targetob.getAddress(), problems.stream().collect(Collectors.joining(", ")));
+            logger.error("Problems sending TIM to RSU {}: {}", targetob.getAddress(), problems.stream().collect(Collectors.joining(" | ")));
          }
          throw new IOException("Failed to send SNMP request: " + e);
       }
