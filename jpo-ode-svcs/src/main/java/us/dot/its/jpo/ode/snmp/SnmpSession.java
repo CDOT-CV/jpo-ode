@@ -163,7 +163,7 @@ public class SnmpSession {
          if (responsePDU != null) {
             int errorStatus = responsePDU.getErrorStatus();
             if (errorStatus != 0) {
-               problems.add("Error status '" + errorStatus + "'' returned from RSU. Meaning: '" + responsePDU.getErrorStatusText() + "'");
+               problems.add("Error status '" + errorStatus + "' returned from RSU. Meaning: '" + responsePDU.getErrorStatusText() + "'. Response PDU: " + responsePDU);
             }
          }
          else {
@@ -172,7 +172,7 @@ public class SnmpSession {
       }
 
       if (!problems.isEmpty()) {
-         logger.error("Problems sending TIM to RSU {}: {}", targetob.getAddress(), problems.stream().collect(Collectors.joining(", ")));
+         logger.error("Problems sending TIM to RSU {}: {}", targetob.getAddress(), problems.stream().collect(Collectors.joining(" | ")));
       }
 
       return responseEvent;
