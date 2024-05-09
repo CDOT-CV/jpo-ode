@@ -17,6 +17,9 @@ package us.dot.its.jpo.ode.snmp;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -131,6 +134,8 @@ public class SnmpSession {
          startListen();
       }
 
+      List<String> problems = new ArrayList<>();
+
       // Try to send the SNMP request (synchronously)
       ResponseEvent responseEvent = null;
       try {
@@ -144,10 +149,30 @@ public class SnmpSession {
                snmpob.close();
             }
          } else {
-            logger.error("Unable to send TIM to RSU {}: authEngineID is null", targetob.getAddress());
+            problems.add("Failed to discover authoritative engine ID");
          }
       } catch (IOException e) {
+         if (!problems.isEmpty()) {
+            logger.error("Problems sending TIM to RSU {}: {}", targetob.getAddress(), problems.stream().collect(Collectors.joining(", ")));
+         }
          throw new IOException("Failed to send SNMP request: " + e);
+      }
+
+      if (responseEvent != null) {
+         PDU responsePDU = responseEvent.getResponse();
+         if (responsePDU != null) {
+            int errorStatus = responsePDU.getErrorStatus();
+            if (errorStatus != 0) {
+               problems.add("Error status '" + errorStatus + "'' returned from RSU. Meaning: '" + responsePDU.getErrorStatusText() + "'");
+            }
+         }
+         else {
+            problems.add("No response from RSU");
+         }
+      }
+
+      if (!problems.isEmpty()) {
+         logger.error("Problems sending TIM to RSU {}: {}", targetob.getAddress(), problems.stream().collect(Collectors.joining(", ")));
       }
 
       return responseEvent;
