@@ -142,6 +142,12 @@ public class TimDeleteController {
          String interpretation = interpretErrorCode(errorCodeReturnedByRSU, index);
          httpResponseBodyMessage = JsonUtils.jsonKeyValue(ERRSTR, givenReason + " => Interpretation: " + interpretation);
          logger.error("Failed to delete message at index {} for RSU {} due to error: {} => Interpretation: {}", index, rsuIpAddress, givenReason, interpretation);
+
+         if (errorCodeReturnedByRSU == 10) {
+            // Log the PDUs involved in the failed delete attempt
+            logger.debug("PDUs involved in failed delete attempt for " + rsuIpAddress
+            + " => Request PDU: " + rsuResponse.getRequest() + " Response PDU: " + rsuResponse.getResponse());
+         }
       }
 
       return ResponseEntity.status(httpResponseReturnCode).body(httpResponseBodyMessage);
