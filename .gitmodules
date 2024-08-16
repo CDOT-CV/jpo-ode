@@ -4,10 +4,6 @@
 [submodule "jpo-cvdp"]
 	path = jpo-cvdp
 	url = https://github.com/usdot-jpo-ode/jpo-cvdp.git
-[submodule "jpo-s3-deposit"]
-	path = jpo-s3-deposit
-	url = https://github.com/usdot-jpo-ode/jpo-s3-deposit.git
-	branch = master
 [submodule "jpo-security-svcs"]
 	path = jpo-security-svcs
 	url = https://github.com/usdot-jpo-ode/jpo-security-svcs.git
