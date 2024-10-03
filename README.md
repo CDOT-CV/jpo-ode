@@ -256,9 +256,10 @@ git submodule deinit -f . && git submodule update --recursive --init
 
 - Docker builds may fail if you are on a corporate network due to DNS resolution errors.
 [See here](https://github.com/usdot-jpo-ode/jpo-ode/wiki/Docker-fix-for-SSL-issues-due-to-corporate-network) for instructions to fix this.
-- In order for Docker to automatically read the environment variable file, you must rename it from `sample.env` to `.env`. **This file will contain private keys, do not put add it to version control.**
-
-- Copy jpo-utils/sample.env to jpo-utils/.env and fill in the variables as described in the [README](jpo-utils/README.md)
+- In order for Docker to automatically read the environment variable files, you must:
+  - Make a copy of [sample.env](./sample.env) rename it as `.env` **_and_**;
+  - Make a copy of [jpo-utils/sample.env](jpo-utils/sample.env), rename it as `.env` (keep this one in the `jpo-utils/` directory), and fill in the variables as described in the [jpo-utils README](jpo-utils/README.md)
+  - **The .env files will contain private keys, do not add them to version control.**
 
 #### Make:
 
