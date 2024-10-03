@@ -217,6 +217,12 @@ You may download the stable, default branch for ALL of these dependencies by usi
 git clone --recurse-submodules https://github.com/usdot-jpo-ode/jpo-ode.git
 ```
 
+If you have already cloned the repository, you can use the following command to download the stable, default branch for all dependencies by using the following command:
+
+```bash
+git submodule update --init --recursive
+```
+
 Once you have these repositories obtained, you are ready to build and deploy the application.
 
 ##### Downloading the source code from a non-default branch
@@ -281,12 +287,7 @@ git submodule deinit -f . && git submodule update --recursive --init
 [See here](https://github.com/usdot-jpo-ode/jpo-ode/wiki/Docker-fix-for-SSL-issues-due-to-corporate-network) for instructions to fix this.
 - In order for Docker to automatically read the environment variable file, you must rename it from `sample.env` to `.env`. **This file will contain private keys, do not put add it to version control.**
 
-Copy the following files from `jpo-ode` directory into your DOCKER_SHARED_VOLUME directory.
-- Copy jpo-ode/ppm.properties to ${DOCKER_SHARED_VOLUME}/config.properties. Open the newly copied `config.properties` file in a text editor and update the `metadata.broker.list=your.docker.host.ip:9092` line with your system's DOCKER_HOST_IP in place of the dummy `your.docker.host.ip` string.
-- Copy jpo-ode/adm.properties to ${DOCKER_SHARED_VOLUME}/adm.properties
-- Copy jpo-ode/aem.properties to ${DOCKER_SHARED_VOLUME}/aem.properties
-- Copy jpo-utils/sample.env to jpo-utils/.env
-  - Fill in the variables as described in the [README](jpo-utils/README.md)
+- Copy jpo-utils/sample.env to jpo-utils/.env and fill in the variables as described in the [README](jpo-utils/README.md)
 
 **Make:**
 
@@ -318,19 +319,38 @@ Makefile:14: *** "ERROR: jpo-utils Environment file `.env` not found in ".  Stop
 
 **Docker Compose:**
 
-Navigate to the root directory of the jpo-ode project and run the following command:
+Navigate to the root directory of the jpo-ode project and run:
+
+```bash
+make start
+```
+
+OR
 
 ```bash
 docker compose up --build -d
 docker compose ps
 ```
 
-To bring down the services and remove the running containers run the following command:
+To bring down the services and remove the running containers run:
+
+```bash
+make stop
+```
+
+OR
 
 ```bash
 docker compose down
 ```
+
 For a fresh restart, run:
+
+```bash
+make rebuild
+```
+
+OR
 
 ```bash
 docker compose down
@@ -341,8 +361,14 @@ docker compose ps
 To completely rebuild from scratch, run:
 
 ```bash
+make rebuild
+```
+
+OR
+
+```bash
 docker compose down
-docker compose rm -fvs
+docker compose rm -v
 docker compose up --build -d
 docker compose ps
 ```
@@ -360,6 +386,7 @@ To configure what services are started, use the `COMPOSE_PROFILE` environmental 
 Profiles are also available for each service name to individually specify a service to enable.
 
 #### asn1_codec Module (ASN.1 Encoder and Decoder)
+
 ODE requires the deployment of asn1_codec module. ODE's `docker-compose.yml` file is set up to build and deploy the module in a Docker container. If you wish to run `asn1_codec` module outside Docker (i.e. directly on the host machine), please refer to the documentation of `asn1_codec` module.
 
 The only requirement for deploying `asn1_codec` module on Docker is the setup of two environment variables `DOCKER_HOST_IP` and `DOCKER_SHARED_VOLUME`.
@@ -381,7 +408,7 @@ During the build process, edit the sample config file located in `config/example
 
 After a successful build, use the following commands to configure and run the PPM
 
-```
+```bash
 cd $BASE_PPM_DIR/jpo-cvdp/build
 $ ./bsmjson_privacy -c ../config/ppm.properties
 ```
@@ -510,11 +537,8 @@ Install the IDE of your choice:
 * IntelliJ: [https://www.jetbrains.com/idea/](https://www.jetbrains.com/idea/)
 * VSCode: [https://code.visualstudio.com/](https://code.visualstudio.com/)
 
-### Continuous Integration
-
-See the [GitHub Workflows](.github/workflows/) defined for this project.
-
 ### Dev Container Environment
+
 The project can be reopened inside of a dev container in VSCode. This environment should have all of the necessary dependencies to debug the ODE and its submodules. When attempting to run scripts in this environment, it may be necessary to make them executable with "chmod +x" first.
 
 [Back to top](#toc)
@@ -601,7 +625,7 @@ Code quality assurance is reported through the [usdot-jpo-ode SonarCloud organiz
 
 For regression and user acceptance testing, ODE provides an automated test harness. The test harness is provided in the [qa/test-harness](ga/test-harness) directory under jpo-ode root folder. The test harness uses the ODE [Validator Library](https://github.com/usdot-jpo-ode/ode-output-validator-library) repository as a submodule.
 
-For more information, please see: https://github.com/usdot-jpo-ode/jpo-ode/wiki/Using-the-ODE-test-harness
+For more information, please see: <https://github.com/usdot-jpo-ode/jpo-ode/wiki/Using-the-ODE-test-harness>
 
 ### Troubleshooting
 
@@ -677,16 +701,19 @@ See [the Kubernetes document](./docs/Kubernetes.md) for more details about this.
 <a name="sonar-token-configuration"></a>
 
 ## 12. Sonar Token Configuration
+
 Generating and Using Tokens
 Users can generate tokens that can be used to run analyses or invoke web services without access to the user's actual credentials.
 
 USDOT-JPO-ODE SonarCloud Organization : https://sonarcloud.io/organizations/usdot-jpo-ode-1/
 
 ### Generating a token
+
 You can generate new tokens at User > My Account > Security.
 The form at the bottom of the page allows you to generate new tokens. Once you click the Generate button, you will see the token value. Copy it immediately; once you dismiss the notification you will not be able to retrieve it.
 
 ### Using a token
+
 SonarScanners running in GitHub Actions can automatically detect branches and pull requests being built so you don't need to specifically pass them as parameters to the scanner.
 
 **<ins>To analyze your projects with GitHub Actions, you need to: </ins>**
@@ -705,6 +732,7 @@ Configure your workflow YAML file as below:
 Commit and push your code to start the analysis.
 
 ### Revoking a token
+
 You can revoke an existing token at User > My Account > Security by clicking the Revoke button next to the token.
 
 [Back to top](#toc)
@@ -809,7 +837,5 @@ Finally, set the environment variables:
 
 * PACKAGE_READ_USERNAME - User name with read access to the repositories containing the packages.
 * PACKAGE_READ_TOKEN - Personal access token with `read:packages` scope.
-
-
 
 [Back to top](#toc)
