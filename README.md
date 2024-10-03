@@ -24,51 +24,42 @@ All stakeholders are invited to provide input to these documents. To provide fee
 
 ---
 
-<a name="toc"></a>
-
-**Release Notes**
+## Release Notes
 
 The current version and release history of the JPO-ODE: [ODE Release Notes](<docs/Release_notes.md>)
 
-**Table of Contents**
+## Table of Contents
 
-1. [Usage Example](#usage-example)
-1. [Configuration](#configuration)
-1. [Installation](#installation)
-1. [File Manifest](#file-manifest)
-1. [Development Setup](#development-setup)
-1. [Release History](#release-history)
-1. [Contact Information](#contact-information)
-1. [Contributing](#contributing)
-1. [Credits and Acknowledgement](#credits-and-acknowledgement)
-1. [Code.gov Registration Info](#codegov-registration-info)
-1. [Kubernetes](#kubernetes)
-1. [Sonar Cloud](#sonar-token-configuration) ([Documentation](https://sonarcloud.io/documentation/user-guide/user-token/))
-1. [SNMP](#snmp)
-1. [GitHub Artifact Usage](#githhub-artifact-usage)
-
-<!--
-#########################################
-############# Usage Example #############
-#########################################
- -->
-
-<a name="usage-example"></a>
+1. [Usage Example](#1-usage-example)
+1. [Configuration](#2-configuration)
+1. [Installation](#3-installation)
+1. [File Manifest](#4-file-manifest)
+1. [Development Setup](#5-development-setup)
+1. [Release History](#6-release-history)
+1. [Contact Information](#7-contact-information)
+1. [Contributing](#8-contributing)
+1. [Credits and Acknowledgement](#9-credits-and-acknowledgement)
+1. [Code.gov Registration Info](#10-codegov-registration-info)
+1. [Kubernetes](#11-kubernetes)
+1. [Sonar Cloud](#12-sonar-token-configuration) ([Documentation](https://sonarcloud.io/documentation/user-guide/user-token/))
+1. [SNMP](#13-snmp)
+1. [GitHub Artifact Usage](#14-github-artifact-usage)
 
 ## 1. Usage Example
 
 Once the ODE is deployed and running locally, you may access the ODE's demonstration console by opening your browser and navigating to  `http://localhost:8080`. This portal can only be used to decode a subset of the supported message types: BSM and TIM messages. To decode messages such as MAP, SPaT, SRM and SSM, the ODE UDP ports must be utilized. The following sections will describe how to utilize both methods.
 
-<b>For testing BSM and TIM decoding only:</b>
-1.  Press the `Connect` button to connect to the ODE WebSocket service.
-2.  Press `Select File` button to select an OBU log file containing BSMs and/or TIM messages as specified by the WYDOT CV Pilot project. See below documents for details:
+**For testing BSM and TIM decoding only:**
+
+1. Press the `Connect` button to connect to the ODE WebSocket service.
+2. Press `Select File` button to select an OBU log file containing BSMs and/or TIM messages as specified by the WYDOT CV Pilot project. See below documents for details:
     - [Wyoming CV Pilot Log File Design](data/Wyoming_CV_Pilot_Log_File_Design.docx)
     - [WYDOT Log Records](data/wydotLogRecords.h)
-3.  Press `Upload` button to upload the file to ODE.
+3. Press `Upload` button to upload the file to ODE.
 
 Upload records within the files can be embedding BSM, MAP and/or TIM messages wrapped in J2735 MessageFrame and ASN.1 UPER encoded, wrapped in IEEE 1609.2 envelope and ASN.1 COER encoded binary format. Log processing of files that contain messages with WSMP headers within the ASN.1 UPER encoded messages is supported but the header will be removed before processing. Please review the files in the [data](data) folder for samples of each supported type. By uploading a valid data file, you will be able to observe the decoded messages contained within the file appear in the web UI page while connected to the WebSocket interface.
 
-Another way data can be uploaded to the ODE is through copying the file to the location specified by the `ode.uploadLocationRoot/ode.uploadLocationObuLog`property. If not specified,  Default locations would be `uploads/bsmlog`sub-directory off of the location where ODE is launched. In a standard Docker deployment, it is recommended to attach a storage directory from the machine that the ODE launched on as a volume. This way OBUs can log offload to a standard machine and the machine can handle the authorized_keys for SSH connections. This is how this repository's docker-compose is setup with using the uploads directory as the mounted volume. In a Kubernetes deployment this is not possible, so the ODE has been equipped with an SSH server of its own that can be exposed through port 22. The authorized_keys can be attached as a volume and it is recommended to attach some form of NFS persistent volume as a substitute for the pod's '/home/uploads/backup' directory. (See the [Kubernetes documentation](/docs/k8s-demo/templates/jpoode_ode.yaml) on an example on how to do this) However, it is not recommended to use this SSH server in a local Docker environment and thereby the port 22 will be disabled by default.
+Another way data can be uploaded to the ODE is through copying the file to the location specified by the `ode.uploadLocationRoot/ode.uploadLocationObuLog` property. If not specified,  Default locations would be `uploads/bsmlog` sub-directory off of the location where ODE is launched. In a standard Docker deployment, it is recommended to attach a storage directory from the machine that the ODE launched on as a volume. This way OBUs can log offload to a standard machine and the machine can handle the authorized_keys for SSH connections. This is how this repository's docker-compose is setup with using the uploads directory as the mounted volume. In a Kubernetes deployment this is not possible, so the ODE has been equipped with an SSH server of its own that can be exposed through port 22. The authorized_keys can be attached as a volume and it is recommended to attach some form of NFS persistent volume as a substitute for the pod's '/home/uploads/backup' directory. (See the [Kubernetes documentation](/docs/k8s-demo/templates/jpoode_ode.yaml) on an example on how to do this) However, it is not recommended to use this SSH server in a local Docker environment and thereby the port 22 will be disabled by default.
 
 The result of uploading and decoding of messages will be displayed on the UI screen.
 
@@ -80,7 +71,7 @@ Notice that the empty fields in the J2735 message are represented by a `null` va
 
 With the PPM module running, all filtered BSMs that are uploaded through the web interface will be captured and processed. You will see an output of both submitted BSM and processed data unless the entire record was filtered out.
 
-<b>For testing decoding with all supported ODE message types:</b>
+**For testing decoding with all supported ODE message types:**
 
 To test decoding all supported ODE messages, the UDP endpoints must be utilized. These endpoints specifically take hex ASN.1 UPER encoded message data. These messages are allowed to have headers but do not need to. The headers are trimmed out currently once the UDP receiver receives the message so this data will not affect the output.
 
@@ -104,28 +95,18 @@ Supported message types:
   <img src="./docs/images/readme/figure3.png" width="80%" height="50%">
 </p>
 
-[Back to top](#toc)
-
-
-
-<!--
-#########################################
-############# Configuration #############
-#########################################
- -->
-
-<a name="configuration"></a>
+[Back to top](#table-of-contents)
 
 ## 2. Configuration
 
 ### System Requirements
 
--  Minimum RAM: 16 GB
--  Minimum storage space: 100 GB
--  Supported operating systems:
-   -  Ubuntu 22.04 Linux (Recommended)
-   -  Windows 10/11 Professional (Professional version required for Docker virtualization)
-   -  OSX 13
+- Minimum RAM: 16 GB
+- Minimum storage space: 100 GB
+- Supported operating systems:
+  - Ubuntu 22.04 Linux (Recommended)
+  - Windows 10/11 Professional (Professional version required for Docker virtualization)
+  - OSX 13
 
 The ODE software can run on most standard Windows, Mac, or Linux based computers with
 Pentium core processors. Performance of the software will be based on the computing power and available RAM in
@@ -173,23 +154,13 @@ ODE configuration can be customized for every deployment environment using envir
 
 You must rename `sample.env` to `.env` for Docker to automatically read the file. This file will contain AWS access keys and other private information. Do not push this file to source control.
 
-[Back to top](#toc)
-
-
-
-<!--
-########################################
-############# Installation #############
-########################################
- -->
-
-<a name="installation"></a>
+[Back to top](#table-of-contents)
 
 ## 3. Installation
 
 The following instructions describe the minimal procedure to fetch, build, and run the main ODE application. If you want to use the privacy protection module and/or S3 depositors, see the [User Guide](docs/UserGuide.md) for more detailed information. Additionally, different build processes are covered at the bottom of this section.
 
-#### Step 0 - For Windows Users Only
+### Step 0 - For Windows Users Only
 
 If running on Windows, please make sure that your global git config is set up to not convert end-of-line characters during checkout.
 
@@ -199,7 +170,7 @@ Disable `git core.autocrlf` (One Time Only)
 git config --global core.autocrlf false
 ```
 
-#### Step 1 - Download the Source Code
+### Step 1 - Download the Source Code
 
 The ODE software system consists of the following modules hosted in separate Github repositories:
 
@@ -225,7 +196,7 @@ git submodule update --init --recursive
 
 Once you have these repositories obtained, you are ready to build and deploy the application.
 
-##### Downloading the source code from a non-default branch
+#### Downloading the source code from a non-default branch
 
 <details><summary>(Advanced) Downloading the source code from a non-default branch</summary>
 <p>
@@ -279,9 +250,9 @@ git submodule deinit -f . && git submodule update --recursive --init
 </p>
 </details>
 
-#### Step 2 - Build and run the application
+### Step 2 - Build and run the application
 
-**Notes:**
+#### Notes:
 
 - Docker builds may fail if you are on a corporate network due to DNS resolution errors.
 [See here](https://github.com/usdot-jpo-ode/jpo-ode/wiki/Docker-fix-for-SSL-issues-due-to-corporate-network) for instructions to fix this.
@@ -289,7 +260,7 @@ git submodule deinit -f . && git submodule update --recursive --init
 
 - Copy jpo-utils/sample.env to jpo-utils/.env and fill in the variables as described in the [README](jpo-utils/README.md)
 
-**Make:**
+#### Make:
 
 Navigate to the root directory of the jpo-ode project and run the following command:
 
@@ -317,15 +288,15 @@ $ make start
 Makefile:14: *** "ERROR: jpo-utils Environment file `.env` not found in ".  Stop.
 ```
 
-**Docker Compose:**
+#### Docker Compose:
 
-Navigate to the root directory of the jpo-ode project and run:
+To run the services navigate to the root directory of the jpo-ode project and run:
 
 ```bash
 make start
 ```
 
-OR
+**OR**
 
 ```bash
 docker compose up --build -d
@@ -338,7 +309,7 @@ To bring down the services and remove the running containers run:
 make stop
 ```
 
-OR
+**OR**
 
 ```bash
 docker compose down
@@ -350,7 +321,7 @@ For a fresh restart, run:
 make rebuild
 ```
 
-OR
+**OR**
 
 ```bash
 docker compose down
@@ -358,13 +329,13 @@ docker compose up --build -d
 docker compose ps
 ```
 
-To completely rebuild from scratch, run:
+To rebuild from scratch, run:
 
 ```bash
 make rebuild
 ```
 
-OR
+**OR**
 
 ```bash
 docker compose down
@@ -374,6 +345,7 @@ docker compose ps
 ```
 
 Check the deployment by running `docker compose ps`. You can start and stop containers using `docker compose start` and `docker compose stop` commands.
+
 If using the multi-broker docker compose file, you can change the scaling by running `docker compose scale <container>=n` where container is the container you would like to scale and n is the number of instances. For example, `docker compose scale kafka=3`.
 
 To configure what services are started, use the `COMPOSE_PROFILE` environmental variable and set a comma separated string of profiles you want to start up. This project also supports all `COMPOSE_PROFILE` values implemented in the [jpo-utils](jpo-utils/README.md) `docker-compose.yml`. The following are the available profiles that the ODE is currently configured to use along with the services they will enable:
@@ -395,12 +367,12 @@ The only requirement for deploying `asn1_codec` module on Docker is the setup of
 
 To run the ODE with PPM module, you must install and start the PPM service. PPM service communicates with other services through Kafka Topics. PPM will read from the specified "Raw BSM" topic and publish the result to the specified "Filtered Bsm" topic. These topic names are specified by the following ODE and PPM properties:
 
- - ODE properties for communications with PPM (set in application.properties)
-	 - ode.kafkaTopicOdeBsmJson  (default = topic.OdeBsmJson)
-	 - ode.kafkaTopicFilteredOdeBsmJson (default = topic.FilteredOdeBsmJson)
- - PPM properties for communications with ODE (set in yourconfig.properties)
-	 - privacy.topic.consumer (default = j2735BsmRawJson)
-	 - privacy.topic.producer (default = j2735BsmFilteredJson)
+- ODE properties for communications with PPM (set in application.properties)
+  - ode.kafkaTopicOdeBsmJson  (default = topic.OdeBsmJson)
+  - ode.kafkaTopicFilteredOdeBsmJson (default = topic.FilteredOdeBsmJson)
+- PPM properties for communications with ODE (set in yourconfig.properties)
+  - privacy.topic.consumer (default = j2735BsmRawJson)
+  - privacy.topic.producer (default = j2735BsmFilteredJson)
 
 Follow the instructions [here](https://github.com/usdot-jpo-ode/jpo-cvdp/blob/master/docs/installation.md) to install and build the PPM service.
 
@@ -432,18 +404,15 @@ Rather than using a local kafka instance, the ODE can utilize an instance of kaf
 In order to utilize Confluent Cloud:
 
 - DOCKER_HOST_IP must be set to the bootstrap server address (excluding the port)
-
 - KAFKA_TYPE must be set to "CONFLUENT"
-
 - CONFLUENT_KEY must be set to the API key being utilized for CC
-
 - CONFLUENT_SECRET must be set to the API secret being utilized for CC
 
 #### Note
 
 This has only been tested with Confluent Cloud but technically all SASL authenticated Kafka brokers can be reached using this method.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 # MongoDB Integration
 
@@ -461,19 +430,11 @@ The configuration that defines this is in the jpo-utils submodule [here](jpo-uti
 
 For further documentation on configuring the MongoDB Kafka Connect image refer [to this readme](jpo-utils/README.md).
 
-## Note
+**Note** 
 
 Kafka connect is being used for MongoDB in this implementation but it can interact with many types of databases, here is further documentation for [kafka connect](https://docs.confluent.io/platform/current/connect/index.html)
 
-[Back to top](#toc)
-
-<!--
-#########################################
-############# File Manifest #############
-#########################################
- -->
-
-<a name="file-manifest"></a>
+[Back to top](#table-of-contents)
 
 ## 4. File Manifest
 
@@ -514,17 +475,7 @@ This section outlines the software technology stacks of the ODE.
 - [Stomp Websocket](http://jmesnil.net/stomp-websocket)
 - [SockJS](https://github.com/sockjs)
 
-[Back to top](#toc)
-
-
-
-<!--
-#############################################
-############# Development Setup #############
-#############################################
- -->
-
-<a name="development-setup"></a>
+[Back to top](#table-of-contents)
 
 ## 5. Development Setup
 
@@ -532,48 +483,28 @@ This section outlines the software technology stacks of the ODE.
 
 Install the IDE of your choice:
 
-* Eclipse: [https://eclipse.org/](https://eclipse.org/)
-* STS: [https://spring.io/tools/sts/all](https://spring.io/tools/sts/all)
-* IntelliJ: [https://www.jetbrains.com/idea/](https://www.jetbrains.com/idea/)
-* VSCode: [https://code.visualstudio.com/](https://code.visualstudio.com/)
+- Eclipse: [https://eclipse.org/](https://eclipse.org/)
+- STS: [https://spring.io/tools/sts/all](https://spring.io/tools/sts/all)
+- IntelliJ: [https://www.jetbrains.com/idea/](https://www.jetbrains.com/idea/)
+- VSCode: [https://code.visualstudio.com/](https://code.visualstudio.com/)
 
 ### Dev Container Environment
 
 The project can be reopened inside of a dev container in VSCode. This environment should have all of the necessary dependencies to debug the ODE and its submodules. When attempting to run scripts in this environment, it may be necessary to make them executable with "chmod +x" first.
 
-[Back to top](#toc)
-
-
-
-<!--
-###########################################
-############# Release History #############
-###########################################
- -->
-
-<a name="release-history"></a>
+[Back to top](#table-of-contents)
 
 ## 6. Release History
 
 [Release Notes](ReleaseNotes.md)
 
-[Back to top](#toc)
-
-
-
-<!--
-###############################################
-############# Contact Information #############
-###############################################
- -->
-
-<a name="contact-information"></a>
+[Back to top](#table-of-contents)
 
 ## 7. Contact Information
 
 Contact the developers of the ODE application by submitting a [Github issue](https://github.com/usdot-jpo-ode/jpo-ode/issues).
 
-Contact the ODE management representative using the information in the [Code.gov Registration Info](#codegov-registration-info) section.
+Contact the ODE management representative using the information in the [Code.gov Registration Info](#10-codegov-registration-info) section.
 
 ### License information
 
@@ -584,17 +515,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied. See the License for the specific language governing
 permissions and limitations under the [License](http://www.apache.org/licenses/LICENSE-2.0).
 
-[Back to top](#toc)
-
-
-
-<!--
-########################################
-############# Contributing #############
-########################################
- -->
-
-<a name="contributing"></a>
+[Back to top](#table-of-contents)
 
 ## 8. Contributing
 
@@ -603,17 +524,17 @@ Please read our [contributing guide](docs/contributing_guide.md) to learn about 
 ### Source Repositories - GitHub
 
 - Main repository on GitHub (public)
-	- <https://github.com/usdot-jpo-ode/jpo-ode>
+  - <https://github.com/usdot-jpo-ode/jpo-ode>
 - Data Privacy Module on Github (public)
-	- <https://github.com/usdot-jpo-ode/jpo-cvdp>
+  - <https://github.com/usdot-jpo-ode/jpo-cvdp>
 - Utils Module on Github (public)
-	- <https://github.com/usdot-jpo-ode/jpo-utils>
+  - <https://github.com/usdot-jpo-ode/jpo-utils>
 - Security services repository on GitHub (public)
   - <https://github.com/usdot-jpo-ode/jpo-security-svcs>
 - SDW Depositor Module on GitHub (public)
   - <https://github.com/usdot-jpo-ode/jpo-sdw-depositor>
 - ODE Output Validatory Library (public)
-  - https://github.com/usdot-jpo-ode/ode-output-validator-library
+  - <https://github.com/usdot-jpo-ode/ode-output-validator-library>
 
 ### Static Code Analysis
 
@@ -633,33 +554,13 @@ Please read our [Wiki](https://github.com/usdot-jpo-ode/jpo-ode/wiki) for more i
 
 Application Support for the ODE currently managed via GitHub's native issue tracker: <https://github.com/usdot-jpo-ode/jpo-ode/issues>.
 
-[Back to top](#toc)
-
-
-
-<!--
-#######################################################
-############# Credits and Acknowledgement #############
-#######################################################
- -->
-
-<a name="credits-and-acknowledgement"></a>
+[Back to top](#table-of-contents)
 
 ## 9. Credits and Acknowledgement
 
 [Attribution](ATTRIBUTION.md)
 
-[Back to top](#toc)
-
-
-
-<!--
-######################################################
-############# Code.gov Registration Info #############
-######################################################
- -->
-
-<a name="codegov-registration-info"></a>
+[Back to top](#table-of-contents)
 
 ## 10. Code.gov Registration Info
 
@@ -677,35 +578,19 @@ Contact Name: James Lieu
 
 Contact Phone: (202) 366-3000
 
-
-<!--
-#####################################################
-############# Kubernetes ############################
-#####################################################
- -->
-<a name="kubernetes"></a>
-
 ## 11. Kubernetes
+
 The ODE can be run in a Kubernetes (k8s) environment.
 See [the Kubernetes document](./docs/Kubernetes.md) for more details about this.
 
-[Back to top](#toc)
-
-
-<!--
-#####################################################
-############# Sonar Token Configuration #############
-#####################################################
- -->
-
-<a name="sonar-token-configuration"></a>
+[Back to top](#table-of-contents)
 
 ## 12. Sonar Token Configuration
 
 Generating and Using Tokens
 Users can generate tokens that can be used to run analyses or invoke web services without access to the user's actual credentials.
 
-USDOT-JPO-ODE SonarCloud Organization : https://sonarcloud.io/organizations/usdot-jpo-ode-1/
+USDOT-JPO-ODE SonarCloud Organization : <https://sonarcloud.io/organizations/usdot-jpo-ode-1/>
 
 ### Generating a token
 
@@ -716,9 +601,9 @@ The form at the bottom of the page allows you to generate new tokens. Once you c
 
 SonarScanners running in GitHub Actions can automatically detect branches and pull requests being built so you don't need to specifically pass them as parameters to the scanner.
 
-**<ins>To analyze your projects with GitHub Actions, you need to: </ins>**
+**_To analyze your projects with GitHub Actions, you need to:_**
 
-**<ins> Creating your GitHub secrets </ins>**
+**_Creating your GitHub secrets_**
 You can create repository secrets from your GitHub repository as below:
 
 Sonar Token: Generate a SonarQube token and, in GitHub, create a new repository secret in GitHub with SONAR_TOKEN as the Name and the token you generated as the Value.
@@ -726,8 +611,8 @@ Sonar Host URL: In GitHub, create a new repository secret with SONAR_HOST_URL as
 
 Configure your workflow YAML file as below:
 
-	1. Add GitHub Secrets in ci.yml workflow as SONAR_TOKEN: ${ secrets.SONAR_TOKEN }
- 	2. Update the sonar properties in Sonar scan step (- name: Run Sonar) with new sonar project properties.
+ 1. Add GitHub Secrets in ci.yml workflow as SONAR_TOKEN: ${ secrets.SONAR_TOKEN }
+ 2. Update the sonar properties in Sonar scan step (- name: Run Sonar) with new sonar project properties.
   
 Commit and push your code to start the analysis.
 
@@ -735,35 +620,27 @@ Commit and push your code to start the analysis.
 
 You can revoke an existing token at User > My Account > Security by clicking the Revoke button next to the token.
 
-[Back to top](#toc)
-
-
-<!--
-#########################################
-############# SNMP ######################
-#########################################
- -->
-
-<a name="snmp"></a>
+[Back to top](#table-of-contents)
 
 ## 13. SNMP
+
 The ODE is capable of communicating with RSUs to:
+
 - Query TIMs
 - Deposit TIMs
 - Delete TIMs
 
-By default, the ODE will not sign TIMs that are delivered to RSUs. This can be changed by setting the value of the DATA_SIGNING_ENABLED_RSU environment variable found in the provided sample.env file. Additionally, signing of SDX-delivery TIMs can be configured by setting the value of the environment variable DATA_SIGNING_ENABLED_SDW found in sample.env. 
+By default, the ODE will not sign TIMs that are delivered to RSUs. This can be changed by setting the value of the DATA_SIGNING_ENABLED_RSU environment variable found in the provided sample.env file. Additionally, signing of SDX-delivery TIMs can be configured by setting the value of the environment variable DATA_SIGNING_ENABLED_SDW found in sample.env.
 
 The following SNMP protocols are supported for communication with RSUs:
+
 - DSRC 4.1 (defined in 'Dedicated Short-Range Communications Roadside Unit Specifications')
 - NTCIP1218 (defined in 'National Transportation Communications for ITS Protocol')
 
-If no protocol is specified in a request containing RSUs, the ODE will communicate with RSUs via the NTCIP1218 protocol by default. 
-This can be changed by setting the value of the DEFAULT_SNMP_PROTOCOL environment variable. 
+If no protocol is specified in a request containing RSUs, the ODE will communicate with RSUs via the NTCIP1218 protocol by default.
+This can be changed by setting the value of the DEFAULT_SNMP_PROTOCOL environment variable.
 
 Additionally, the ODE supports the execution of PDM operations on RSUs. PDM operations are not defined in NTCIP1218, but are defined DSRC 4.1.
-
-<a name="githhub-artifact-usage"></a>
 
 ## 14. GitHub Artifact Usage
 
@@ -835,7 +712,7 @@ And add the following line to the `dependencies` element in `build.gradle`
 
 Finally, set the environment variables:
 
-* PACKAGE_READ_USERNAME - User name with read access to the repositories containing the packages.
-* PACKAGE_READ_TOKEN - Personal access token with `read:packages` scope.
+- PACKAGE_READ_USERNAME - User name with read access to the repositories containing the packages.
+- PACKAGE_READ_TOKEN - Personal access token with `read:packages` scope.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
