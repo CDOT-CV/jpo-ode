@@ -30,22 +30,22 @@ All stakeholders are invited to provide input to these documents. To provide fee
 
 The current version and release history of the JPO-ODE: [ODE Release Notes](<docs/Release_notes.md>)
 
-**Table of Contents**
+## Table of Contents
 
-1. [Usage Example](#usage-example)
-1. [Configuration](#configuration)
-1. [Installation](#installation)
-1. [File Manifest](#file-manifest)
-1. [Development Setup](#development-setup)
-1. [Release History](#release-history)
-1. [Contact Information](#contact-information)
-1. [Contributing](#contributing)
-1. [Credits and Acknowledgement](#credits-and-acknowledgement)
-1. [Code.gov Registration Info](#codegov-registration-info)
-1. [Kubernetes](#kubernetes)
-1. [Sonar Cloud](#sonar-token-configuration) ([Documentation](https://sonarcloud.io/documentation/user-guide/user-token/))
-1. [SNMP](#snmp)
-1. [GitHub Artifact Usage](#githhub-artifact-usage)
+1. [Usage Example](#1-usage-example)
+1. [Configuration](#2-configuration)
+1. [Installation](#3-installation)
+1. [File Manifest](#4-file-manifest)
+1. [Development Setup](#5-development-setup)
+1. [Release History](#6-release-history)
+1. [Contact Information](#7-contact-information)
+1. [Contributing](#8-contributing)
+1. [Credits and Acknowledgement](#9-credits-and-acknowledgement)
+1. [Code.gov Registration Info](#10-codegov-registration-info)
+1. [Kubernetes](#11-kubernetes)
+1. [Sonar Cloud](#12-sonar-token-configuration) ([Documentation](https://sonarcloud.io/documentation/user-guide/user-token/))
+1. [SNMP](#13-snmp)
+1. [GitHub Artifact Usage](#14-gitHub-artifact-usage)
 
 <!--
 #########################################
@@ -104,7 +104,7 @@ Supported message types:
   <img src="./docs/images/readme/figure3.png" width="80%" height="50%">
 </p>
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -173,7 +173,7 @@ ODE configuration can be customized for every deployment environment using envir
 
 You must rename `sample.env` to `.env` for Docker to automatically read the file. This file will contain AWS access keys and other private information. Do not push this file to source control.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -444,7 +444,7 @@ In order to utilize Confluent Cloud:
 
 This has only been tested with Confluent Cloud but technically all SASL authenticated Kafka brokers can be reached using this method.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 # MongoDB Integration
 
@@ -466,7 +466,7 @@ For further documentation on configuring the MongoDB Kafka Connect image refer [
 
 Kafka connect is being used for MongoDB in this implementation but it can interact with many types of databases, here is further documentation for [kafka connect](https://docs.confluent.io/platform/current/connect/index.html)
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 <!--
 #########################################
@@ -515,7 +515,7 @@ This section outlines the software technology stacks of the ODE.
 - [Stomp Websocket](http://jmesnil.net/stomp-websocket)
 - [SockJS](https://github.com/sockjs)
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -542,7 +542,7 @@ Install the IDE of your choice:
 
 The project can be reopened inside of a dev container in VSCode. This environment should have all of the necessary dependencies to debug the ODE and its submodules. When attempting to run scripts in this environment, it may be necessary to make them executable with "chmod +x" first.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -558,7 +558,7 @@ The project can be reopened inside of a dev container in VSCode. This environmen
 
 [Release Notes](ReleaseNotes.md)
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -585,7 +585,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either expressed or implied. See the License for the specific language governing
 permissions and limitations under the [License](http://www.apache.org/licenses/LICENSE-2.0).
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -634,7 +634,7 @@ Please read our [Wiki](https://github.com/usdot-jpo-ode/jpo-ode/wiki) for more i
 
 Application Support for the ODE currently managed via GitHub's native issue tracker: <https://github.com/usdot-jpo-ode/jpo-ode/issues>.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -650,7 +650,7 @@ Application Support for the ODE currently managed via GitHub's native issue trac
 
 [Attribution](ATTRIBUTION.md)
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 
@@ -690,7 +690,7 @@ Contact Phone: (202) 366-3000
 The ODE can be run in a Kubernetes (k8s) environment.
 See [the Kubernetes document](./docs/Kubernetes.md) for more details about this.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 <!--
@@ -736,7 +736,7 @@ Commit and push your code to start the analysis.
 
 You can revoke an existing token at User > My Account > Security by clicking the Revoke button next to the token.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
 
 
 <!--
@@ -839,4 +839,4 @@ Finally, set the environment variables:
 * PACKAGE_READ_USERNAME - User name with read access to the repositories containing the packages.
 * PACKAGE_READ_TOKEN - Personal access token with `read:packages` scope.
 
-[Back to top](#toc)
+[Back to top](#table-of-contents)
