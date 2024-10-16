@@ -25,7 +25,6 @@
     <module>jpo-ode-plugins</module>
     <module>jpo-ode-core</module>
     <module>jpo-ode-svcs</module>
-    <module>aggregate-reports</module>
   </modules>
 
   <repositories>
@@ -122,13 +121,6 @@
           <groupId>org.jacoco</groupId>
           <artifactId>jacoco-maven-plugin</artifactId>
           <version>${jacoco.version}</version>
-          <executions>
-            <execution>
-              <goals>
-                <goal>prepare-agent</goal>
-              </goals>
-            </execution>
-          </executions>
         </plugin>
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
@@ -155,8 +147,11 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.2.5</version>
           <configuration>
-            <argLine>-javaagent:${user.home}/.m2/repository/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
-              -Xshare:off</argLine>
+            <argLine>
+              -javaagent:"${settings.localRepository}"/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+              -Xshare:off
+              -Dcoverage-output=html
+            </argLine>
             <!-- <testFailureIgnore>true</testFailureIgnore> -->
             <systemPropertyVariables>
               <loader.path>${loader.path}</loader.path>
