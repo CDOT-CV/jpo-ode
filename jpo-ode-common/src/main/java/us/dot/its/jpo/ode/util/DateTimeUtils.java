@@ -57,8 +57,8 @@ public class DateTimeUtils {
       return ZonedDateTime.ofInstant(Instant.ofEpochMilli(epockMillis), ZoneId.of("UTC"));
    }
 
-   public static boolean
-         isBetweenTimesInclusive(ZonedDateTime dateTime, ZonedDateTime startDateTime, ZonedDateTime endDateTime) {
+   public static boolean isBetweenTimesInclusive(ZonedDateTime dateTime, ZonedDateTime startDateTime,
+         ZonedDateTime endDateTime) {
 
       if (dateTime == null)
          return true;

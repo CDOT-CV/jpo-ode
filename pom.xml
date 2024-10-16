@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -23,10 +25,12 @@
     <module>jpo-ode-plugins</module>
     <module>jpo-ode-core</module>
     <module>jpo-ode-svcs</module>
+    <module>aggregate-reports</module>
   </modules>
 
   <repositories>
-    <!-- <repository> <id>cnsi-ode-repo</id> <url>http://dropbox.cnsi.com/nexus/content/repositories/ODE/</url> 
+    <!-- <repository> <id>cnsi-ode-repo</id>
+    <url>http://dropbox.cnsi.com/nexus/content/repositories/ODE/</url> 
       </repository> -->
   </repositories>
 
@@ -54,7 +58,6 @@
   </properties>
 
   <dependencies>
-
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter</artifactId>
@@ -88,10 +91,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-api</artifactId>
-        <version>5.9.3</version>
-        <scope>test</scope>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.9.3</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -115,6 +118,18 @@
   <build>
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.jacoco</groupId>
+          <artifactId>jacoco-maven-plugin</artifactId>
+          <version>${jacoco.version}</version>
+          <executions>
+            <execution>
+              <goals>
+                <goal>prepare-agent</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
@@ -140,7 +155,8 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.2.5</version>
           <configuration>
-            <argLine>-javaagent:${user.home}/.m2/repository/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar -Xshare:off</argLine>
+            <argLine>-javaagent:${user.home}/.m2/repository/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+              -Xshare:off</argLine>
             <!-- <testFailureIgnore>true</testFailureIgnore> -->
             <systemPropertyVariables>
               <loader.path>${loader.path}</loader.path>
@@ -152,7 +168,7 @@
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <version>3.2.5</version>
-          </dependency>
+            </dependency>
           </dependencies>
         </plugin>
         <plugin>
