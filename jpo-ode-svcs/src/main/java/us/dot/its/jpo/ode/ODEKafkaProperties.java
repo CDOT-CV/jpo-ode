@@ -38,7 +38,6 @@ public class ODEKafkaProperties {
     }
 
     private void initializeHostId() {
-
         String hostname;
         try {
             hostname = InetAddress.getLocalHost().getHostName();
