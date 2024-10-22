@@ -124,7 +124,6 @@ public class OdePropertiesTest {
             testOdeProperties.setTrustRetries(testTrustRetries);
             testOdeProperties.setKafkaTopicOdeBsmPojo(testKafkaTopicOdeBsmPojo);
             testOdeProperties.setKafkaTopicOdeBsmJson(testKafkaTopicOdeBsmJson);
-            testOdeProperties.setVersion(testVersion);
             testOdeProperties.setImportProcessorBufferSize(testImportProcessorBufferSize);
 
             testOdeProperties.setKafkaTopicAsn1DecoderInput(testKafkaTopicAsn1DecoderInput);
@@ -172,7 +171,6 @@ public class OdePropertiesTest {
                         testOdeProperties.getKafkaTopicOdeBsmPojo());
             assertEquals("Incorrect testKafkaTopicOdeBsmJson", testKafkaTopicOdeBsmJson,
                         testOdeProperties.getKafkaTopicOdeBsmJson());
-            assertEquals("Incorrect testVersion", testVersion, testOdeProperties.getVersion());
             assertEquals("Incorrect testImportProcessorBufferSize", testImportProcessorBufferSize,
                         testOdeProperties.getImportProcessorBufferSize());
 

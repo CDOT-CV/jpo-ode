@@ -25,6 +25,7 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.EnvironmentAware;
@@ -52,6 +53,8 @@ public class OdeProperties implements EnvironmentAware {
    private String version;
    public static final int OUTPUT_SCHEMA_VERSION = 7;
    private String pluginsLocations = "plugins";
+   @Value("${ode.host-ip:localhost}")
+   private String hostIP;
 
    private Boolean verboseJson = false;
    private int importProcessorBufferSize = OdePlugin.INPUT_STREAM_BUFFER_SIZE;
@@ -172,37 +175,27 @@ public class OdeProperties implements EnvironmentAware {
 
    private static final byte[] JPO_ODE_GROUP_ID = "jode".getBytes();
 
-//   @Autowired
-//   BuildProperties buildProperties;
+   @Autowired
+   BuildProperties buildProperties;
 
    @PostConstruct
    void initialize() {
-//      setVersion(buildProperties.getVersion());
-//      logger.info("groupId: {}", buildProperties.getGroup());
-//      logger.info("artifactId: {}", buildProperties.getArtifact());
+      logger.info("groupId: {}", buildProperties.getGroup());
+      logger.info("artifactId: {}", buildProperties.getArtifact());
       logger.info("version: {}", version);
       OdeMsgMetadata.setStaticSchemaVersion(OUTPUT_SCHEMA_VERSION);
 
       uploadLocations.add(Paths.get(uploadLocationRoot));
 
-      // TODO(matt): in the next commit move this to security services properties
       // URI for the security services /sign endpoint
-//      if (securitySvcsSignatureUri == null) {
-//         securitySvcsSignatureUri = "http://" + dockerIp + ":" + securitySvcsPort + "/"
-//               + securitySvcsSignatureEndpoint;
-//      }
-
-
-//      logger.info("Disabled Topics: {}", odeKafkaProperties.getKafkaTopicsDisabled());
+      if (securitySvcsSignatureUri == null) {
+         securitySvcsSignatureUri = "http://" + hostIP + ":" + securitySvcsPort + "/"
+               + securitySvcsSignatureEndpoint;
+      }
    }
 
-   
    public String getVersion() {
-      return version;
-   }
-
-   public void setVersion(String version) {
-      this.version = version;
+      return buildProperties.getVersion();
    }
 
    public List<Path> getUploadLocations() {

@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 import java.net.InetAddress;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-@Component
+@Configuration
 @ConfigurationProperties(prefix = "ode.kafka")
 @Data
 public class ODEKafkaProperties {
