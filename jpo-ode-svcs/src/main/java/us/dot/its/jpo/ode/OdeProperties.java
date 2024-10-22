@@ -15,15 +15,10 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 import jakarta.annotation.PostConstruct;
 
@@ -37,11 +32,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 
-import us.dot.its.jpo.ode.context.AppContext;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.plugin.OdePlugin;
-import us.dot.its.jpo.ode.util.CommonUtils;
+
 
 @Configuration
 @ConfigurationProperties("ode")
@@ -179,14 +172,14 @@ public class OdeProperties implements EnvironmentAware {
 
    private static final byte[] JPO_ODE_GROUP_ID = "jode".getBytes();
 
-   @Autowired
-   BuildProperties buildProperties;
+//   @Autowired
+//   BuildProperties buildProperties;
 
    @PostConstruct
    void initialize() {
-      setVersion(buildProperties.getVersion());
-      logger.info("groupId: {}", buildProperties.getGroup());
-      logger.info("artifactId: {}", buildProperties.getArtifact());
+//      setVersion(buildProperties.getVersion());
+//      logger.info("groupId: {}", buildProperties.getGroup());
+//      logger.info("artifactId: {}", buildProperties.getArtifact());
       logger.info("version: {}", version);
       OdeMsgMetadata.setStaticSchemaVersion(OUTPUT_SCHEMA_VERSION);
 

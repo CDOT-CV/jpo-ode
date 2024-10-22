@@ -13,7 +13,6 @@ import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 
-@Component
 public class BsmReceiver extends AbstractUdpReceiverPublisher {
 
    private static Logger logger = LoggerFactory.getLogger(BsmReceiver.class);
@@ -43,7 +42,7 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
       do {
          try {
             logger.debug("Waiting for UDP BSM packets...");
-            socket.receive(packet);
+            this.socket.receive(packet);
             if (packet.getLength() > 0) {
                String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
 

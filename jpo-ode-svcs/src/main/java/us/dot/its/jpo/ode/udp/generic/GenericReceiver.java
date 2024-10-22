@@ -15,14 +15,11 @@ import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.uper.UperUtil;
 
-@Component
 public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
     private static Logger logger = LoggerFactory.getLogger(GenericReceiver.class);
 
     private final StringPublisher publisher;
-
-
 
     @Autowired
     public GenericReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, ODEKafkaProperties odeKafkaProperties) {
