@@ -302,6 +302,7 @@ Make target options:
 `make build` to build the ODE
 `make stop` to stop the ODE
 `make delete` to stop the ODE and remove the volumes
+`make restart` to restart the ODE
 `make rebuild` to stop, delete, and then rebuild the containers
 `make clean-build` to rebuild the containers without using the cache
 ```
