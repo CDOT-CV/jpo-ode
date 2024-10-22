@@ -22,6 +22,7 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
@@ -31,6 +32,8 @@ public class ByteArrayPublisherTest {
    ByteArrayPublisher testMessagePublisher;
    @Injectable
    OdeProperties testOdeProperties;
+   @Injectable
+   ODEKafkaProperties injectableOdeKafkaProperties;
    @Injectable
    String testSerializer;
    @Mocked

@@ -43,6 +43,8 @@ public class SerializableMessageProducerPoolTest {
     SerializableMessageProducerPool<?, ?> testSerializableMessageProducerPool;
     @Injectable
     OdeProperties mockOdeProperties;
+    @Injectable
+    ODEKafkaProperties injectableOdeKafkaProperties;
 
     @BeforeEach
     public void setUp() {

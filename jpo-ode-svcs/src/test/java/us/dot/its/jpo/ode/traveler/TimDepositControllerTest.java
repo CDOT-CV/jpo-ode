@@ -28,6 +28,7 @@ import mockit.Capturing;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Tested;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.SerialId;
@@ -45,6 +46,9 @@ public class TimDepositControllerTest {
 
    @Injectable
    OdeProperties injectableOdeProperties;
+
+   @Injectable
+   ODEKafkaProperties injectableOdeKafkaProperties;
 
    @Capturing
    MessageProducer<?, ?> capturingMessageProducer;

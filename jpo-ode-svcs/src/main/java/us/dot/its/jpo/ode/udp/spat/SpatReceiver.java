@@ -5,27 +5,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 
+@Component
 public class SpatReceiver extends AbstractUdpReceiverPublisher {
     private static Logger logger = LoggerFactory.getLogger(SpatReceiver.class);
 
-    private StringPublisher spatPublisher;
+    private final StringPublisher spatPublisher;
 
     @Autowired
-    public SpatReceiver(OdeProperties odeProps) {
-        this(odeProps, odeProps.getSpatReceiverPort(), odeProps.getSpatBufferSize());
-
-        this.spatPublisher = new StringPublisher(odeProps);
+    public SpatReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, ODEKafkaProperties odeKafkaProperties) {
+        this(odeProps, odeKafkaProperties, odeProps.getSpatReceiverPort(), odeProps.getSpatBufferSize());
     }
 
-    public SpatReceiver(OdeProperties odeProps, int port, int bufferSize) {
+    public SpatReceiver(OdeProperties odeProps, ODEKafkaProperties odeKafkaProperties, int port, int bufferSize) {
         super(odeProps, port, bufferSize);
 
-        this.spatPublisher = new StringPublisher(odeProps);
+        this.spatPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
     }
 
     @Override

@@ -110,8 +110,6 @@ public class OdePropertiesTest {
 
             testOdeProperties.setEnv(mockEnv);
             testOdeProperties.setEnvironment(mockEnv);
-            testOdeProperties.setKafkaBrokers(testKafkaBrokers);
-            testOdeProperties.setKafkaProducerType(testKafkaProducerType);
             testOdeProperties.setPluginsLocations(testPluginsLocations);
             testOdeProperties.setUploadLocationObuLog(testUploadLocationObuLog);
             testOdeProperties.setUploadLocationRoot(testUploadLocationRoot);
@@ -128,8 +126,6 @@ public class OdePropertiesTest {
             testOdeProperties.setKafkaTopicOdeBsmJson(testKafkaTopicOdeBsmJson);
             testOdeProperties.setVersion(testVersion);
             testOdeProperties.setImportProcessorBufferSize(testImportProcessorBufferSize);
-            testOdeProperties.setKafkaTopicsDisabled(testKafkaTopicsDisabled);
-            testOdeProperties.setKafkaTopicsDisabledSet(testKafkaTopicsDisabledSet);
 
             testOdeProperties.setKafkaTopicAsn1DecoderInput(testKafkaTopicAsn1DecoderInput);
             testOdeProperties.setKafkaTopicAsn1DecoderOutput(testKafkaTopicAsn1DecoderOutput);
@@ -153,9 +149,6 @@ public class OdePropertiesTest {
             testOdeProperties.setRsuPassword(testRsuPassword);
 
             assertEquals("Incorrect testEnv", mockEnv, testOdeProperties.getEnv());
-            assertEquals("Incorrect testKafkaBrokers", testKafkaBrokers, testOdeProperties.getKafkaBrokers());
-            assertEquals("Incorrect testKafkaProducerType", testKafkaProducerType,
-                        testOdeProperties.getKafkaProducerType());
             assertEquals("Incorrect testpluginsLocations", testPluginsLocations,
                         testOdeProperties.getPluginsLocations());
             assertEquals("Incorrect testUploadLocationObuLog", testUploadLocationObuLog,
@@ -182,10 +175,6 @@ public class OdePropertiesTest {
             assertEquals("Incorrect testVersion", testVersion, testOdeProperties.getVersion());
             assertEquals("Incorrect testImportProcessorBufferSize", testImportProcessorBufferSize,
                         testOdeProperties.getImportProcessorBufferSize());
-            assertEquals("Incorrect testKafkaTopicsDisabled", testKafkaTopicsDisabled[0],
-                        testOdeProperties.getKafkaTopicsDisabled()[0]);
-            assertTrue("Incorrect testKafkaTopicsDisabledSet",
-                        testOdeProperties.getKafkaTopicsDisabledSet().contains("testKafkaTopicsDisabledSet0"));
 
             assertEquals("Incorrect testKafkaTopicAsn1DecoderInput", testKafkaTopicAsn1DecoderInput,
                         testOdeProperties.getKafkaTopicAsn1DecoderInput());
@@ -226,7 +215,6 @@ public class OdePropertiesTest {
             assertEquals("Incorrect RsuPassword", testRsuPassword, testOdeProperties.getRsuPassword());
 
             OdeProperties.getJpoOdeGroupId();
-            testOdeProperties.getHostId();
             testOdeProperties.getProperty("testProperty");
             testOdeProperties.getProperty("testProperty", 5);
             testOdeProperties.getProperty("testProperty", "testDefaultValue");

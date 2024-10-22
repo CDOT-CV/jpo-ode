@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -31,13 +30,12 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.thymeleaf.util.StringUtils;
 
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
@@ -45,6 +43,7 @@ import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.plugin.OdePlugin;
 import us.dot.its.jpo.ode.util.CommonUtils;
 
+@Configuration
 @ConfigurationProperties("ode")
 @PropertySource("classpath:application.properties")
 public class OdeProperties implements EnvironmentAware {
@@ -60,12 +59,9 @@ public class OdeProperties implements EnvironmentAware {
    private String version;
    public static final int OUTPUT_SCHEMA_VERSION = 7;
    private String pluginsLocations = "plugins";
-   private String kafkaBrokers = null;
-   private static final String DEFAULT_KAFKA_PORT = "9092";
-   private String kafkaProducerType = AppContext.DEFAULT_KAFKA_PRODUCER_TYPE;
+
    private Boolean verboseJson = false;
    private int importProcessorBufferSize = OdePlugin.INPUT_STREAM_BUFFER_SIZE;
-   private String hostId;
    private List<Path> uploadLocations = new ArrayList<>();
 
    /*
@@ -92,17 +88,6 @@ public class OdeProperties implements EnvironmentAware {
     */
    private int trustRetries = 2; // if trust handshake fails, how many times to retry
    private int messagesUntilTrustReestablished = 10; // renew trust session every x messages
-
-   /*
-    * Kafka Topics
-    * 
-    */
-   private String[] kafkaTopicsDisabled = {
-         // disable all POJO topics by default except "topic.OdeBsmPojo". Never
-         // "topic.OdeBsmPojo because that's the only way to get data into
-         // "topic.OdeBsmJson
-         "topic.OdeBsmRxPojo", "topic.OdeBsmTxPojo", "topic.OdeBsmDuringEventPojo", "topic.OdeTimBroadcastPojo" };
-   private Set<String> kafkaTopicsDisabledSet = new HashSet<>();
 
    // BSM
    private String kafkaTopicOdeBsmPojo = "topic.OdeBsmPojo";
@@ -207,41 +192,15 @@ public class OdeProperties implements EnvironmentAware {
 
       uploadLocations.add(Paths.get(uploadLocationRoot));
 
-      String hostname;
-      try {
-         hostname = InetAddress.getLocalHost().getHostName();
-      } catch (UnknownHostException e) {
-         // Let's just use a random hostname
-         hostname = UUID.randomUUID().toString();
-         logger.error("Unknown host error: {}, using random", e);
-      }
-      hostId = hostname;
-      logger.info("Host ID: {}", hostId);
-      EventLogger.logger.info("Initializing services on host {}", hostId);
+      // TODO(matt): in the next commit move this to security services properties
+      // URI for the security services /sign endpoint
+//      if (securitySvcsSignatureUri == null) {
+//         securitySvcsSignatureUri = "http://" + dockerIp + ":" + securitySvcsPort + "/"
+//               + securitySvcsSignatureEndpoint;
+//      }
 
-      if (kafkaBrokers == null) {
 
-         logger.warn("ode.kafkaBrokers property not defined. Will try DOCKER_HOST_IP => {}", kafkaBrokers);
-
-         String dockerIp = CommonUtils.getEnvironmentVariable("DOCKER_HOST_IP");
-
-         if (dockerIp == null) {
-            logger.warn(
-                  "Neither ode.kafkaBrokers ode property nor DOCKER_HOST_IP environment variable are defined. Defaulting to localhost.");
-            dockerIp = "localhost";
-         }
-         kafkaBrokers = dockerIp + ":" + DEFAULT_KAFKA_PORT;
-
-         // URI for the security services /sign endpoint
-         if (securitySvcsSignatureUri == null) {
-            securitySvcsSignatureUri = "http://" + dockerIp + ":" + securitySvcsPort + "/"
-                  + securitySvcsSignatureEndpoint;
-         }
-      }
-
-      List<String> asList = Arrays.asList(this.getKafkaTopicsDisabled());
-      logger.info("Disabled Topics: {}", asList);
-      kafkaTopicsDisabledSet.addAll(asList);
+//      logger.info("Disabled Topics: {}", odeKafkaProperties.getKafkaTopicsDisabled());
    }
 
    
@@ -269,32 +228,12 @@ public class OdeProperties implements EnvironmentAware {
       return env.getProperty(key, Integer.class, i);
    }
 
-   public String getHostId() {
-      return hostId;
-   }
-
    public String getPluginsLocations() {
       return pluginsLocations;
    }
 
    public void setPluginsLocations(String pluginsLocations) {
       this.pluginsLocations = pluginsLocations;
-   }
-
-   public String getKafkaBrokers() {
-      return kafkaBrokers;
-   }
-
-   public void setKafkaBrokers(String kafkaBrokers) {
-      this.kafkaBrokers = kafkaBrokers;
-   }
-
-   public String getKafkaProducerType() {
-      return kafkaProducerType;
-   }
-
-   public void setKafkaProducerType(String kafkaProducerType) {
-      this.kafkaProducerType = kafkaProducerType;
    }
 
    public Environment getEnv() {
@@ -520,22 +459,6 @@ public class OdeProperties implements EnvironmentAware {
 
    public void setImportProcessorBufferSize(int importProcessorBufferSize) {
       this.importProcessorBufferSize = importProcessorBufferSize;
-   }
-
-   public String[] getKafkaTopicsDisabled() {
-      return kafkaTopicsDisabled;
-   }
-
-   public void setKafkaTopicsDisabled(String[] kafkaTopicsDisabled) {
-      this.kafkaTopicsDisabled = kafkaTopicsDisabled;
-   }
-
-   public Set<String> getKafkaTopicsDisabledSet() {
-      return kafkaTopicsDisabledSet;
-   }
-
-   public void setKafkaTopicsDisabledSet(Set<String> kafkaTopicsDisabledSet) {
-      this.kafkaTopicsDisabledSet = kafkaTopicsDisabledSet;
    }
 
    public String getKafkaTopicFilteredOdeBsmJson() {

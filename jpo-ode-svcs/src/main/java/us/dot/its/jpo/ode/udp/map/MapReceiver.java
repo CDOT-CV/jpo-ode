@@ -5,27 +5,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 
+@Component
 public class MapReceiver extends AbstractUdpReceiverPublisher {
     private static Logger logger = LoggerFactory.getLogger(MapReceiver.class);
 
-    private StringPublisher mapPublisher;
+    private final StringPublisher mapPublisher;
 
     @Autowired
-    public MapReceiver(OdeProperties odeProps) {
-        this(odeProps, odeProps.getMapReceiverPort(), odeProps.getMapBufferSize());
-
-        this.mapPublisher = new StringPublisher(odeProps);
+    public MapReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, ODEKafkaProperties odeKafkaProperties) {
+        this(odeProps, odeKafkaProperties, odeProps.getMapReceiverPort(), odeProps.getMapBufferSize());
     }
 
-    public MapReceiver(OdeProperties odeProps, int port, int bufferSize) {
+    public MapReceiver(OdeProperties odeProps, ODEKafkaProperties odeKafkaProperties, int port, int bufferSize) {
         super(odeProps, port, bufferSize);
 
-        this.mapPublisher = new StringPublisher(odeProps);
+        this.mapPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
     }
 
     @Override

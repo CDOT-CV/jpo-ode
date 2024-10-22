@@ -5,6 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -12,21 +19,25 @@ import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdePsmMetadata;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@EnableConfigurationProperties(value = ODEKafkaProperties.class)
 public class Asn1DecodePSMJSONTest {
 	private final String json = "{\"metadata\":{\"recordType\":\"psmTx\",\"securityResultCode\":\"success\",\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"fa3dfe1b-80cd-45cb-ae2c-c604a214fe56\",\"bundleSize\":1,\"bundleId\":0,\"recordId\":0,\"serialNumber\":0},\"odeReceivedAt\":\"2024-03-15T19:16:35.212860500Z\",\"schemaVersion\":6,\"maxDurationTime\":0,\"recordGeneratedBy\":\"UNKNOWN\",\"sanitized\":false,\"psmSource\":\"RSU\",\"originIp\":\"192.168.0.1\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC798601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"}}}";
+
+	@Autowired
+	ODEKafkaProperties odeKafkaProperties;
 
 	@Test
 	public void testConstructor() {
 		OdeProperties properties = new OdeProperties();
-		properties.setKafkaBrokers("localhost:9092");
 		assertEquals(properties.getKafkaTopicOdeRawEncodedPSMJson(), "topic.OdeRawEncodedPSMJson");
 	}
 
 	@Test
 	public void testProcess() throws XmlUtilsException, JSONException {
 		OdeProperties properties = new OdeProperties();
-		properties.setKafkaBrokers("localhost:9092");
-		Asn1DecodePSMJSON testDecodePsmJson = new Asn1DecodePSMJSON(properties);
+		Asn1DecodePSMJSON testDecodePsmJson = new Asn1DecodePSMJSON(properties, odeKafkaProperties);
 		
 		OdeAsn1Data resultOdeObj = testDecodePsmJson.process(json);
 

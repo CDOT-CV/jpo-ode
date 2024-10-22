@@ -1,0 +1,9 @@
+ode:
+  kafka:
+    brokers: localhost:9092
+    producer-type: sync
+    disabled-topics:
+      - "topic.OdeBsmRxPojo"
+      - "topic.OdeBsmTxPojo"
+      - "topic.OdeBsmDuringEventPojo"
+      - "topic.OdeTimBroadcastPojo"

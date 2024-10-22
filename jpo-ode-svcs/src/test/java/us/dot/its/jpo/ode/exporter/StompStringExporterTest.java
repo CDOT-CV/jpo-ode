@@ -18,6 +18,7 @@ package us.dot.its.jpo.ode.exporter;
 import mockit.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 import us.dot.its.jpo.ode.wrapper.MessageProcessor;
@@ -29,6 +30,8 @@ public class StompStringExporterTest {
 
    @Injectable
    OdeProperties injectableOdeProperties;
+   @Injectable
+   ODEKafkaProperties injectableOdeKafkaProperties;
    @Injectable
    String stompTopic = "testTopic";
    @Injectable

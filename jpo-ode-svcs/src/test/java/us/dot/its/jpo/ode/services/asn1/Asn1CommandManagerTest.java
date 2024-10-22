@@ -26,6 +26,7 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
+import us.dot.its.jpo.ode.ODEKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.model.OdeTravelerInputData;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
@@ -41,6 +42,9 @@ public class Asn1CommandManagerTest {
 
    @Injectable
    OdeProperties injectableOdeProperties;
+
+   @Injectable
+   ODEKafkaProperties injectableOdeKafkaProperties;
 
    @Capturing
    MessageProducer<String, String> capturingMessageProducer;

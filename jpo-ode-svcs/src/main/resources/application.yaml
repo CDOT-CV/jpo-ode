@@ -1,0 +1,10 @@
+ode:
+  kafka:
+    brokers: ${DOCKER_HOST_IP}:9092
+    producer-type: sync
+    topics:
+      disabled:
+        - "topic.OdeBsmRxPojo"
+        - "topic.OdeBsmTxPojo"
+        - "topic.OdeBsmDuringEventPojo"
+        - "topic.OdeTimBroadcastPojo"

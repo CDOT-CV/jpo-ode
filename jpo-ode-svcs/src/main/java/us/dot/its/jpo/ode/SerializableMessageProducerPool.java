@@ -25,6 +25,7 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
    private static final long serialVersionUID = -2293786403623236678L;
 
    transient OdeProperties odeProperties;
+   transient ODEKafkaProperties odeKafkaProperties;
 
    private String brokers;
    private String type;
@@ -32,11 +33,12 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
 
    private Properties props;
 
-   public SerializableMessageProducerPool(OdeProperties odeProperties) {
+   public SerializableMessageProducerPool(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
       super();
       this.odeProperties = odeProperties;
-      this.brokers = odeProperties.getKafkaBrokers();
-      this.type = odeProperties.getKafkaProducerType();
+      this.odeKafkaProperties = odeKafkaProperties;
+      this.brokers = odeKafkaProperties.getBrokers();
+      this.type = odeKafkaProperties.getProducerType();
       this.partitionerClass = odeProperties.getProperty("kafka.partitionerClass");
       init();
    }
@@ -74,7 +76,7 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
    @Override
    protected MessageProducer<K, V> create() {
       return new MessageProducer<>(brokers, type, partitionerClass, props,
-            odeProperties.getKafkaTopicsDisabledSet());
+            odeKafkaProperties.getDisabledTopicsSet());
    }
 
    @Override
