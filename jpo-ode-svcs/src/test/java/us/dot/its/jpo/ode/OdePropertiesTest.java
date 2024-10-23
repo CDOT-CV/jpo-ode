@@ -16,11 +16,7 @@
 package us.dot.its.jpo.ode;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.info.BuildProperties;
@@ -32,7 +28,7 @@ import mockit.Injectable;
 import mockit.Tested;
 import us.dot.its.jpo.ode.util.CommonUtils;
 
-public class OdePropertiesTest {
+class OdePropertiesTest {
 
       @Tested
       OdeProperties testOdeProperties;
@@ -45,7 +41,7 @@ public class OdePropertiesTest {
       CommonUtils capturingCommonUtils;
 
       @Test
-      public void testInit() {
+      void testInit() {
             new Expectations() {
                   {
                   }
@@ -58,14 +54,8 @@ public class OdePropertiesTest {
       }
 
       @Test
-      public void testSettersAndGetters() {
+      void testSettersAndGetters() {
 
-            String testDdsCasPassword = "testDdsCasPassword123456";
-            String testDdsCasUrl = "testDdsCasUrl123456";
-            String testDdsCasUsername = "testDdsCasUsername123456";
-            String testDdsWebsocketUrl = "testDdsWebsocketUrl123456";
-            String testKafkaBrokers = "testKafkaBrokers123456";
-            String testKafkaProducerType = "testKafkaProducerType123456";
             String testPluginsLocations = "testpluginsLocations123456";
             String testUploadLocationObuLog = "testuploadLocationObuLog123456";
             String testUploadLocationRoot = "testUploadLocationRoot123456";
@@ -80,12 +70,7 @@ public class OdePropertiesTest {
             int testTrustRetries = 23;
             String testKafkaTopicOdeBsmPojo = "testKafkaTopicOdeBsmPojo";
             String testKafkaTopicOdeBsmJson = "testKafkaTopicOdeBsmJson";
-            String testVersion = "1.1.0-SNAPSHOT";
             int testImportProcessorBufferSize = 83;
-
-            String[] testKafkaTopicsDisabled = new String[] { "testKafkaTopicsDisabled0" };
-            Set<String> testKafkaTopicsDisabledSet = new HashSet<>();
-            testKafkaTopicsDisabledSet.add("testKafkaTopicsDisabledSet0");
 
             String testKafkaTopicAsn1DecoderInput = "testKafkaTopicAsn1DecoderInput";
             String testKafkaTopicAsn1DecoderOutput = "testKafkaTopicAsn1DecoderOutput";
@@ -108,6 +93,7 @@ public class OdePropertiesTest {
             String testRsuUsername = "testRsuUsername";
             String testRsuPassword = "testRsuPassword";
 
+            testOdeProperties.setHostIP("test-host");
             testOdeProperties.setEnv(mockEnv);
             testOdeProperties.setEnvironment(mockEnv);
             testOdeProperties.setPluginsLocations(testPluginsLocations);
@@ -147,6 +133,7 @@ public class OdePropertiesTest {
             testOdeProperties.setRsuUsername(testRsuUsername);
             testOdeProperties.setRsuPassword(testRsuPassword);
 
+            assertEquals("test-host", testOdeProperties.getHostIP());
             assertEquals("Incorrect testEnv", mockEnv, testOdeProperties.getEnv());
             assertEquals("Incorrect testpluginsLocations", testPluginsLocations,
                         testOdeProperties.getPluginsLocations());
@@ -212,7 +199,6 @@ public class OdePropertiesTest {
             assertEquals("Incorrect testRsuUsername", testRsuUsername, testOdeProperties.getRsuUsername());
             assertEquals("Incorrect RsuPassword", testRsuPassword, testOdeProperties.getRsuPassword());
 
-            OdeProperties.getJpoOdeGroupId();
             testOdeProperties.getProperty("testProperty");
             testOdeProperties.getProperty("testProperty", 5);
             testOdeProperties.getProperty("testProperty", "testDefaultValue");

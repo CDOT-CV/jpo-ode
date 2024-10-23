@@ -1,4 +1,5 @@
 ode:
+  host-ip: test-host
   kafka:
     brokers: localhost:9092
     producer-type: sync
