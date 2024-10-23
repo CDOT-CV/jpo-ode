@@ -16,7 +16,7 @@
 package us.dot.its.jpo.ode.exporter;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 /**
@@ -24,12 +24,12 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
  */
 public class StompStringExporter extends Exporter{
 
-    private ODEKafkaProperties odeKafkaProperties;
+    private OdeKafkaProperties odeKafkaProperties;
     private SimpMessagingTemplate template;
     private String odeTopic;
 
     public StompStringExporter(
-            ODEKafkaProperties odeKafkaProperties,
+            OdeKafkaProperties odeKafkaProperties,
             String stompTopic,
             SimpMessagingTemplate template,
             String odeTopic) {

@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.exporter.StompStringExporter;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
@@ -53,7 +53,7 @@ public class FileUploadController {
    @Autowired
    public FileUploadController(
            StorageService storageService, OdeProperties odeProperties,
-           ODEKafkaProperties odeKafkaProperties, SimpMessagingTemplate template) {
+           OdeKafkaProperties odeKafkaProperties, SimpMessagingTemplate template) {
       super();
       this.storageService = storageService;
 

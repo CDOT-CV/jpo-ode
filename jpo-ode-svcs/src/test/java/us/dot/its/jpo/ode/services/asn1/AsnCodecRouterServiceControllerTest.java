@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import mockit.Expectations;
 import mockit.Injectable;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
@@ -40,7 +40,7 @@ public class AsnCodecRouterServiceControllerTest {
    @Injectable
    OdeProperties injectableOdeProperties;
    @Injectable
-   ODEKafkaProperties odeKafkaProperties;
+   OdeKafkaProperties odeKafkaProperties;
 
    @Test @Disabled
    public void shouldStartTwoConsumers() {

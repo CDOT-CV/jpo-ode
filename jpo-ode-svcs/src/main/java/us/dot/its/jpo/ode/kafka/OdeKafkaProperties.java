@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode;
+package us.dot.its.jpo.ode.kafka;
 
 import lombok.Data;
 import org.slf4j.Logger;
@@ -10,23 +10,22 @@ import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @Configuration
 @ConfigurationProperties(prefix = "ode.kafka")
 @Data
-public class ODEKafkaProperties {
+public class OdeKafkaProperties {
 
-    private static final Logger logger = LoggerFactory.getLogger(ODEKafkaProperties.class);
+    private static final Logger logger = LoggerFactory.getLogger(OdeKafkaProperties.class);
 
     @Value("${ode.kafka.brokers:localhost:9092}")
     private String brokers;
     @Value("${ode.kafka.producer-type:sync}")
     private String producerType;
     @Value("${ode.kafka.disabled-topics:}")
-    private List<String> disabledTopics;
+    private Set<String> disabledTopics;
 
     private String hostId;
 
@@ -49,9 +48,5 @@ public class ODEKafkaProperties {
         this.hostId = hostname;
         logger.info("Host ID: {}", hostId);
         EventLogger.logger.info("Initializing services on host {}", hostId);
-    }
-
-    public Set<String> getDisabledTopicsSet() {
-        return Set.copyOf(disabledTopics);
     }
 }

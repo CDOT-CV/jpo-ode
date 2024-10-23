@@ -29,7 +29,7 @@ import java.util.zip.ZipInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher.FileAsn1CodecPublisherException;
@@ -45,7 +45,7 @@ public class ImporterProcessor {
    private Pattern gZipPattern = Pattern.compile("application/.*gzip");
    private Pattern zipPattern = Pattern.compile("application/.*zip.*");
 
-   public ImporterProcessor(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties, ImporterFileType fileType) {
+   public ImporterProcessor(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties, ImporterFileType fileType) {
       this.codecPublisher = new FileAsn1CodecPublisher(odeProperties, odeKafkaProperties);
       this.odeProperties = odeProperties;
       this.fileType = fileType;

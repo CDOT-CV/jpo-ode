@@ -28,7 +28,7 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 
@@ -40,7 +40,7 @@ public class ImporterDirectoryWatcherTest {
    @Injectable
    OdeProperties injectableOdeProperties;
    @Injectable
-   ODEKafkaProperties odeKafkaProperties;
+   OdeKafkaProperties odeKafkaProperties;
    @Injectable
    Path inbox;
    @Injectable

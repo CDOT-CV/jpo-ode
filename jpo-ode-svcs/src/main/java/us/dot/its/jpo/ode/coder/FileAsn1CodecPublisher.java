@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.stereotype.Component;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
@@ -46,7 +46,7 @@ public class FileAsn1CodecPublisher {
    private LogFileToAsn1CodecPublisher codecPublisher;
    
    @Autowired
-   public FileAsn1CodecPublisher(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+   public FileAsn1CodecPublisher(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
 
       StringPublisher messagePub = new StringPublisher(odeProperties, odeKafkaProperties);
 

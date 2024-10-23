@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -17,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = ODEKafkaProperties.class)
-class ODEKafkaPropertiesTest {
+@EnableConfigurationProperties(value = OdeKafkaProperties.class)
+class OdeKafkaPropertiesTest {
 
     @Autowired
-    private ODEKafkaProperties odeKafkaProperties;
+    private OdeKafkaProperties odeKafkaProperties;
 
     @Test
     void testGetBrokers() {
@@ -35,7 +36,7 @@ class ODEKafkaPropertiesTest {
 
     @Test
     void testGetKafkaTopicsDisabled() {
-        Set<String> kafkaTopicsDisabled = odeKafkaProperties.getDisabledTopicsSet();
+        Set<String> kafkaTopicsDisabled = odeKafkaProperties.getDisabledTopics();
         assertEquals(4, kafkaTopicsDisabled.size());
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeBsmRxPojo"));
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeBsmTxPojo"));

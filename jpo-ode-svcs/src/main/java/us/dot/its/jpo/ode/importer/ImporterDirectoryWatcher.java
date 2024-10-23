@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 
 public class ImporterDirectoryWatcher implements Runnable {
@@ -47,7 +47,7 @@ public class ImporterDirectoryWatcher implements Runnable {
 
    private Integer timePeriod;
 
-   public ImporterDirectoryWatcher(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties, Path dir, Path backupDir, Path failureDir, ImporterFileType fileType, Integer timePeriod) {
+   public ImporterDirectoryWatcher(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties, Path dir, Path backupDir, Path failureDir, ImporterFileType fileType, Integer timePeriod) {
       this.inbox = dir;
       this.backup = backupDir;
       this.failed = failureDir;

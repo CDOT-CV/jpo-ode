@@ -19,7 +19,7 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 
 public abstract class MessagePublisher {
@@ -27,12 +27,12 @@ public abstract class MessagePublisher {
    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
    @Getter
-   protected ODEKafkaProperties odeKafkaProperties;
+   protected OdeKafkaProperties odeKafkaProperties;
    // TODO(Matt): remove once all kafka properties are migrated to ODEKafkaProperties and the delegates
    @Getter
    protected OdeProperties odeProperties;
 
-   public MessagePublisher(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+   public MessagePublisher(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
       this.odeProperties = odeProperties;
       this.odeKafkaProperties = odeKafkaProperties;
       logger.info("Using Brokers: {} of Type: {}", this.odeKafkaProperties.getBrokers(), this.odeKafkaProperties.getProducerType());

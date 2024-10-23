@@ -24,8 +24,7 @@ import static org.junit.Assert.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
-import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 //@RunWith(JMockit.class)
@@ -33,7 +32,7 @@ public class ExporterTest {
 
     
     @Test
-    public void shouldRun(@Mocked ODEKafkaProperties odeKafkaProperties,
+    public void shouldRun(@Mocked OdeKafkaProperties odeKafkaProperties,
             @Injectable SimpMessagingTemplate mockSimpMessagingTemplate,
             @Mocked final MessageConsumer<String, byte[]> mockByteArrayConsumer,
             @Mocked final MessageConsumer<String, String> mockStringConsumer) {

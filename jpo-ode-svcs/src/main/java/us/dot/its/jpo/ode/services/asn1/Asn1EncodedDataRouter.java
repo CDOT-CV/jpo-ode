@@ -24,7 +24,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
@@ -65,14 +65,14 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    private boolean dataSigningEnabledRSU;
    private boolean dataSigningEnabledSDW;
 
-   public Asn1EncodedDataRouter(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+   public Asn1EncodedDataRouter(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
       super();
 
       this.odeProperties = odeProperties;
 
       this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
               odeKafkaProperties.getProducerType(),
-              odeKafkaProperties.getDisabledTopicsSet());
+              odeKafkaProperties.getDisabledTopics());
 
       this.asn1CommandManager = new Asn1CommandManager(odeProperties, odeKafkaProperties);
 

@@ -10,16 +10,16 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = ODEKafkaProperties.class)
+@EnableConfigurationProperties(value = OdeKafkaProperties.class)
 public class AsnCodecMessageServiceControllerTest {
 
 	@Autowired
-	ODEKafkaProperties odeKafkaProps;
+    OdeKafkaProperties odeKafkaProps;
 
 	@Test
 	public void shouldStartTwoConsumers() {

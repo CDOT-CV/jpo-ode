@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
@@ -47,7 +47,7 @@ public class FileUploadControllerTest {
    OdeProperties injectableOdeProperties;
 
    @Injectable
-   ODEKafkaProperties injectableOdeKafkaProperties;
+   OdeKafkaProperties injectableOdeKafkaProperties;
 
    @Injectable
    SimpMessagingTemplate injectableSimpMessagingTemplate;

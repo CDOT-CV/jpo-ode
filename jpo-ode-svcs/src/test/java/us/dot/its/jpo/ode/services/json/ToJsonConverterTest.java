@@ -21,7 +21,7 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
@@ -34,7 +34,7 @@ public class ToJsonConverterTest {
    @Injectable
    OdeProperties mockOdeProperties;
    @Injectable
-   ODEKafkaProperties injectableOdeKafkaProperties;
+   OdeKafkaProperties injectableOdeKafkaProperties;
    @Injectable
    boolean mockVerbose;
    @Injectable

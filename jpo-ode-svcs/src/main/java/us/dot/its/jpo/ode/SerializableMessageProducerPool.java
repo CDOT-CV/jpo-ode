@@ -17,6 +17,7 @@ package us.dot.its.jpo.ode;
 
 import java.util.Properties;
 
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.util.SerializableObjectPool;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
@@ -25,7 +26,7 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
    private static final long serialVersionUID = -2293786403623236678L;
 
    transient OdeProperties odeProperties;
-   transient ODEKafkaProperties odeKafkaProperties;
+   transient OdeKafkaProperties odeKafkaProperties;
 
    private String brokers;
    private String type;
@@ -33,7 +34,7 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
 
    private Properties props;
 
-   public SerializableMessageProducerPool(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+   public SerializableMessageProducerPool(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
       super();
       this.odeProperties = odeProperties;
       this.odeKafkaProperties = odeKafkaProperties;
@@ -76,7 +77,7 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
    @Override
    protected MessageProducer<K, V> create() {
       return new MessageProducer<>(brokers, type, partitionerClass, props,
-            odeKafkaProperties.getDisabledTopicsSet());
+            odeKafkaProperties.getDisabledTopics());
    }
 
    @Override

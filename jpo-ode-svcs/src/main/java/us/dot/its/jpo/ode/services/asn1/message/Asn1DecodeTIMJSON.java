@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.model.Asn1Encoding;
@@ -21,7 +21,7 @@ public class Asn1DecodeTIMJSON extends AbstractAsn1DecodeMessageJSON {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public Asn1DecodeTIMJSON(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+    public Asn1DecodeTIMJSON(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
         super(new StringPublisher(odeProperties, odeKafkaProperties), UperUtil.getTimStartFlag());
     }
 

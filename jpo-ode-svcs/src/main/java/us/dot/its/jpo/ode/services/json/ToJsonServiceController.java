@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 import us.dot.its.jpo.ode.wrapper.serdes.OdeBsmDeserializer;
@@ -34,10 +34,10 @@ public class ToJsonServiceController {
    private static final Logger logger = LoggerFactory.getLogger(ToJsonServiceController.class);
 
    private OdeProperties odeProps;
-   private ODEKafkaProperties odeKafkaProperties;
+   private OdeKafkaProperties odeKafkaProperties;
 
    @Autowired
-   public ToJsonServiceController(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+   public ToJsonServiceController(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
       super();
 
       this.odeKafkaProperties = odeKafkaProperties;

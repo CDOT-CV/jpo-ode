@@ -19,7 +19,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
@@ -51,32 +51,32 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
 	private MessageProducer<String, String> srmProducer;
 	private MessageProducer<String, String> psmProducer;
 
-	public Asn1DecodedDataRouter(OdeProperties odeProps, ODEKafkaProperties odeKafkaProperties) {
+	public Asn1DecodedDataRouter(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
 		super();
 		this.odeProperties = odeProps;
 		this.bsmProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
 				null,
 				OdeBsmSerializer.class.getName(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 		this.timProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 		this.spatProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 		this.mapProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 		this.ssmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 		this.srmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 		this.psmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopicsSet());
+				odeKafkaProperties.getDisabledTopics());
 	}
 
 	@Override

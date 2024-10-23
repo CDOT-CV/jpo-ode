@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import us.dot.its.jpo.ode.ODEKafkaProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
@@ -69,7 +69,7 @@ public class TimDepositController {
    private static final String SUCCESS = "success";
 
    private OdeProperties odeProperties;
-   private ODEKafkaProperties odeKafkaProperties;
+   private OdeKafkaProperties odeKafkaProperties;
 
    private SerialId serialIdJ2735;
    private SerialId serialIdOde;
@@ -90,7 +90,7 @@ public class TimDepositController {
    }
 
    @Autowired
-   public TimDepositController(OdeProperties odeProperties, ODEKafkaProperties odeKafkaProperties) {
+   public TimDepositController(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
       super();
 
       this.odeProperties = odeProperties;
@@ -100,9 +100,9 @@ public class TimDepositController {
       this.serialIdOde = new SerialId();
 
       this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-            odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopicsSet());
+            odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
       this.timProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(),
-            null, OdeTimSerializer.class.getName(), odeKafkaProperties.getDisabledTopicsSet());
+            null, OdeTimSerializer.class.getName(), odeKafkaProperties.getDisabledTopics());
 
       this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") != null && !System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty()
       ? Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"))
