@@ -15,20 +15,17 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.coder;
 
-import java.io.BufferedInputStream;
-import java.nio.file.Path;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import org.springframework.stereotype.Component;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 
-@Component
+import java.io.BufferedInputStream;
+import java.nio.file.Path;
+
 public class FileAsn1CodecPublisher {
 
    public class FileAsn1CodecPublisherException extends Exception {

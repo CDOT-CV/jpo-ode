@@ -27,7 +27,7 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 class ExporterTest {
-    
+
     @Test
     void shouldRun(@Mocked OdeKafkaProperties odeKafkaProperties,
             @Injectable SimpMessagingTemplate mockSimpMessagingTemplate,
