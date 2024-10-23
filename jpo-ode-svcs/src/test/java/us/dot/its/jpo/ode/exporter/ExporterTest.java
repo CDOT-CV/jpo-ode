@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.exporter;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-//import mockit.integration.junit4.JMockit;
 
 import static org.junit.Assert.*;
 
@@ -27,12 +26,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
-//@RunWith(JMockit.class)
-public class ExporterTest {
-
+class ExporterTest {
     
     @Test
-    public void shouldRun(@Mocked OdeKafkaProperties odeKafkaProperties,
+    void shouldRun(@Mocked OdeKafkaProperties odeKafkaProperties,
             @Injectable SimpMessagingTemplate mockSimpMessagingTemplate,
             @Mocked final MessageConsumer<String, byte[]> mockByteArrayConsumer,
             @Mocked final MessageConsumer<String, String> mockStringConsumer) {
@@ -42,9 +39,6 @@ public class ExporterTest {
         new Expectations() {
             {
                 odeKafkaProperties.getBrokers();
-                result = anyString;
-
-                odeKafkaProperties.getHostId();
                 result = anyString;
 
                 mockStringConsumer.close();

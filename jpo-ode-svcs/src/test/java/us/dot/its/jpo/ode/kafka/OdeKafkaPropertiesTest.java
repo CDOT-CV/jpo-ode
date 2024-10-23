@@ -8,8 +8,6 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,10 +39,5 @@ class OdeKafkaPropertiesTest {
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeBsmTxPojo"));
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeBsmDuringEventPojo"));
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeTimBroadcastPojo"));
-    }
-
-    @Test
-    void testGetHostId() throws UnknownHostException {
-        assertEquals(InetAddress.getLocalHost().getHostName(), odeKafkaProperties.getHostId());
     }
 }
