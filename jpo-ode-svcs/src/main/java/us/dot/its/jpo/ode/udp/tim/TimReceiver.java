@@ -1,18 +1,19 @@
 package us.dot.its.jpo.ode.udp.tim;
 
 import java.net.DatagramPacket;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 
 public class TimReceiver extends AbstractUdpReceiverPublisher {
    private static Logger logger = LoggerFactory.getLogger(TimReceiver.class);
-
+   
    private StringPublisher timPublisher;
 
    @Autowired
