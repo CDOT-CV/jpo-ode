@@ -31,7 +31,7 @@ public class AsnCodecMessageServiceController {
 		MessageConsumer<String, String> asn1RawBSMJSONConsumer = MessageConsumer.defaultStringMessageConsumer(
 				odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), asn1DecodeBSMJSON);
 		asn1RawBSMJSONConsumer.setName("asn1DecodeBSMJSON");
-		asn1DecodeBSMJSON.start(asn1RawBSMJSONConsumer, odeProps.getKafkaTopicOdeRawEncodedBSMJson());
+		asn1DecodeBSMJSON.start(asn1RawBSMJSONConsumer, odeKafkaProperties.getBsmProperties().getRawEncodedJsonTopic());
 
 		// SPAT
 		logger.info("Send encoded SPAT to ASN.1 Decoder");

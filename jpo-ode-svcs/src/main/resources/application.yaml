@@ -8,3 +8,12 @@ ode:
       - "topic.OdeBsmTxPojo"
       - "topic.OdeBsmDuringEventPojo"
       - "topic.OdeTimBroadcastPojo"
+    topics:
+      bsm:
+        pojo: "topic.OdeBsmPojo"
+        json: "topic.OdeBsmJson"
+        rx-pojo: "topic.OdeBsmRxPojo"
+        tx-pojo: "topic.OdeBsmTxPojo"
+        during-event-pojo: "topic.OdeBsmDuringEventPojo"
+        filtered-json: "topic.FilteredOdeBsmJson"
+        raw-encoded-json: "topic.OdeRawEncodedBSMJson"

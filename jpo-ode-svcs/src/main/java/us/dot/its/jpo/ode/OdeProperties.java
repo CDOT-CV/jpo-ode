@@ -84,16 +84,7 @@ public class OdeProperties implements EnvironmentAware {
    private int trustRetries = 2; // if trust handshake fails, how many times to retry
    private int messagesUntilTrustReestablished = 10; // renew trust session every x messages
 
-   // BSM
-   private String kafkaTopicOdeBsmPojo = "topic.OdeBsmPojo";
-   private String kafkaTopicOdeBsmJson = "topic.OdeBsmJson";
-   private String kafkaTopicOdeBsmRxPojo = "topic.OdeBsmRxPojo";
-   private String kafkaTopicOdeBsmTxPojo = "topic.OdeBsmTxPojo";
-   private String kafkaTopicOdeBsmDuringEventPojo = "topic.OdeBsmDuringEventPojo";
-   private String kafkaTopicFilteredOdeBsmJson = "topic.FilteredOdeBsmJson";
-   private String kafkaTopicOdeRawEncodedBSMJson = "topic.OdeRawEncodedBSMJson";
-   private int bsmReceiverPort = 46800;
-   private int bsmBufferSize = 500;
+
 
    // TIM
    private String kafkaTopicOdeTimJson = "topic.OdeTimJson";

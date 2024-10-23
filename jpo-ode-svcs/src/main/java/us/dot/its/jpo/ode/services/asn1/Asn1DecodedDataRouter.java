@@ -43,6 +43,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
 	private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	private OdeProperties odeProperties;
+	private OdeKafkaProperties odeKafkaProps;
 	private MessageProducer<String, OdeBsmData> bsmProducer;
 	private MessageProducer<String, String> timProducer;
 	private MessageProducer<String, String> spatProducer;
@@ -54,6 +55,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
 	public Asn1DecodedDataRouter(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
 		super();
 		this.odeProperties = odeProps;
+		this.odeKafkaProps = odeKafkaProperties;
 		this.bsmProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(),
 				odeKafkaProperties.getProducerType(),
 				null,
@@ -100,15 +102,15 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
                     OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumedData);
                     switch (recordType) {
                         case bsmLogDuringEvent ->
-                                bsmProducer.send(odeProperties.getKafkaTopicOdeBsmDuringEventPojo(), getRecord().key(), odeBsmData);
+                                bsmProducer.send(odeKafkaProps.getBsmProperties().getDuringEventPojoTopic(), getRecord().key(), odeBsmData);
                         case rxMsg ->
-                                bsmProducer.send(odeProperties.getKafkaTopicOdeBsmRxPojo(), getRecord().key(), odeBsmData);
+                                bsmProducer.send(odeKafkaProps.getBsmProperties().getRxPojoTopic(), getRecord().key(), odeBsmData);
                         case bsmTx ->
-                                bsmProducer.send(odeProperties.getKafkaTopicOdeBsmTxPojo(), getRecord().key(), odeBsmData);
+                                bsmProducer.send(odeKafkaProps.getBsmProperties().getTxPojoTopic(), getRecord().key(), odeBsmData);
                         default -> logger.trace("Consumed BSM data with record type: {}", recordType);
                     }
                     // Send all BSMs also to OdeBsmPojo
-                    bsmProducer.send(odeProperties.getKafkaTopicOdeBsmPojo(), getRecord().key(), odeBsmData);
+                    bsmProducer.send(odeKafkaProps.getBsmProperties().getPojoTopic(), getRecord().key(), odeBsmData);
                     logger.debug("Submitted to BSM Pojo topic");
                 }
                 case TravelerInformation -> {

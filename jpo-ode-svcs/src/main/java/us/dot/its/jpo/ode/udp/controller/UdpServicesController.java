@@ -1,7 +1,6 @@
 package us.dot.its.jpo.ode.udp.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
@@ -22,9 +21,8 @@ import us.dot.its.jpo.ode.udp.psm.PsmReceiver;
  *
  */
 @Controller
+@Slf4j
 public class UdpServicesController {
-
-   private Logger logger = LoggerFactory.getLogger(UdpServicesController.class);
 
    @Autowired
    public UdpServicesController(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
@@ -33,7 +31,7 @@ public class UdpServicesController {
       // Start the UDP receivers
       ServiceManager rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
 
-      logger.debug("Starting UDP receiver services...");
+      log.debug("Starting UDP receiver services...");
 
       // BSM internal
       rm.submit(new BsmReceiver(odeProps, odeKafkaProperties));
@@ -59,6 +57,6 @@ public class UdpServicesController {
       // Generic Receiver internal port
       rm.submit(new GenericReceiver(odeProps, odeKafkaProperties));
 
-      logger.debug("UDP receiver services started.");
+      log.debug("UDP receiver services started.");
    }
 }

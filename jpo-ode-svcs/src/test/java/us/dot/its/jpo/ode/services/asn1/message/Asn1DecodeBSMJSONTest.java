@@ -27,12 +27,6 @@ class Asn1DecodeBSMJSONTest {
     OdeKafkaProperties odeKafkaProperties;
 
     @Test
-    void testConstructor() {
-        OdeProperties properties = new OdeProperties();
-        assertEquals(properties.getKafkaTopicOdeRawEncodedBSMJson(), "topic.OdeRawEncodedBSMJson");
-    }
-
-    @Test
     void testProcess() throws JSONException {
         OdeProperties properties = new OdeProperties();
 

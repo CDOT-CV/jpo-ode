@@ -104,12 +104,9 @@ class OdePropertiesTest {
             testOdeProperties.setSelfCertPath(testSelfCertPath);
             testOdeProperties.setSelfPrivateKeyReconstructionFilePath(testSelfPrivateKeyReconstructionFilePath);
             testOdeProperties.setSelfSigningPrivateKeyFilePath(testSelfSigningPrivateKeyFilePath);
-            testOdeProperties.setKafkaTopicFilteredOdeBsmJson(testKafkaTopicBsmFilteredJson);
             testOdeProperties.setVerboseJson(testVerboseJson);
             testOdeProperties.setRsuSrmSlots(testRsuSrmSlots);
             testOdeProperties.setTrustRetries(testTrustRetries);
-            testOdeProperties.setKafkaTopicOdeBsmPojo(testKafkaTopicOdeBsmPojo);
-            testOdeProperties.setKafkaTopicOdeBsmJson(testKafkaTopicOdeBsmJson);
             testOdeProperties.setImportProcessorBufferSize(testImportProcessorBufferSize);
 
             testOdeProperties.setKafkaTopicAsn1DecoderInput(testKafkaTopicAsn1DecoderInput);
@@ -118,9 +115,6 @@ class OdePropertiesTest {
             testOdeProperties.setKafkaTopicAsn1EncoderOutput(testKafkaTopicAsn1EncoderOutput);
             testOdeProperties.setKafkaTopicOdeDNMsgJson(testKafkaTopicOdeDNMsgJson);
             testOdeProperties.setKafkaTopicOdeTimJson(testKafkaTopicOdeTimJson);
-            testOdeProperties.setKafkaTopicOdeBsmDuringEventPojo(testKafkaTopicOdeBsmDuringEventPojo);
-            testOdeProperties.setKafkaTopicOdeBsmRxPojo(testKafkaTopicOdeBsmRxPojo);
-            testOdeProperties.setKafkaTopicOdeBsmTxPojo(testKafkaTopicOdeBsmTxPojo);
             testOdeProperties.setKafkaTopicOdeTimRxJson(testKafkaTopicOdeTimRxJson);
             testOdeProperties.setKafkaTopicOdeTimBroadcastPojo(testKafkaTopicOdeTimBroadcastPojo);
             testOdeProperties.setKafkaTopicOdeTimBroadcastJson(testKafkaTopicOdeTimBroadcastJson);
@@ -149,15 +143,11 @@ class OdePropertiesTest {
                         testOdeProperties.getSelfPrivateKeyReconstructionFilePath());
             assertEquals("Incorrect testSelfSigningPrivateKeyFilePath", testSelfSigningPrivateKeyFilePath,
                         testOdeProperties.getSelfSigningPrivateKeyFilePath());
-            assertEquals("Incorrect testKafkaTopicBsmFilteredJson", testKafkaTopicBsmFilteredJson,
-                        testOdeProperties.getKafkaTopicFilteredOdeBsmJson());
+
             assertEquals("Incorrect testVerboseJson", testVerboseJson, testOdeProperties.getVerboseJson());
             assertEquals("Incorrect testRsuSrmSlots", testRsuSrmSlots, testOdeProperties.getRsuSrmSlots());
             assertEquals("Incorrect testTrustRetries", testTrustRetries, testOdeProperties.getTrustRetries());
-            assertEquals("Incorrect testKafkaTopicOdeBsmPojo", testKafkaTopicOdeBsmPojo,
-                        testOdeProperties.getKafkaTopicOdeBsmPojo());
-            assertEquals("Incorrect testKafkaTopicOdeBsmJson", testKafkaTopicOdeBsmJson,
-                        testOdeProperties.getKafkaTopicOdeBsmJson());
+
             assertEquals("Incorrect testImportProcessorBufferSize", testImportProcessorBufferSize,
                         testOdeProperties.getImportProcessorBufferSize());
 
@@ -173,12 +163,7 @@ class OdePropertiesTest {
                         testOdeProperties.getKafkaTopicOdeDNMsgJson());
             assertEquals("Incorrect testKafkaTopicOdeTimJson", testKafkaTopicOdeTimJson,
                         testOdeProperties.getKafkaTopicOdeTimJson());
-            assertEquals("Incorrect testKafkaTopicOdeBsmDuringEventPojo", testKafkaTopicOdeBsmDuringEventPojo,
-                        testOdeProperties.getKafkaTopicOdeBsmDuringEventPojo());
-            assertEquals("Incorrect testKafkaTopicOdeBsmRxPojo", testKafkaTopicOdeBsmRxPojo,
-                        testOdeProperties.getKafkaTopicOdeBsmRxPojo());
-            assertEquals("Incorrect testKafkaTopicOdeBsmTxPojo", testKafkaTopicOdeBsmTxPojo,
-                        testOdeProperties.getKafkaTopicOdeBsmTxPojo());
+
             assertEquals("Incorrect testKafkaTopicOdeTimRxJson", testKafkaTopicOdeTimRxJson,
                         testOdeProperties.getKafkaTopicOdeTimRxJson());
             assertEquals("Incorrect testKafkaTopicOdeTimBroadcastPojo", testKafkaTopicOdeTimBroadcastPojo,

@@ -71,7 +71,7 @@ public class FileUploadController {
       threadPool.submit(new ImporterDirectoryWatcher(odeProperties, odeKafkaProperties, logPath, backupPath, failurePath, ImporterFileType.LOG_FILE, odeProperties.getFileWatcherPeriod()));
 
       // Create unfiltered exporters
-      threadPool.submit(new StompStringExporter(odeKafkaProperties, UNFILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicOdeBsmJson()));
+      threadPool.submit(new StompStringExporter(odeKafkaProperties, UNFILTERED_OUTPUT_TOPIC, template, odeKafkaProperties.getBsmProperties().getJsonTopic()));
       threadPool.submit(new StompStringExporter(odeKafkaProperties, UNFILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicOdeTimJson()));
       threadPool.submit(new StompStringExporter(odeKafkaProperties, UNFILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicOdeSpatJson()));
       threadPool.submit(new StompStringExporter(odeKafkaProperties, UNFILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicOdeMapJson()));
@@ -81,7 +81,7 @@ public class FileUploadController {
       threadPool.submit(new StompStringExporter(odeKafkaProperties, UNFILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicOdeTimBroadcastJson()));
 
       // Create filtered exporters
-      threadPool.submit(new StompStringExporter(odeKafkaProperties, FILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicFilteredOdeBsmJson()));
+      threadPool.submit(new StompStringExporter(odeKafkaProperties, FILTERED_OUTPUT_TOPIC, template, odeKafkaProperties.getBsmProperties().getFilteredJsonTopic()));
       threadPool.submit(new StompStringExporter(odeKafkaProperties, FILTERED_OUTPUT_TOPIC, template, odeProperties.getKafkaTopicFilteredOdeTimJson()));
    }
 

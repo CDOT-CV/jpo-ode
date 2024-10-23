@@ -19,15 +19,12 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     private static Logger logger = LoggerFactory.getLogger(GenericReceiver.class);
 
     private final StringPublisher publisher;
+    private final OdeKafkaProperties odeKafkaProperties;
 
-    @Autowired
     public GenericReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
-        this(odeProps, odeKafkaProperties, odeProps.getGenericReceiverPort(), odeProps.getGenericBufferSize());
-    }
+        super(odeProps, odeProps.getGenericReceiverPort(), odeProps.getGenericBufferSize());
 
-    public GenericReceiver(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties, int port, int bufferSize) {
-        super(odeProps, port, bufferSize);
-
+        this.odeKafkaProperties = odeKafkaProperties;
         this.publisher = new StringPublisher(odeProperties, odeKafkaProperties);
     }
 
@@ -36,7 +33,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
         logger.debug("Generic UDP Receiver Service started.");
 
-        byte[] buffer = new byte[bufferSize];
+        byte[] buffer;
 
        
 
@@ -83,7 +80,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
                     } else if (messageType.equals("BSM")) {
                         String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
                         if(bsmJson!=null){
-                            publisher.publish(bsmJson, this.odeProperties.getKafkaTopicOdeRawEncodedBSMJson());
+                            publisher.publish(bsmJson, this.odeKafkaProperties.getBsmProperties().getRawEncodedJsonTopic());
                         }
                     } else if (messageType.equals("SSM")) {
                         String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
