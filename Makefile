@@ -35,9 +35,9 @@ stop:
 delete:
 	docker compose down -v
 
-.PHONY
+.PHONY: restart
 restart:
-    $(MAKE) stop start
+	$(MAKE) stop start
 
 .PHONY: rebuild
 rebuild:
