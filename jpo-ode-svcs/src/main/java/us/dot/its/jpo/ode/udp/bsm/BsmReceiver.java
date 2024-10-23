@@ -3,8 +3,6 @@ package us.dot.its.jpo.ode.udp.bsm;
 import java.net.DatagramPacket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -21,7 +19,7 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
    public BsmReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
       super(odeProps, odeKafkaProperties.getBsmProperties().getReceiverPort(), odeKafkaProperties.getBsmProperties().getBufferSize());
 
-      this.bsmPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
+      this.bsmPublisher = new StringPublisher(odeProps, odeKafkaProperties);
    }
 
    @Override

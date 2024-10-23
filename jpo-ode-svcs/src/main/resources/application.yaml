@@ -8,12 +8,15 @@ ode:
       - "topic.OdeBsmTxPojo"
       - "topic.OdeBsmDuringEventPojo"
       - "topic.OdeTimBroadcastPojo"
+  bsm:
+    receiver-port: 46800
+    buffer-size: 500
     topics:
-      bsm:
-        pojo: "topic.OdeBsmPojo"
-        json: "topic.OdeBsmJson"
-        rx-pojo: "topic.OdeBsmRxPojo"
-        tx-pojo: "topic.OdeBsmTxPojo"
-        during-event-pojo: "topic.OdeBsmDuringEventPojo"
-        filtered-json: "topic.FilteredOdeBsmJson"
-        raw-encoded-json: "topic.OdeRawEncodedBSMJson"
+      pojo: "topic.OdeBsmPojo"
+      json: "topic.OdeBsmJson"
+      rx-pojo: "topic.OdeBsmRxPojo"
+      tx-pojo: "topic.OdeBsmTxPojo"
+      during-event-pojo: "topic.OdeBsmDuringEventPojo"
+      filtered-json: "topic.FilteredOdeBsmJson"
+      raw-encoded-json: "topic.OdeRawEncodedBSMJson"
+
