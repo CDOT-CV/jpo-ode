@@ -5,6 +5,13 @@ spring:
       max-request-size: 1MB
 ode:
   host-ip: ${DOCKER_HOST_IP}
+  verbose-json: false
+  plugins-locations: "plugins"
+  output-schema-version: 7
+  rsu:
+    srm-slots: 100
+    username: ${RSU_USERNAME}
+    password: ${RSU_PASSWORD}
   kafka:
     brokers: ${DOCKER_HOST_IP}:9092
     producer-type: sync
