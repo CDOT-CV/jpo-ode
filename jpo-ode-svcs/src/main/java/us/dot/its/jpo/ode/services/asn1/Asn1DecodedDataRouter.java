@@ -102,15 +102,15 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
                     OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumedData);
                     switch (recordType) {
                         case bsmLogDuringEvent ->
-                                bsmProducer.send(odeKafkaProps.getBsmProperties().getDuringEventPojoTopic(), getRecord().key(), odeBsmData);
+                                bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getDuringEventPojoTopic(), getRecord().key(), odeBsmData);
                         case rxMsg ->
-                                bsmProducer.send(odeKafkaProps.getBsmProperties().getRxPojoTopic(), getRecord().key(), odeBsmData);
+                                bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getRxPojoTopic(), getRecord().key(), odeBsmData);
                         case bsmTx ->
-                                bsmProducer.send(odeKafkaProps.getBsmProperties().getTxPojoTopic(), getRecord().key(), odeBsmData);
+                                bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getTxPojoTopic(), getRecord().key(), odeBsmData);
                         default -> logger.trace("Consumed BSM data with record type: {}", recordType);
                     }
                     // Send all BSMs also to OdeBsmPojo
-                    bsmProducer.send(odeKafkaProps.getBsmProperties().getPojoTopic(), getRecord().key(), odeBsmData);
+                    bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getPojoTopic(), getRecord().key(), odeBsmData);
                     logger.debug("Submitted to BSM Pojo topic");
                 }
                 case TravelerInformation -> {

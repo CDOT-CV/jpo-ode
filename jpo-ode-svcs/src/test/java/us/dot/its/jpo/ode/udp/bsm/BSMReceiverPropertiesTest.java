@@ -8,48 +8,46 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = BSMProperties.class)
-class BSMPropertiesTest {
+@EnableConfigurationProperties(value = BSMReceiverProperties.class)
+class BSMReceiverPropertiesTest {
 
     @Autowired
-    BSMProperties bsmProperties;
+    BSMReceiverProperties bsmReceiverProperties;
 
     @Test
     void getPojoTopic() {
-        assertEquals("topic.OdeBsmPojo", bsmProperties.getPojoTopic());
+        assertEquals("topic.OdeBsmPojo", bsmReceiverProperties.getPojoTopic());
     }
 
     @Test
     void getJsonTopic() {
-        assertEquals("topic.OdeBsmJson", bsmProperties.getJsonTopic());
+        assertEquals("topic.OdeBsmJson", bsmReceiverProperties.getJsonTopic());
     }
 
     @Test
     void getRxPojoTopic() {
-        assertEquals("topic.OdeBsmRxPojo", bsmProperties.getRxPojoTopic());
+        assertEquals("topic.OdeBsmRxPojo", bsmReceiverProperties.getRxPojoTopic());
     }
 
     @Test
     void getTxPojoTopic() {
-        assertEquals("topic.OdeBsmTxPojo", bsmProperties.getTxPojoTopic());
+        assertEquals("topic.OdeBsmTxPojo", bsmReceiverProperties.getTxPojoTopic());
     }
 
     @Test
     void getDuringEventPojoTopic() {
-        assertEquals("topic.OdeBsmDuringEventPojo", bsmProperties.getDuringEventPojoTopic());
+        assertEquals("topic.OdeBsmDuringEventPojo", bsmReceiverProperties.getDuringEventPojoTopic());
     }
 
     @Test
     void getFilteredJsonTopic() {
-        assertEquals("topic.FilteredOdeBsmJson", bsmProperties.getFilteredJsonTopic());
+        assertEquals("topic.FilteredOdeBsmJson", bsmReceiverProperties.getFilteredJsonTopic());
     }
 
     @Test
     void getRawEncodedJsonTopic() {
-        assertEquals("topic.OdeRawEncodedBSMJson", bsmProperties.getRawEncodedJsonTopic());
+        assertEquals("topic.OdeRawEncodedBSMJson", bsmReceiverProperties.getRawEncodedJsonTopic());
     }
 }
