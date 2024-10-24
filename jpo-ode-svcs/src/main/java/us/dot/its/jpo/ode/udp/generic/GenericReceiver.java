@@ -1,8 +1,7 @@
 package us.dot.its.jpo.ode.udp.generic;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.StringPublisher;
@@ -13,9 +12,8 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 
 import java.net.DatagramPacket;
 
+@Slf4j
 public class GenericReceiver extends AbstractUdpReceiverPublisher {
-
-    private static Logger logger = LoggerFactory.getLogger(GenericReceiver.class);
 
     private final StringPublisher publisher;
     private final OdeKafkaProperties odeKafkaProperties;
@@ -29,78 +27,81 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
     @Override
     public void run() {
-
-        logger.debug("Generic UDP Receiver Service started.");
+        log.debug("Generic UDP Receiver Service started.");
 
         byte[] buffer;
-
-
         do {
             buffer = new byte[bufferSize];
             // packet should be recreated on each loop to prevent latent data in buffer
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             try {
-                logger.debug("Waiting for Generic UDP packets...");
+                log.debug("Waiting for Generic UDP packets...");
                 socket.receive(packet);
-                if (packet.getLength() > 0) {
-                    senderIp = packet.getAddress().getHostAddress();
-                    senderPort = packet.getPort();
-                    logger.debug("Packet received from {}:{}", senderIp, senderPort);
+                byte[] payload = packet.getData();
+                if ((packet.getLength() <= 0) || (payload == null)) {
+                    log.debug("Skipping empty payload");
+                    continue;
+                }
+                
+                senderIp = packet.getAddress().getHostAddress();
+                senderPort = packet.getPort();
+                log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-                    byte[] payload = packet.getData();
-                    if (payload == null) {
-                        logger.debug("Skipping Null Payload");
-                        continue;
-                    }
-                    String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-                    logger.debug("Raw Payload" + payloadHexString);
+                String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
+                log.debug("Raw Payload {}", payloadHexString);
 
-                    String messageType = UperUtil.determineHexPacketType(payloadHexString);
+                String messageType = UperUtil.determineHexPacketType(payloadHexString);
 
-                    logger.debug("Detected Message Type {}", messageType);
+                log.debug("Detected Message Type {}", messageType);
 
-                    if (messageType.equals("MAP")) {
+                switch (messageType) {
+                    case "MAP" -> {
                         String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
-                        logger.debug("Sending Data to Topic" + mapJson);
+                        log.debug("Sending Data to Topic {}", mapJson);
                         if (mapJson != null) {
                             publisher.publish(mapJson, publisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson());
                         }
-                    } else if (messageType.equals("SPAT")) {
+                    }
+                    case "SPAT" -> {
                         String spatJson = UdpHexDecoder.buildJsonSpatFromPacket(packet);
                         if (spatJson != null) {
                             publisher.publish(spatJson, publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson());
                         }
-                    } else if (messageType.equals("TIM")) {
+                    }
+                    case "TIM" -> {
                         String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
                         if (timJson != null) {
                             publisher.publish(timJson, publisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson());
                         }
-                    } else if (messageType.equals("BSM")) {
+                    }
+                    case "BSM" -> {
                         String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
                         if (bsmJson != null) {
                             publisher.publish(bsmJson, this.odeKafkaProperties.getBsmProperties().getRawEncodedJsonTopic());
                         }
-                    } else if (messageType.equals("SSM")) {
+                    }
+                    case "SSM" -> {
                         String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
                         if (ssmJson != null) {
                             publisher.publish(ssmJson, this.odeProperties.getKafkaTopicOdeRawEncodedSSMJson());
                         }
-                    } else if (messageType.equals("SRM")) {
+                    }
+                    case "SRM" -> {
                         String srmJson = UdpHexDecoder.buildJsonSrmFromPacket(packet);
                         if (srmJson != null) {
                             publisher.publish(srmJson, this.odeProperties.getKafkaTopicOdeRawEncodedSRMJson());
                         }
-                    } else if (messageType.equals("PSM")) {
+                    }
+                    case "PSM" -> {
                         String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);
                         if (psmJson != null) {
                             publisher.publish(psmJson, this.odeProperties.getKafkaTopicOdeRawEncodedPSMJson());
                         }
-                    } else {
-                        logger.debug("Unknown Message Type");
                     }
+                    default -> log.debug("Unknown Message Type");
                 }
             } catch (Exception e) {
-                logger.error("Error receiving packet", e);
+                log.error("Error receiving packet", e);
             }
         } while (!isStopped());
     }
