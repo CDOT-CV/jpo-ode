@@ -1,3 +1,8 @@
+spring:
+  http:
+    multipart:
+      max-file-size: 1MB
+      max-request-size: 1MB
 ode:
   host-ip: ${DOCKER_HOST_IP}
   kafka:
