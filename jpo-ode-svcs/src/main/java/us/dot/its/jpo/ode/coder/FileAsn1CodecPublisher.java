@@ -17,8 +17,7 @@ package us.dot.its.jpo.ode.coder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -28,7 +27,7 @@ import java.nio.file.Path;
 
 public class FileAsn1CodecPublisher {
 
-   public class FileAsn1CodecPublisherException extends Exception {
+   public static class FileAsn1CodecPublisherException extends Exception {
 
       private static final long serialVersionUID = 1L;
 
@@ -40,14 +39,14 @@ public class FileAsn1CodecPublisher {
 
    private static final Logger logger = LoggerFactory.getLogger(FileAsn1CodecPublisher.class);
 
-   private LogFileToAsn1CodecPublisher codecPublisher;
-   
-   @Autowired
-   public FileAsn1CodecPublisher(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
+   private final LogFileToAsn1CodecPublisher codecPublisher;
 
-      StringPublisher messagePub = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
+   public FileAsn1CodecPublisher(OdeKafkaProperties odeKafkaProperties, FileImporterProperties fileImporterProps) {
+      StringPublisher messagePub = new StringPublisher(odeKafkaProperties.getBrokers(),
+              odeKafkaProperties.getProducerType(),
+              odeKafkaProperties.getDisabledTopics());
 
-      this.codecPublisher = new LogFileToAsn1CodecPublisher(messagePub);
+      this.codecPublisher = new LogFileToAsn1CodecPublisher(messagePub, fileImporterProps);
    }
 
    public void publishFile(Path filePath, BufferedInputStream fileInputStream, ImporterFileType fileType) 

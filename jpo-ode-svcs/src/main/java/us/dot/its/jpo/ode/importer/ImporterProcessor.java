@@ -29,8 +29,6 @@ import java.util.zip.ZipInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher.FileAsn1CodecPublisherException;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
@@ -39,15 +37,15 @@ import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 public class ImporterProcessor {
 
    private static final Logger logger = LoggerFactory.getLogger(ImporterProcessor.class);
-   private FileAsn1CodecPublisher codecPublisher;
-   private OdeProperties odeProperties;
-   private ImporterFileType fileType;
-   private Pattern gZipPattern = Pattern.compile("application/.*gzip");
-   private Pattern zipPattern = Pattern.compile("application/.*zip.*");
+   private final int bufferSize;
+   private final FileAsn1CodecPublisher codecPublisher;
+   private final ImporterFileType fileType;
+   private final Pattern gZipPattern = Pattern.compile("application/.*gzip");
+   private final Pattern zipPattern = Pattern.compile("application/.*zip.*");
 
-   public ImporterProcessor(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties, ImporterFileType fileType) {
-      this.codecPublisher = new FileAsn1CodecPublisher(odeProperties, odeKafkaProperties);
-      this.odeProperties = odeProperties;
+   public ImporterProcessor(FileAsn1CodecPublisher publisher, ImporterFileType fileType, int bufferSize) {
+      this.codecPublisher = publisher;
+      this.bufferSize = bufferSize;
       this.fileType = fileType;
    }
 
@@ -99,8 +97,8 @@ public class ImporterProcessor {
          }
       } catch (Exception e) {
          success = false;
-         logger.error("Failed to open or process file: " + filePath, e);
-         EventLogger.logger.error("Failed to open or process file: " + filePath, e);  
+         logger.error("Failed to open or process file: {}", filePath, e);
+         EventLogger.logger.error("Failed to open or process file: {}", filePath, e);
       } finally {
          try {
             if (bis != null) {
@@ -110,7 +108,7 @@ public class ImporterProcessor {
                inputStream.close();
             }
          } catch (IOException e) {
-            logger.error("Failed to close file stream: {}", e);
+            logger.error("Failed to close file stream:", e);
          }
       }
 
@@ -125,14 +123,14 @@ public class ImporterProcessor {
             EventLogger.logger.info("File moved to failure directory: {}", failureDir);
          }
       } catch (IOException e) {
-         logger.error("Unable to backup file: " + filePath, e);
+         logger.error("Unable to backup file: {}", filePath, e);
       }
    }
 
    private BufferedInputStream publishFile(Path filePath, InputStream inputStream)
          throws FileAsn1CodecPublisherException {
       BufferedInputStream bis;
-      bis = new BufferedInputStream(inputStream, odeProperties.getImportProcessorBufferSize());
+      bis = new BufferedInputStream(inputStream, this.bufferSize);
       codecPublisher.publishFile(filePath, bis, fileType);
       return bis;
    }

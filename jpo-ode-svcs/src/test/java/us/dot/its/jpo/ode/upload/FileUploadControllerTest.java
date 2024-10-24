@@ -81,8 +81,8 @@ public class FileUploadControllerTest {
             times = 11;
          }
       };
-      testFileUploadController = new FileUploadController(mockStorageService, mockOdeProperties, injectableOdeKafkaProperties,
-              injectableSimpMessagingTemplate);
+      testFileUploadController = new FileUploadController(mockStorageService,
+              injectableSimpMessagingTemplate, , , , );
    }
 
    @Test

@@ -23,8 +23,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 import us.dot.its.jpo.ode.importer.parser.BsmLogFileParser;
@@ -45,7 +43,6 @@ import us.dot.its.jpo.ode.model.OdeSpatMetadata;
 import us.dot.its.jpo.ode.model.RxSource;
 import us.dot.its.jpo.ode.model.SerialId;
 import us.dot.its.jpo.ode.util.JsonUtils;
-import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.uper.UperUtil;
 
 public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
@@ -66,14 +63,13 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 	protected LogFileParser fileParser;
 	protected SerialId serialId;
 
-	public LogFileToAsn1CodecPublisher(StringPublisher dataPub) {
+	public LogFileToAsn1CodecPublisher(StringPublisher dataPub, FileImporterProperties props) {
 		this.publisher = dataPub;
 		this.serialId = new SerialId();
 	}
 
 	public List<OdeData> publish(BufferedInputStream bis, String fileName, ImporterFileType fileType)
 			throws LogFileToAsn1CodecPublisherException {
-		XmlUtils xmlUtils = new XmlUtils();
 		ParserStatus status;
 
 		List<OdeData> dataList = new ArrayList<>();
@@ -86,7 +82,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 					if (status == ParserStatus.COMPLETE) {
 						addDataToList(dataList);
 					} else if (status == ParserStatus.EOF) {
-						publishList(xmlUtils, dataList);
+						publishList(dataList);
 					} else if (status == ParserStatus.INIT) {
 						logger.error("Failed to parse the header bytes.");
 					} else {
@@ -143,7 +139,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 		return fileParser instanceof SpatLogFileParser;
 	}
 
-	private void publishList(XmlUtils xmlUtils, List<OdeData> dataList) throws JsonProcessingException {
+	private void publishList(List<OdeData> dataList) {
 		serialId.setBundleSize(dataList.size());
 
 		for (OdeData odeData : dataList) {

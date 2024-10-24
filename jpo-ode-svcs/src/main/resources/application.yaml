@@ -14,18 +14,10 @@ ode:
         decoder-output: "topic.Asn1DecoderOutput"
         encoder-input: "topic.Asn1EncoderInput"
         encoder-output: "topic.Asn1EncoderOutput"
-      broadcast:
-        tim-pojo: "topic.OdeTimBroadcastPojo"
-        tim-json: "topic.OdeTimBroadcastJson"
-        tim-j2735-json: "topic.J2735TimBroadcastJson"
       cert-expiration:
         tim: "topic.OdeTIMCertExpirationTimeJson"
       during-event-pojo:
-        bsm: "topic.OdeBsmDuringEventPojo"
-      filtered-json:
-        bsm: "topic.FilteredOdeBsmJson"
-        spat: "topic.FilteredOdeSpatJson"
-        tim: "topic.FilteredOdeTimJson"
+
       json:
         bsm: "topic.OdeBsmJson"
         map: "topic.OdeMapJson"
@@ -35,14 +27,15 @@ ode:
         ssm: "topic.OdeSsmJson"
         tim: "topic.OdeTimJson"
         driver-alert: "topic.OdeDriverAlertJson"
+        tim-broadcast: "topic.OdeTimBroadcastJson"
+        bsm-filtered: "topic.FilteredOdeBsmJson"
+        spat-filtered: "topic.FilteredOdeSpatJson"
+        tim-filtered: "topic.FilteredOdeTimJson"
       pojo:
         bsm: "topic.OdeBsmPojo"
-        map:
-        psm:
         spat: "topic.OdeSpatPojo"
-        srm:
         ssm: "topic.OdeSsmPojo"
-        tim:
+        bsm-during-event: "topic.OdeBsmDuringEventPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"
@@ -62,6 +55,9 @@ ode:
         psm: "topic.OdePsmTxPojo"
         spat: "topic.OdeSpatTxPojo"
         srm: "topic.OdeSrmTxPojo"
+      file:
+        filtered-output: "/topic/filtered_messages"
+        unfiltered-output: "/topic/unfiltered_messages"
   receivers:
     generic:
       buffer-size: 2000
@@ -87,3 +83,13 @@ ode:
     tim:
       buffer-size: 500
       receiver-port: 47900
+  file-importer:
+    importer:
+    buffer-size: 500
+    inbox-dir:
+    backup-dir:
+    failures-dir:
+    time-period: 5
+    upload-location-root: "uploads"
+    obu-log-upload-location: "bsmlog"
+

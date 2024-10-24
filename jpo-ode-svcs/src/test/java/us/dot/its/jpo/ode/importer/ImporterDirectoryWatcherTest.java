@@ -90,7 +90,7 @@ public class ImporterDirectoryWatcherTest {
             mockScheduledExecutorService.awaitTermination(anyLong, TimeUnit.SECONDS);
          }
       };
-      testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableOdeProperties, odeKafkaProperties, backupDir, failureDir, backupDir, injectableImporterFileType, timePeriod);
+      testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableOdeProperties, odeKafkaProperties, );
 
       testImporterDirectoryWatcher.run();
    }
