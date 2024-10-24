@@ -16,13 +16,20 @@ import java.net.DatagramPacket;
 public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
     private final StringPublisher publisher;
-    private final OdeKafkaProperties odeKafkaProperties;
+
+    private GenericReceiverProperties props;
 
     public GenericReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
         super(odeProps, odeProps.getGenericReceiverPort(), odeProps.getGenericBufferSize());
 
-        this.odeKafkaProperties = odeKafkaProperties;
-        this.publisher = new StringPublisher(odeProperties, odeKafkaProperties);
+        this.publisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
+    }
+
+    public GenericReceiver(GenericReceiverProperties props, StringPublisher publisher) {
+        super(props.getReceiverPort(), props.getBufferSize());
+
+        this.publisher = publisher;
+        this.props = props;
     }
 
     @Override
@@ -42,7 +49,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
                     log.debug("Skipping empty payload");
                     continue;
                 }
-                
+
                 senderIp = packet.getAddress().getHostAddress();
                 senderPort = packet.getPort();
                 log.debug("Packet received from {}:{}", senderIp, senderPort);
@@ -59,43 +66,43 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
                         String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
                         log.debug("Sending Data to Topic {}", mapJson);
                         if (mapJson != null) {
-                            publisher.publish(mapJson, publisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson());
+                            publisher.publish(props.getRawEncodedJsonTopics().getMap(), mapJson);
                         }
                     }
                     case "SPAT" -> {
                         String spatJson = UdpHexDecoder.buildJsonSpatFromPacket(packet);
                         if (spatJson != null) {
-                            publisher.publish(spatJson, publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson());
+                            publisher.publish(props.getRawEncodedJsonTopics().getSpat(), spatJson);
                         }
                     }
                     case "TIM" -> {
                         String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
                         if (timJson != null) {
-                            publisher.publish(timJson, publisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson());
+                            publisher.publish(props.getRawEncodedJsonTopics().getTim(), timJson);
                         }
                     }
                     case "BSM" -> {
                         String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
                         if (bsmJson != null) {
-                            publisher.publish(bsmJson, this.odeKafkaProperties.getBsmProperties().getRawEncodedJsonTopic());
+                            publisher.publish(props.getRawEncodedJsonTopics().getBsm(), bsmJson);
                         }
                     }
                     case "SSM" -> {
                         String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
                         if (ssmJson != null) {
-                            publisher.publish(ssmJson, this.odeProperties.getKafkaTopicOdeRawEncodedSSMJson());
+                            publisher.publish(props.getRawEncodedJsonTopics().getSsm(), ssmJson);
                         }
                     }
                     case "SRM" -> {
                         String srmJson = UdpHexDecoder.buildJsonSrmFromPacket(packet);
                         if (srmJson != null) {
-                            publisher.publish(srmJson, this.odeProperties.getKafkaTopicOdeRawEncodedSRMJson());
+                            publisher.publish(props.getRawEncodedJsonTopics().getSrm(), srmJson);
                         }
                     }
                     case "PSM" -> {
                         String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);
                         if (psmJson != null) {
-                            publisher.publish(psmJson, this.odeProperties.getKafkaTopicOdeRawEncodedPSMJson());
+                            publisher.publish(props.getRawEncodedJsonTopics().getPsm(), psmJson);
                         }
                     }
                     default -> log.debug("Unknown Message Type");

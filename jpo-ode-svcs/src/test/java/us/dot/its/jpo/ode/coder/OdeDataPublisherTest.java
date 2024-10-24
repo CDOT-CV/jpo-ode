@@ -54,6 +54,6 @@ public class OdeDataPublisherTest {
          }
       };
 
-      testMessagePublisher.publish(mockOdeBsmData, "topic");
+      testMessagePublisher.publish("topic", mockOdeBsmData);
    }
 }

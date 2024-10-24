@@ -49,6 +49,6 @@ public class OdeStringPublisherTest {
          }
       };
 
-      testOdeStringPublisher.publish(new OdeData(), "testTopic");
+      testOdeStringPublisher.publish("testTopic", new OdeData());
    }
 }

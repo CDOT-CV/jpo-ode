@@ -22,7 +22,7 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
-public class ByteArrayPublisher extends MessagePublisher {
+public class ByteArrayPublisher implements MessagePublisher<byte[]> {
 
    private static final Logger logger = LoggerFactory.getLogger(ByteArrayPublisher.class);
    protected MessageProducer<String, byte[]> bytesProducer;
@@ -35,7 +35,7 @@ public class ByteArrayPublisher extends MessagePublisher {
 
    }
 
-   public void publish(byte[] msg, String topic) {
+   public void publish(String topic, byte[] msg) {
     logger.debug("Publishing binary data to {}", topic);
     bytesProducer.send(topic, null, msg);
    }

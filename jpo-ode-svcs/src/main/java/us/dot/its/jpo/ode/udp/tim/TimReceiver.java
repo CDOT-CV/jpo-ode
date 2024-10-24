@@ -24,7 +24,7 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
    public TimReceiver(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties, int port, int bufferSize) {
       super(odeProps, port, bufferSize);
 
-      this.timPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
+      this.timPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
    }
 
    @Override
@@ -43,7 +43,7 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
                
                String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
                if(timJson != null){
-                  timPublisher.publish(timJson, timPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson());
+                  timPublisher.publish(timPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson(), timJson);
                }
                
             }

@@ -23,7 +23,7 @@ public class Asn1DecodeMAPJSON extends AbstractAsn1DecodeMessageJSON {
 
 
 	public Asn1DecodeMAPJSON(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
-		super(new StringPublisher(odeProperties, odeKafkaProperties), UperUtil.getMapStartFlag());
+		super(new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics()), UperUtil.getMapStartFlag());
 	}
 
 	@Override

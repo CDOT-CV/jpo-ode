@@ -45,7 +45,7 @@ public class FileAsn1CodecPublisher {
    @Autowired
    public FileAsn1CodecPublisher(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
 
-      StringPublisher messagePub = new StringPublisher(odeProperties, odeKafkaProperties);
+      StringPublisher messagePub = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
 
       this.codecPublisher = new LogFileToAsn1CodecPublisher(messagePub);
    }

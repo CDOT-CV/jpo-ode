@@ -38,7 +38,7 @@ import us.dot.its.jpo.ode.plugin.OdePlugin;
 
 
 @Configuration
-@ConfigurationProperties(prefix = "ode")
+// @ConfigurationProperties(prefix = "ode")
 @Data
 public class OdeProperties implements EnvironmentAware {
 

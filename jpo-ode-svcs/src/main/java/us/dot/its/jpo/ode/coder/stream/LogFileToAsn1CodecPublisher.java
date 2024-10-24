@@ -152,32 +152,32 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 			msgMetadata.setSerialId(serialId);
 
 			if (isDriverAlertRecord()) {
-				publisher.publish(JsonUtils.toJson(odeData, false),
-						publisher.getOdeProperties().getKafkaTopicDriverAlertJson());
+				publisher.publish(publisher.getOdeProperties().getKafkaTopicDriverAlertJson(), JsonUtils.toJson(odeData, false)
+				);
 			} else if (isBsmRecord()) {
-				publisher.publish(JsonUtils.toJson(odeData, false),
-				publisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic());
+				publisher.publish(publisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic(), JsonUtils.toJson(odeData, false)
+				);
 			} else if (isSpatRecord()) {
-				publisher.publish(JsonUtils.toJson(odeData, false),
-					publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson());
+				publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson(), JsonUtils.toJson(odeData, false)
+				);
 			} else {
 				// Determine the message type (MAP, TIM, SSM, SRM, or PSM)
 				String messageType = UperUtil.determineMessageType(msgPayload);
                 switch (messageType) {
-                    case "MAP" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson());
-                    case "SPAT" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson());
-                    case "TIM" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson());
-                    case "BSM" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic());
-                    case "SSM" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSSMJson());
-                    case "SRM" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSRMJson());
-                    case "PSM" -> publisher.publish(JsonUtils.toJson(odeData, false),
-                            publisher.getOdeProperties().getKafkaTopicOdeRawEncodedPSMJson());
+                    case "MAP" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson(), JsonUtils.toJson(odeData, false)
+					);
+                    case "SPAT" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson(), JsonUtils.toJson(odeData, false)
+					);
+                    case "TIM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson(), JsonUtils.toJson(odeData, false)
+					);
+                    case "BSM" -> publisher.publish(publisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic(), JsonUtils.toJson(odeData, false)
+					);
+                    case "SSM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSSMJson(), JsonUtils.toJson(odeData, false)
+					);
+                    case "SRM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSRMJson(), JsonUtils.toJson(odeData, false)
+					);
+                    case "PSM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedPSMJson(), JsonUtils.toJson(odeData, false)
+					);
                     default -> logger.warn("Unknown message type: {}", messageType);
                 }
 			}

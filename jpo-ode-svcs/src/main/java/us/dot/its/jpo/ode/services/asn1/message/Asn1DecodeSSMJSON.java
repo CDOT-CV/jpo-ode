@@ -22,7 +22,7 @@ public class Asn1DecodeSSMJSON extends AbstractAsn1DecodeMessageJSON {
 	private ObjectMapper objectMapper = new ObjectMapper();
 
 	public Asn1DecodeSSMJSON(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
-		super(new StringPublisher(odeProperties, odeKafkaProperties), UperUtil.getSsmStartFlag());
+		super(new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics()), UperUtil.getSsmStartFlag());
 	}
 
 	@Override

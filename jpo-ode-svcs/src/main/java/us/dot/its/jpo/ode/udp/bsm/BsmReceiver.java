@@ -19,7 +19,7 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
    public BsmReceiver(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
       super(odeProps, odeKafkaProperties.getBsmProperties().getReceiverPort(), odeKafkaProperties.getBsmProperties().getBufferSize());
 
-      this.bsmPublisher = new StringPublisher(odeProps, odeKafkaProperties);
+      this.bsmPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
    }
 
    @Override
@@ -39,7 +39,7 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
                String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
 
                if (bsmJson != null){
-                  bsmPublisher.publish(bsmJson, bsmPublisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic());
+                  bsmPublisher.publish(bsmPublisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic(), bsmJson);
                }
             }
          } catch (Exception e) {

@@ -25,7 +25,7 @@ public class SsmReceiver extends AbstractUdpReceiverPublisher {
     public SsmReceiver(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties, int port, int bufferSize) {
         super(odeProps, port, bufferSize);
 
-        this.ssmPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
+        this.ssmPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
     }
 
     @Override
@@ -46,7 +46,7 @@ public class SsmReceiver extends AbstractUdpReceiverPublisher {
                     String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
 
                     if(ssmJson!=null){
-                        ssmPublisher.publish(ssmJson, ssmPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedSSMJson());
+                        ssmPublisher.publish(ssmPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedSSMJson(), ssmJson);
                     }
                     
                 }

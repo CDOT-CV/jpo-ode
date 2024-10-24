@@ -22,7 +22,7 @@ public class Asn1DecodeTIMJSON extends AbstractAsn1DecodeMessageJSON {
     private ObjectMapper objectMapper = new ObjectMapper();
 
     public Asn1DecodeTIMJSON(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
-        super(new StringPublisher(odeProperties, odeKafkaProperties), UperUtil.getTimStartFlag());
+        super(new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics()), UperUtil.getTimStartFlag());
     }
 
     @Override

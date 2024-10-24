@@ -30,8 +30,8 @@ public abstract class AbstractAsn1DecodeMessageJSON extends AbstractSubscriberPr
 		XmlUtils xmlUtils = new XmlUtils();
 		try {
 			logger.debug("Sending encoded message payload XML to ASN1 codec {}", xmlUtils.toXml(odeData));
-			codecPublisher.publish(xmlUtils.toXml(odeData),
-					codecPublisher.getOdeProperties().getKafkaTopicAsn1DecoderInput());
+			codecPublisher.publish(codecPublisher.getOdeProperties().getKafkaTopicAsn1DecoderInput(), xmlUtils.toXml(odeData)
+            );
 		} catch (JsonProcessingException e) {
 			logger.error("Error sending encoded message payload XML to ASN1 codec {}", e.getMessage());
 			e.printStackTrace();

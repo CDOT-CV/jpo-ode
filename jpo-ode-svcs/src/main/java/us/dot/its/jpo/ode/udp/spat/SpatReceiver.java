@@ -25,7 +25,7 @@ public class SpatReceiver extends AbstractUdpReceiverPublisher {
     public SpatReceiver(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties, int port, int bufferSize) {
         super(odeProps, port, bufferSize);
 
-        this.spatPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
+        this.spatPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
     }
 
     @Override
@@ -44,7 +44,7 @@ public class SpatReceiver extends AbstractUdpReceiverPublisher {
                 if (packet.getLength() > 0) {
                     String spatJson = UdpHexDecoder.buildJsonSpatFromPacket(packet);
                     if(spatJson != null){
-                        spatPublisher.publish(spatJson,spatPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson());
+                        spatPublisher.publish(spatPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson(), spatJson);
                     }
                 }
             } catch (Exception e) {

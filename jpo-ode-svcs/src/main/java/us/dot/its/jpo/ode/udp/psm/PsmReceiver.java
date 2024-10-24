@@ -25,7 +25,7 @@ public class PsmReceiver extends AbstractUdpReceiverPublisher {
     public PsmReceiver(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties, int port, int bufferSize) {
         super(odeProps, port, bufferSize);
 
-        this.psmPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
+        this.psmPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
     }
 
     @Override
@@ -44,7 +44,7 @@ public class PsmReceiver extends AbstractUdpReceiverPublisher {
                 if (packet.getLength() > 0) {
                     String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);
                     if(psmJson != null){
-                        psmPublisher.publish(psmJson, psmPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedPSMJson());
+                        psmPublisher.publish(psmPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedPSMJson(), psmJson);
                     }
                 }
             } catch (Exception e) {

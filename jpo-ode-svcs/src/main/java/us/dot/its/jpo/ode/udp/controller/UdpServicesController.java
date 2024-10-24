@@ -2,11 +2,10 @@ package us.dot.its.jpo.ode.udp.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.OdePropertiesNew;
+import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.udp.bsm.BsmReceiver;
 import us.dot.its.jpo.ode.udp.generic.GenericReceiver;
 import us.dot.its.jpo.ode.udp.tim.TimReceiver;
@@ -25,7 +24,7 @@ import us.dot.its.jpo.ode.udp.psm.PsmReceiver;
 public class UdpServicesController {
 
    @Autowired
-   public UdpServicesController(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
+   public UdpServicesController(OdePropertiesNew odeProps) {
       super();
 
       // Start the UDP receivers
@@ -55,6 +54,7 @@ public class UdpServicesController {
       rm.submit(new PsmReceiver(odeProps, odeKafkaProperties));
 
       // Generic Receiver internal port
+      StringPublisher genericPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
       rm.submit(new GenericReceiver(odeProps, odeKafkaProperties));
 
       log.debug("UDP receiver services started.");

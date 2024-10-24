@@ -25,7 +25,7 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
     public MapReceiver(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties, int port, int bufferSize) {
         super(odeProps, port, bufferSize);
 
-        this.mapPublisher = new StringPublisher(odeProperties, odeKafkaProperties);
+        this.mapPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
     }
 
     @Override
@@ -45,7 +45,7 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
                     
                     String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
                     if(mapJson != null){
-                        mapPublisher.publish(mapJson, mapPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson());
+                        mapPublisher.publish(mapPublisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson(), mapJson);
                     }
                     
                 }
