@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.kafka.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -26,26 +27,21 @@ class Asn1DecodeSRMJSONTest {
     @Autowired
     OdeKafkaProperties odeKafkaProperties;
 
-    @Test
-    void testConstructor() {
-        OdeProperties properties = new OdeProperties();
-        assertEquals("topic.OdeRawEncodedSRMJson", properties.getKafkaTopicOdeRawEncodedSRMJson());
-    }
+    @Autowired
+    Asn1CoderTopics asn1CoderTopics;
 
     @Test
     void testProcess() throws JSONException {
-        OdeProperties properties = new OdeProperties();
-
-        Asn1DecodeSRMJSON testDecodeSrmJson = new Asn1DecodeSRMJSON(properties, odeKafkaProperties);
+        Asn1DecodeSRMJSON testDecodeSrmJson = new Asn1DecodeSRMJSON(odeKafkaProperties, asn1CoderTopics.getDecoderInput());
 
         OdeAsn1Data resultOdeObj = testDecodeSrmJson.process(json);
 
         // Validate the metadata
         OdeSrmMetadata jsonMetadataObj = (OdeSrmMetadata) resultOdeObj.getMetadata();
         assertEquals(OdeSrmMetadata.SrmSource.RSU, jsonMetadataObj.getSrmSource());
-        assertEquals("unsecuredData", jsonMetadataObj.getEncodings().get(0).getElementName());
-        assertEquals("MessageFrame", jsonMetadataObj.getEncodings().get(0).getElementType());
-        assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().get(0).getEncodingRule());
+        assertEquals("unsecuredData", jsonMetadataObj.getEncodings().getFirst().getElementName());
+        assertEquals("MessageFrame", jsonMetadataObj.getEncodings().getFirst().getElementType());
+        assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().getFirst().getEncodingRule());
 
         // Validate the payload
         String expectedPayload = "{\"bytes\":\"001D2130000010090BD341080D00855C6C0C6899853000A534F7C24CB29897694759B7C000\"}";

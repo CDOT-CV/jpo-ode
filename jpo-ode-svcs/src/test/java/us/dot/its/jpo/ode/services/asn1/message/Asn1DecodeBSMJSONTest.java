@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.kafka.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -26,20 +26,21 @@ class Asn1DecodeBSMJSONTest {
     @Autowired
     OdeKafkaProperties odeKafkaProperties;
 
+    @Autowired
+    Asn1CoderTopics asn1CoderTopics;
+
     @Test
     void testProcess() throws JSONException {
-        OdeProperties properties = new OdeProperties();
-
-        Asn1DecodeBSMJSON testDecodeBsmJson = new Asn1DecodeBSMJSON(properties, odeKafkaProperties);
+        Asn1DecodeBSMJSON testDecodeBsmJson = new Asn1DecodeBSMJSON(odeKafkaProperties, asn1CoderTopics.getDecoderInput());
 
         OdeAsn1Data resultOdeObj = testDecodeBsmJson.process(json);
 
         // Validate the metadata
         OdeBsmMetadata jsonMetadataObj = (OdeBsmMetadata) resultOdeObj.getMetadata();
         assertEquals(OdeBsmMetadata.BsmSource.EV, jsonMetadataObj.getBsmSource());
-        assertEquals("unsecuredData", jsonMetadataObj.getEncodings().get(0).getElementName());
-        assertEquals("MessageFrame", jsonMetadataObj.getEncodings().get(0).getElementType());
-        assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().get(0).getEncodingRule());
+        assertEquals("unsecuredData", jsonMetadataObj.getEncodings().getFirst().getElementName());
+        assertEquals("MessageFrame", jsonMetadataObj.getEncodings().getFirst().getElementType());
+        assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().getFirst().getEncodingRule());
 
         // Validate the payload
         String expectedPayload = "{\"bytes\":\"001480AD4644A9EA5442BC26E97C7496576E052569B214000070007050FD7D0FA1007FFF8000681250020214C1C0FF64BFFA0FB84F720FF71BFF9500DFFFC0FF564006D001FFFC0FF5BBFE5B031FFFC0FF573FF73075FFFC0FF973FFB708FFFFC0FFEFC00B50B5FFFC0FFF0401150BBFFFC0FFDF4015D0C1FFFC0FFB9C01690C7FFFC0FFC0401550C9FFFC0FFBAC014F0C9FFFC0FFBBC01530CBFFFC0FFBB400B30E7FFFC100383FFCD0E3FFFCFFFEC800400120000243450D45B978805B073A8672E91E9D80824A65C65F85E35B61502149263F000FE804E6B84AF66507D51690DE76F30D1468A68F8986B58E6AECB2C5FC4766C223F0B977E87678DDF714FE123C483622CC7500\"}";

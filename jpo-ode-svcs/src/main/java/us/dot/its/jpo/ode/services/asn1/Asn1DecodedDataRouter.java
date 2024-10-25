@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2018 572682
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -15,19 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.services.asn1;
 
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.OdeProperties;
-import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
+import us.dot.its.jpo.ode.coder.*;
 import us.dot.its.jpo.ode.context.AppContext;
+import us.dot.its.jpo.ode.kafka.JsonTopics;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
@@ -38,150 +32,155 @@ import us.dot.its.jpo.ode.wrapper.AbstractSubscriberProcessor;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 import us.dot.its.jpo.ode.wrapper.serdes.OdeBsmSerializer;
 
+@Slf4j
 public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, String> {
 
-	private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final PojoTopics pojoTopics;
+    private final JsonTopics jsonTopics;
+    private final MessageProducer<String, OdeBsmData> bsmProducer;
+    private final MessageProducer<String, String> timProducer;
+    private final MessageProducer<String, String> spatProducer;
+    private final MessageProducer<String, String> mapProducer;
+    private final MessageProducer<String, String> ssmProducer;
+    private final MessageProducer<String, String> srmProducer;
+    private final MessageProducer<String, String> psmProducer;
 
-	private OdeProperties odeProperties;
-	private OdeKafkaProperties odeKafkaProps;
-	private MessageProducer<String, OdeBsmData> bsmProducer;
-	private MessageProducer<String, String> timProducer;
-	private MessageProducer<String, String> spatProducer;
-	private MessageProducer<String, String> mapProducer;
-	private MessageProducer<String, String> ssmProducer;
-	private MessageProducer<String, String> srmProducer;
-	private MessageProducer<String, String> psmProducer;
+    public Asn1DecodedDataRouter(OdeKafkaProperties odeKafkaProperties, PojoTopics pojoTopics, JsonTopics jsonTopics) {
+        super();
 
-	public Asn1DecodedDataRouter(OdeProperties odeProps, OdeKafkaProperties odeKafkaProperties) {
-		super();
-		this.odeProperties = odeProps;
-		this.odeKafkaProps = odeKafkaProperties;
-		this.bsmProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				null,
-				OdeBsmSerializer.class.getName(),
-				odeKafkaProperties.getDisabledTopics());
-		this.timProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopics());
-		this.spatProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopics());
-		this.mapProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopics());
-		this.ssmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopics());
-		this.srmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopics());
-		this.psmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-				odeKafkaProperties.getProducerType(),
-				odeKafkaProperties.getDisabledTopics());
-	}
+        this.pojoTopics = pojoTopics;
+        this.jsonTopics = jsonTopics;
+        this.bsmProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                null,
+                OdeBsmSerializer.class.getName(),
+                odeKafkaProperties.getDisabledTopics());
+        this.timProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getDisabledTopics());
+        this.spatProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getDisabledTopics());
+        this.mapProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getDisabledTopics());
+        this.ssmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getDisabledTopics());
+        this.srmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getDisabledTopics());
+        this.psmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+                odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getDisabledTopics());
+    }
 
-	@Override
-	public Object process(String consumedData) {
-		try {
-			JSONObject consumed = XmlUtils.toJSONObject(consumedData).getJSONObject(OdeAsn1Data.class.getSimpleName());
-			J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
-					consumed.getJSONObject(AppContext.PAYLOAD_STRING)
-							.getJSONObject(AppContext.DATA_STRING)
-							.getJSONObject("MessageFrame")
-							.getInt("messageId")
-			);
+    @Override
+    public Object process(String consumedData) {
+        try {
+            JSONObject consumed = XmlUtils.toJSONObject(consumedData).getJSONObject(OdeAsn1Data.class.getSimpleName());
+            J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
+                    consumed.getJSONObject(AppContext.PAYLOAD_STRING)
+                            .getJSONObject(AppContext.DATA_STRING)
+                            .getJSONObject("MessageFrame")
+                            .getInt("messageId")
+            );
 
-			RecordType recordType = RecordType
-					.valueOf(consumed.getJSONObject(AppContext.METADATA_STRING).getString("recordType"));
+            RecordType recordType = RecordType
+                    .valueOf(consumed.getJSONObject(AppContext.METADATA_STRING).getString("recordType"));
 
             switch (messageId) {
-                case BasicSafetyMessage -> {
-                    // ODE-518/ODE-604 Demultiplex the messages to appropriate topics based on the
-                    // "recordType"
-                    OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumedData);
-                    switch (recordType) {
-                        case bsmLogDuringEvent ->
-                                bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getDuringEventPojoTopic(), getRecord().key(), odeBsmData);
-                        case rxMsg ->
-                                bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getRxPojoTopic(), getRecord().key(), odeBsmData);
-                        case bsmTx ->
-                                bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getTxPojoTopic(), getRecord().key(), odeBsmData);
-                        default -> logger.trace("Consumed BSM data with record type: {}", recordType);
-                    }
-                    // Send all BSMs also to OdeBsmPojo
-                    bsmProducer.send(odeKafkaProps.getBsmReceiverProperties().getPojoTopic(), getRecord().key(), odeBsmData);
-                    logger.debug("Submitted to BSM Pojo topic");
-                }
-                case TravelerInformation -> {
-                    String odeTimData = TimTransmogrifier.createOdeTimData(consumed).toString();
-                    switch (recordType) {
-                        case dnMsg ->
-                                timProducer.send(odeProperties.getKafkaTopicOdeDNMsgJson(), getRecord().key(), odeTimData);
-                        case rxMsg ->
-                                timProducer.send(odeProperties.getKafkaTopicOdeTimRxJson(), getRecord().key(), odeTimData);
-						default -> logger.trace("Consumed TIM data with record type: {}", recordType);
-                    }
-                    // Send all TIMs also to OdeTimJson
-                    timProducer.send(odeProperties.getKafkaTopicOdeTimJson(), getRecord().key(), odeTimData);
-                    logger.debug("Submitted to TIM Pojo topic");
-                }
-                case SPATMessage -> {
-                    String odeSpatData = OdeSpatDataCreatorHelper.createOdeSpatData(consumedData).toString();
-                    switch (recordType) {
-                        case dnMsg ->
-                                spatProducer.send(odeProperties.getKafkaTopicOdeDNMsgJson(), getRecord().key(), odeSpatData);
-                        case rxMsg ->
-                                spatProducer.send(odeProperties.getKafkaTopicOdeSpatRxJson(), getRecord().key(), odeSpatData);
-                        case spatTx ->
-                                spatProducer.send(odeProperties.getKafkaTopicOdeSpatTxPojo(), getRecord().key(), odeSpatData);
-                        default -> logger.trace("Consumed SPAT data with record type: {}", recordType);
-                    }
-                    // Send all SPATs also to OdeSpatJson
-                    spatProducer.send(odeProperties.getKafkaTopicOdeSpatJson(), getRecord().key(), odeSpatData);
-                    logger.debug("Submitted to SPAT Pojo topic");
-                }
-                case MAPMessage -> {
-                    String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumedData).toString();
-                    if (recordType == RecordType.mapTx) {
-                        mapProducer.send(odeProperties.getKafkaTopicOdeMapTxPojo(), getRecord().key(), odeMapData);
-                    }
-                    // Send all Map also to OdeMapJson
-                    mapProducer.send(odeProperties.getKafkaTopicOdeMapJson(), getRecord().key(), odeMapData);
-                    logger.debug("Submitted to MAP Pojo topic");
-                }
-                case SSMMessage -> {
-                    String odeSsmData = OdeSsmDataCreatorHelper.createOdeSsmData(consumedData).toString();
-                    if (recordType == RecordType.ssmTx) {
-                        ssmProducer.send(odeProperties.getKafkaTopicOdeSsmPojo(), getRecord().key(), odeSsmData);
-                    }
-                    // Send all SSMs also to OdeSsmJson
-                    ssmProducer.send(odeProperties.getKafkaTopicOdeSsmJson(), getRecord().key(), odeSsmData);
-                    logger.debug("Submitted to SSM Pojo topic");
-                }
-                case SRMMessage -> {
-                    String odeSrmData = OdeSrmDataCreatorHelper.createOdeSrmData(consumedData).toString();
-                    if (recordType == RecordType.srmTx) {
-                        srmProducer.send(odeProperties.getKafkaTopicOdeSrmTxPojo(), getRecord().key(), odeSrmData);
-                    }
-                    // Send all SRMs also to OdeSrmJson
-                    srmProducer.send(odeProperties.getKafkaTopicOdeSrmJson(), getRecord().key(), odeSrmData);
-                    logger.debug("Submitted to SRM Pojo topic");
-                }
-                case PersonalSafetyMessage -> {
-                    String odePsmData = OdePsmDataCreatorHelper.createOdePsmData(consumedData).toString();
-                    if (recordType == RecordType.psmTx) {
-                        psmProducer.send(odeProperties.getKafkaTopicOdePsmTxPojo(), getRecord().key(), odePsmData);
-                    }
-                    // Send all PSMs also to OdePsmJson
-                    psmProducer.send(odeProperties.getKafkaTopicOdePsmJson(), getRecord().key(), odePsmData);
-                    logger.debug("Submitted to PSM Pojo topic");
-                }
-                case null, default -> logger.warn("Unknown message type: {}", messageId);
+                case BasicSafetyMessage -> routeBSM(consumedData, recordType);
+                case TravelerInformation -> routeTIM(consumed, recordType);
+                case SPATMessage -> routeSPAT(consumedData, recordType);
+                case MAPMessage -> routeMAP(consumedData, recordType);
+                case SSMMessage -> routeSSM(consumedData, recordType);
+                case SRMMessage -> routeSRM(consumedData, recordType);
+                case PersonalSafetyMessage -> routePSM(consumedData, recordType);
+                case null, default -> log.warn("Unknown message type: {}", messageId);
             }
-		} catch (Exception e) {
-            logger.error("Failed to route received data: {}", consumedData, e);
-		}
-		return null;
-	}
+        } catch (Exception e) {
+            log.error("Failed to route received data: {}", consumedData, e);
+        }
+        return null;
+    }
+
+    private void routePSM(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+        String odePsmData = OdePsmDataCreatorHelper.createOdePsmData(consumedData).toString();
+        if (recordType == RecordType.psmTx) {
+            psmProducer.send(pojoTopics.getTxPsm(), getRecord().key(), odePsmData);
+        }
+        // Send all PSMs also to OdePsmJson
+        psmProducer.send(jsonTopics.getPsm(), getRecord().key(), odePsmData);
+        log.debug("Submitted to PSM Pojo topic {}", jsonTopics.getPsm());
+    }
+
+    private void routeSRM(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+        String odeSrmData = OdeSrmDataCreatorHelper.createOdeSrmData(consumedData).toString();
+        if (recordType == RecordType.srmTx) {
+            srmProducer.send(pojoTopics.getTxSrm(), getRecord().key(), odeSrmData);
+        }
+        // Send all SRMs also to OdeSrmJson
+        srmProducer.send(jsonTopics.getSrm(), getRecord().key(), odeSrmData);
+        log.debug("Submitted to SRM Pojo topic {}", jsonTopics.getSrm());
+    }
+
+    private void routeSSM(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+        String odeSsmData = OdeSsmDataCreatorHelper.createOdeSsmData(consumedData).toString();
+        if (recordType == RecordType.ssmTx) {
+            ssmProducer.send(pojoTopics.getSsm(), getRecord().key(), odeSsmData);
+        }
+        // Send all SSMs also to OdeSsmJson
+        ssmProducer.send(jsonTopics.getSsm(), getRecord().key(), odeSsmData);
+        log.debug("Submitted to SSM Pojo topic {}", jsonTopics.getSsm());
+    }
+
+    private void routeMAP(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+        String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumedData).toString();
+        if (recordType == RecordType.mapTx) {
+            mapProducer.send(pojoTopics.getTxMap(), getRecord().key(), odeMapData);
+        }
+        // Send all Map also to OdeMapJson
+        mapProducer.send(jsonTopics.getMap(), getRecord().key(), odeMapData);
+        log.debug("Submitted to MAP Pojo topic {}", jsonTopics.getMap());
+    }
+
+    private void routeSPAT(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+        String odeSpatData = OdeSpatDataCreatorHelper.createOdeSpatData(consumedData).toString();
+        switch (recordType) {
+            case dnMsg -> spatProducer.send(jsonTopics.getDnMessage(), getRecord().key(), odeSpatData);
+            case rxMsg -> spatProducer.send(jsonTopics.getRxSpat(), getRecord().key(), odeSpatData);
+            case spatTx -> spatProducer.send(pojoTopics.getTxSpat(), getRecord().key(), odeSpatData);
+            default -> log.trace("Consumed SPAT data with record type: {}", recordType);
+        }
+        // Send all SPATs also to OdeSpatJson
+        spatProducer.send(jsonTopics.getSpat(), getRecord().key(), odeSpatData);
+        log.debug("Submitted to SPAT Pojo topic {}", jsonTopics.getSpat());
+    }
+
+    private void routeTIM(JSONObject consumed, RecordType recordType) {
+        String odeTimData = TimTransmogrifier.createOdeTimData(consumed).toString();
+        switch (recordType) {
+            case dnMsg -> timProducer.send(jsonTopics.getDnMessage(), getRecord().key(), odeTimData);
+            case rxMsg -> timProducer.send(jsonTopics.getRxTim(), getRecord().key(), odeTimData);
+            default -> log.trace("Consumed TIM data with record type: {}", recordType);
+        }
+        // Send all TIMs also to OdeTimJson
+        timProducer.send(jsonTopics.getTim(), getRecord().key(), odeTimData);
+        log.debug("Submitted to TIM Pojo topic: {}", jsonTopics.getTim());
+    }
+
+    private void routeBSM(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+        // ODE-518/ODE-604 Demultiplex the messages to appropriate topics based on the "recordType"
+        OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumedData);
+        switch (recordType) {
+            case bsmLogDuringEvent -> bsmProducer.send(pojoTopics.getBsmDuringEvent(), getRecord().key(), odeBsmData);
+            case rxMsg -> bsmProducer.send(pojoTopics.getRxBsm(), getRecord().key(), odeBsmData);
+            case bsmTx -> bsmProducer.send(pojoTopics.getTxBsm(), getRecord().key(), odeBsmData);
+            default -> log.trace("Consumed BSM data with record type: {}", recordType);
+        }
+        // Send all BSMs also to OdeBsmPojo
+        bsmProducer.send(pojoTopics.getBsm(), getRecord().key(), odeBsmData);
+        log.debug("Submitted to BSM Pojo topic {}", pojoTopics.getBsm());
+    }
 }

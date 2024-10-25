@@ -40,7 +40,7 @@ public class ToJsonServiceControllerTest {
    public void test() {
       new Expectations() {
          {
-            new ToJsonConverter<>((OdeProperties) any, (OdeKafkaProperties) any, anyBoolean, anyString);
+            new ToJsonConverter<>((OdeKafkaProperties) any, anyBoolean, anyString);
             times = 1;
 
             new MessageConsumer<>(anyString, anyString, (MessageProcessor<?, ?>) any, anyString);
@@ -48,7 +48,7 @@ public class ToJsonServiceControllerTest {
 
          }
       };
-      new ToJsonServiceController(odeProperties, mockOdeKafkaProperties);
+      new ToJsonServiceController(mockOdeKafkaProperties, jsonTopics, );
    }
 
 }

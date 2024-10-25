@@ -52,7 +52,7 @@ public class AsnCodecRouterServiceControllerTest {
          }
       };
 
-      assertNotNull(new AsnCodecRouterServiceController(injectableOdeProperties, odeKafkaProperties));
+      assertNotNull(new AsnCodecRouterServiceController(odeKafkaProperties, , , ));
    }
 
 }

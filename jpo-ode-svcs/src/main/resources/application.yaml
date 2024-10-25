@@ -26,10 +26,6 @@ ode:
         decoder-output: "topic.Asn1DecoderOutput"
         encoder-input: "topic.Asn1EncoderInput"
         encoder-output: "topic.Asn1EncoderOutput"
-      cert-expiration:
-        tim: "topic.OdeTIMCertExpirationTimeJson"
-      during-event-pojo:
-
       json:
         bsm: "topic.OdeBsmJson"
         map: "topic.OdeMapJson"
@@ -43,11 +39,22 @@ ode:
         bsm-filtered: "topic.FilteredOdeBsmJson"
         spat-filtered: "topic.FilteredOdeSpatJson"
         tim-filtered: "topic.FilteredOdeTimJson"
+        tim-cert-expiration: "topic.OdeTIMCertExpirationTimeJson"
+        dn-message: "topic.OdeDNMsgJson"
+        rx-tim: "topic.OdeTimRxJson"
+        rx-spat: "topic.OdeSpatRxJson"
       pojo:
         bsm: "topic.OdeBsmPojo"
         spat: "topic.OdeSpatPojo"
         ssm: "topic.OdeSsmPojo"
         bsm-during-event: "topic.OdeBsmDuringEventPojo"
+        rx-bsm: "topic.OdeBsmRxPojo"
+        rx-spat: "topic.OdeSpatRxPojo"
+        tx-bsm: "topic.OdeBsmTxPojo"
+        tx-map: "topic.OdeMapTxPojo"
+        tx-psm: "topic.OdePsmTxPojo"
+        tx-spat: "topic.OdeSpatTxPojo"
+        tx-srm: "topic.OdeSrmTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"
@@ -56,17 +63,8 @@ ode:
         srm: "topic.OdeRawEncodedSRMJson"
         ssm: "topic.OdeRawEncodedSSMJson"
         tim: "topic.OdeRawEncodedTIMJson"
-      rx-pojo:
-        bsm: "topic.OdeBsmRxPojo"
-        spat: "topic.OdeSpatRxPojo"
       sdx-depositor:
         input: "topic.SDWDepositorInput"
-      tx-pojo:
-        bsm: "topic.OdeBsmTxPojo"
-        map: "topic.OdeMapTxPojo"
-        psm: "topic.OdePsmTxPojo"
-        spat: "topic.OdeSpatTxPojo"
-        srm: "topic.OdeSrmTxPojo"
       file:
         filtered-output: "/topic/filtered_messages"
         unfiltered-output: "/topic/unfiltered_messages"

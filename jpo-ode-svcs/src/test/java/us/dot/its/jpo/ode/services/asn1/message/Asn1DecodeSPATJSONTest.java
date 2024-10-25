@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.kafka.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -26,26 +26,21 @@ class Asn1DecodeSPATJSONTest {
     @Autowired
     OdeKafkaProperties odeKafkaProperties;
 
-    @Test
-    void testConstructor() {
-        OdeProperties properties = new OdeProperties();
-
-        assertEquals("topic.OdeRawEncodedSPATJson", properties.getKafkaTopicOdeRawEncodedSPATJson());
-    }
+    @Autowired
+    Asn1CoderTopics asn1CoderTopics;
 
     @Test
     void testProcess() throws JSONException {
-        OdeProperties properties = new OdeProperties();
-        Asn1DecodeSPATJSON testDecodeSpatJson = new Asn1DecodeSPATJSON(properties, odeKafkaProperties);
+        Asn1DecodeSPATJSON testDecodeSpatJson = new Asn1DecodeSPATJSON(odeKafkaProperties, asn1CoderTopics.getDecoderInput());
 
         OdeAsn1Data resultOdeObj = testDecodeSpatJson.process(json);
 
         // Validate the metadata
         OdeSpatMetadata jsonMetadataObj = (OdeSpatMetadata) resultOdeObj.getMetadata();
         assertEquals(OdeSpatMetadata.SpatSource.RSU, jsonMetadataObj.getSpatSource());
-        assertEquals("unsecuredData", jsonMetadataObj.getEncodings().get(0).getElementName());
-        assertEquals("MessageFrame", jsonMetadataObj.getEncodings().get(0).getElementType());
-        assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().get(0).getEncodingRule());
+        assertEquals("unsecuredData", jsonMetadataObj.getEncodings().getFirst().getElementName());
+        assertEquals("MessageFrame", jsonMetadataObj.getEncodings().getFirst().getElementType());
+        assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().getFirst().getEncodingRule());
 
         // Validate the payload
         String expectedPayload = "{\"bytes\":\"00134700081132000000E437070010434257925790010232119A11CE800C10D095E495E400808684AF24AF20050434257925790030232119A11CE801C10D095E495E401008684AF24AF200\"}";
