@@ -43,10 +43,12 @@ ode:
         dn-message: "topic.OdeDNMsgJson"
         rx-tim: "topic.OdeTimRxJson"
         rx-spat: "topic.OdeSpatRxJson"
+        j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
       pojo:
         bsm: "topic.OdeBsmPojo"
         spat: "topic.OdeSpatPojo"
         ssm: "topic.OdeSsmPojo"
+        tim-broadcast: "topic.OdeTimBroadcastPojo"
         bsm-during-event: "topic.OdeBsmDuringEventPojo"
         rx-bsm: "topic.OdeBsmRxPojo"
         rx-spat: "topic.OdeSpatRxPojo"

@@ -12,6 +12,8 @@ public class PojoTopics {
     private String spat;
     private String ssm;
 
+    private String timBroadcast;
+
     private String bsmDuringEvent;
 
     private String rxBsm;

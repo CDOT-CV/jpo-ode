@@ -30,4 +30,6 @@ public class JsonTopics {
 
     private String rxTim;
     private String rxSpat;
+
+    private String j2735TimBroadcast;
 }
