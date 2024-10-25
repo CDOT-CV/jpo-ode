@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2018 572682
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -15,40 +15,53 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.coder;
 
-import org.junit.jupiter.api.Test;
-
 import mockit.Capturing;
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Tested;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.model.OdeData;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public class OdeStringPublisherTest {
 
-   @Tested
-   OdeStringPublisher testOdeStringPublisher;
+    @Tested
+    OdeStringPublisher testOdeStringPublisher;
 
-   @Injectable
-   OdeProperties injectableOdeProperties;
+    @Injectable
+    OdeProperties injectableOdeProperties;
 
-   @Injectable
-   OdeKafkaProperties injectableOdeKafkaProperties;
+    @Injectable
+    OdeKafkaProperties injectableOdeKafkaProperties;
 
-   @Capturing
-   MessageProducer<String, String> capturingMessageProducer;
+    @Injectable
+    String brokers = "localhost:9093";
 
-   @Test
-   public void publishShouldCallMessageProducer() {
-      new Expectations() {
-         {
-            capturingMessageProducer.send(anyString, null, anyString);
-            times = 1;
-         }
-      };
+    @Injectable
+    String producerType = "testProducerType";
 
-      testOdeStringPublisher.publish("testTopic", new OdeData());
-   }
+    @Injectable
+    HashSet<String> disabledTopics = new HashSet<>(){{
+        add("testDisabledTopic");
+    }};
+
+    @Capturing
+    MessageProducer<String, String> capturingMessageProducer;
+
+    @Test
+    public void publishShouldCallMessageProducer() {
+        new Expectations() {
+            {
+                capturingMessageProducer.send(anyString, null, anyString);
+                times = 1;
+            }
+        };
+
+        testOdeStringPublisher.publish("testTopic", new OdeData());
+    }
 }

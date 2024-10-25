@@ -49,11 +49,6 @@ public class TimTransmogrifierTest {
 
    private static String schemaVersion = "7";
 
-   @BeforeAll
-   public static void setupClass() {
-      schemaVersion = Integer.toString(OdeProperties.OUTPUT_SCHEMA_VERSION);
-   }
-
    @Test
    public void testGetRsu() throws IOException {
       new Expectations() {

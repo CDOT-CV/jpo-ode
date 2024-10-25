@@ -41,6 +41,8 @@ class ImporterDirectoryWatcherTest {
     JsonTopics jsonTopics;
     @Injectable
     RawEncodedJsonTopics rawEncodedJsonTopics;
+    @Injectable
+    ImporterDirectoryWatcher.ImporterFileType importerFileType = ImporterDirectoryWatcher.ImporterFileType.LOG_FILE;
 
     @Capturing
     OdeFileUtils capturingOdeFileUtils;

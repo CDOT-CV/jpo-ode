@@ -16,7 +16,7 @@ import static org.junit.Assert.assertNotNull;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = OdeKafkaProperties.class)
+@EnableConfigurationProperties(value = {OdeKafkaProperties.class, RawEncodedJsonTopics.class, Asn1CoderTopics.class})
 class AsnCodecMessageServiceControllerTest {
 
     @Autowired
