@@ -17,10 +17,11 @@ package us.dot.its.jpo.ode.coder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.kafka.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
 
 import java.io.BufferedInputStream;
 import java.nio.file.Path;
@@ -41,12 +42,12 @@ public class FileAsn1CodecPublisher {
 
    private final LogFileToAsn1CodecPublisher codecPublisher;
 
-   public FileAsn1CodecPublisher(OdeKafkaProperties odeKafkaProperties, FileImporterProperties fileImporterProps) {
+   public FileAsn1CodecPublisher(OdeKafkaProperties odeKafkaProperties, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics) {
       StringPublisher messagePub = new StringPublisher(odeKafkaProperties.getBrokers(),
               odeKafkaProperties.getProducerType(),
               odeKafkaProperties.getDisabledTopics());
 
-      this.codecPublisher = new LogFileToAsn1CodecPublisher(messagePub, fileImporterProps);
+      this.codecPublisher = new LogFileToAsn1CodecPublisher(messagePub, jsonTopics, rawEncodedJsonTopics);
    }
 
    public void publishFile(Path filePath, BufferedInputStream fileInputStream, ImporterFileType fileType) 

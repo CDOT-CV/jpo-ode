@@ -15,36 +15,23 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.coder.stream;
 
+import lombok.extern.slf4j.Slf4j;
+import us.dot.its.jpo.ode.coder.StringPublisher;
+import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.importer.parser.*;
+import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.kafka.JsonTopics;
+import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
+import us.dot.its.jpo.ode.model.*;
+import us.dot.its.jpo.ode.uper.UperUtil;
+import us.dot.its.jpo.ode.util.JsonUtils;
+
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import us.dot.its.jpo.ode.coder.StringPublisher;
-import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
-import us.dot.its.jpo.ode.importer.parser.BsmLogFileParser;
-import us.dot.its.jpo.ode.importer.parser.DriverAlertFileParser;
-import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
-import us.dot.its.jpo.ode.importer.parser.LogFileParser;
-import us.dot.its.jpo.ode.importer.parser.RxMsgFileParser;
-import us.dot.its.jpo.ode.importer.parser.SpatLogFileParser;
-import us.dot.its.jpo.ode.model.OdeAsn1Data;
-import us.dot.its.jpo.ode.model.OdeAsn1Payload;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata;
-import us.dot.its.jpo.ode.model.OdeData;
-import us.dot.its.jpo.ode.model.OdeDriverAlertData;
-import us.dot.its.jpo.ode.model.OdeDriverAlertPayload;
-import us.dot.its.jpo.ode.model.OdeLogMetadata;
-import us.dot.its.jpo.ode.model.OdeMsgPayload;
-import us.dot.its.jpo.ode.model.OdeSpatMetadata;
-import us.dot.its.jpo.ode.model.RxSource;
-import us.dot.its.jpo.ode.model.SerialId;
-import us.dot.its.jpo.ode.util.JsonUtils;
-import us.dot.its.jpo.ode.uper.UperUtil;
-
+@Slf4j
 public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
 	public static class LogFileToAsn1CodecPublisherException extends Exception {
@@ -57,13 +44,15 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
 	}
 
-	protected static final Logger logger = LoggerFactory.getLogger(LogFileToAsn1CodecPublisher.class);
-
+	private final RawEncodedJsonTopics rawEncodedJsonTopics;
+	private final JsonTopics jsonTopics;
 	protected StringPublisher publisher;
 	protected LogFileParser fileParser;
 	protected SerialId serialId;
 
-	public LogFileToAsn1CodecPublisher(StringPublisher dataPub, FileImporterProperties props) {
+	public LogFileToAsn1CodecPublisher(StringPublisher dataPub, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics) {
+		this.jsonTopics = jsonTopics;
+		this.rawEncodedJsonTopics = rawEncodedJsonTopics;
 		this.publisher = dataPub;
 		this.serialId = new SerialId();
 	}
@@ -84,9 +73,9 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 					} else if (status == ParserStatus.EOF) {
 						publishList(dataList);
 					} else if (status == ParserStatus.INIT) {
-						logger.error("Failed to parse the header bytes.");
+						log.error("Failed to parse the header bytes.");
 					} else {
-						logger.error("Failed to decode ASN.1 data");
+						log.error("Failed to decode ASN.1 data");
 					}
 					bis = removeNextNewLineCharacter(bis);
 				} catch (Exception e) {
@@ -148,33 +137,33 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 			msgMetadata.setSerialId(serialId);
 
 			if (isDriverAlertRecord()) {
-				publisher.publish(publisher.getOdeProperties().getKafkaTopicDriverAlertJson(), JsonUtils.toJson(odeData, false)
+				publisher.publish(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false)
 				);
 			} else if (isBsmRecord()) {
-				publisher.publish(publisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic(), JsonUtils.toJson(odeData, false)
+				publisher.publish(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false)
 				);
 			} else if (isSpatRecord()) {
-				publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson(), JsonUtils.toJson(odeData, false)
+				publisher.publish(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false)
 				);
 			} else {
 				// Determine the message type (MAP, TIM, SSM, SRM, or PSM)
 				String messageType = UperUtil.determineMessageType(msgPayload);
                 switch (messageType) {
-                    case "MAP" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedMAPJson(), JsonUtils.toJson(odeData, false)
+                    case "MAP" -> publisher.publish(rawEncodedJsonTopics.getMap(), JsonUtils.toJson(odeData, false)
 					);
-                    case "SPAT" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSPATJson(), JsonUtils.toJson(odeData, false)
+                    case "SPAT" -> publisher.publish(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false)
 					);
-                    case "TIM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedTIMJson(), JsonUtils.toJson(odeData, false)
+					case "TIM" -> publisher.publish(rawEncodedJsonTopics.getTim(), JsonUtils.toJson(odeData, false)
 					);
-                    case "BSM" -> publisher.publish(publisher.getOdeKafkaProperties().getBsmProperties().getRawEncodedJsonTopic(), JsonUtils.toJson(odeData, false)
+					case "BSM" -> publisher.publish(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false)
 					);
-                    case "SSM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSSMJson(), JsonUtils.toJson(odeData, false)
+					case "SSM" -> publisher.publish(rawEncodedJsonTopics.getSsm(), JsonUtils.toJson(odeData, false)
 					);
-                    case "SRM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedSRMJson(), JsonUtils.toJson(odeData, false)
+                    case "SRM" -> publisher.publish(rawEncodedJsonTopics.getSrm(), JsonUtils.toJson(odeData, false)
 					);
-                    case "PSM" -> publisher.publish(publisher.getOdeProperties().getKafkaTopicOdeRawEncodedPSMJson(), JsonUtils.toJson(odeData, false)
+                    case "PSM" -> publisher.publish(rawEncodedJsonTopics.getPsm(), JsonUtils.toJson(odeData, false)
 					);
-                    default -> logger.warn("Unknown message type: {}", messageType);
+                    default -> log.warn("Unknown message type: {}", messageType);
                 }
 			}
 

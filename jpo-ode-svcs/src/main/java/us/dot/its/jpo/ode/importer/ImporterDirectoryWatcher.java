@@ -20,7 +20,9 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
+import us.dot.its.jpo.ode.kafka.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -47,7 +49,11 @@ public class ImporterDirectoryWatcher implements Runnable {
     private final Path backupPath;
     private final Path failuresPath;
 
-    public ImporterDirectoryWatcher(FileImporterProperties fileImporterProperties, OdeKafkaProperties odeKafkaProperties, ImporterFileType fileType) {
+    public ImporterDirectoryWatcher(FileImporterProperties fileImporterProperties,
+                                    OdeKafkaProperties odeKafkaProperties,
+                                    JsonTopics jsonTopics,
+                                    ImporterFileType fileType,
+                                    RawEncodedJsonTopics rawEncodedJsonTopics) {
         this.props = fileImporterProperties;
         this.watching = true;
 
@@ -75,7 +81,9 @@ public class ImporterDirectoryWatcher implements Runnable {
             log.error("Error creating directory", e);
         }
 
-        this.importerProcessor = new ImporterProcessor(new FileAsn1CodecPublisher(odeKafkaProperties, fileImporterProperties), fileType, fileImporterProperties.getBufferSize());
+        this.importerProcessor = new ImporterProcessor(new FileAsn1CodecPublisher(odeKafkaProperties, jsonTopics, rawEncodedJsonTopics),
+                fileType,
+                fileImporterProperties.getBufferSize());
 
         executor = Executors.newScheduledThreadPool(1);
     }
