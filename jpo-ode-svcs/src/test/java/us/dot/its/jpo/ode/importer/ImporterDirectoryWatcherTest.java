@@ -28,29 +28,18 @@ import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
+import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.OdeProperties;
-import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 
-public class ImporterDirectoryWatcherTest {
+class ImporterDirectoryWatcherTest {
 
    @Tested
    ImporterDirectoryWatcher testImporterDirectoryWatcher;
 
    @Injectable
-   OdeProperties injectableOdeProperties;
+   FileImporterProperties injectableFileImporterProperties;
    @Injectable
    OdeKafkaProperties odeKafkaProperties;
-   @Injectable
-   Path inbox;
-   @Injectable
-   Path failureDir;
-   @Injectable
-   Path backupDir;
-   @Injectable
-   ImporterFileType injectableImporterFileType = ImporterFileType.LOG_FILE;
-   @Injectable
-   Integer timePeriod = 5;
 
    @Capturing
    OdeFileUtils capturingOdeFileUtils;
@@ -62,21 +51,9 @@ public class ImporterDirectoryWatcherTest {
    @Mocked
    ScheduledExecutorService mockScheduledExecutorService;
 
-   // @BeforeEach
-   public void testConstructor() throws IOException {
-      new Expectations() {
-         {
-            OdeFileUtils.createDirectoryRecursively((Path) any);
-            times = 3;
-
-            Executors.newScheduledThreadPool(1);
-            result = mockScheduledExecutorService;
-         }
-      };
-   }
 
    @Test
-   public void testRun() throws InterruptedException, IOException {
+   void testRun() throws InterruptedException, IOException {
       new Expectations() {
          {
             OdeFileUtils.createDirectoryRecursively((Path) any);
@@ -90,7 +67,7 @@ public class ImporterDirectoryWatcherTest {
             mockScheduledExecutorService.awaitTermination(anyLong, TimeUnit.SECONDS);
          }
       };
-      testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableOdeProperties, odeKafkaProperties, );
+      testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties, odeKafkaProperties, ImporterDirectoryWatcher.ImporterFileType.LOG_FILE);
 
       testImporterDirectoryWatcher.run();
    }
