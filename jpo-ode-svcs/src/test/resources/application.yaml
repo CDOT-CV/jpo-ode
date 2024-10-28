@@ -4,7 +4,7 @@ spring:
       max-file-size: 1MB
       max-request-size: 1MB
 ode:
-  host-ip: "test-host:9092"
+  host-ip: "test-host"
   verbose-json: false
   plugins-locations: "plugins"
   output-schema-version: 7
@@ -13,7 +13,7 @@ ode:
     username: ${RSU_USERNAME}
     password: ${RSU_PASSWORD}
   kafka:
-    brokers: ${DOCKER_HOST_IP}:9092
+    brokers: "localhost:9092"
     producer-type: sync
     disabled-topics:
       - "topic.OdeBsmRxPojo"
