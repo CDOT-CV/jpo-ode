@@ -17,44 +17,23 @@ package us.dot.its.jpo.ode.coder;
 
 import mockit.Capturing;
 import mockit.Expectations;
-import mockit.Injectable;
 import mockit.Tested;
 import org.junit.jupiter.api.Test;
-import us.dot.its.jpo.ode.OdeProperties;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.model.OdeData;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public class OdeStringPublisherTest {
+class OdeStringPublisherTest {
 
     @Tested
-    OdeStringPublisher testOdeStringPublisher;
-
-    @Injectable
-    OdeProperties injectableOdeProperties;
-
-    @Injectable
-    OdeKafkaProperties injectableOdeKafkaProperties;
-
-    @Injectable
-    String brokers = "localhost:9093";
-
-    @Injectable
-    String producerType = "testProducerType";
-
-    @Injectable
-    HashSet<String> disabledTopics = new HashSet<>(){{
-        add("testDisabledTopic");
-    }};
+    OdeStringPublisher testOdeStringPublisher = new OdeStringPublisher("localhost:9093", "sync",  Set.of("disabledTopic"));
 
     @Capturing
     MessageProducer<String, String> capturingMessageProducer;
 
     @Test
-    public void publishShouldCallMessageProducer() {
+    void publishShouldCallMessageProducer() {
         new Expectations() {
             {
                 capturingMessageProducer.send(anyString, null, anyString);
