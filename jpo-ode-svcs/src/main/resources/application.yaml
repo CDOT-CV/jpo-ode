@@ -8,6 +8,8 @@ ode:
   verbose-json: false
   plugins-locations: "plugins"
   output-schema-version: 7
+  security-svcs-port: 8090
+  security-svcs-signature-endpoint: "sign"
   rsu:
     srm-slots: 100
     username: ${RSU_USERNAME}

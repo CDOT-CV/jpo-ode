@@ -8,10 +8,12 @@ ode:
   verbose-json: false
   plugins-locations: "plugins"
   output-schema-version: 7
+  security-svcs-port: 8090
+  security-svcs-signature-endpoint: "sign"
   rsu:
     srm-slots: 100
-    username: ${RSU_USERNAME}
-    password: ${RSU_PASSWORD}
+    username: "test-username"
+    password: "test-password"
   kafka:
     brokers: "localhost:9092"
     producer-type: sync
@@ -102,4 +104,5 @@ ode:
     time-period: 1
     upload-location-root: "uploads"
     obu-log-upload-location: "bsmlog"
+
 

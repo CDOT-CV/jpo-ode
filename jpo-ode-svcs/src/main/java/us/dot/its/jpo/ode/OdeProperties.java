@@ -19,13 +19,14 @@ import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
+import us.dot.its.jpo.ode.rsu.RSUProperties;
 
 
 @Configuration
@@ -45,19 +46,12 @@ public class OdeProperties implements EnvironmentAware {
     private String hostIP;
     private boolean verboseJson;
 
-    @Value("${ode.rsu.srm-slots:100}")
-    private int rsuSrmSlots; // number of "store and repeat message" indicies for RSU TIMs
-    @Value("${ode.rsu.username}")
-    private String rsuUsername;
-    @Value("${ode.rsu.password}")
-    private String rsuPassword;
-
     /*
      * Security Services Module Properties
      */
     private String securitySvcsSignatureUri;
-    private int securitySvcsPort = 8090;
-    private String securitySvcsSignatureEndpoint = "sign";
+    private int securitySvcsPort;
+    private String securitySvcsSignatureEndpoint;
 
     /*
      * Security Properties
@@ -107,4 +101,8 @@ public class OdeProperties implements EnvironmentAware {
         env = environment;
     }
 
+    @Bean
+    public RSUProperties rsuProperties() {
+        return new RSUProperties();
+    }
 }

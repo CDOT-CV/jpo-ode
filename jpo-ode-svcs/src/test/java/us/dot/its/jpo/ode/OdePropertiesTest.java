@@ -1,109 +1,71 @@
-/*******************************************************************************
- * Copyright 2018 572682
- * 
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.
- ******************************************************************************/
 package us.dot.its.jpo.ode;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.core.env.Environment;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import us.dot.its.jpo.ode.rsu.RSUProperties;
 
-import mockit.Capturing;
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Tested;
-import us.dot.its.jpo.ode.util.CommonUtils;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@Import({BuildProperties.class})
+@EnableConfigurationProperties(value = {OdeProperties.class, RSUProperties.class, org.springframework.boot.info.BuildProperties.class})
 class OdePropertiesTest {
 
-      @Tested
-      OdeProperties testOdeProperties;
-      @Injectable
-      Environment mockEnv;
-      @Injectable
-      BuildProperties mockBuildProperties;
+    @Autowired
+    OdeProperties testOdeProperties;
 
-      @Capturing
-      CommonUtils capturingCommonUtils;
+    @Test
+    void testOutputSchemaVersion() {
+        assertEquals(7, testOdeProperties.getOutputSchemaVersion());
+    }
 
-      @Test
-      void testInit() {
-            new Expectations() {
-                  {
-                  }
-            };
-            try {
-                  new OdeProperties();
-            } catch (Exception e) {
-                  fail("Unexpected exception: " + e);
-            }
-      }
+    @Test
+    void testPluginsLocations() {
+        assertEquals("plugins", testOdeProperties.getPluginsLocations());
+    }
 
-      @Test
-      void testSettersAndGetters() {
+    @Test
+    void testHostIP() {
+        assertEquals("test-host", testOdeProperties.getHostIP());
+    }
 
-            String testPluginsLocations = "testpluginsLocations123456";
-            String testCaCertPath = "testCaCertPath";
-            String testSelfCertPath = "testSelfCertPath";
-            String testSelfPrivateKeyReconstructionFilePath = "testSelfPrivateKeyReconstructionFilePath";
-            String testSelfSigningPrivateKeyFilePath = "testSelfSigningPrivateKeyFilePath";
+    @Test
+    void testVerboseJson() {
+        assertFalse(testOdeProperties.isVerboseJson());
+    }
 
-            boolean testVerboseJson = true;
-            int testRsuSrmSlots = 22;
+    @Test
+    void testSecuritySvcsSignatureUri() {
+        String expected = "http://" + testOdeProperties.getHostIP() + ":" + testOdeProperties.getSecuritySvcsPort() + "/"
+                + testOdeProperties.getSecuritySvcsSignatureEndpoint();
+        assertEquals(expected, testOdeProperties.getSecuritySvcsSignatureUri());
+    }
 
-            String testSecuritySvcsSignatureUri = "testSecuritySvcsSignatureUri";
-            String testRsuUsername = "testRsuUsername";
-            String testRsuPassword = "testRsuPassword";
+    @Test
+    void testSecuritySvcsPort() {
+        assertEquals(8090, testOdeProperties.getSecuritySvcsPort());
+    }
 
-            testOdeProperties.setHostIP("test-host");
-            testOdeProperties.setEnv(mockEnv);
-            testOdeProperties.setEnvironment(mockEnv);
-            testOdeProperties.setPluginsLocations(testPluginsLocations);
-            testOdeProperties.setCaCertPath(testCaCertPath);
-            testOdeProperties.setSelfCertPath(testSelfCertPath);
-            testOdeProperties.setSelfPrivateKeyReconstructionFilePath(testSelfPrivateKeyReconstructionFilePath);
-            testOdeProperties.setSelfSigningPrivateKeyFilePath(testSelfSigningPrivateKeyFilePath);
-            testOdeProperties.setVerboseJson(testVerboseJson);
-            testOdeProperties.setRsuSrmSlots(testRsuSrmSlots);
+    @Test
+    void testSecuritySvcsSignatureEndpoint() {
+        assertEquals("sign", testOdeProperties.getSecuritySvcsSignatureEndpoint());
+    }
 
-            testOdeProperties.setSecuritySvcsSignatureUri(testSecuritySvcsSignatureUri);
-            testOdeProperties.setRsuUsername(testRsuUsername);
-            testOdeProperties.setRsuPassword(testRsuPassword);
+    @Test
+    void testRsuProperties() {
+        RSUProperties rsuProperties = testOdeProperties.rsuProperties();
 
-            assertEquals("test-host", testOdeProperties.getHostIP());
-            assertEquals("Incorrect testEnv", mockEnv, testOdeProperties.getEnv());
-            assertEquals("Incorrect testpluginsLocations", testPluginsLocations,
-                        testOdeProperties.getPluginsLocations());
-            assertEquals("Incorrect testCaCertPath", testCaCertPath, testOdeProperties.getCaCertPath());
-            assertEquals("Incorrect testSelfCertPath", testSelfCertPath, testOdeProperties.getSelfCertPath());
-            assertEquals("Incorrect testSelfPrivateKeyReconstructionFilePath", testSelfPrivateKeyReconstructionFilePath,
-                        testOdeProperties.getSelfPrivateKeyReconstructionFilePath());
-            assertEquals("Incorrect testSelfSigningPrivateKeyFilePath", testSelfSigningPrivateKeyFilePath,
-                        testOdeProperties.getSelfSigningPrivateKeyFilePath());
-
-            assertEquals("Incorrect testRsuSrmSlots", testRsuSrmSlots, testOdeProperties.getRsuSrmSlots());
-
-            assertEquals("Incorrect testSecuritySvcsSignatureUri", testSecuritySvcsSignatureUri,
-                        testOdeProperties.getSecuritySvcsSignatureUri());
-            assertEquals("Incorrect testRsuUsername", testRsuUsername, testOdeProperties.getRsuUsername());
-            assertEquals("Incorrect RsuPassword", testRsuPassword, testOdeProperties.getRsuPassword());
-
-            testOdeProperties.getProperty("testProperty");
-            testOdeProperties.getProperty("testProperty", 5);
-            testOdeProperties.getProperty("testProperty", "testDefaultValue");
-      }
+        assertEquals(100, rsuProperties.getSrmSlots());
+        assertEquals("test-username", rsuProperties.getUsername());
+        assertEquals("test-password", rsuProperties.getPassword());
+    }
 }
