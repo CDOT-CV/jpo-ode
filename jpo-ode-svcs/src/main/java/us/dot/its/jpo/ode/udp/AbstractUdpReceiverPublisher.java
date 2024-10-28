@@ -39,19 +39,6 @@ public abstract class AbstractUdpReceiverPublisher implements Runnable {
       this.stopped = stopped;
    }
 
-   protected AbstractUdpReceiverPublisher(OdeProperties odeProps, int port, int bufferSize) {
-      this.odeProperties = odeProps;
-      this.port = port;
-      this.bufferSize = bufferSize;
-
-      try {
-         this.socket = new DatagramSocket(this.port);
-         logger.info("Created UDP socket bound to port {}", this.port);
-      } catch (SocketException e) {
-         logger.error("Error creating socket with port " + this.port, e);
-      }
-   }
-
    protected AbstractUdpReceiverPublisher(int port, int bufferSize) {
       this.port = port;
       this.bufferSize = bufferSize;
