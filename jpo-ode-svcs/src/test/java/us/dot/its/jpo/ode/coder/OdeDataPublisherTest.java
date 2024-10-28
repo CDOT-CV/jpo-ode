@@ -15,42 +15,37 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.coder;
 
-import mockit.*;
+import mockit.Capturing;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.Tested;
 import org.junit.jupiter.api.Test;
-import us.dot.its.jpo.ode.OdeProperties;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.model.OdeData;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
+import java.util.Set;
 
-public class OdeDataPublisherTest {
+
+class OdeDataPublisherTest {
 
     @Tested
-    OdeDataPublisher testMessagePublisher;
-    @Injectable
-    OdeProperties testOdeProperties;
-    @Injectable
-    OdeKafkaProperties injectableOdeKafkaProperties;
-    @Injectable
-    String testSerializer;
+    OdeDataPublisher testMessagePublisher = new OdeDataPublisher("sync",
+            "localhost:9093",
+            Set.of(),
+            "us.dot.its.jpo.ode.wrapper.serdes.OdeBsmSerializer");
     @Mocked
     OdeBsmData mockOdeBsmData;
 
-    @Injectable
-    String producerType = "testProducerType";
-    @Injectable
-    String brokers = "localhost:9093";
 
     @Capturing
     MessageProducer<String, OdeData> capturingMessageProducer;
 
     @Test
-    public void shouldPublishTwice() {
+    void shouldPublishOnce() {
 
         new Expectations() {
             {
-                injectableOdeKafkaProperties.setBrokers("localhost:9092");
                 capturingMessageProducer.send(anyString, null, (OdeData) any);
                 times = 1;
             }
