@@ -9,9 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @Data
 public class FileImporterProperties {
     private int bufferSize;
-    private String inboxDir;
     private String backupDir;
-    private String failuresDir;
+    private String failedDir;
     private int timePeriod;
     private String uploadLocationRoot;
     private String obuLogUploadLocation;

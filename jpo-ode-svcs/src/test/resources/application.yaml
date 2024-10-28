@@ -97,9 +97,8 @@ ode:
       receiver-port: 47900
   file-importer:
     buffer-size: 500
-    inbox-dir: "inbox"
     backup-dir: "backup"
-    failures-dir: "failures"
+    failed-dir: "failed"
     time-period: 1
     upload-location-root: "uploads"
     obu-log-upload-location: "bsmlog"

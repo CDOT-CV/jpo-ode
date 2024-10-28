@@ -60,17 +60,17 @@ public class ImporterDirectoryWatcher implements Runnable {
         this.inboxPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getObuLogUploadLocation());
         log.debug("UPLOADER - BSM log file upload directory: {}", inboxPath);
 
-        this.failuresPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), "failed");
+        this.failuresPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getFailedDir());
         log.debug("UPLOADER - Failure directory: {}", failuresPath);
 
-        this.backupPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), "backup");
+        this.backupPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getBackupDir());
         log.debug("UPLOADER - Backup directory: {}", backupPath);
 
         try {
             String msg = "Created directory {}";
 
             OdeFileUtils.createDirectoryRecursively(inboxPath);
-            log.debug(msg, fileImporterProperties.getInboxDir());
+            log.debug(msg, inboxPath);
 
             OdeFileUtils.createDirectoryRecursively(failuresPath);
             log.debug(msg, failuresPath);
@@ -91,7 +91,7 @@ public class ImporterDirectoryWatcher implements Runnable {
     @Override
     public void run() {
 
-        log.info("Processing inbox directory {} every {} seconds.", props.getInboxDir(), props.getTimePeriod());
+        log.info("Processing inbox directory {} every {} seconds.", inboxPath, props.getTimePeriod());
 
         // ODE-646: the old method of watching the directory used file
         // event notifications and was unreliable for large quantities of files

@@ -15,68 +15,55 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.importer;
 
-import mockit.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.kafka.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
 
-import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@EnableConfigurationProperties(value = {OdeKafkaProperties.class, FileImporterProperties.class, JsonTopics.class, RawEncodedJsonTopics.class})
 class ImporterDirectoryWatcherTest {
 
-    @Tested
-    ImporterDirectoryWatcher testImporterDirectoryWatcher;
-
-    @Injectable
+    @Autowired
     FileImporterProperties injectableFileImporterProperties;
-    @Injectable
+    @Autowired
     OdeKafkaProperties odeKafkaProperties;
-    @Injectable
+    @Autowired
     JsonTopics jsonTopics;
-    @Injectable
+    @Autowired
     RawEncodedJsonTopics rawEncodedJsonTopics;
-    @Injectable
-    ImporterDirectoryWatcher.ImporterFileType importerFileType = ImporterDirectoryWatcher.ImporterFileType.LOG_FILE;
-
-    @Capturing
-    OdeFileUtils capturingOdeFileUtils;
-    @Capturing
-    ImporterProcessor capturingImporterProcessor;
-    @Capturing
-    Executors capturingExecutors;
-
-    @Mocked
-    ScheduledExecutorService mockScheduledExecutorService;
 
 
     @Test
-    void testRun() throws InterruptedException, IOException {
-        new Expectations() {
-            {
-                OdeFileUtils.createDirectoryRecursively((Path) any);
-                times = 3;
+    void testConstructorCreatesThreeDirectories() {
 
-                Executors.newScheduledThreadPool(1);
-                result = mockScheduledExecutorService;
-
-                mockScheduledExecutorService.scheduleWithFixedDelay((Runnable) any, anyLong, anyLong, TimeUnit.SECONDS);
-
-                mockScheduledExecutorService.awaitTermination(anyLong, TimeUnit.SECONDS);
-            }
-        };
-        testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties,
+        ImporterDirectoryWatcher testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties,
                 odeKafkaProperties,
                 jsonTopics,
                 ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
                 rawEncodedJsonTopics);
 
-        testImporterDirectoryWatcher.run();
+        assertNotNull(testImporterDirectoryWatcher);
+        Path inbox = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getObuLogUploadLocation());
+        assertTrue(Files.exists(inbox));
+        Path backups = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getBackupDir());
+        assertTrue(Files.exists(backups));
+        Path failures = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getFailedDir());
+        assertTrue(Files.exists(failures));
     }
 
 }
