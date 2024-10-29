@@ -48,10 +48,14 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeParseException;
 import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @RestController
 @Slf4j
 public class TimDepositController {
+
+    private static final TimIngestTracker INGEST_MONITOR = TimIngestTracker.getInstance();
 
     private static final String ERRSTR = "error";
     private static final String WARNING = "warning";
@@ -80,7 +84,7 @@ public class TimDepositController {
     }
 
     @Autowired
-    public TimDepositController(OdeKafkaProperties odeKafkaProperties, Asn1CoderTopics asn1CoderTopics, PojoTopics pojoTopics, JsonTopics jsonTopics) {
+    public TimDepositController(OdeKafkaProperties odeKafkaProperties, Asn1CoderTopics asn1CoderTopics, PojoTopics pojoTopics, JsonTopics jsonTopics, TimIngestTrackerProperties ingestTrackerProperties) {
         super();
 
         this.asn1CoderTopics = asn1CoderTopics;
@@ -96,6 +100,22 @@ public class TimDepositController {
 
         this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") == null || System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty() || Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"));
 
+        // start the TIM ingest monitoring service if enabled
+        if (ingestTrackerProperties.isTrackingEnabled()) {
+            log.info("TIM ingest monitoring enabled.");
+
+            ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+            // 3600 seconds, or one hour, was determined to be a sane default for the monitoring interval if monitoring is enabled
+            // but there was no interval set in the .env file
+
+            scheduledExecutorService.scheduleAtFixedRate(
+                    new TimIngestWatcher(ingestTrackerProperties.getInterval()),
+                    ingestTrackerProperties.getInterval(),
+                    ingestTrackerProperties.getInterval(),
+                    java.util.concurrent.TimeUnit.SECONDS);
+        } else {
+            log.info("TIM ingest monitoring disabled.");
+        }
     }
 
     /**
@@ -251,6 +271,7 @@ public class TimDepositController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
         }
 
+        INGEST_MONITOR.incrementTotalMessagesReceived();
         return ResponseEntity.status(HttpStatus.OK).body(JsonUtils.jsonKeyValue(SUCCESS, "true"));
     }
 
