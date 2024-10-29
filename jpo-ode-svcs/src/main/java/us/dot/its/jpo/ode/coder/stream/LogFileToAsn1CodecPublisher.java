@@ -50,14 +50,14 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
     protected LogFileParser fileParser;
     protected SerialId serialId;
 
-    public LogFileToAsn1CodecPublisher(StringPublisher dataPub, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics) {
+    public LogFileToAsn1CodecPublisher(StringPublisher stringPublisher, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics) {
         this.jsonTopics = jsonTopics;
         this.rawEncodedJsonTopics = rawEncodedJsonTopics;
-        this.publisher = dataPub;
+        this.publisher = stringPublisher;
         this.serialId = new SerialId();
     }
 
-    public List<OdeData> publish(BufferedInputStream bis, String fileName, ImporterFileType fileType)
+    public List<OdeData> publish(BufferedInputStream inputStream, String fileName, ImporterFileType fileType)
             throws LogFileToAsn1CodecPublisherException {
         ParserStatus status;
 
@@ -67,14 +67,14 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
             do {
                 try {
-                    status = fileParser.parseFile(bis, fileName);
+                    status = fileParser.parseFile(inputStream, fileName);
                     switch (status) {
                         case ParserStatus.COMPLETE -> addDataToList(dataList);
                         case ParserStatus.EOF -> publishList(dataList);
                         case ParserStatus.INIT -> log.error("Failed to parse the header bytes.");
                         default -> log.error("Failed to decode ASN.1 data");
                     }
-                    bis = removeNextNewLineCharacter(bis);
+                    inputStream = removeNextNewLineCharacter(inputStream);
                 } catch (Exception e) {
                     throw new LogFileToAsn1CodecPublisherException("Error parsing or publishing data.", e);
                 }
@@ -140,7 +140,6 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
             } else if (isSpatRecord()) {
                 publisher.publish(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
             } else {
-                // Determine the message type (MAP, TIM, SSM, SRM, or PSM)
                 String messageType = UperUtil.determineMessageType(msgPayload);
                 switch (messageType) {
                     case "MAP" -> publisher.publish(rawEncodedJsonTopics.getMap(), JsonUtils.toJson(odeData, false));
