@@ -104,5 +104,3 @@ ode:
     time-period: 1
     upload-location-root: "uploads"
     obu-log-upload-location: "bsmlog"
-
-
