@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @Import({BuildProperties.class})
-@EnableConfigurationProperties(value = {OdeProperties.class, RSUProperties.class, org.springframework.boot.info.BuildProperties.class})
+@EnableConfigurationProperties(value = {OdeProperties.class, org.springframework.boot.info.BuildProperties.class})
 class OdePropertiesTest {
 
     @Autowired
@@ -62,7 +62,7 @@ class OdePropertiesTest {
 
     @Test
     void testRsuProperties() {
-        RSUProperties rsuProperties = testOdeProperties.rsuProperties();
+        RSUProperties rsuProperties = testOdeProperties.getRsu();
 
         assertEquals(100, rsuProperties.getSrmSlots());
         assertEquals("test-username", rsuProperties.getUsername());

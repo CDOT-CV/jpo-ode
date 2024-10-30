@@ -41,10 +41,10 @@ class TimTransmogrifierTest {
    void testGetRsu() {
       new Expectations() {
          {
-            mockOdeProperties.rsuProperties().getUsername();
+            mockOdeProperties.getRsu().getUsername();
             result = "v3user";
 
-            mockOdeProperties.rsuProperties().getPassword();
+            mockOdeProperties.getRsu().getPassword();
             result = "password";
          }
       };

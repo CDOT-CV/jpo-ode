@@ -38,17 +38,17 @@ class OdeKafkaPropertiesTest {
 
     @Test
     void testGetProducerAcks() {
-        assertEquals("all", odeKafkaProperties.getProducer().getAcks());
+        assertEquals("some", odeKafkaProperties.getProducer().getAcks());
     }
 
     @Test
     void testGetProducerBatchSize() {
-        assertEquals("16384", odeKafkaProperties.getProducer().getBatchSize());
+        assertEquals("1638", odeKafkaProperties.getProducer().getBatchSize());
     }
 
     @Test
     void testGetProducerBufferMemory() {
-        assertEquals("33554432", odeKafkaProperties.getProducer().getBufferMemory());
+        assertEquals("33554433", odeKafkaProperties.getProducer().getBufferMemory());
     }
 
     @Test
@@ -58,26 +58,26 @@ class OdeKafkaPropertiesTest {
 
     @Test
     void testGetProducerLingerMs() {
-        assertEquals("1", odeKafkaProperties.getProducer().getLingerMs());
+        assertEquals("2", odeKafkaProperties.getProducer().getLingerMs());
     }
 
     @Test
     void testGetProducerPartitionerClass() {
-        assertEquals("us.dot.its.jpo.ode.kafka.OdeKafkaPartitioner", odeKafkaProperties.getProducer().getPartitionerClass());
+        assertEquals("org.apache.kafka.clients.producer.internals.DefaultPartitioner", odeKafkaProperties.getProducer().getPartitionerClass());
     }
 
     @Test
     void testGetProducerRetries() {
-        assertEquals("0", odeKafkaProperties.getProducer().getRetries());
+        assertEquals("1", odeKafkaProperties.getProducer().getRetries());
     }
 
     @Test
     void testGetProducerType() {
-        assertEquals("sync", odeKafkaProperties.getProducer().getType());
+        assertEquals("async", odeKafkaProperties.getProducer().getType());
     }
 
     @Test
     void testGetProducerValueSerializer() {
-        assertEquals("us.dot.its.jpo.ode.util.JsonSerializer", odeKafkaProperties.getProducer().getValueSerializer());
+        assertEquals("org.apache.kafka.common.serialization.ByteArraySerializer", odeKafkaProperties.getProducer().getValueSerializer());
     }
 }

@@ -22,9 +22,9 @@ public class OdeKafkaProperties {
         private String bufferMemory = "33554432";
         private String keySerializer = "org.apache.kafka.common.serialization.StringSerializer";
         private String lingerMs = "1";
-        private String partitionerClass;
+        private String partitionerClass = "org.apache.kafka.clients.producer.internals.DefaultPartitioner";
         private String retries = "0";
         private String type = "sync";
-        private String valueSerializer;
+        private String valueSerializer = "org.apache.kafka.common.serialization.ByteArraySerializer";
     }
 }

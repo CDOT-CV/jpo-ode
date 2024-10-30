@@ -21,10 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.rsu.RSUProperties;
 
@@ -42,6 +39,7 @@ public class OdeProperties {
     private String pluginsLocations;
     private String hostIP;
     private boolean verboseJson;
+    private RSUProperties rsu;
 
     /*
      * Security Services Module Properties
@@ -81,7 +79,4 @@ public class OdeProperties {
         return buildProperties.getVersion();
     }
 
-    public RSUProperties rsuProperties() {
-        return new RSUProperties();
-    }
 }

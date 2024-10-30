@@ -16,7 +16,17 @@ ode:
     password: "test-password"
   kafka:
     brokers: "localhost:9092"
-    producer-type: sync
+    type: ${KAFKA_TYPE}
+    producer:
+      type: "async"
+      acks: "some"
+      retries: 1
+      batch-size: 1638
+      linger-ms: 2
+      buffer-memory: 33554433
+      key-serializer: "org.apache.kafka.common.serialization.StringSerializer"
+      value-serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
+      partitioner-class: "org.apache.kafka.clients.producer.internals.DefaultPartitioner"
     disabled-topics:
       - "topic.OdeBsmRxPojo"
       - "topic.OdeBsmTxPojo"

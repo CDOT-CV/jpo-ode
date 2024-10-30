@@ -181,7 +181,7 @@ class TimQueryControllerTest {
     void testNullResponseReturnsTimeout() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -201,7 +201,7 @@ class TimQueryControllerTest {
     void testNullResponseReturnsTimeout_fourDot1RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -221,7 +221,7 @@ class TimQueryControllerTest {
     void testNullResponseReturnsTimeout_ntcip1218RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -241,7 +241,7 @@ class TimQueryControllerTest {
     void testNullResponseResponseReturnsTimeout() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -264,7 +264,7 @@ class TimQueryControllerTest {
     void testNullResponseResponseReturnsTimeout_fourDot1RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -287,7 +287,7 @@ class TimQueryControllerTest {
     void testNullResponseResponseReturnsTimeout_ntcip1218RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -310,7 +310,7 @@ class TimQueryControllerTest {
     void testSuccessfulQuery() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -336,7 +336,7 @@ class TimQueryControllerTest {
     void testSuccessfulQuery_fourDot1RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -362,7 +362,7 @@ class TimQueryControllerTest {
     void testSuccessfulQuery_ntcip1218RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -388,7 +388,7 @@ class TimQueryControllerTest {
     void testSuccessfulPopulatedQuery() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -417,7 +417,7 @@ class TimQueryControllerTest {
     void testSuccessfulPopulatedQuery_fourDot1RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
@@ -446,7 +446,7 @@ class TimQueryControllerTest {
     void testSuccessfulPopulatedQuery_ntcip1218RSU() throws IOException {
         new Expectations() {
             {
-                mockOdeProperties.rsuProperties().getSrmSlots();
+                mockOdeProperties.getRsu().getSrmSlots();
                 result = 1;
 
                 capturingSnmpSession.getSnmp();
