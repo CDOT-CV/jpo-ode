@@ -15,12 +15,14 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode;
 
-import org.apache.kafka.common.errors.ProducerFencedException;
+import org.apache.kafka.clients.producer.Producer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -30,6 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@Import({BuildProperties.class})
 @EnableConfigurationProperties(value = {OdeProperties.class, OdeKafkaProperties.class})
 class SerializableMessageProducerPoolTest {
 
@@ -73,6 +76,9 @@ class SerializableMessageProducerPoolTest {
         MessageProducer<String, String> producer = testSerializableMessageProducerPool.create();
         testSerializableMessageProducerPool.expire(producer);
 
-        assertThrows(ProducerFencedException.class, () -> producer.getProducer().beginTransaction());
+        // To confirm that the producer has been expired, we will try to send a message.
+        // If the producer has been expired, it will throw an IllegalStateException.
+        Producer<String, String> internalProducer = producer.getProducer();
+        assertThrows(IllegalStateException.class, () -> internalProducer.send(null));
     }
 }
