@@ -27,11 +27,6 @@ class OdeKafkaPropertiesTest {
     }
 
     @Test
-    void testGetProducerType() {
-        assertEquals("sync", odeKafkaProperties.getProducerType());
-    }
-
-    @Test
     void testGetKafkaTopicsDisabled() {
         Set<String> kafkaTopicsDisabled = odeKafkaProperties.getDisabledTopics();
         assertEquals(4, kafkaTopicsDisabled.size());
@@ -39,5 +34,50 @@ class OdeKafkaPropertiesTest {
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeBsmTxPojo"));
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeBsmDuringEventPojo"));
         assertTrue(kafkaTopicsDisabled.contains("topic.OdeTimBroadcastPojo"));
+    }
+
+    @Test
+    void testGetProducerAcks() {
+        assertEquals("all", odeKafkaProperties.getProducer().getAcks());
+    }
+
+    @Test
+    void testGetProducerBatchSize() {
+        assertEquals("16384", odeKafkaProperties.getProducer().getBatchSize());
+    }
+
+    @Test
+    void testGetProducerBufferMemory() {
+        assertEquals("33554432", odeKafkaProperties.getProducer().getBufferMemory());
+    }
+
+    @Test
+    void testGetProducerKeySerializer() {
+        assertEquals("org.apache.kafka.common.serialization.StringSerializer", odeKafkaProperties.getProducer().getKeySerializer());
+    }
+
+    @Test
+    void testGetProducerLingerMs() {
+        assertEquals("1", odeKafkaProperties.getProducer().getLingerMs());
+    }
+
+    @Test
+    void testGetProducerPartitionerClass() {
+        assertEquals("us.dot.its.jpo.ode.kafka.OdeKafkaPartitioner", odeKafkaProperties.getProducer().getPartitionerClass());
+    }
+
+    @Test
+    void testGetProducerRetries() {
+        assertEquals("0", odeKafkaProperties.getProducer().getRetries());
+    }
+
+    @Test
+    void testGetProducerType() {
+        assertEquals("sync", odeKafkaProperties.getProducer().getType());
+    }
+
+    @Test
+    void testGetProducerValueSerializer() {
+        assertEquals("us.dot.its.jpo.ode.util.JsonSerializer", odeKafkaProperties.getProducer().getValueSerializer());
     }
 }

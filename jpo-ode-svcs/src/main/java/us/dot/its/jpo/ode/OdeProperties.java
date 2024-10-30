@@ -33,10 +33,7 @@ import us.dot.its.jpo.ode.rsu.RSUProperties;
 @ConfigurationProperties(prefix = "ode")
 @Data
 @Slf4j
-public class OdeProperties implements EnvironmentAware {
-
-    @Autowired
-    private Environment env;
+public class OdeProperties {
 
     /*
      * General Properties
@@ -84,24 +81,6 @@ public class OdeProperties implements EnvironmentAware {
         return buildProperties.getVersion();
     }
 
-    public String getProperty(String key) {
-        return env.getProperty(key);
-    }
-
-    public String getProperty(String key, String defaultValue) {
-        return env.getProperty(key, defaultValue);
-    }
-
-    public Object getProperty(String key, int i) {
-        return env.getProperty(key, Integer.class, i);
-    }
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        env = environment;
-    }
-
-    @Bean
     public RSUProperties rsuProperties() {
         return new RSUProperties();
     }

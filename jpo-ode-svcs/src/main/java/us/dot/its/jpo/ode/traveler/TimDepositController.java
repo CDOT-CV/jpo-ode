@@ -94,8 +94,8 @@ public class TimDepositController {
         this.serialIdOde = new SerialId();
 
         this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-                odeKafkaProperties.getProducerType(), odeKafkaProperties.getDisabledTopics());
-        this.timProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducerType(),
+                odeKafkaProperties.getProducer().getType(), odeKafkaProperties.getDisabledTopics());
+        this.timProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(),
                 null, OdeTimSerializer.class.getName(), odeKafkaProperties.getDisabledTopics());
 
         this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") == null || System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty() || Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"));

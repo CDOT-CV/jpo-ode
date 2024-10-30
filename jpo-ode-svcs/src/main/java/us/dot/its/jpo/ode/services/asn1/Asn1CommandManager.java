@@ -82,7 +82,7 @@ public class Asn1CommandManager {
             this.rsuDepositor = new RsuDepositor(odeProperties);
             this.rsuDepositor.start();
             this.stringMessageProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-                    odeKafkaProperties.getProducerType(),
+                    odeKafkaProperties.getProducer().getType(),
                     odeKafkaProperties.getDisabledTopics());
             this.depositTopic = sdxDepositorTopics.getInput();
         } catch (Exception e) {
@@ -129,11 +129,11 @@ public class Asn1CommandManager {
 
         SDW sdw = request.getSdw();
         SNMP snmp = request.getSnmp();
-        DdsAdvisorySituationData asd = null;
+        DdsAdvisorySituationData asd;
 
         byte sendToRsu = request.getRsus() != null ? DdsAdvisorySituationData.RSU : DdsAdvisorySituationData.NONE;
         byte distroType = (byte) (DdsAdvisorySituationData.IP | sendToRsu);
-        //
+
         String outputXml = null;
         try {
             if (null != snmp) {
@@ -149,7 +149,7 @@ public class Asn1CommandManager {
                         .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
             }
 
-            OdeMsgPayload payload = null;
+            OdeMsgPayload payload;
 
             ObjectNode dataBodyObj = JsonUtils.newNode();
             ObjectNode asdObj = JsonUtils.toObjectNode(asd.toJson());
