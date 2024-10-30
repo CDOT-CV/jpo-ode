@@ -24,21 +24,28 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.model.OdeTravelerInputData;
+import us.dot.its.jpo.ode.plugin.RoadSideUnit;
+import us.dot.its.jpo.ode.plugin.ServiceRequest;
+import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = RsuProperties.class)
+@EnableConfigurationProperties(value = {RsuProperties.class, SecurityServicesProperties.class})
 class RsuDepositorTest {
 
     @Autowired
     RsuProperties rsuProperties;
 
+    @Autowired
+    SecurityServicesProperties securityServicesProperties;
+
+
     @Test
     void testShutdown() {
-        RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties);
+        RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.isRsuEnabled());
         testRsuDepositor.shutdown();
         assertFalse(testRsuDepositor.isRunning());
         assertFalse(testRsuDepositor.isAlive());
@@ -47,7 +54,7 @@ class RsuDepositorTest {
 
     @Test
     void testDeposit() {
-        RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties);
+        RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.isRsuEnabled());
         OdeTravelerInputData mockOdeTravelerInputData = new OdeTravelerInputData();
 
         testRsuDepositor.deposit(mockOdeTravelerInputData.getRequest(), "message");

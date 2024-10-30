@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.kafka.*;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
+import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 import static org.junit.Assert.assertNotNull;
@@ -42,6 +43,8 @@ class AsnCodecRouterServiceControllerTest {
     SDXDepositorTopics sdxDepositorTopics;
     @Injectable
     RsuProperties rsuProperties;
+    @Injectable
+    SecurityServicesProperties securityServicesProperties;
 
     @Test
     @Disabled
@@ -54,6 +57,6 @@ class AsnCodecRouterServiceControllerTest {
             }
         };
 
-        assertNotNull(new AsnCodecRouterServiceController(injectableOdeProperties, odeKafkaProperties, jsonTopics, pojoTopics, asn1CoderTopics, sdxDepositorTopics, rsuProperties));
+        assertNotNull(new AsnCodecRouterServiceController(injectableOdeProperties, odeKafkaProperties, jsonTopics, pojoTopics, asn1CoderTopics, sdxDepositorTopics, rsuProperties, securityServicesProperties));
     }
 }

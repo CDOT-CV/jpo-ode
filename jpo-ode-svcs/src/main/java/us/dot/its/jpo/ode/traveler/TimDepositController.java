@@ -36,6 +36,7 @@ import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.DataFrame;
 import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
+import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier.TimTransmogrifierException;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -84,7 +85,12 @@ public class TimDepositController {
     }
 
     @Autowired
-    public TimDepositController(OdeKafkaProperties odeKafkaProperties, Asn1CoderTopics asn1CoderTopics, PojoTopics pojoTopics, JsonTopics jsonTopics, TimIngestTrackerProperties ingestTrackerProperties) {
+    public TimDepositController(OdeKafkaProperties odeKafkaProperties,
+                                Asn1CoderTopics asn1CoderTopics,
+                                PojoTopics pojoTopics,
+                                JsonTopics jsonTopics,
+                                TimIngestTrackerProperties ingestTrackerProperties,
+                                SecurityServicesProperties securityServicesProperties) {
         super();
 
         this.asn1CoderTopics = asn1CoderTopics;
@@ -98,7 +104,7 @@ public class TimDepositController {
         this.timProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(),
                 null, OdeTimSerializer.class.getName(), odeKafkaProperties.getDisabledTopics());
 
-        this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") == null || System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty() || Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"));
+        this.dataSigningEnabledSDW = securityServicesProperties.isSdwEnabled();
 
         // start the TIM ingest monitoring service if enabled
         if (ingestTrackerProperties.isTrackingEnabled()) {
@@ -131,7 +137,7 @@ public class TimDepositController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
         }
 
-        OdeTravelerInputData odeTID = null;
+        OdeTravelerInputData odeTID;
         ServiceRequest request;
         try {
             // Convert JSON to POJO
@@ -177,15 +183,14 @@ public class TimDepositController {
             int maxDurationTime = 0;
             Date latestStartDateTime = null;
             for (DataFrame dataFrameItem : tim.getDataframes()) {
-                maxDurationTime = maxDurationTime > dataFrameItem.getDurationTime() ? maxDurationTime
-                        : dataFrameItem.getDurationTime();
+                maxDurationTime = Math.max(maxDurationTime, dataFrameItem.getDurationTime());
                 try {
                     latestStartDateTime = (latestStartDateTime == null || (latestStartDateTime != null
                             && latestStartDateTime.before(dateFormat.parse(dataFrameItem.getStartDateTime())))
                             ? dateFormat.parse(dataFrameItem.getStartDateTime())
                             : latestStartDateTime);
                 } catch (ParseException e) {
-                    log.error("Invalid dateTime parse: " + e);
+                    log.error("Invalid dateTime parse: ", e);
                 }
             }
             timMetadata.setMaxDurationTime(maxDurationTime);
@@ -211,7 +216,7 @@ public class TimDepositController {
         String obfuscatedTimData = TimTransmogrifier.obfuscateRsuPassword(odeTimData.toJson());
         stringMsgProducer.send(jsonTopics.getTimBroadcast(), null, obfuscatedTimData);
 
-        // Now that the message gas been published to OdeBradcastTim topic, it should be
+        // Now that the message gas been published to OdeBroadcastTim topic, it should be
         // changed to J2735BroadcastTim serialId
         timMetadata.setSerialId(serialIdJ2735);
 

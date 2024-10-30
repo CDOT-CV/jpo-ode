@@ -31,6 +31,7 @@ import java.util.HashMap;
 
 @Slf4j
 public class RsuDepositor extends Thread {
+    private final boolean dataSigningEnabled;
     private volatile boolean running = true;
     private final RsuProperties rsuProperties;
     private final ArrayList<RsuDepositorEntry> depositorEntries = new ArrayList<>();
@@ -45,8 +46,9 @@ public class RsuDepositor extends Thread {
         String encodedMsg;
     }
 
-    public RsuDepositor(RsuProperties rsuProperties) {
+    public RsuDepositor(RsuProperties rsuProperties, boolean isDataSigningEnabled) {
         this.rsuProperties = rsuProperties;
+        this.dataSigningEnabled = isDataSigningEnabled;
     }
 
     public void shutdown() {
@@ -79,7 +81,7 @@ public class RsuDepositor extends Thread {
                                     curRsu,
                                     entry.encodedMsg,
                                     entry.request.getOde().getVerb(),
-                                    rsuProperties.isDataSigningEnabled());
+                                    dataSigningEnabled);
                             httpResponseStatus = getResponseStatus(rsuResponse, curRsu);
                         } catch (IOException | ParseException e) {
                             String msg = "Exception caught in TIM RSU deposit loop.";

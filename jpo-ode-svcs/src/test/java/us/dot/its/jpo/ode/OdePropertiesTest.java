@@ -33,29 +33,7 @@ class OdePropertiesTest {
     }
 
     @Test
-    void testHostIP() {
-        assertEquals("test-host", testOdeProperties.getHostIP());
-    }
-
-    @Test
     void testVerboseJson() {
         assertFalse(testOdeProperties.isVerboseJson());
-    }
-
-    @Test
-    void testSecuritySvcsSignatureUri() {
-        String expected = "http://" + testOdeProperties.getHostIP() + ":" + testOdeProperties.getSecuritySvcsPort() + "/"
-                + testOdeProperties.getSecuritySvcsSignatureEndpoint();
-        assertEquals(expected, testOdeProperties.getSecuritySvcsSignatureUri());
-    }
-
-    @Test
-    void testSecuritySvcsPort() {
-        assertEquals(8090, testOdeProperties.getSecuritySvcsPort());
-    }
-
-    @Test
-    void testSecuritySvcsSignatureEndpoint() {
-        assertEquals("sign", testOdeProperties.getSecuritySvcsSignatureEndpoint());
     }
 }

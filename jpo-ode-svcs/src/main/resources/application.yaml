@@ -10,11 +10,16 @@ ode:
   output-schema-version: 7
   security-svcs-port: 8090
   security-svcs-signature-endpoint: "sign"
+  security-services:
+    host-ip: ${DOCKER_HOST_IP}
+    port: 8090
+    signature-endpoint: ${ODE_SECURITY_SVCS_SIGNATURE_URI}
+    sdw-enabled: ${DATA_SIGNING_ENABLED_SDW}
+    rsu-enabled: ${DATA_SIGNING_ENABLED_RSU}
   rsu:
     srm-slots: 100
     username: ${RSU_USERNAME}
     password: ${RSU_PASSWORD}
-    data-signing-enabled: ${DATA_SIGNING_ENABLED_RSU}
   kafka:
     brokers: ${DOCKER_HOST_IP}:9092
     type: ${KAFKA_TYPE}

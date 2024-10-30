@@ -36,15 +36,7 @@ public class OdeProperties {
      */
     private int outputSchemaVersion;
     private String pluginsLocations;
-    private String hostIP;
     private boolean verboseJson;
-
-    /*
-     * Security Services Module Properties
-     */
-    private String securitySvcsSignatureUri;
-    private int securitySvcsPort;
-    private String securitySvcsSignatureEndpoint;
 
     /*
      * Security Properties
@@ -66,11 +58,7 @@ public class OdeProperties {
         log.info("version: {}", buildProperties.getVersion());
         OdeMsgMetadata.setStaticSchemaVersion(this.outputSchemaVersion);
 
-        // URI for the security services /sign endpoint
-        if (securitySvcsSignatureUri == null) {
-            securitySvcsSignatureUri = "http://" + hostIP + ":" + securitySvcsPort + "/"
-                    + securitySvcsSignatureEndpoint;
-        }
+
     }
 
     public String getVersion() {

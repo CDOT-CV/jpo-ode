@@ -19,7 +19,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.Asn1CoderTopics;
@@ -30,6 +29,7 @@ import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
+import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -57,37 +57,32 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         }
     }
 
-    private final OdeProperties odeProperties;
     private final Asn1CoderTopics asn1CoderTopics;
     private final JsonTopics jsonTopics;
-    private final RsuProperties rsuProperties;
 
     private final MessageProducer<String, String> stringMsgProducer;
     private final Asn1CommandManager asn1CommandManager;
     private final boolean dataSigningEnabledSDW;
+    private final boolean dataSigningEnabledRSU;
 
-    public Asn1EncodedDataRouter(OdeProperties odeProperties,
-                                 OdeKafkaProperties odeKafkaProperties,
+    public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
                                  Asn1CoderTopics asn1CoderTopics,
                                  JsonTopics jsonTopics,
                                  SDXDepositorTopics sdxDepositorTopics,
-                                 RsuProperties rsuProperties) {
+                                 RsuProperties rsuProperties,
+                                 SecurityServicesProperties securityServicesProperties) {
         super();
 
-        this.odeProperties = odeProperties;
         this.asn1CoderTopics = asn1CoderTopics;
         this.jsonTopics = jsonTopics;
-        this.rsuProperties = rsuProperties;
 
         this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                 odeKafkaProperties.getProducer().getType(),
                 odeKafkaProperties.getDisabledTopics());
 
-        this.asn1CommandManager = new Asn1CommandManager(odeProperties, odeKafkaProperties, sdxDepositorTopics, rsuProperties);
-
-        this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") != null && !System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty()
-                ? Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"))
-                : true;
+        this.asn1CommandManager = new Asn1CommandManager(odeKafkaProperties, sdxDepositorTopics, rsuProperties, securityServicesProperties);
+        this.dataSigningEnabledSDW = securityServicesProperties.isSdwEnabled();
+        this.dataSigningEnabledRSU = securityServicesProperties.isRsuEnabled();
     }
 
     @Override
@@ -203,8 +198,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
             //use Asnc1 library to decode the encoded tim returned from ASNC1; another class two blockers: decode the tim and decode the message-sign
 
             // Case 1: SNMP-deposit
-            if (rsuProperties.isDataSigningEnabled() && request.getRsus() != null) {
-                hexEncodedTim = signTIM(hexEncodedTim, consumedObj);
+            if (dataSigningEnabledRSU && request.getRsus() != null) {
+                hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
             } else {
                 // if header is present, strip it
                 if (isHeaderPresent(hexEncodedTim)) {
@@ -221,7 +216,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
             // Case 2: SDX-deposit
             if (dataSigningEnabledSDW && request.getSdw() != null) {
-                hexEncodedTim = signTIM(hexEncodedTim, consumedObj);
+                hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
             }
 
             if (request.getSdw() != null) {
@@ -235,7 +230,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
         } else {
             //We have encoded ASD. It could be either UNSECURED or secured.
-            log.debug("securitySvcsSignatureUri = {}", odeProperties.getSecuritySvcsSignatureUri());
             if (dataSigningEnabledSDW && request.getSdw() != null) {
                 log.debug("Signed message received. Depositing it to SDW.");
                 // We have a ASD with signed MessageFrame
@@ -330,7 +324,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         return encodedTim;
     }
 
-    public String signTIM(String encodedTIM, JSONObject consumedObj) {
+    public String signTIMAndProduceToExpireTopic(String encodedTIM, JSONObject consumedObj) {
         log.debug("Sending message for signature! ");
         String base64EncodedTim = CodecUtils.toBase64(
                 CodecUtils.fromHex(encodedTIM));
@@ -355,7 +349,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
                 JSONObject jsonResult = JsonUtils
                         .toJSONObject((JsonUtils.toJSONObject(signedResponse).getString("result")));
                 // messageExpiry uses unit of seconds
-                long messageExpiry = Long.valueOf(jsonResult.getString("message-expiry"));
+                long messageExpiry = Long.parseLong(jsonResult.getString("message-expiry"));
                 timWithExpiration.put("expirationDate", dateFormat.format(new Date(messageExpiry * 1000)));
             } catch (Exception e) {
                 log.error("Unable to get expiration date from signed messages response ", e);

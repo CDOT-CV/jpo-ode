@@ -23,7 +23,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -39,6 +38,7 @@ import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
+import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
@@ -76,11 +76,11 @@ public class Asn1CommandManager {
     private String depositTopic;
     private RsuDepositor rsuDepositor;
 
-    public Asn1CommandManager(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties, SDXDepositorTopics sdxDepositorTopics, RsuProperties rsuProperties) {
-        this.signatureUri = odeProperties.getSecuritySvcsSignatureUri();
+    public Asn1CommandManager(OdeKafkaProperties odeKafkaProperties, SDXDepositorTopics sdxDepositorTopics, RsuProperties rsuProperties, SecurityServicesProperties securityServicesProperties) {
+        this.signatureUri = securityServicesProperties.getSignatureEndpoint();
 
         try {
-            this.rsuDepositor = new RsuDepositor(rsuProperties);
+            this.rsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.isRsuEnabled());
             this.rsuDepositor.start();
             this.stringMessageProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                     odeKafkaProperties.getProducer().getType(),
