@@ -28,6 +28,7 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
+import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.CodecUtils;
@@ -59,32 +60,31 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final OdeProperties odeProperties;
     private final Asn1CoderTopics asn1CoderTopics;
     private final JsonTopics jsonTopics;
+    private final RsuProperties rsuProperties;
 
     private final MessageProducer<String, String> stringMsgProducer;
     private final Asn1CommandManager asn1CommandManager;
-    private final boolean dataSigningEnabledRSU;
     private final boolean dataSigningEnabledSDW;
 
     public Asn1EncodedDataRouter(OdeProperties odeProperties,
                                  OdeKafkaProperties odeKafkaProperties,
                                  Asn1CoderTopics asn1CoderTopics,
                                  JsonTopics jsonTopics,
-                                 SDXDepositorTopics sdxDepositorTopics) {
+                                 SDXDepositorTopics sdxDepositorTopics,
+                                 RsuProperties rsuProperties) {
         super();
 
         this.odeProperties = odeProperties;
         this.asn1CoderTopics = asn1CoderTopics;
         this.jsonTopics = jsonTopics;
+        this.rsuProperties = rsuProperties;
 
         this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                 odeKafkaProperties.getProducer().getType(),
                 odeKafkaProperties.getDisabledTopics());
 
-        this.asn1CommandManager = new Asn1CommandManager(odeProperties, odeKafkaProperties, sdxDepositorTopics);
+        this.asn1CommandManager = new Asn1CommandManager(odeProperties, odeKafkaProperties, sdxDepositorTopics, rsuProperties);
 
-        this.dataSigningEnabledRSU = System.getenv("DATA_SIGNING_ENABLED_RSU") != null && !System.getenv("DATA_SIGNING_ENABLED_RSU").isEmpty()
-                ? Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_RSU"))
-                : false;
         this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") != null && !System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty()
                 ? Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"))
                 : true;
@@ -203,20 +203,12 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
             //use Asnc1 library to decode the encoded tim returned from ASNC1; another class two blockers: decode the tim and decode the message-sign
 
             // Case 1: SNMP-deposit
-            if (dataSigningEnabledRSU && request.getRsus() != null) {
+            if (rsuProperties.isDataSigningEnabled() && request.getRsus() != null) {
                 hexEncodedTim = signTIM(hexEncodedTim, consumedObj);
             } else {
                 // if header is present, strip it
                 if (isHeaderPresent(hexEncodedTim)) {
-                    String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
-                    log.debug("Stripping header from unsigned message: {}", header);
-                    hexEncodedTim = stripHeader(hexEncodedTim);
-                    mfObj.remove(BYTES);
-                    mfObj.put(BYTES, hexEncodedTim);
-                    dataObj.remove(MESSAGE_FRAME);
-                    dataObj.put(MESSAGE_FRAME, mfObj);
-                    consumedObj.remove(AppContext.PAYLOAD_STRING);
-                    consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
+                    hexEncodedTim = stripTimHeader(consumedObj, hexEncodedTim, mfObj, dataObj);
                 }
             }
 
@@ -310,15 +302,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
             // if header is present, strip it
             if (isHeaderPresent(encodedTim)) {
-                String header = encodedTim.substring(0, encodedTim.indexOf("001F") + 4);
-                log.debug("Stripping header from unsigned message: {}", header);
-                encodedTim = stripHeader(encodedTim);
-                mfObj.remove(BYTES);
-                mfObj.put(BYTES, encodedTim);
-                dataObj.remove(MESSAGE_FRAME);
-                dataObj.put(MESSAGE_FRAME, mfObj);
-                consumedObj.remove(AppContext.PAYLOAD_STRING);
-                consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
+                encodedTim = stripTimHeader(consumedObj, encodedTim, mfObj, dataObj);
             }
 
             log.debug("Encoded message - phase 2: {}", encodedTim);
@@ -331,6 +315,19 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         }
 
         log.info("TIM deposit response {}", responseList);
+    }
+
+    private String stripTimHeader(JSONObject consumedObj, String encodedTim, JSONObject mfObj, JSONObject dataObj) {
+        String header = encodedTim.substring(0, encodedTim.indexOf("001F") + 4);
+        log.debug("Stripping header from unsigned message: {}", header);
+        encodedTim = stripHeader(encodedTim);
+        mfObj.remove(BYTES);
+        mfObj.put(BYTES, encodedTim);
+        dataObj.remove(MESSAGE_FRAME);
+        dataObj.put(MESSAGE_FRAME, mfObj);
+        consumedObj.remove(AppContext.PAYLOAD_STRING);
+        consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
+        return encodedTim;
     }
 
     public String signTIM(String encodedTIM, JSONObject consumedObj) {

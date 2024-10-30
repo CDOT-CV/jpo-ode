@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import us.dot.its.jpo.ode.rsu.RSUProperties;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,14 +57,5 @@ class OdePropertiesTest {
     @Test
     void testSecuritySvcsSignatureEndpoint() {
         assertEquals("sign", testOdeProperties.getSecuritySvcsSignatureEndpoint());
-    }
-
-    @Test
-    void testRsuProperties() {
-        RSUProperties rsuProperties = testOdeProperties.getRsu();
-
-        assertEquals(100, rsuProperties.getSrmSlots());
-        assertEquals("test-username", rsuProperties.getUsername());
-        assertEquals("test-password", rsuProperties.getPassword());
     }
 }

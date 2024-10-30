@@ -199,7 +199,7 @@ public class TimDepositController {
 
         try {
             timMetadata.setRecordGeneratedAt(DateTimeUtils.isoDateTime(DateTimeUtils.isoDateTime(tim.getTimeStamp())));
-        } catch (ParseException | DateTimeParseException e) {
+        } catch (DateTimeParseException e) {
             String errMsg = "Invalid timestamp in tim record: " + tim.getTimeStamp();
             log.error(errMsg, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));

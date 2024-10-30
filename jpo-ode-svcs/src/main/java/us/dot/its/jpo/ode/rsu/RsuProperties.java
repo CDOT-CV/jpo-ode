@@ -7,8 +7,9 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "ode.rsu")
 @Data
-public class RSUProperties {
+public class RsuProperties {
     private int srmSlots; // number of "store and repeat message" indices for RSU TIMs
     private String username;
     private String password;
+    private boolean dataSigningEnabled;
 }

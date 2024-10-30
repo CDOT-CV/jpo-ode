@@ -23,7 +23,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.context.annotation.Configuration;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
-import us.dot.its.jpo.ode.rsu.RSUProperties;
 
 
 @Configuration
@@ -39,7 +38,6 @@ public class OdeProperties {
     private String pluginsLocations;
     private String hostIP;
     private boolean verboseJson;
-    private RSUProperties rsu;
 
     /*
      * Security Services Module Properties

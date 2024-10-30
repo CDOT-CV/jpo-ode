@@ -27,9 +27,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.plugin.SnmpProtocol;
+import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.snmp.SnmpFourDot1Protocol;
 import us.dot.its.jpo.ode.snmp.SnmpNTCIP1218Protocol;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
@@ -44,11 +44,11 @@ public class TimQueryController {
     
     private static final String ERRSTR = "error";
 
-    private final OdeProperties odeProperties;
+    private final RsuProperties rsuProperties;
 
     @Autowired
-    public TimQueryController(OdeProperties odeProperties) {
-        this.odeProperties = odeProperties;
+    public TimQueryController(RsuProperties rsuProperties) {
+        this.rsuProperties = rsuProperties;
     }
 
     /**
@@ -76,7 +76,7 @@ public class TimQueryController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(JsonUtils.jsonKeyValue(ERRSTR, "Unrecognized protocol"));
         }
 
-        TimTransmogrifier.updateRsuCreds(queryTarget, odeProperties);
+        TimTransmogrifier.updateRsuCreds(queryTarget, rsuProperties);
 
         SnmpSession snmpSession = null;
         try {
@@ -103,20 +103,20 @@ public class TimQueryController {
 
         switch (snmpProtocol) {
             case SnmpProtocol.FOURDOT1 -> {
-                for (int i = 0; i < odeProperties.getRsu().getSrmSlots() - 50; i++) {
+                for (int i = 0; i < rsuProperties.getSrmSlots() - 50; i++) {
                     pdu0.add(SnmpFourDot1Protocol.getVbRsuSrmStatus(i));
                 }
 
-                for (int i = 50; i < odeProperties.getRsu().getSrmSlots(); i++) {
+                for (int i = 50; i < rsuProperties.getSrmSlots(); i++) {
                     pdu1.add(SnmpFourDot1Protocol.getVbRsuSrmStatus(i));
                 }
             }
             case SnmpProtocol.NTCIP1218 -> {
-                for (int i = 0; i < odeProperties.getRsu().getSrmSlots() - 50; i++) {
+                for (int i = 0; i < rsuProperties.getSrmSlots() - 50; i++) {
                     pdu0.add(SnmpNTCIP1218Protocol.getVbRsuMsgRepeatStatus(i));
                 }
 
-                for (int i = 50; i < odeProperties.getRsu().getSrmSlots(); i++) {
+                for (int i = 50; i < rsuProperties.getSrmSlots(); i++) {
                     pdu1.add(SnmpNTCIP1218Protocol.getVbRsuMsgRepeatStatus(i));
                 }
             }

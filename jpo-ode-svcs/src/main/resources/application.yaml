@@ -14,6 +14,7 @@ ode:
     srm-slots: 100
     username: ${RSU_USERNAME}
     password: ${RSU_PASSWORD}
+    data-signing-enabled: ${DATA_SIGNING_ENABLED_RSU}
   kafka:
     brokers: ${DOCKER_HOST_IP}:9092
     type: ${KAFKA_TYPE}

@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.kafka.*;
+import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 /**
@@ -36,7 +37,8 @@ public class AsnCodecRouterServiceController {
                                            JsonTopics jsonTopics,
                                            PojoTopics pojoTopics,
                                            Asn1CoderTopics asn1CoderTopics,
-                                           SDXDepositorTopics sdxDepositorTopics) {
+                                           SDXDepositorTopics sdxDepositorTopics,
+                                           RsuProperties rsuProperties) {
         super();
 
         log.info("Starting {}", this.getClass().getSimpleName());
@@ -55,7 +57,7 @@ public class AsnCodecRouterServiceController {
         // asn1_codec Encoder Routing
         log.info("Routing ENCODED data received ASN.1 Encoder");
 
-        Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(odeProps, odeKafkaProperties, asn1CoderTopics, jsonTopics, sdxDepositorTopics);
+        Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(odeProps, odeKafkaProperties, asn1CoderTopics, jsonTopics, sdxDepositorTopics, rsuProperties);
 
         MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
                 odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), encoderRouter);

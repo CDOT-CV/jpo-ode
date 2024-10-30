@@ -37,6 +37,7 @@ import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
+import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -75,11 +76,11 @@ public class Asn1CommandManager {
     private String depositTopic;
     private RsuDepositor rsuDepositor;
 
-    public Asn1CommandManager(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties, SDXDepositorTopics sdxDepositorTopics) {
+    public Asn1CommandManager(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties, SDXDepositorTopics sdxDepositorTopics, RsuProperties rsuProperties) {
         this.signatureUri = odeProperties.getSecuritySvcsSignatureUri();
 
         try {
-            this.rsuDepositor = new RsuDepositor(odeProperties);
+            this.rsuDepositor = new RsuDepositor(rsuProperties);
             this.rsuDepositor.start();
             this.stringMessageProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                     odeKafkaProperties.getProducer().getType(),
