@@ -16,8 +16,8 @@ class SecurityServicesPropertiesValidatorTest {
         @Test
         void validate() {
             SecurityServicesProperties properties = new SecurityServicesProperties();
-            properties.setRsuEnabled(true);
-            properties.setSdwEnabled(true);
+            properties.setIsRsuSigningEnabled(true);
+            properties.setIsSdwSigningEnabled(true);
             properties.setSignatureEndpoint("http://localhost:8080/sign");
 
             SecurityServicesPropertiesValidator validator = new SecurityServicesPropertiesValidator();
@@ -30,8 +30,8 @@ class SecurityServicesPropertiesValidatorTest {
         @Test
         void errorThrownForInvalidSignatureEndpoint() {
             SecurityServicesProperties properties = new SecurityServicesProperties();
-            properties.setRsuEnabled(true);
-            properties.setSdwEnabled(true);
+            properties.setIsRsuSigningEnabled(true);
+            properties.setIsSdwSigningEnabled(true);
             properties.setSignatureEndpoint("localhost:8080/sign");
 
             SecurityServicesPropertiesValidator validator = new SecurityServicesPropertiesValidator();
@@ -44,8 +44,8 @@ class SecurityServicesPropertiesValidatorTest {
         @Test
         void errorThrownForInvalidHostIP() {
             SecurityServicesProperties properties = new SecurityServicesProperties();
-            properties.setRsuEnabled(true);
-            properties.setSdwEnabled(true);
+            properties.setIsRsuSigningEnabled(true);
+            properties.setIsSdwSigningEnabled(true);
             properties.setHostIP(null);
             properties.setPort(8080);
 
@@ -59,10 +59,9 @@ class SecurityServicesPropertiesValidatorTest {
         @Test
         void errorThrownForInvalidPort() {
             SecurityServicesProperties properties = new SecurityServicesProperties();
-            properties.setRsuEnabled(true);
-            properties.setSdwEnabled(true);
+            properties.setIsRsuSigningEnabled(true);
+            properties.setIsSdwSigningEnabled(true);
             properties.setHostIP("localhost");
-            properties.setPort(0);
 
             SecurityServicesPropertiesValidator validator = new SecurityServicesPropertiesValidator();
             org.springframework.validation.BeanPropertyBindingResult errors = new org.springframework.validation.BeanPropertyBindingResult(properties, "properties");

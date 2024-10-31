@@ -104,7 +104,7 @@ public class TimDepositController {
         this.timProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(),
                 null, OdeTimSerializer.class.getName(), odeKafkaProperties.getDisabledTopics());
 
-        this.dataSigningEnabledSDW = securityServicesProperties.isSdwEnabled();
+        this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
 
         // start the TIM ingest monitoring service if enabled
         if (ingestTrackerProperties.isTrackingEnabled()) {

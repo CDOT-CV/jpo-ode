@@ -4,18 +4,15 @@ spring:
       max-file-size: 1MB
       max-request-size: 1MB
 ode:
-  host-ip: ${DOCKER_HOST_IP}
   verbose-json: false
   plugins-locations: "plugins"
   output-schema-version: 7
-  security-svcs-port: 8090
-  security-svcs-signature-endpoint: "sign"
   security-services:
     host-ip: ${DOCKER_HOST_IP}
     port: 8090
     signature-endpoint: ${ODE_SECURITY_SVCS_SIGNATURE_URI}
-    sdw-enabled: ${DATA_SIGNING_ENABLED_SDW}
-    rsu-enabled: ${DATA_SIGNING_ENABLED_RSU}
+    is-rsu-signing-enabled: ${DATA_SIGNING_ENABLED_RSU}
+    is-sdw-signing-enabled: ${DATA_SIGNING_ENABLED_SDW}
   rsu:
     srm-slots: 100
     username: ${RSU_USERNAME}

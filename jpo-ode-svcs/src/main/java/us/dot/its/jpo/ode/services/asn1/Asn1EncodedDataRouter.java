@@ -81,8 +81,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
                 odeKafkaProperties.getDisabledTopics());
 
         this.asn1CommandManager = new Asn1CommandManager(odeKafkaProperties, sdxDepositorTopics, rsuProperties, securityServicesProperties);
-        this.dataSigningEnabledSDW = securityServicesProperties.isSdwEnabled();
-        this.dataSigningEnabledRSU = securityServicesProperties.isRsuEnabled();
+        this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
+        this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
     }
 
     @Override

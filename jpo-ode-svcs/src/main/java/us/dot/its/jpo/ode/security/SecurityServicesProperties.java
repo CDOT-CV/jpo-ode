@@ -12,12 +12,12 @@ import org.springframework.validation.annotation.Validated;
 public class SecurityServicesProperties {
     private String hostIP;
     private String signatureEndpoint;
-    private int port;
-    private boolean sdwEnabled;
-    private boolean rsuEnabled;
+    private int port = -1;
+    private Boolean isSdwSigningEnabled = true;
+    private Boolean isRsuSigningEnabled = false;
 
     public String getSignatureEndpoint() {
-        if (signatureEndpoint == null) {
+        if (signatureEndpoint == null || signatureEndpoint.isEmpty()) {
             // if signatureEndpoint is not set, then construct it from hostIP and port
             // to provide a useful default. We can't use the default value in the annotation
             // because it doesn't allow us to reference other properties.

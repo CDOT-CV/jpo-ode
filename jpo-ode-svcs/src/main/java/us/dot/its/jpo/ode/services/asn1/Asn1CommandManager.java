@@ -80,7 +80,7 @@ public class Asn1CommandManager {
         this.signatureUri = securityServicesProperties.getSignatureEndpoint();
 
         try {
-            this.rsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.isRsuEnabled());
+            this.rsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.getIsRsuSigningEnabled());
             this.rsuDepositor.start();
             this.stringMessageProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                     odeKafkaProperties.getProducer().getType(),
