@@ -25,10 +25,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import mockit.Expectations;
-import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.plugin.j2735.J2735DSRCmsgID;
 import us.dot.its.jpo.ode.util.XmlUtils;
@@ -40,8 +38,6 @@ public class Asn1DecodedDataRouterTest {
    @Tested
    Asn1DecodedDataRouter testAsn1DecodedDataRouter;
 
-   @Injectable
-   OdeProperties injectableOdeProperties;
 
 //   @SuppressWarnings("rawtypes")
 //   @Capturing

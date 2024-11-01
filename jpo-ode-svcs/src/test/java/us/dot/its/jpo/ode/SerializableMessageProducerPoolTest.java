@@ -33,17 +33,15 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @Import({BuildProperties.class})
-@EnableConfigurationProperties(value = {OdeProperties.class, OdeKafkaProperties.class})
+@EnableConfigurationProperties(value = {OdeKafkaProperties.class})
 class SerializableMessageProducerPoolTest {
 
-    @Autowired
-    OdeProperties testOdeProperties;
     @Autowired
     OdeKafkaProperties testOdeKafkaProperties;
 
     @Test
     void testSerializableMessageProducerPool() {
-        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeProperties, testOdeKafkaProperties);
+        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeKafkaProperties);
 
         assertEquals(testOdeKafkaProperties.getBrokers(), testSerializableMessageProducerPool.getBrokers());
         assertEquals(testOdeKafkaProperties.getProducer().getType(), testSerializableMessageProducerPool.getType());
@@ -59,20 +57,20 @@ class SerializableMessageProducerPoolTest {
 
     @Test
     void testCreate() {
-        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeProperties, testOdeKafkaProperties);
+        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeKafkaProperties);
         assertEquals(MessageProducer.class, testSerializableMessageProducerPool.create().getClass());
     }
 
     @Test
     void testValidate() {
-        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeProperties, testOdeKafkaProperties);
+        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeKafkaProperties);
         MessageProducer<String, String> producer = testSerializableMessageProducerPool.create();
         assertTrue(testSerializableMessageProducerPool.validate(producer));
     }
 
     @Test
     void testExpire() {
-        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeProperties, testOdeKafkaProperties);
+        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeKafkaProperties);
         MessageProducer<String, String> producer = testSerializableMessageProducerPool.create();
         testSerializableMessageProducerPool.expire(producer);
 

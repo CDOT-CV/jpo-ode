@@ -11,7 +11,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
@@ -25,15 +24,5 @@ class OdePropertiesTest {
     @Test
     void testOutputSchemaVersion() {
         assertEquals(7, testOdeProperties.getOutputSchemaVersion());
-    }
-
-    @Test
-    void testPluginsLocations() {
-        assertEquals("plugins", testOdeProperties.getPluginsLocations());
-    }
-
-    @Test
-    void testVerboseJson() {
-        assertFalse(testOdeProperties.isVerboseJson());
     }
 }

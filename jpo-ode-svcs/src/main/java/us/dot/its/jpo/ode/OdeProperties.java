@@ -31,21 +31,7 @@ import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 @Slf4j
 public class OdeProperties {
 
-    /*
-     * General Properties
-     */
     private int outputSchemaVersion;
-    private String pluginsLocations;
-    private boolean verboseJson;
-
-    /*
-     * Security Properties
-     */
-    private String caCertPath;
-    private String selfCertPath;
-    private String selfPrivateKeyReconstructionFilePath;
-    private String selfSigningPrivateKeyFilePath;
-
     private static final byte[] JPO_ODE_GROUP_ID = "jode".getBytes();
 
     @Autowired
@@ -57,12 +43,9 @@ public class OdeProperties {
         log.info("artifactId: {}", buildProperties.getArtifact());
         log.info("version: {}", buildProperties.getVersion());
         OdeMsgMetadata.setStaticSchemaVersion(this.outputSchemaVersion);
-
-
     }
 
     public String getVersion() {
         return buildProperties.getVersion();
     }
-
 }

@@ -19,7 +19,6 @@ import mockit.Expectations;
 import mockit.Injectable;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.kafka.*;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
@@ -29,8 +28,6 @@ import static org.junit.Assert.assertNotNull;
 
 class AsnCodecRouterServiceControllerTest {
 
-    @Injectable
-    OdeProperties injectableOdeProperties;
     @Injectable
     OdeKafkaProperties odeKafkaProperties;
     @Injectable
@@ -57,6 +54,6 @@ class AsnCodecRouterServiceControllerTest {
             }
         };
 
-        assertNotNull(new AsnCodecRouterServiceController(injectableOdeProperties, odeKafkaProperties, jsonTopics, pojoTopics, asn1CoderTopics, sdxDepositorTopics, rsuProperties, securityServicesProperties));
+        assertNotNull(new AsnCodecRouterServiceController(odeKafkaProperties, jsonTopics, pojoTopics, asn1CoderTopics, sdxDepositorTopics, rsuProperties, securityServicesProperties));
     }
 }

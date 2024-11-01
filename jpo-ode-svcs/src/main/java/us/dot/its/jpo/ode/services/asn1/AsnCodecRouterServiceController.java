@@ -17,9 +17,7 @@ package us.dot.its.jpo.ode.services.asn1;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
-import us.dot.its.jpo.ode.OdeProperties;
 import us.dot.its.jpo.ode.kafka.*;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
@@ -33,8 +31,7 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 public class AsnCodecRouterServiceController {
 
     @Autowired
-    public AsnCodecRouterServiceController(@Qualifier("ode-us.dot.its.jpo.ode.OdeProperties") OdeProperties odeProps,
-                                           OdeKafkaProperties odeKafkaProperties,
+    public AsnCodecRouterServiceController(OdeKafkaProperties odeKafkaProperties,
                                            JsonTopics jsonTopics,
                                            PojoTopics pojoTopics,
                                            Asn1CoderTopics asn1CoderTopics,

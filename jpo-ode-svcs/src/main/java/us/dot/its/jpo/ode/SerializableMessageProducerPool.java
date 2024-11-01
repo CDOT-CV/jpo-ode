@@ -29,7 +29,6 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
 
     private static final long serialVersionUID = -2293786403623236678L;
 
-    transient OdeProperties odeProperties;
     transient OdeKafkaProperties odeKafkaProperties;
 
     private String brokers;
@@ -38,9 +37,8 @@ public class SerializableMessageProducerPool<K, V> extends SerializableObjectPoo
 
     private Properties props;
 
-    public SerializableMessageProducerPool(OdeProperties odeProperties, OdeKafkaProperties odeKafkaProperties) {
+    public SerializableMessageProducerPool(OdeKafkaProperties odeKafkaProperties) {
         super();
-        this.odeProperties = odeProperties;
         this.odeKafkaProperties = odeKafkaProperties;
         this.brokers = odeKafkaProperties.getBrokers();
         this.type = odeKafkaProperties.getProducer().getType();
