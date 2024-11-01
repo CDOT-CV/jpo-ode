@@ -29,6 +29,7 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeTravelerInputData;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
+import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
@@ -46,6 +47,9 @@ public class Asn1CommandManagerTest {
 
    @Injectable
    RsuProperties injectableRsuProperties;
+
+   @Injectable
+   SecurityServicesProperties injectableSecurityServicesProperties;
 
    @Capturing
    MessageProducer<String, String> capturingMessageProducer;

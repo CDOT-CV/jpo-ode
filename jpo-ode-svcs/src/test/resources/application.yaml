@@ -19,7 +19,7 @@ ode:
     brokers: "localhost:9092"
     producer:
       type: "async"
-      acks: "some"
+      acks: "0"
       retries: 1
       batch-size: 1638
       linger-ms: 2

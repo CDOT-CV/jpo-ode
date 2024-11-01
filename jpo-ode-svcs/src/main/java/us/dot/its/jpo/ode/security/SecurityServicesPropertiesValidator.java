@@ -4,6 +4,7 @@ import org.springframework.validation.Validator;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Objects;
 
 public class SecurityServicesPropertiesValidator implements Validator {
 
@@ -29,7 +30,7 @@ public class SecurityServicesPropertiesValidator implements Validator {
                 if (!uri.getScheme().equals("http") && !uri.getScheme().equals("https")) {
                     errors.rejectValue(fieldName, errorCode, "Signature endpoint must be an http URL");
                 }
-                if (uri.getHost() == null || uri.getHost().isEmpty()) {
+                if (uri.getHost() == null || Objects.equals(uri.getHost(), "null") || uri.getHost().isEmpty()) {
                     errors.rejectValue(fieldName, errorCode, "Signature endpoint must have a host");
                 }
                 if (uri.getPort() < 0) {
