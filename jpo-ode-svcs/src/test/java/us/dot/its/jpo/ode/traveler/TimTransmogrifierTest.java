@@ -119,12 +119,7 @@ class TimTransmogrifierTest {
         inputServiceRequest.setSdw(new SDW());
         inputServiceRequest.setSnmp(new SNMP());
 
-        try {
-            TimTransmogrifier.buildASD(inputServiceRequest);
-            fail("Expected TimTransmogrifierException");
-        } catch (Exception e) {
-            assertInstanceOf(TimTransmogrifierException.class, e);
-        }
+        assertThrows(TimTransmogrifierException.class, () -> TimTransmogrifier.buildASD(inputServiceRequest));
     }
 
     @Test
@@ -133,12 +128,7 @@ class TimTransmogrifierTest {
         ServiceRequest inputServiceRequest = new ServiceRequest();
         inputServiceRequest.setSdw(new SDW());
 
-        try {
-            TimTransmogrifier.buildASD(inputServiceRequest);
-            fail("Expected TimTransmogrifierException");
-        } catch (Exception e) {
-            assertInstanceOf(TimTransmogrifierException.class, e);
-        }
+        assertThrows(TimTransmogrifierException.class, () -> TimTransmogrifier.buildASD(inputServiceRequest));
     }
 
     @Test
@@ -274,12 +264,8 @@ class TimTransmogrifierTest {
         Constructor<TimTransmogrifier> constructor = TimTransmogrifier.class.getDeclaredConstructor();
         assertTrue(Modifier.isPrivate(constructor.getModifiers()));
         constructor.setAccessible(true);
-        try {
-            constructor.newInstance();
-            fail("Expected IllegalAccessException.class");
-        } catch (Exception e) {
-            assertEquals(InvocationTargetException.class, e.getClass());
-        }
+
+        assertThrows(InvocationTargetException.class, constructor::newInstance);
     }
 
 }
