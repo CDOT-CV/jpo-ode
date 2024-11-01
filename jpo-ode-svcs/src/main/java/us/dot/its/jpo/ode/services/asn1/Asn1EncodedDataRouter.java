@@ -28,8 +28,8 @@ import us.dot.its.jpo.ode.kafka.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
-import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
+import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -203,7 +203,15 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
             } else {
                 // if header is present, strip it
                 if (isHeaderPresent(hexEncodedTim)) {
-                    hexEncodedTim = stripTimHeader(consumedObj, hexEncodedTim, mfObj, dataObj);
+                    String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
+                    log.debug("Stripping header from unsigned message: {}", header);
+                    hexEncodedTim = stripHeader(hexEncodedTim);
+                    mfObj.remove(BYTES);
+                    mfObj.put(BYTES, hexEncodedTim);
+                    dataObj.remove(MESSAGE_FRAME);
+                    dataObj.put(MESSAGE_FRAME, mfObj);
+                    consumedObj.remove(AppContext.PAYLOAD_STRING);
+                    consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
                 }
             }
 
@@ -296,7 +304,15 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
             // if header is present, strip it
             if (isHeaderPresent(encodedTim)) {
-                encodedTim = stripTimHeader(consumedObj, encodedTim, mfObj, dataObj);
+                String header = encodedTim.substring(0, encodedTim.indexOf("001F") + 4);
+                log.debug("Stripping header from unsigned message: {}", header);
+                encodedTim = stripHeader(encodedTim);
+                mfObj.remove(BYTES);
+                mfObj.put(BYTES, encodedTim);
+                dataObj.remove(MESSAGE_FRAME);
+                dataObj.put(MESSAGE_FRAME, mfObj);
+                consumedObj.remove(AppContext.PAYLOAD_STRING);
+                consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
             }
 
             log.debug("Encoded message - phase 2: {}", encodedTim);
@@ -309,19 +325,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         }
 
         log.info("TIM deposit response {}", responseList);
-    }
-
-    private String stripTimHeader(JSONObject consumedObj, String encodedTim, JSONObject mfObj, JSONObject dataObj) {
-        String header = encodedTim.substring(0, encodedTim.indexOf("001F") + 4);
-        log.debug("Stripping header from unsigned message: {}", header);
-        encodedTim = stripHeader(encodedTim);
-        mfObj.remove(BYTES);
-        mfObj.put(BYTES, encodedTim);
-        dataObj.remove(MESSAGE_FRAME);
-        dataObj.put(MESSAGE_FRAME, mfObj);
-        consumedObj.remove(AppContext.PAYLOAD_STRING);
-        consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
-        return encodedTim;
     }
 
     public String signTIMAndProduceToExpireTopic(String encodedTIM, JSONObject consumedObj) {
