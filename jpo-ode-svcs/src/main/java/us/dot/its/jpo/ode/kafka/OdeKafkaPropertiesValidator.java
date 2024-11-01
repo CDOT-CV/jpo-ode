@@ -6,7 +6,8 @@ import java.util.List;
 
 public class OdeKafkaPropertiesValidator implements Validator {
 
-    private static final List<String> VALID_ACKS = List.of("all", "0", "1");
+    private static final List<String> VALID_ACKS = List.of("all", "0", "1", "-1");
+
     @Override
     public boolean supports(Class<?> clazz) {
         return OdeKafkaProperties.class.equals(clazz);
@@ -23,12 +24,8 @@ public class OdeKafkaPropertiesValidator implements Validator {
         if (properties.getBrokers() == null || properties.getBrokers().isEmpty()) {
             errors.rejectValue("brokers", "brokers must be set");
         } else {
-            String[] brokers = properties.getBrokers().split(",");
-            for (String broker : brokers) {
-                if (!broker.contains(":")) {
-                    errors.rejectValue("brokers", "broker must be in the format host:port");
-                    break;
-                }
+            if (!properties.getBrokers().contains(":")) {
+                errors.rejectValue("brokers", "broker must be in the format host:port");
             }
         }
     }

@@ -8,7 +8,7 @@ import org.springframework.validation.annotation.Validated;
 import java.util.Set;
 
 @Configuration
-@ConfigurationProperties(prefix = "ode.kafka", ignoreInvalidFields = true)
+@ConfigurationProperties(prefix = "ode.kafka")
 @Data
 @Validated(value = OdeKafkaPropertiesValidator.class)
 public class OdeKafkaProperties {
