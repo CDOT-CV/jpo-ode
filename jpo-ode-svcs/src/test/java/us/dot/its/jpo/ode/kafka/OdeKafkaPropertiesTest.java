@@ -37,7 +37,7 @@ class OdeKafkaPropertiesTest {
 
     @Test
     void testGetProducerAcks() {
-        assertEquals("some", odeKafkaProperties.getProducer().getAcks());
+        assertEquals("0", odeKafkaProperties.getProducer().getAcks());
     }
 
     @Test
