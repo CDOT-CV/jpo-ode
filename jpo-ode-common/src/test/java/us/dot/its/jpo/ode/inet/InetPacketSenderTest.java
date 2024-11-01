@@ -31,6 +31,7 @@ import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
+import org.springframework.context.annotation.Import;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -40,8 +41,8 @@ import org.junit.jupiter.api.Test;
 import mockit.Capturing;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
+@Import(value = { EventLogger.class })
 public class InetPacketSenderTest {
-   
 
    static final private boolean isDebugOutput = false;
 
