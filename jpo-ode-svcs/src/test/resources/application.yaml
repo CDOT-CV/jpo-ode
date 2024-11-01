@@ -19,7 +19,6 @@ ode:
     password: "test-password"
   kafka:
     brokers: "localhost:9092"
-    type: ${KAFKA_TYPE}
     producer:
       type: "async"
       acks: "some"

@@ -19,7 +19,6 @@ ode:
     password: ${RSU_PASSWORD}
   kafka:
     brokers: ${DOCKER_HOST_IP}:9092
-    type: ${KAFKA_TYPE}
     producer:
       type: "sync"
       acks: ${KAFKA_ACKS}
@@ -118,5 +117,5 @@ ode:
     upload-location-root: "uploads"
     obu-log-upload-location: "bsmlog"
   tim-ingest-monitoring:
-    tracking-enabled: ${TIM_INGEST_TRACKING_ENABLED}
-    interval: ${TIM_INGEST_MONITORING_INTERVAL}
+    tracking-enabled: ${ODE_TIM_INGEST_MONITORING_ENABLED}
+    interval: ${ODE_TIM_INGEST_MONITORING_INTERVAL}
