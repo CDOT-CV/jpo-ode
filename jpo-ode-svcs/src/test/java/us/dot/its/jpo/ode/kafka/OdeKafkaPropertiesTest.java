@@ -10,8 +10,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
@@ -43,12 +42,12 @@ class OdeKafkaPropertiesTest {
 
     @Test
     void testGetProducerBatchSize() {
-        assertEquals("1638", odeKafkaProperties.getProducer().getBatchSize());
+        assertEquals( 1638, odeKafkaProperties.getProducer().getBatchSize());
     }
 
     @Test
     void testGetProducerBufferMemory() {
-        assertEquals("33554433", odeKafkaProperties.getProducer().getBufferMemory());
+        assertEquals(33554433, odeKafkaProperties.getProducer().getBufferMemory());
     }
 
     @Test
@@ -58,7 +57,7 @@ class OdeKafkaPropertiesTest {
 
     @Test
     void testGetProducerLingerMs() {
-        assertEquals("2", odeKafkaProperties.getProducer().getLingerMs());
+        assertEquals(2, odeKafkaProperties.getProducer().getLingerMs());
     }
 
     @Test
@@ -68,7 +67,7 @@ class OdeKafkaPropertiesTest {
 
     @Test
     void testGetProducerRetries() {
-        assertEquals("1", odeKafkaProperties.getProducer().getRetries());
+        assertEquals(1, odeKafkaProperties.getProducer().getRetries());
     }
 
     @Test

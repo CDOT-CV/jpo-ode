@@ -7,23 +7,22 @@ import org.springframework.context.annotation.Configuration;
 import java.util.Set;
 
 @Configuration
-@ConfigurationProperties(prefix = "ode.kafka")
+@ConfigurationProperties(prefix = "ode.kafka", ignoreInvalidFields = true)
 @Data
 public class OdeKafkaProperties {
     private String brokers;
-    private String type; // The type of Kafka broker to connect to. If set to "CONFLUENT", the broker will be Confluent Cloud. Otherwise, it will be a local Kafka broker.
     private Set<String> disabledTopics;
     private Producer producer;
 
     @Data
     public static class Producer {
+        private Integer batchSize = 16384;
+        private Integer bufferMemory = 33554432;
+        private Integer lingerMs = 1;
+        private Integer retries = 0;
         private String acks = "all";
-        private String batchSize = "16384";
-        private String bufferMemory = "33554432";
         private String keySerializer = "org.apache.kafka.common.serialization.StringSerializer";
-        private String lingerMs = "1";
         private String partitionerClass = "org.apache.kafka.clients.producer.internals.DefaultPartitioner";
-        private String retries = "0";
         private String type = "sync";
         private String valueSerializer = "org.apache.kafka.common.serialization.ByteArraySerializer";
     }

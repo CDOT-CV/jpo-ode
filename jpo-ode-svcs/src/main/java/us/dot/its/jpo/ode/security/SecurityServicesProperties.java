@@ -12,7 +12,7 @@ import org.springframework.validation.annotation.Validated;
 public class SecurityServicesProperties {
     private String hostIP;
     private String signatureEndpoint;
-    private int port = -1;
+    private Integer port = -1;
     private Boolean isSdwSigningEnabled = true;
     private Boolean isRsuSigningEnabled = false;
 
