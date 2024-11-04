@@ -216,7 +216,7 @@ public class TimDepositController {
         String obfuscatedTimData = TimTransmogrifier.obfuscateRsuPassword(odeTimData.toJson());
         stringMsgProducer.send(jsonTopics.getTimBroadcast(), null, obfuscatedTimData);
 
-        // Now that the message gas been published to OdeBroadcastTim topic, it should be
+        // Now that the message has been published to OdeBroadcastTim topic, it should be
         // changed to J2735BroadcastTim serialId
         timMetadata.setSerialId(serialIdJ2735);
 

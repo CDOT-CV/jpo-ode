@@ -40,22 +40,6 @@ class SerializableMessageProducerPoolTest {
     OdeKafkaProperties testOdeKafkaProperties;
 
     @Test
-    void testSerializableMessageProducerPool() {
-        SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeKafkaProperties);
-
-        assertEquals(testOdeKafkaProperties.getBrokers(), testSerializableMessageProducerPool.getBrokers());
-        assertEquals(testOdeKafkaProperties.getProducer().getType(), testSerializableMessageProducerPool.getType());
-        assertEquals(testOdeKafkaProperties.getProducer().getPartitionerClass(), testSerializableMessageProducerPool.getPartitionerClass());
-        assertEquals(testOdeKafkaProperties.getProducer().getAcks(), testSerializableMessageProducerPool.getProps().get("acks"));
-        assertEquals(testOdeKafkaProperties.getProducer().getRetries(), testSerializableMessageProducerPool.getProps().get("retries"));
-        assertEquals(testOdeKafkaProperties.getProducer().getBatchSize(), testSerializableMessageProducerPool.getProps().get("batch.size"));
-        assertEquals(testOdeKafkaProperties.getProducer().getLingerMs(), testSerializableMessageProducerPool.getProps().get("linger.ms"));
-        assertEquals(testOdeKafkaProperties.getProducer().getBufferMemory(), testSerializableMessageProducerPool.getProps().get("buffer.memory"));
-        assertEquals(testOdeKafkaProperties.getProducer().getKeySerializer(), testSerializableMessageProducerPool.getProps().get("key.serializer"));
-        assertEquals(testOdeKafkaProperties.getProducer().getValueSerializer(), testSerializableMessageProducerPool.getProps().get("value.serializer"));
-    }
-
-    @Test
     void testCreate() {
         SerializableMessageProducerPool<String, String> testSerializableMessageProducerPool = new SerializableMessageProducerPool<>(testOdeKafkaProperties);
         assertEquals(MessageProducer.class, testSerializableMessageProducerPool.create().getClass());

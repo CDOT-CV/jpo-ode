@@ -15,25 +15,23 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode;
 
-import lombok.Getter;
-import lombok.Setter;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.util.SerializableObjectPool;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
+import java.io.Serial;
 import java.util.Properties;
 
-@Getter
-@Setter
 public class SerializableMessageProducerPool<K, V> extends SerializableObjectPool<MessageProducer<K, V>> {
 
+    @Serial
     private static final long serialVersionUID = -2293786403623236678L;
 
     transient OdeKafkaProperties odeKafkaProperties;
 
-    private String brokers;
-    private String type;
-    private String partitionerClass;
+    private final String brokers;
+    private final String type;
+    private final String partitionerClass;
 
     private Properties props;
 
