@@ -32,7 +32,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.springframework.context.annotation.Import;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
+import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
 import mockit.Capturing;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
-@Import(value = { EventLogger.class })
+@Slf4j
 public class InetPacketSenderTest {
 
    static final private boolean isDebugOutput = false;
@@ -192,15 +192,15 @@ public class InetPacketSenderTest {
                socket.receive(datagramPacket);
                validatePacket(datagramPacket);
             } catch (SocketTimeoutException ex) {
-               EventLogger.logger.error(
+               log.error(
                      String.format("Caught socket timeout exception while recieving message on port %d. Max size is %d",
                            listenPort, DEFAULT_MAX_PACKET_SIZE),
                      ex);
             } catch (SocketException ex) {
-               EventLogger.logger.error(String.format("Caught socket exception while recieving message on port %d. Max size is %d",
+               log.error(String.format("Caught socket exception while recieving message on port %d. Max size is %d",
                      listenPort, DEFAULT_MAX_PACKET_SIZE), ex);
             } catch (IOException ex) {
-               EventLogger.logger.error(
+               log.error(
                      String.format("Caught IO exception exception while recieving message on port %d. Max size is %d",
                            listenPort, DEFAULT_MAX_PACKET_SIZE),
                      ex);
