@@ -41,5 +41,7 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
                 log.error("Error receiving packet", e);
             }
         } while (!isStopped());
+        socket.close();
     }
+
 }
