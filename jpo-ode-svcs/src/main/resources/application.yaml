@@ -105,5 +105,5 @@ ode:
     upload-location-root: "uploads"
     obu-log-upload-location: "bsmlog"
   tim-ingest-monitoring:
-    tracking-enabled: ${TIM_INGEST_TRACKING_ENABLED}
-    interval: ${TIM_INGEST_MONITORING_INTERVAL}
+    tracking-enabled: ${ODE_TIM_INGEST_MONITORING_ENABLED}
+    interval: ${ODE_TIM_INGEST_MONITORING_INTERVAL}
