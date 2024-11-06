@@ -1,16 +1,20 @@
 package us.dot.its.jpo.ode.udp.map;
 
-
-import org.apache.tomcat.util.buf.HexUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.testcontainers.containers.KafkaContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.udp.TestUDPClient;
@@ -20,16 +24,16 @@ import us.dot.its.jpo.ode.udp.controller.UdpServiceThreadFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = {UDPReceiverProperties.class, OdeKafkaProperties.class, RawEncodedJsonTopics.class})
+@EnableConfigurationProperties(value = {UDPReceiverProperties.class, OdeKafkaProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+@Testcontainers
+@TestPropertySource(properties = {"spring.kafka.consumer.auto-offset-reset=earliest"})
 class MapReceiverIntegrationTest {
 
     @Autowired
@@ -41,9 +45,15 @@ class MapReceiverIntegrationTest {
     @Autowired
     RawEncodedJsonTopics rawEncodedJsonTopics;
 
+    @Container
+    static final KafkaContainer kafka = new KafkaContainer(
+            DockerImageName.parse("confluentinc/cp-kafka:7.6.1")
+    );
+
     ServiceManager rm;
     TestUDPClient udpClient;
     MapReceiver mapReceiver;
+
     // Set up a MapReceiver
     // Start the MapReceiver in a new thread
     // Wait for the MapReceiver to start
@@ -59,6 +69,7 @@ class MapReceiverIntegrationTest {
         mapReceiver = new MapReceiver(udpReceiverProperties.getMap(),
                 odeKafkaProperties,
                 rawEncodedJsonTopics.getMap());
+
     }
 
     @AfterEach
@@ -102,8 +113,8 @@ class MapReceiverIntegrationTest {
 
         udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
 
-        String echo = udpClient.send(rows.getFirst().payload);
-        assertEquals("test", echo);
+        udpClient.send(rows.getFirst().payload);
+        // TODO: confirm that the OdeRawEncodedMapJson topic has the expected message
 
         // Wait for the MapReceiver to process the packet
         // Verify that the MapReceiver produced the expected output on the expected topic

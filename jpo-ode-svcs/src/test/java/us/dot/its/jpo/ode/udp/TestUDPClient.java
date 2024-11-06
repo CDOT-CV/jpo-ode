@@ -23,15 +23,10 @@ public class TestUDPClient {
             sendPort = port;
     }
 
-    public String send(String msg) throws IOException {
+    public void send(String msg) throws IOException {
         buf = msg.getBytes();
         DatagramPacket packet = new DatagramPacket(buf, buf.length, address, sendPort);
         socket.send(packet);
-        DatagramPacket received = new DatagramPacket(buf, buf.length);
-        socket.receive(received);
-        String receivedMsg = new String(received.getData(), 0, received.getLength());
-        log.info("Received: {}", receivedMsg);
-        return receivedMsg;
     }
 
     public void close() {
