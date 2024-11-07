@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static us.dot.its.jpo.ode.udp.map.TestCase.deserializeTestCases;
 
 
@@ -86,7 +87,6 @@ class MapReceiverIntegrationTest {
         udpClient.close();
     }
 
-    // Test that the MapReceiver can receive a UDP packet and publish the expected output on the expected topic
     @Test
     void testMapReceiver() throws IOException {
         String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/MAP_Validation.json";
@@ -108,8 +108,12 @@ class MapReceiverIntegrationTest {
             ConsumerRecord<Integer, String> produced = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
             JSONObject producedJson = new JSONObject(produced.value());
             JSONObject expectedJson = new JSONObject(testCase.getExpected());
-            assertEquals(expectedJson, producedJson);
+            // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
+            assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"), producedJson.getJSONObject("metadata").get("serialId"));
+            expectedJson.getJSONObject("metadata").remove("serialId");
+            producedJson.getJSONObject("metadata").remove("serialId");
+
+            assertEquals(expectedJson.toString(), producedJson.toString());
         }
     }
-
 }
