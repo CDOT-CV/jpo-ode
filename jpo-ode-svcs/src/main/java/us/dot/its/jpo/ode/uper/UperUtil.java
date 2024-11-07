@@ -1,18 +1,16 @@
 package us.dot.its.jpo.ode.uper;
 
-import java.util.HashMap;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
+import java.util.HashMap;
+
+@Slf4j
 public class UperUtil {
-    private static Logger logger = LoggerFactory.getLogger(UperUtil.class);
 
     // start flags for BSM, TIM, MAP, SPAT, SRM, SSM, and PSM
     private static final String BSM_START_FLAG = "0014";
@@ -28,9 +26,9 @@ public class UperUtil {
     }
 
     // Strips the IEEE 1609.2 security header (if it exists) and returns the payload
-    public static String stripDot2Header(String hexString, String payload_start_flag) {
+    public static String stripDot2Header(String hexString, String payloadStartFlag) {
         hexString = hexString.toLowerCase();
-        int startIndex = findValidStartFlagLocation(hexString, payload_start_flag);
+        int startIndex = findValidStartFlagLocation(hexString, payloadStartFlag);
         if (startIndex == -1)
             return "BAD DATA";
         String strippedPayload = stripTrailingZeros(hexString.substring(startIndex, hexString.length()));
@@ -65,13 +63,13 @@ public class UperUtil {
             break;
         }
 
-        if (hexPacketParsed.equals("")) {
+        if (hexPacketParsed.isEmpty()) {
             hexPacketParsed = hexString;
-            logger.debug("Packet is not a BSM, TIM or Map message: " + hexPacketParsed);
+            log.debug("Packet is not a BSM, TIM or Map message: {}", hexPacketParsed);
         } else {
-            logger.debug("Base packet: " + hexPacketParsed);
+            log.debug("Base packet: {}", hexPacketParsed);
             hexPacketParsed = stripTrailingZeros(hexPacketParsed);
-            logger.debug("Stripped packet: " + hexPacketParsed);
+            log.debug("Stripped packet: {}", hexPacketParsed);
         }
         return HexUtils.fromHexString(hexPacketParsed);
     }
@@ -81,13 +79,13 @@ public class UperUtil {
      * Will return the payload with a signed 1609.2 header if it is present.
      * Otherwise, returns just the payload.
      */
-    public static String stripDot3Header(String hexString, String payload_start_flag) {
-        int payloadStartIndex = findValidStartFlagLocation(hexString,payload_start_flag);
+    public static String stripDot3Header(String hexString, String payloadStartFlag) {
+        int payloadStartIndex = findValidStartFlagLocation(hexString,payloadStartFlag);
         String headers = hexString.substring(0, payloadStartIndex);
         String payload = hexString.substring(payloadStartIndex, hexString.length());
-        logger.debug("Base payload: " + payload);
+        log.debug("Base payload: {}", payload);
         String strippedPayload = stripTrailingZeros(payload);
-        logger.debug("Stripped payload: " + strippedPayload);
+        log.debug("Stripped payload: {}", strippedPayload);
         // Look for the index of the start flag of a signed 1609.2 header
         int signedDot2StartIndex = headers.indexOf("038100");
         if (signedDot2StartIndex == -1)
@@ -110,7 +108,7 @@ public class UperUtil {
             messageType = determineHexPacketType(hexString);
 
 		} catch (JsonUtilsException e) {
-			logger.error("JsonUtilsException while checking message header. Stacktrace: " + e.toString());
+			log.error("JsonUtilsException while checking message header.", e);
 		}
 		return messageType;
 	}
@@ -131,7 +129,7 @@ public class UperUtil {
         int lowestIndex = Integer.MAX_VALUE;
         for (String key : flagIndexes.keySet()) {
             if (flagIndexes.get(key) == -1) {
-                logger.debug("This message is not of type " + key);
+                log.debug("This message is not of type {}", key);
                 continue;
             }
             if (flagIndexes.get(key) < lowestIndex) {
@@ -214,24 +212,4 @@ public class UperUtil {
         return PSM_START_FLAG;
     }
 
-    public static String getStartFlag(SupportedMessageTypes msgType) {
-        switch (msgType) {
-        case SupportedMessageTypes.BSM:
-            return BSM_START_FLAG;
-        case SupportedMessageTypes.TIM:
-            return TIM_START_FLAG;
-        case SupportedMessageTypes.SPAT:
-            return SPAT_START_FLAG;
-        case SupportedMessageTypes.SSM:
-            return SSM_START_FLAG;
-        case SupportedMessageTypes.SRM:
-            return SRM_START_FLAG;
-        case SupportedMessageTypes.MAP:
-            return MAP_START_FLAG;
-        case SupportedMessageTypes.PSM:
-            return PSM_START_FLAG;
-        default:
-            return null;
-        }
-    }
 }

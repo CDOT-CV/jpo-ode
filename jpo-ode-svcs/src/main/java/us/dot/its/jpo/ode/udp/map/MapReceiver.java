@@ -31,11 +31,13 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
             try {
                 log.debug("Waiting for UDP Map packets...");
                 socket.receive(packet);
-                if (packet.getLength() > 0) {
+                if (packet.getLength() > 0 && packet.getData() != null && packet.getData().length > 0) {
                     String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
                     if (mapJson != null) {
                         mapPublisher.publish(this.publishTopic, mapJson);
                     }
+                } else {
+                    log.debug("Ignoring empty packet from {}", packet.getSocketAddress());
                 }
             } catch (Exception e) {
                 log.error("Error receiving packet", e);
