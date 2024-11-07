@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
-import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +14,8 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
-import org.springframework.kafka.test.rule.EmbeddedKafkaRule;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -39,13 +39,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static us.dot.its.jpo.ode.udp.map.TestCase.deserializeTestCases;
 
-
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = {UDPReceiverProperties.class, OdeKafkaProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
 @RunWith(SpringRunner.class)
 @DirtiesContext
-@Slf4j
+@EmbeddedKafka(partitions = 1, topics = {"topic.OdeRawEncodedMAPJson"}, ports = 9092)
 class MapReceiverIntegrationTest {
 
     @Autowired
@@ -57,9 +57,8 @@ class MapReceiverIntegrationTest {
     @Autowired
     RawEncodedJsonTopics rawEncodedJsonTopics;
 
-    @ClassRule
-    private static EmbeddedKafkaRule embeddedKafka = new EmbeddedKafkaRule(1, false, 1)
-            .kafkaPorts(9092);
+    @Autowired
+    private EmbeddedKafkaBroker embeddedKafka;
 
     ServiceManager rm;
     TestUDPClient udpClient;
@@ -68,10 +67,6 @@ class MapReceiverIntegrationTest {
     @BeforeEach
     public void setUp() {
         rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
-
-        // Start the embedded Kafka broker and add the topics
-        embeddedKafka.before();
-        embeddedKafka.getEmbeddedKafka().addTopics(rawEncodedJsonTopics.getMap());
 
         mapReceiver = new MapReceiver(udpReceiverProperties.getMap(),
                 odeKafkaProperties,
@@ -96,10 +91,10 @@ class MapReceiverIntegrationTest {
         rm.submit(mapReceiver);
 
         // Set up a Kafka consumer
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka.getEmbeddedKafka());
+        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
         DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
         Consumer<Integer, String> consumer = cf.createConsumer();
-        embeddedKafka.getEmbeddedKafka().consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
+        embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
 
         udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
 
@@ -119,3 +114,4 @@ class MapReceiverIntegrationTest {
         }
     }
 }
+
