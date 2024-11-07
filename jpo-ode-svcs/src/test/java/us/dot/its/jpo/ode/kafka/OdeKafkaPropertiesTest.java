@@ -79,4 +79,9 @@ class OdeKafkaPropertiesTest {
     void testGetProducerValueSerializer() {
         assertEquals("org.apache.kafka.common.serialization.ByteArraySerializer", odeKafkaProperties.getProducer().getValueSerializer());
     }
+
+    @Test
+    void testGetProducerCompressionType() {
+        assertEquals("zstd", odeKafkaProperties.getProducer().getCompressionType());
+    }
 }

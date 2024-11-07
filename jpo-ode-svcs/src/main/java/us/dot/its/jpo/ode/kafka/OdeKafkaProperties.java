@@ -27,5 +27,6 @@ public class OdeKafkaProperties {
         private String partitionerClass = "org.apache.kafka.clients.producer.internals.DefaultPartitioner";
         private String type = "sync";
         private String valueSerializer = "org.apache.kafka.common.serialization.ByteArraySerializer";
+        private String compressionType = "zstd";
     }
 }

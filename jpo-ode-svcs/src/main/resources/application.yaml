@@ -27,6 +27,7 @@ ode:
       key-serializer: ${KAFKA_KEY_SERIALIZER}
       value-serializer: ${KAFKA_VALUE_SERIALIZER}
       partitioner-class: ${KAFKA_PARTITIONER_CLASS}
+      compression-type: ${KAFKA_COMPRESSION_TYPE}
     disabled-topics:
       - "topic.OdeBsmRxPojo"
       - "topic.OdeBsmTxPojo"
