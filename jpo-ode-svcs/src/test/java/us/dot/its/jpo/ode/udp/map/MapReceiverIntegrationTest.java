@@ -1,8 +1,12 @@
 package us.dot.its.jpo.ode.udp.map;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.ClassRule;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,15 +30,18 @@ import us.dot.its.jpo.ode.udp.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.ServiceManager;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.udp.controller.UdpServiceThreadFactory;
+import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.time.Clock;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @ExtendWith(SpringExtension.class)
@@ -55,32 +62,27 @@ class MapReceiverIntegrationTest {
     RawEncodedJsonTopics rawEncodedJsonTopics;
 
     @ClassRule
-    private static EmbeddedKafkaRule embeddedKafka = new EmbeddedKafkaRule(1,
-            false,
-            1,
-            "topic.OdeRawEncodedMAPJson").kafkaPorts(9092);
+    private static EmbeddedKafkaRule embeddedKafka = new EmbeddedKafkaRule(1, false, 1)
+            .kafkaPorts(9092);
 
     ServiceManager rm;
     TestUDPClient udpClient;
     MapReceiver mapReceiver;
 
-    // Set up a MapReceiver
-    // Start the MapReceiver in a new thread
-    // Wait for the MapReceiver to start
-    // Send a UDP packet to the MapReceiver
-    // Wait for the MapReceiver to process the packet
-    // Verify that the MapReceiver produced the expected output on the expected topic
-    // Stop the MapReceiver
-    // Wait for the MapReceiver to stop
-    // Verify that the MapReceiver stopped
     @BeforeEach
     public void setUp() {
         rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
+
+        // Start the embedded Kafka broker and add the topics
         embeddedKafka.before();
+        embeddedKafka.getEmbeddedKafka().addTopics(rawEncodedJsonTopics.getMap());
+
         mapReceiver = new MapReceiver(udpReceiverProperties.getMap(),
                 odeKafkaProperties,
                 rawEncodedJsonTopics.getMap());
 
+        // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
+        DateTimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
     }
 
     @AfterEach
@@ -89,57 +91,68 @@ class MapReceiverIntegrationTest {
         udpClient.close();
     }
 
-    static class TestRow {
-        String messageType;
-        String timestamp;
-        String payload;
+    @Getter
+    @Setter
+    public static class TestCases {
+        public List<TestCase> cases = new ArrayList<>();
+    }
+
+    @Getter
+    @Setter
+    public static class TestCase {
+        public String description;
+        public String input;
+        public String expected;
     }
 
     // Test that the MapReceiver can receive a UDP packet and publish the expected output on the expected topic
     @Test
     void testMapReceiver() throws IOException {
-        // Read from MAP_Validation.csv into a List of TestRow objects
-        List<TestRow> rows = new ArrayList<>();
-        // Read from jpo-ode-svcs/src/test/resources/us.dot.its.jpo.ode.udp.map/MAP_Validation.csv into a List of TestRow objects
-        String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/MAP_Validation.csv";
-        File file = new File(path);
-
-        Scanner scanner = new Scanner(file);
-        // skip the header
-        scanner.nextLine();
-
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            String[] parts = line.split("\\|");
-            TestRow row = new TestRow();
-            row.messageType = parts[0];
-            row.timestamp = parts[1];
-            row.payload = "\u0000\u0012" + parts[2]; // prepend the 2-byte length hex code start flag to the payload
-            rows.add(row);
-        }
-
+        String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/MAP_Validation.json";
+        TestCases testCases = deserializeTestRows(path);
 
         // Start the MapReceiver in a new thread
         rm.submit(mapReceiver);
 
-        udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
-
-        udpClient.send(rows.getFirst().payload);
-
+        // Set up a Kafka consumer
         Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka.getEmbeddedKafka());
         DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
         Consumer<Integer, String> consumer = cf.createConsumer();
-        embeddedKafka.getEmbeddedKafka().consumeFromAllEmbeddedTopics(consumer);
+        embeddedKafka.getEmbeddedKafka().consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
 
-        ConsumerRecords<Integer, String> replies = KafkaTestUtils.getRecords(consumer);
-        assertTrue(replies.count() > 0);
+        udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
 
-        // Wait for the MapReceiver to process the packet
-        // Verify that the MapReceiver produced the expected output on the expected topic
-        // Stop the MapReceiver
-        // Wait for the MapReceiver to stop
-        // Verify that the MapReceiver stopped
-
+        for (TestCase testCase : testCases.getCases()) {
+            udpClient.send(testCase.getInput());
+            ConsumerRecord<Integer, String> produced = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
+            JSONObject producedJson = new JSONObject(produced.value());
+            JSONObject expectedJson = new JSONObject(testCase.getExpected());
+            assertEquals(expectedJson, producedJson);
+        }
     }
 
+    private TestCases deserializeTestRows(String path) throws IOException {
+        File file = new File(path);
+        byte[] jsonData = Files.readAllBytes(file.toPath());
+        JSONObject jsonObject = new JSONObject(new String(jsonData));
+
+        JSONArray jsonArray = jsonObject.getJSONArray("cases");
+
+        TestCases testCases = new TestCases();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            TestCase testCase = new TestCase();
+            JSONObject json = jsonArray.getJSONObject(i);
+
+            testCase.setDescription(json.getString("description"));
+
+            JSONObject input = json.getJSONObject("input");
+            testCase.setInput("\u0000\u0012" + input.toString()); // Add the 2-byte length prefix to the input
+
+            JSONObject expected = json.getJSONObject("expected");
+            testCase.setExpected(expected.toString());
+
+            testCases.getCases().add(testCase);
+        }
+        return testCases;
+    }
 }
