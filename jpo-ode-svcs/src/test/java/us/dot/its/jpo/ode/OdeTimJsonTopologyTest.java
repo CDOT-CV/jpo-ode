@@ -29,7 +29,7 @@ class OdeTimJsonTopologyTest {
     private OdeKafkaProperties mockOdeKafkaProps;
 
     @BeforeEach
-    public void setUp() throws SecurityException, IllegalArgumentException {
+    void setUp() throws SecurityException, IllegalArgumentException {
         mockOdeKafkaProps = mock(OdeKafkaProperties.class);
         odeTimJsonTopology = new OdeTimJsonTopology(mockOdeKafkaProps);
         mockStreams = mock(KafkaStreams.class);
@@ -39,7 +39,7 @@ class OdeTimJsonTopologyTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         OdeTimJsonTopology.streams = null;
     }
 
