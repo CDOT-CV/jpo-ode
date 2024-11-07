@@ -105,7 +105,9 @@ class MapReceiverIntegrationTest {
 
         for (TestCase testCase : testCases) {
             udpClient.send(testCase.getInput());
+
             ConsumerRecord<Integer, String> produced = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
+
             JSONObject producedJson = new JSONObject(produced.value());
             JSONObject expectedJson = new JSONObject(testCase.getExpected());
             // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
