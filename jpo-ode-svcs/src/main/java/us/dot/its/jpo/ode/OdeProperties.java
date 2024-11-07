@@ -53,8 +53,6 @@ public class OdeProperties implements EnvironmentAware {
     private int securitySvcsPort;
     private String securitySvcsSignatureEndpoint;
 
-    private String kafkaTopicOdeTimJsonTMCFiltered = "topic.OdeTimJsonTMCFiltered";
-
     /*
      * Security Properties
      */

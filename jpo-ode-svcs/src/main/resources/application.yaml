@@ -41,6 +41,7 @@ ode:
         bsm-filtered: "topic.FilteredOdeBsmJson"
         spat-filtered: "topic.FilteredOdeSpatJson"
         tim-filtered: "topic.FilteredOdeTimJson"
+        tim-tmc-filtered: "topic.OdeTimJsonTMCFiltered"
         tim-cert-expiration: "topic.OdeTIMCertExpirationTimeJson"
         dn-message: "topic.OdeDNMsgJson"
         rx-tim: "topic.OdeTimRxJson"

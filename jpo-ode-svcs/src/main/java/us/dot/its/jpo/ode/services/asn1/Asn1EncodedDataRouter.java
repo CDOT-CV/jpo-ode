@@ -62,7 +62,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final JsonTopics jsonTopics;
 
     private final MessageProducer<String, String> stringMsgProducer;
-    private static OdeTimJsonTopology odeTimJsonTopology = null;
+    private final OdeTimJsonTopology odeTimJsonTopology;
     private final Asn1CommandManager asn1CommandManager;
     private final boolean dataSigningEnabledRSU;
     private final boolean dataSigningEnabledSDW;
@@ -90,13 +90,12 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") != null && !System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty()
                 ? Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"))
                 : true;
-        // Initialize and start the OdeTimJsonTopology if it is not already running
-        if (odeTimJsonTopology == null) {
-            odeTimJsonTopology = new OdeTimJsonTopology(odeProperties, odeKafkaProperties);
-            if (!odeTimJsonTopology.isRunning()) {
-                odeTimJsonTopology.start();
-            }
+
+        odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties);
+        if (!odeTimJsonTopology.isRunning()) {
+            odeTimJsonTopology.start();
         }
+
     }
 
     @Override
@@ -243,7 +242,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
             }
 
             // Deposit encoded & signed TIM to TMC-filtered topic if TMC-generated
-            depositToFilteredTopic(metadataObj, hexEncodedTim, request);
+            depositToFilteredTopic(metadataObj, hexEncodedTim);
             if (request.getSdw() != null) {
                 // Case 2 only
 
@@ -421,30 +420,30 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         return toReturn;
     }
 
-    private void depositToFilteredTopic(JSONObject metadataObj, String hexEncodedTim, ServiceRequest request) {
+    private void depositToFilteredTopic(JSONObject metadataObj, String hexEncodedTim) {
         try {
             String generatedBy = metadataObj.getString("recordGeneratedBy");
             String streamId = metadataObj.getJSONObject("serialId").getString("streamId");
-            if (generatedBy.equalsIgnoreCase("TMC")) {
-                try {
-                    String timString = odeTimJsonTopology.query(streamId);
-
-                    if (timString != null) {
-                        // Set ASN1 data in TIM metadata
-                        JSONObject timJSON = new JSONObject(timString);
-                        JSONObject metadataJSON = timJSON.getJSONObject("metadata");
-                        metadataJSON.put("asn1", hexEncodedTim);
-                        timJSON.put("metadata", metadataJSON);
-
-                        // Send the message w/ asn1 data to the TMC-filtered topic
-                        stringMsgProducer.send(odeProperties.getKafkaTopicOdeTimJsonTMCFiltered(), null, timJSON.toString());
-                    }
-                } catch (Exception e) {
-                    logger.error("Error while updating TIM: {}", e.getMessage());
-                }
+            if (!generatedBy.equalsIgnoreCase("TMC")) {
+                log.debug("Not a TMC-generated TIM. Skipping deposit to TMC-filtered topic.");
+                return;
             }
+
+            String timString = odeTimJsonTopology.query(streamId);
+            if (timString != null) {
+                // Set ASN1 data in TIM metadata
+                JSONObject timJSON = new JSONObject(timString);
+                JSONObject metadataJSON = timJSON.getJSONObject("metadata");
+                metadataJSON.put("asn1", hexEncodedTim);
+                timJSON.put("metadata", metadataJSON);
+
+                // Send the message w/ asn1 data to the TMC-filtered topic
+                stringMsgProducer.send(jsonTopics.getTimTmcFiltered(), null, timJSON.toString());
+            }
+        } catch (JSONException e) {
+            log.error("Error while fetching recordGeneratedBy field: {}", e.getMessage());
         } catch (Exception e) {
-            logger.error("Error while fetching recordGeneratedBy field: {}", e.getMessage());
+            log.error("Error while updating TIM: {}", e.getMessage());
         }
     }
 }
