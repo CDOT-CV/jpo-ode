@@ -20,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import us.dot.its.jpo.ode.OdeProperties;
+import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.Asn1CoderTopics;
@@ -61,6 +62,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final JsonTopics jsonTopics;
 
     private final MessageProducer<String, String> stringMsgProducer;
+    private static OdeTimJsonTopology odeTimJsonTopology = null;
     private final Asn1CommandManager asn1CommandManager;
     private final boolean dataSigningEnabledRSU;
     private final boolean dataSigningEnabledSDW;
@@ -88,6 +90,13 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.dataSigningEnabledSDW = System.getenv("DATA_SIGNING_ENABLED_SDW") != null && !System.getenv("DATA_SIGNING_ENABLED_SDW").isEmpty()
                 ? Boolean.parseBoolean(System.getenv("DATA_SIGNING_ENABLED_SDW"))
                 : true;
+        // Initialize and start the OdeTimJsonTopology if it is not already running
+        if (odeTimJsonTopology == null) {
+            odeTimJsonTopology = new OdeTimJsonTopology(odeProperties, odeKafkaProperties);
+            if (!odeTimJsonTopology.isRunning()) {
+                odeTimJsonTopology.start();
+            }
+        }
     }
 
     @Override
@@ -176,6 +185,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     public void processEncodedTim(ServiceRequest request, JSONObject consumedObj) {
 
         JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
+        JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
         // CASE 1: no SDW in metadata (SNMP deposit only)
         // - sign MF
@@ -232,6 +242,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
                 hexEncodedTim = signTIM(hexEncodedTim, consumedObj);
             }
 
+            // Deposit encoded & signed TIM to TMC-filtered topic if TMC-generated
+            depositToFilteredTopic(metadataObj, hexEncodedTim, request);
             if (request.getSdw() != null) {
                 // Case 2 only
 
@@ -407,5 +419,32 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         // strip everything before 001F
         toReturn = encodedUnsignedTim.substring(index);
         return toReturn;
+    }
+
+    private void depositToFilteredTopic(JSONObject metadataObj, String hexEncodedTim, ServiceRequest request) {
+        try {
+            String generatedBy = metadataObj.getString("recordGeneratedBy");
+            String streamId = metadataObj.getJSONObject("serialId").getString("streamId");
+            if (generatedBy.equalsIgnoreCase("TMC")) {
+                try {
+                    String timString = odeTimJsonTopology.query(streamId);
+
+                    if (timString != null) {
+                        // Set ASN1 data in TIM metadata
+                        JSONObject timJSON = new JSONObject(timString);
+                        JSONObject metadataJSON = timJSON.getJSONObject("metadata");
+                        metadataJSON.put("asn1", hexEncodedTim);
+                        timJSON.put("metadata", metadataJSON);
+
+                        // Send the message w/ asn1 data to the TMC-filtered topic
+                        stringMsgProducer.send(odeProperties.getKafkaTopicOdeTimJsonTMCFiltered(), null, timJSON.toString());
+                    }
+                } catch (Exception e) {
+                    logger.error("Error while updating TIM: {}", e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Error while fetching recordGeneratedBy field: {}", e.getMessage());
+        }
     }
 }

@@ -43,6 +43,7 @@ import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 import us.dot.its.jpo.ode.wrapper.serdes.OdeTimSerializer;
+import java.util.UUID;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -259,7 +260,8 @@ public class TimDepositController {
             // publish Broadcast TIM to a J2735 compliant topic.
             stringMsgProducer.send(jsonTopics.getJ2735TimBroadcast(), null, obfuscatedJ2735Tim);
             // publish J2735 TIM also to general un-filtered TIM topic
-            stringMsgProducer.send(jsonTopics.getTim(), null, obfuscatedJ2735Tim);
+            // with streamID as key
+         stringMsgProducer.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
 
             serialIdOde.increment();
             serialIdJ2735.increment();
