@@ -79,6 +79,11 @@ class JsonTopicsTest {
     }
 
     @Test
+    void getTimTmcFiltered() {
+        assertEquals("topic.OdeTimJsonTMCFiltered", jsonTopics.getTimTmcFiltered());
+    }
+
+    @Test
     void getTimCertExpiration() {
         assertEquals("topic.OdeTIMCertExpirationTimeJson", jsonTopics.getTimCertExpiration());
     }

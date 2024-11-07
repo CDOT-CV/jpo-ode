@@ -23,6 +23,7 @@ public class JsonTopics {
     private String bsmFiltered;
     private String spatFiltered;
     private String timFiltered;
+    private String timTmcFiltered;
 
     private String timCertExpiration;
 
