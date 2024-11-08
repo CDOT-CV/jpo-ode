@@ -23,6 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
+import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.udp.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.ServiceManager;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
@@ -74,6 +75,11 @@ class MapReceiverIntegrationTest {
 
         // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
         DateTimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
+        // Set the static schema version to 7 so that the MapReceiver will produce the same output every time
+        // This is necessary because the schema version is set in only one of the OdeMsgMetadata constructors (this should be fixed)
+        // and the schema version is set to the static schema version in the constructor. This means that the schema version
+        // will be set to 6 for all OdeMsgMetadata objects created in the MapReceiver run method's code path.
+        OdeMsgMetadata.setStaticSchemaVersion(7);
     }
 
     @AfterEach
