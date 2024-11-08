@@ -47,7 +47,7 @@ import static us.dot.its.jpo.ode.udp.map.TestCase.deserializeTestCases;
 @RunWith(SpringRunner.class)
 @DirtiesContext
 @EmbeddedKafka(partitions = 1, topics = {"topic.OdeRawEncodedMAPJson"}, ports = 9092)
-class MapReceiverIntegrationTest {
+class MapReceiverTest {
 
     @Autowired
     UDPReceiverProperties udpReceiverProperties;
