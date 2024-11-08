@@ -12,27 +12,17 @@ import java.util.HashMap;
 @Slf4j
 public class UperUtil {
 
-    // start flags for BSM, TIM, MAP, SPAT, SRM, SSM, and PSM
-    private static final String BSM_START_FLAG = "0014";
-    private static final String TIM_START_FLAG = "001f";
-    private static final String SPAT_START_FLAG = "0013";
-    private static final String SSM_START_FLAG = "001e";
-    private static final String SRM_START_FLAG = "001d";
-    private static final String MAP_START_FLAG = "0012"; 
-    private static final String PSM_START_FLAG = "0020";
-
-    public enum SupportedMessageTypes {
-        BSM, TIM, SPAT, SSM, SRM, MAP, PSM
+    private UperUtil() {
+        throw new UnsupportedOperationException();
     }
 
     // Strips the IEEE 1609.2 security header (if it exists) and returns the payload
-    public static String stripDot2Header(String hexString, String payloadStartFlag) {
+    public static String stripDot2Header(String hexString, String payloadStartFlag) throws StartFlagNotFoundException {
         hexString = hexString.toLowerCase();
         int startIndex = findValidStartFlagLocation(hexString, payloadStartFlag);
         if (startIndex == -1)
-            return "BAD DATA";
-        String strippedPayload = stripTrailingZeros(hexString.substring(startIndex, hexString.length()));
-        return strippedPayload;
+            throw new StartFlagNotFoundException("Start flag" + payloadStartFlag + " not found in message");
+        return stripTrailingZeros(hexString.substring(startIndex));
     }
 
     /*
@@ -44,22 +34,22 @@ public class UperUtil {
 
         String hexString = HexUtils.toHexString(packet);
         String hexPacketParsed = "";
-        
+
         for (String start_flag : msgStartFlags.values()) {
             int payloadStartIndex = findValidStartFlagLocation(hexString, start_flag);
             if (payloadStartIndex == -1){
                 continue;
             }
-                
+
             String headers = hexString.substring(0, payloadStartIndex);
-            String payload = hexString.substring(payloadStartIndex, hexString.length());
-            
+            String payload = hexString.substring(payloadStartIndex);
+
             // Look for the index of the start flag of a signed 1609.2 header, if one exists
             int signedDot2StartIndex = headers.indexOf("038100");
             if (signedDot2StartIndex == -1)
                 hexPacketParsed = payload;
             else
-                hexPacketParsed = headers.substring(signedDot2StartIndex, headers.length()) + payload;
+                hexPacketParsed = headers.substring(signedDot2StartIndex) + payload;
             break;
         }
 
@@ -82,7 +72,7 @@ public class UperUtil {
     public static String stripDot3Header(String hexString, String payloadStartFlag) {
         int payloadStartIndex = findValidStartFlagLocation(hexString,payloadStartFlag);
         String headers = hexString.substring(0, payloadStartIndex);
-        String payload = hexString.substring(payloadStartIndex, hexString.length());
+        String payload = hexString.substring(payloadStartIndex);
         log.debug("Base payload: {}", payload);
         String strippedPayload = stripTrailingZeros(payload);
         log.debug("Stripped payload: {}", strippedPayload);
@@ -91,12 +81,12 @@ public class UperUtil {
         if (signedDot2StartIndex == -1)
             return strippedPayload;
         else
-            return headers.substring(signedDot2StartIndex, headers.length()) + strippedPayload;
+            return headers.substring(signedDot2StartIndex) + strippedPayload;
     }
 
     /**
     * Determines the message type based off the most likely start flag
-    * 
+    *
     * @param payload The OdeMsgPayload to check the content of.
     */
 	public static String determineMessageType(OdeMsgPayload payload) {
@@ -116,15 +106,15 @@ public class UperUtil {
     public static String determineHexPacketType(String hexString){
 
         String messageType = "";
-        HashMap<String, Integer> flagIndexes = new HashMap<String, Integer>();
-        
-        flagIndexes.put("MAP", findValidStartFlagLocation(hexString, MAP_START_FLAG));
-        flagIndexes.put("SPAT", findValidStartFlagLocation(hexString, SPAT_START_FLAG));
-	    flagIndexes.put("TIM", findValidStartFlagLocation(hexString, TIM_START_FLAG));
-        flagIndexes.put("BSM", findValidStartFlagLocation(hexString, BSM_START_FLAG));
-        flagIndexes.put("SSM", findValidStartFlagLocation(hexString, SSM_START_FLAG));
-        flagIndexes.put("PSM", findValidStartFlagLocation(hexString, PSM_START_FLAG));
-        flagIndexes.put("SRM", findValidStartFlagLocation(hexString, SRM_START_FLAG));
+        HashMap<String, Integer> flagIndexes = new HashMap<>();
+
+        flagIndexes.put("MAP", findValidStartFlagLocation(hexString, SupportedMessageType.MAP.getStartFlag()));
+        flagIndexes.put("SPAT", findValidStartFlagLocation(hexString, SupportedMessageType.SPAT.getStartFlag()));
+	    flagIndexes.put("TIM", findValidStartFlagLocation(hexString, SupportedMessageType.TIM.getStartFlag()));
+        flagIndexes.put("BSM", findValidStartFlagLocation(hexString, SupportedMessageType.BSM.getStartFlag()));
+        flagIndexes.put("SSM", findValidStartFlagLocation(hexString, SupportedMessageType.SSM.getStartFlag()));
+        flagIndexes.put("PSM", findValidStartFlagLocation(hexString, SupportedMessageType.PSM.getStartFlag()));
+        flagIndexes.put("SRM", findValidStartFlagLocation(hexString, SupportedMessageType.SRM.getStartFlag()));
 
         int lowestIndex = Integer.MAX_VALUE;
         for (String key : flagIndexes.keySet()) {
@@ -140,26 +130,24 @@ public class UperUtil {
         return messageType;
     }
 
-    public static int findValidStartFlagLocation(String hexString, String startFlag){
+    public static int findValidStartFlagLocation(String hexString, String startFlag) {
         int index = hexString.indexOf(startFlag);
 
-        // If the message has a header, make sure not to missidentify the message by the header
-        
-        if(index == 0 || index == -1){
+        // If the message has a header, make sure not to misidentify the message by the header
+        if (index == 0 || index == -1) {
             return index;
+        } else {
+            index = hexString.indexOf(startFlag, 4);
         }
-        else{
-            index = hexString.indexOf(startFlag,4); 
-        }
-		
+
         // Make sure start flag is on an even numbered byte
-        while(index != -1 && index %2 != 0){
-            index = hexString.indexOf(startFlag, index+1);
+        while (index != -1 && index % 2 != 0) {
+            index = hexString.indexOf(startFlag, index + 1);
         }
         return index;
     }
 
-    
+
     /**
 		* Trims extra `00` bytes off of the end of an ASN1 payload string
 		* This is remove the padded bytes added to the payload when receiving ASN1 payloads
@@ -171,45 +159,16 @@ public class UperUtil {
         while (payload.endsWith("0")) {
             payload = payload.substring(0, payload.length() - 1);
         }
-    
+
         // Ensure the payload length is even
         if (payload.length() % 2 != 0) {
             payload += "0";
         }
-    
+
         // Append '00' to ensure one remaining byte of '00's for decoding
         payload += "00";
-    
+
         return payload;
-    }
-
-    // Get methods for message start flags
-    public static String getBsmStartFlag() {
-        return BSM_START_FLAG;
-    }
-
-    public static String getTimStartFlag() {
-        return TIM_START_FLAG;
-    }
-
-    public static String getSpatStartFlag() {
-        return SPAT_START_FLAG;
-    }
-
-    public static String getSsmStartFlag() {
-        return SSM_START_FLAG;
-    }
-
-    public static String getSrmStartFlag() {
-        return SRM_START_FLAG;
-    }
-
-    public static String getMapStartFlag() {
-        return MAP_START_FLAG;
-    }
-
-    public static String getPsmStartFlag() {
-        return PSM_START_FLAG;
     }
 
 }

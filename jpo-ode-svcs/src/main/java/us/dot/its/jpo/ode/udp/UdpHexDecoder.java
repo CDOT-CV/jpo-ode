@@ -23,6 +23,7 @@ import us.dot.its.jpo.ode.model.OdeSsmMetadata.SsmSource;
 import us.dot.its.jpo.ode.model.OdeTimMetadata;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.uper.UperUtil;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -36,19 +37,19 @@ public class UdpHexDecoder {
         throw new UnsupportedOperationException();
     }
 
-    public static OdeAsn1Payload getPayloadHexString(DatagramPacket packet, UperUtil.SupportedMessageTypes msgType, String startFlag) throws InvalidPayloadException {
+    public static OdeAsn1Payload getPayloadHexString(DatagramPacket packet, SupportedMessageType msgType) throws InvalidPayloadException {
         // extract the actual packet from the buffer
         byte[] payload = packet.getData();
         if (payload == null)
             throw new InvalidPayloadException("Payload is null");
         // convert bytes to hex string and verify identity
         String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-        if (!payloadHexString.contains(startFlag))
+        if (!payloadHexString.contains(msgType.getStartFlag()))
             throw new InvalidPayloadException("Payload does not contain start flag");
 
         log.debug("Full {} packet: {}", msgType, payloadHexString);
 
-        payloadHexString = UperUtil.stripTrailingZeros(UperUtil.stripDot3Header(payloadHexString, startFlag)).toLowerCase();
+        payloadHexString = UperUtil.stripTrailingZeros(UperUtil.stripDot3Header(payloadHexString, msgType.getStartFlag())).toLowerCase();
         log.debug("Stripped {} packet: {}", msgType, payloadHexString);
 
         return new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
@@ -60,7 +61,7 @@ public class UdpHexDecoder {
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
         // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload mapPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.MAP, UperUtil.getMapStartFlag());
+        OdeAsn1Payload mapPayload = getPayloadHexString(packet, SupportedMessageType.MAP);
         OdeMapMetadata mapMetadata = new OdeMapMetadata(mapPayload);
 
         // Add header data for the decoding process
@@ -81,7 +82,7 @@ public class UdpHexDecoder {
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
         // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload spatPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.SPAT, UperUtil.getSpatStartFlag());
+        OdeAsn1Payload spatPayload = getPayloadHexString(packet, SupportedMessageType.SPAT);
         OdeSpatMetadata spatMetadata = new OdeSpatMetadata(spatPayload);
 
         // Add header data for the decoding process
@@ -103,7 +104,7 @@ public class UdpHexDecoder {
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
         // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload timPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.TIM, UperUtil.getTimStartFlag());
+        OdeAsn1Payload timPayload = getPayloadHexString(packet, SupportedMessageType.TIM);
         OdeTimMetadata timMetadata = new OdeTimMetadata(timPayload);
 
         // Add header data for the decoding process
@@ -121,7 +122,7 @@ public class UdpHexDecoder {
         int senderPort = packet.getPort();
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-        OdeAsn1Payload bsmPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.BSM, UperUtil.getBsmStartFlag());
+        OdeAsn1Payload bsmPayload = getPayloadHexString(packet, SupportedMessageType.BSM);
         OdeBsmMetadata bsmMetadata = new OdeBsmMetadata(bsmPayload);
 
         // Set BSM Metadata values that can be assumed from the UDP endpoint
@@ -153,7 +154,7 @@ public class UdpHexDecoder {
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
         // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload ssmPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.SSM, UperUtil.getSsmStartFlag());
+        OdeAsn1Payload ssmPayload = getPayloadHexString(packet, SupportedMessageType.SSM);
         OdeSsmMetadata ssmMetadata = new OdeSsmMetadata(ssmPayload);
 
         // Add header data for the decoding process
@@ -174,7 +175,7 @@ public class UdpHexDecoder {
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
         // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload srmPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.SRM, UperUtil.getSrmStartFlag());
+        OdeAsn1Payload srmPayload = getPayloadHexString(packet, SupportedMessageType.SRM);
         OdeSrmMetadata srmMetadata = new OdeSrmMetadata(srmPayload);
 
         // Add header data for the decoding process
@@ -195,7 +196,7 @@ public class UdpHexDecoder {
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
         // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload psmPayload = getPayloadHexString(packet, UperUtil.SupportedMessageTypes.PSM, UperUtil.getPsmStartFlag());
+        OdeAsn1Payload psmPayload = getPayloadHexString(packet, SupportedMessageType.PSM);
         OdePsmMetadata psmMetadata = new OdePsmMetadata(psmPayload);
         // Add header data for the decoding process
         psmMetadata.setOdeReceivedAt(DateTimeUtils.now());
