@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
+import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
@@ -31,7 +32,7 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
             try {
                 log.debug("Waiting for UDP Map packets...");
                 socket.receive(packet);
-                if (packet.getLength() > 0 && packet.getData() != null && packet.getData().length > 0) {
+                if (packet.getLength() > 0) {
                     String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
                     if (mapJson != null) {
                         mapPublisher.publish(this.publishTopic, mapJson);
@@ -39,11 +40,12 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
                 } else {
                     log.debug("Ignoring empty packet from {}", packet.getSocketAddress());
                 }
+            } catch (InvalidPayloadException e) {
+                log.error("Error decoding packet", e);
             } catch (Exception e) {
                 log.error("Error receiving packet", e);
             }
         } while (!isStopped());
-        socket.close();
     }
 
 }
