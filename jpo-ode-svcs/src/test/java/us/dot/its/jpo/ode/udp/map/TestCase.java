@@ -20,6 +20,10 @@ public class TestCase {
     public String expected;
 
     public static List<TestCase> deserializeTestCases(String path) throws IOException {
+        return deserializeTestCases(path, "");
+    }
+
+    public static List<TestCase> deserializeTestCases(String path, String startFlag) throws IOException {
         List<TestCase> cases = new ArrayList<>();
         File file = new File(path);
         byte[] jsonData = Files.readAllBytes(file.toPath());
@@ -34,10 +38,9 @@ public class TestCase {
             testCase.setDescription(json.getString("description"));
 
             JSONObject input = json.getJSONObject("input");
-            testCase.setInput("\u0000\u0012" + input.toString()); // Add the 2-byte length prefix to the input
+            testCase.setInput(startFlag + input.toString()); // Add the 2-byte length prefix to the input
 
-            JSONObject expected = json.getJSONObject("expected");
-            testCase.setExpected(expected.toString());
+            testCase.setExpected(json.get("expected").toString());
 
             cases.add(testCase);
         }

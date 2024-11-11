@@ -91,7 +91,7 @@ class MapReceiverTest {
     @Test
     void testMapReceiver() throws IOException {
         String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
-        List<TestCase> testCases = deserializeTestCases(path);
+        List<TestCase> testCases = deserializeTestCases(path, "\u0000\u0012");
 
         // Start the MapReceiver in a new thread
         rm.submit(mapReceiver);
