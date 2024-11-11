@@ -149,11 +149,12 @@ public class UperUtil {
 
 
     /**
-		* Trims extra `00` bytes off of the end of an ASN1 payload string
-		* This is remove the padded bytes added to the payload when receiving ASN1 payloads
-        *
-		* @param payload The OdeMsgPayload as a string to trim.
-		*/
+     * Trims extra `00` bytes off of the end of an ASN1 payload string
+     * This is remove the padded bytes added to the payload when receiving ASN1 payloads
+     * and leaves one remaining byte of `00`s for decoding
+     *
+     * @param payload The OdeMsgPayload as a string to trim.
+     */
     public static String stripTrailingZeros(String payload) {
         // Remove trailing '0's
         while (payload.endsWith("0")) {
@@ -170,5 +171,4 @@ public class UperUtil {
 
         return payload;
     }
-
 }
