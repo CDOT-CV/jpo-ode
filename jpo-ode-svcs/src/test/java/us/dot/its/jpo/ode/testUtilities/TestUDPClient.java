@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.udp;
+package us.dot.its.jpo.ode.testUtilities;
 
 import lombok.extern.slf4j.Slf4j;
 

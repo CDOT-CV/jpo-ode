@@ -26,7 +26,7 @@ import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeMapMetadata;
-import us.dot.its.jpo.ode.udp.map.TestCase;
+import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 import java.io.IOException;
@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static us.dot.its.jpo.ode.udp.map.TestCase.deserializeTestCases;
+import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -82,7 +82,7 @@ class Asn1DecodeMAPJSONTest {
         String inputTopic = "topic.OdeRawEncodedMAPJson";
         String outputTopic = "topic.Asn1DecoderInputMAP";
         String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/JSONEncodedMAP_to_Asn1DecoderInput_Validation.json";
-        List<TestCase> testCases = deserializeTestCases(path);
+        List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
         Asn1DecodeMAPJSON asn1DecodeMAPSON = new Asn1DecodeMAPJSON(odeKafkaProperties, outputTopic);
         MessageConsumer<String, String> asn1RawMAPJSONConsumer = MessageConsumer.defaultStringMessageConsumer(
@@ -99,13 +99,13 @@ class Asn1DecodeMAPJSONTest {
         Consumer<Integer, String> testConsumer = cf.createConsumer();
         embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, outputTopic);
 
-        for (TestCase testCase : testCases) {
+        for (ApprovalTestCase approvalTestCase : approvalTestCases) {
             // produce the test case input to the topic for consumption by the asn1RawMAPJSONConsumer
-            ProducerRecord<Integer, String> r = new ProducerRecord<>(inputTopic, testCase.getInput());
+            ProducerRecord<Integer, String> r = new ProducerRecord<>(inputTopic, approvalTestCase.getInput());
             producer.send(r);
 
             ConsumerRecord<Integer, String> actualRecord = KafkaTestUtils.getSingleRecord(testConsumer, outputTopic);
-            assertEquals(testCase.getExpected(), actualRecord.value(), testCase.getDescription());
+            assertEquals(approvalTestCase.getExpected(), actualRecord.value(), approvalTestCase.getDescription());
         }
     }
 

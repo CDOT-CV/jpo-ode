@@ -24,11 +24,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
-import us.dot.its.jpo.ode.udp.TestUDPClient;
+import us.dot.its.jpo.ode.testUtilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.ServiceManager;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.udp.controller.UdpServiceThreadFactory;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
+import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -38,7 +39,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static us.dot.its.jpo.ode.udp.map.TestCase.deserializeTestCases;
+import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
@@ -91,7 +92,7 @@ class MapReceiverTest {
     @Test
     void testMapReceiver() throws IOException {
         String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
-        List<TestCase> testCases = deserializeTestCases(path, "\u0000\u0012");
+        List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path, "\u0000\u0012");
 
         // Start the MapReceiver in a new thread
         rm.submit(mapReceiver);
@@ -104,13 +105,13 @@ class MapReceiverTest {
 
         udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
 
-        for (TestCase testCase : testCases) {
-            udpClient.send(testCase.getInput());
+        for (ApprovalTestCase approvalTestCase : approvalTestCases) {
+            udpClient.send(approvalTestCase.getInput());
 
             ConsumerRecord<Integer, String> produced = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
 
             JSONObject producedJson = new JSONObject(produced.value());
-            JSONObject expectedJson = new JSONObject(testCase.getExpected());
+            JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
             // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
             assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"), producedJson.getJSONObject("metadata").get("serialId"));
             expectedJson.getJSONObject("metadata").remove("serialId");
