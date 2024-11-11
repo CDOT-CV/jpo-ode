@@ -47,6 +47,7 @@ import mockit.Expectations;
 import mockit.Mocked;
 import mockit.Verifications;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
+import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 @ExtendWith(SpringExtension.class)

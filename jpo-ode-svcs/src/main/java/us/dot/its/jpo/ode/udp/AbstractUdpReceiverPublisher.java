@@ -21,7 +21,7 @@ public abstract class AbstractUdpReceiverPublisher implements Runnable {
     protected String senderIp;
     protected int senderPort;
 
-    protected int port;
+     protected int port;
     protected int bufferSize;
 
     private boolean stopped = false;
