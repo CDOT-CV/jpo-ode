@@ -37,7 +37,7 @@ public class ApprovalTestCase {
 
             approvalTestCase.setDescription(json.getString("description"));
 
-            JSONObject input = json.getJSONObject("input");
+            Object input = json.get("input");
             approvalTestCase.setInput(startFlag + input.toString()); // Add the 2-byte length prefix to the input
 
             approvalTestCase.setExpected(json.get("expected").toString());
