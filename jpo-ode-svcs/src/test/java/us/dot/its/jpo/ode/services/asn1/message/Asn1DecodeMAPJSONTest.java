@@ -41,8 +41,11 @@ import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestC
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = {OdeKafkaProperties.class, Asn1CoderTopics.class, RawEncodedJsonTopics.class})
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, topics = {"topic.OdeRawEncodedMAPJson", "topic.Asn1DecoderInputMAP"}, ports = 9092)
+@EmbeddedKafka(partitions = 1, topics = {Asn1DecodeMAPJSONTest.INPUT_TOPIC, Asn1DecodeMAPJSONTest.OUTPUT_TOPIC}, ports = 9092)
 class Asn1DecodeMAPJSONTest {
+
+    static final String INPUT_TOPIC = "topic.OdeRawEncodedMAPJson";
+    static final String OUTPUT_TOPIC = "topic.Asn1DecoderInputMAP";
 
     @Autowired
     OdeKafkaProperties odeKafkaProperties;
@@ -79,16 +82,14 @@ class Asn1DecodeMAPJSONTest {
 
     @Test
     void testProcess_ApprovalTest() throws IOException {
-        String inputTopic = "topic.OdeRawEncodedMAPJson";
-        String outputTopic = "topic.Asn1DecoderInputMAP";
         String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/JSONEncodedMAP_to_Asn1DecoderInput_Validation.json";
         List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
-        Asn1DecodeMAPJSON asn1DecodeMAPSON = new Asn1DecodeMAPJSON(odeKafkaProperties, outputTopic);
+        Asn1DecodeMAPJSON asn1DecodeMAPSON = new Asn1DecodeMAPJSON(odeKafkaProperties, OUTPUT_TOPIC);
         MessageConsumer<String, String> asn1RawMAPJSONConsumer = MessageConsumer.defaultStringMessageConsumer(
                 odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), asn1DecodeMAPSON);
         asn1RawMAPJSONConsumer.setName("asn1DecodeMAPJSONTest");
-        asn1DecodeMAPSON.start(asn1RawMAPJSONConsumer, inputTopic);
+        asn1DecodeMAPSON.start(asn1RawMAPJSONConsumer, INPUT_TOPIC);
 
         Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
         DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
@@ -97,16 +98,15 @@ class Asn1DecodeMAPJSONTest {
         Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
         DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
         Consumer<Integer, String> testConsumer = cf.createConsumer();
-        embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, outputTopic);
+        embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, OUTPUT_TOPIC);
 
         for (ApprovalTestCase approvalTestCase : approvalTestCases) {
             // produce the test case input to the topic for consumption by the asn1RawMAPJSONConsumer
-            ProducerRecord<Integer, String> r = new ProducerRecord<>(inputTopic, approvalTestCase.getInput());
+            ProducerRecord<Integer, String> r = new ProducerRecord<>(INPUT_TOPIC, approvalTestCase.getInput());
             producer.send(r);
 
-            ConsumerRecord<Integer, String> actualRecord = KafkaTestUtils.getSingleRecord(testConsumer, outputTopic);
+            ConsumerRecord<Integer, String> actualRecord = KafkaTestUtils.getSingleRecord(testConsumer, OUTPUT_TOPIC);
             assertEquals(approvalTestCase.getExpected(), actualRecord.value(), approvalTestCase.getDescription());
         }
     }
-
 }
