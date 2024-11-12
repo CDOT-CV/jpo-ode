@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: "jpo-ode-svcs"
   http:
     multipart:
       max-file-size: 1MB
