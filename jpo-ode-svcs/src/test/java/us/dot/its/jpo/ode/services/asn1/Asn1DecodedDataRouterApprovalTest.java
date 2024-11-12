@@ -54,7 +54,7 @@ class Asn1DecodedDataRouterApprovalTest {
     OdeKafkaProperties odeKafkaProperties;
 
     @Test
-    void testAsn1DecodedDataRouter_MapTxPojo() throws IOException {
+    void testAsn1DecodedDataRouter() throws IOException {
         List<ApprovalTestCase> testCases = ApprovalTestCase.deserializeTestCases("src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapTxPojo.json");
 
         PojoTopics pojoTopics = new PojoTopics();
@@ -77,53 +77,30 @@ class Asn1DecodedDataRouterApprovalTest {
 
         Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
         DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
-        Consumer<Integer, String> testConsumer = cf.createConsumer();
-        embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, OUTPUT_TOPIC_TX);
+
+        Consumer<Integer, String> consumer = cf.createConsumer();
+        embeddedKafka.consumeFromEmbeddedTopics(consumer, OUTPUT_TOPIC_TX, OUTPUT_TOPIC_JSON);
 
         for (ApprovalTestCase testCase : testCases) {
             ProducerRecord<Integer, String> producerRecord = new ProducerRecord<>(INPUT_TOPIC, 0, 0, testCase.getInput());
             producer.send(producerRecord);
 
-            String received = KafkaTestUtils.getSingleRecord(testConsumer, OUTPUT_TOPIC_TX).value();
+            String received = KafkaTestUtils.getSingleRecord(consumer, OUTPUT_TOPIC_TX).value();
             ObjectMapper mapper = new ObjectMapper();
             OdeMapData receivedMapData = mapper.readValue(received, OdeMapData.class);
             OdeMapData expectedMapData = mapper.readValue(testCase.getExpected(), OdeMapData.class);
             assertEquals(expectedMapData.toJson(), receivedMapData.toJson(), "Failed test case: " + testCase.getDescription());
+            // discard the JSON output
+            KafkaTestUtils.getSingleRecord(consumer, OUTPUT_TOPIC_JSON);
         }
-    }
 
-    @Test
-    void testAsn1DecodedDataRouter_Json() throws IOException {
-        List<ApprovalTestCase> testCases = ApprovalTestCase.deserializeTestCases("src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapJson.json");
+        List<ApprovalTestCase> jsonTestCases = ApprovalTestCase.deserializeTestCases("src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapJson.json");
 
-        PojoTopics pojoTopics = new PojoTopics();
-        pojoTopics.setTxMap(OUTPUT_TOPIC_TX);
-
-        JsonTopics jsonTopics = new JsonTopics();
-        jsonTopics.setMap(OUTPUT_TOPIC_JSON);
-
-        Asn1DecodedDataRouter decoderRouter = new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
-
-        MessageConsumer<String, String> asn1DecoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-                odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), decoderRouter);
-
-        asn1DecoderConsumer.setName("Asn1DecoderConsumer");
-        decoderRouter.start(asn1DecoderConsumer, INPUT_TOPIC);
-
-        Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
-        DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);
-        Producer<Integer, String> producer = producerFactory.createProducer();
-
-        Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
-        DefaultKafkaConsumerFactory<Integer, String> cf = new DefaultKafkaConsumerFactory<>(consumerProps);
-        Consumer<Integer, String> testConsumer = cf.createConsumer();
-        embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, OUTPUT_TOPIC_JSON);
-
-        for (ApprovalTestCase testCase : testCases) {
+        for (ApprovalTestCase testCase : jsonTestCases) {
             ProducerRecord<Integer, String> producerRecord = new ProducerRecord<>(INPUT_TOPIC, 0, 0, testCase.getInput());
             producer.send(producerRecord);
 
-            String received = KafkaTestUtils.getSingleRecord(testConsumer, OUTPUT_TOPIC_JSON).value();
+            String received = KafkaTestUtils.getSingleRecord(consumer, OUTPUT_TOPIC_JSON).value();
             ObjectMapper mapper = new ObjectMapper();
             OdeMapData receivedMapData = mapper.readValue(received, OdeMapData.class);
             OdeMapData expectedMapData = mapper.readValue(testCase.getExpected(), OdeMapData.class);
