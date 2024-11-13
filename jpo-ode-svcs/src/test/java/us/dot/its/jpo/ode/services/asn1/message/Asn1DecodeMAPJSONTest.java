@@ -15,7 +15,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -28,6 +27,7 @@ import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeMapMetadata;
 import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
+import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 import java.io.IOException;
@@ -43,7 +43,6 @@ import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestC
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = {OdeKafkaProperties.class, Asn1CoderTopics.class, RawEncodedJsonTopics.class})
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, topics = {Asn1DecodeMAPJSONTest.INPUT_TOPIC, Asn1DecodeMAPJSONTest.OUTPUT_TOPIC}, ports = 9092)
 class Asn1DecodeMAPJSONTest {
 
     static final String INPUT_TOPIC = "topic.OdeRawEncodedMAPJson";
@@ -58,8 +57,11 @@ class Asn1DecodeMAPJSONTest {
     @Autowired
     RawEncodedJsonTopics rawEncodedJsonTopics;
 
-    @Autowired
-    private EmbeddedKafkaBroker embeddedKafka;
+    private static final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+
+    static {
+        EmbeddedKafkaHolder.getEmbeddedKafka().addTopics(INPUT_TOPIC, OUTPUT_TOPIC);
+    }
 
     @Test
     void testProcess() throws JSONException {
