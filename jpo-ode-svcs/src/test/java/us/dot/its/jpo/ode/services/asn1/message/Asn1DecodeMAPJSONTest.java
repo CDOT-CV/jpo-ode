@@ -11,6 +11,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
 
 @Slf4j
+@SpringBootTest
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = {OdeKafkaProperties.class, Asn1CoderTopics.class, RawEncodedJsonTopics.class})
@@ -44,7 +46,7 @@ import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestC
 @EmbeddedKafka(partitions = 1, topics = {Asn1DecodeMAPJSONTest.INPUT_TOPIC, Asn1DecodeMAPJSONTest.OUTPUT_TOPIC}, ports = 9092)
 class Asn1DecodeMAPJSONTest {
 
-    static final String INPUT_TOPIC = "topic.OdeRawEncodedMAPJsonTEST";
+    static final String INPUT_TOPIC = "topic.OdeRawEncodedMAPJson";
     static final String OUTPUT_TOPIC = "topic.Asn1DecoderInputMAPTEST";
 
     @Autowired
