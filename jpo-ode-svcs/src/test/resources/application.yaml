@@ -129,4 +129,4 @@ ode:
     obu-log-upload-location: "bsmlog"
   tim-ingest-monitoring:
     tracking-enabled: true
-    interval: 1
+    interval: 10
