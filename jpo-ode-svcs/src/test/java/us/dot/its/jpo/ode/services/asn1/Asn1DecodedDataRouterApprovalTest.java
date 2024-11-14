@@ -1,30 +1,21 @@
 package us.dot.its.jpo.ode.services.asn1;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import us.dot.its.jpo.ode.kafka.Asn1CoderTopics;
-import us.dot.its.jpo.ode.kafka.JsonTopics;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.PojoTopics;
-import us.dot.its.jpo.ode.kafka.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeMapData;
 import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
-import us.dot.its.jpo.ode.wrapper.MessageConsumer;
+import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
 
 import java.io.IOException;
 import java.util.List;
@@ -32,14 +23,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = {OdeKafkaProperties.class, Asn1CoderTopics.class, RawEncodedJsonTopics.class})
-@EmbeddedKafka(
-        partitions = 1,
-        topics = { Asn1DecodedDataRouterApprovalTest.INPUT_TOPIC, Asn1DecodedDataRouterApprovalTest.OUTPUT_TOPIC_TX, Asn1DecodedDataRouterApprovalTest.OUTPUT_TOPIC_JSON },
-        ports = 4242
-)
+@Slf4j
+@SpringBootTest
 @DirtiesContext
 class Asn1DecodedDataRouterApprovalTest {
 
@@ -47,29 +32,22 @@ class Asn1DecodedDataRouterApprovalTest {
     static final String OUTPUT_TOPIC_TX = "topic.OdeMapTxPojo";
     static final String OUTPUT_TOPIC_JSON = "topic.OdeMapJson";
 
-    @Autowired
-    EmbeddedKafkaBroker embeddedKafka;
-
-    @Autowired
-    OdeKafkaProperties odeKafkaProperties;
+    EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
     @Test
     void testAsn1DecodedDataRouter() throws IOException {
+        NewTopic inputTopic = new NewTopic(INPUT_TOPIC, 1, (short) 1);
+        NewTopic outputTopicTx = new NewTopic(OUTPUT_TOPIC_TX, 1, (short) 1);
+        NewTopic outputTopicJson = new NewTopic(OUTPUT_TOPIC_JSON, 1, (short) 1);
+        try {
+            embeddedKafka.addTopics(inputTopic, outputTopicTx, outputTopicJson);
+        } catch (RuntimeException e) {
+            // this usually happens when the topic already exists on the broker. We don't care if it already exists and
+            // add topic fails. we only care that the topics are created and we can run the tests.
+            log.warn("Exception while adding input topic", e);
+        }
+
         List<ApprovalTestCase> testCases = ApprovalTestCase.deserializeTestCases("src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapTxPojo.json");
-
-        PojoTopics pojoTopics = new PojoTopics();
-        pojoTopics.setTxMap(OUTPUT_TOPIC_TX);
-
-        JsonTopics jsonTopics = new JsonTopics();
-        jsonTopics.setMap(OUTPUT_TOPIC_JSON);
-
-        Asn1DecodedDataRouter decoderRouter = new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
-
-        MessageConsumer<String, String> asn1DecoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-                odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), decoderRouter);
-
-        asn1DecoderConsumer.setName("Asn1DecoderConsumer");
-        decoderRouter.start(asn1DecoderConsumer, INPUT_TOPIC);
 
         Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
         DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);

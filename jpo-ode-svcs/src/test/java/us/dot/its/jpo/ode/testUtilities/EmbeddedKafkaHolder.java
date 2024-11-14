@@ -13,7 +13,7 @@ public final class EmbeddedKafkaHolder {
     public static EmbeddedKafkaBroker getEmbeddedKafka() {
         if (!started) {
             try {
-                embeddedKafka.kafkaPorts(9092);
+                embeddedKafka.kafkaPorts(4242);
                 embeddedKafka.afterPropertiesSet();
             }
             catch (Exception e) {
