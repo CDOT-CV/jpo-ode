@@ -41,7 +41,7 @@ import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestC
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = {OdeKafkaProperties.class, Asn1CoderTopics.class, RawEncodedJsonTopics.class})
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, topics = {Asn1DecodeMAPJSONTest.INPUT_TOPIC, Asn1DecodeMAPJSONTest.OUTPUT_TOPIC}, ports = 9092)
+@EmbeddedKafka(partitions = 1, topics = {Asn1DecodeMAPJSONTest.INPUT_TOPIC, Asn1DecodeMAPJSONTest.OUTPUT_TOPIC}, ports = 9093)
 class Asn1DecodeMAPJSONTest {
 
     static final String INPUT_TOPIC = "topic.OdeRawEncodedMAPJsonTEST";
