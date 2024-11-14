@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @EmbeddedKafka(
         partitions = 1,
         topics = { Asn1DecodedDataRouterApprovalTest.INPUT_TOPIC, Asn1DecodedDataRouterApprovalTest.OUTPUT_TOPIC_TX, Asn1DecodedDataRouterApprovalTest.OUTPUT_TOPIC_JSON },
-        ports = 9092
+        ports = 4242
 )
 @DirtiesContext
 class Asn1DecodedDataRouterApprovalTest {
