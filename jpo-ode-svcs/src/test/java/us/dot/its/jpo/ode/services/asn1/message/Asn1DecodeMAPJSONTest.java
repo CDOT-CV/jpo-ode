@@ -28,7 +28,6 @@ import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeMapMetadata;
 import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
-import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,7 +45,7 @@ import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestC
 class Asn1DecodeMAPJSONTest {
 
     static final String INPUT_TOPIC = "topic.OdeRawEncodedMAPJson";
-    static final String OUTPUT_TOPIC = "topic.Asn1DecoderInputMAPTEST";
+    static final String OUTPUT_TOPIC = "topic.Asn1DecoderInput";
 
     @Autowired
     OdeKafkaProperties odeKafkaProperties;
@@ -89,11 +88,11 @@ class Asn1DecodeMAPJSONTest {
         String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/JSONEncodedMAP_to_Asn1DecoderInput_Validation.json";
         List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
-        Asn1DecodeMAPJSON asn1DecodeMAPSON = new Asn1DecodeMAPJSON(odeKafkaProperties, OUTPUT_TOPIC);
-        MessageConsumer<String, String> asn1RawMAPJSONConsumer = MessageConsumer.defaultStringMessageConsumer(
-                odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), asn1DecodeMAPSON);
-        asn1RawMAPJSONConsumer.setName("asn1DecodeMAPJSONTest");
-        asn1DecodeMAPSON.start(asn1RawMAPJSONConsumer, INPUT_TOPIC);
+//        Asn1DecodeMAPJSON asn1DecodeMAPSON = new Asn1DecodeMAPJSON(odeKafkaProperties, OUTPUT_TOPIC);
+//        MessageConsumer<String, String> asn1RawMAPJSONConsumer = MessageConsumer.defaultStringMessageConsumer(
+//                odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), asn1DecodeMAPSON);
+//        asn1RawMAPJSONConsumer.setName("asn1DecodeMAPJSONTest");
+//        asn1DecodeMAPSON.start(asn1RawMAPJSONConsumer, INPUT_TOPIC);
 
         Map<String, Object> producerProps = KafkaTestUtils.producerProps(embeddedKafka);
         DefaultKafkaProducerFactory<Integer, String> producerFactory = new DefaultKafkaProducerFactory<>(producerProps);

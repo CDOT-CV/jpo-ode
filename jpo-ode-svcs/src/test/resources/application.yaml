@@ -3,10 +3,6 @@ spring:
     multipart:
       max-file-size: 1MB
       max-request-size: 1MB
-  embedded:
-    kafka:
-      brokers:
-        property: localhost:9092
   kafka:
     bootstrap-servers: localhost:9092
     producer:
