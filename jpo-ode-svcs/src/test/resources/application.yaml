@@ -30,7 +30,7 @@ ode:
     username: "test-username"
     password: "test-password"
   kafka:
-    brokers: "localhost:9093"
+    brokers: "localhost:4242"
     producer:
       type: "async"
       acks: "0"
