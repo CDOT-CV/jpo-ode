@@ -42,37 +42,21 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
 
 @Slf4j
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = {UDPReceiverProperties.class, OdeKafkaProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
-@RunWith(SpringRunner.class)
+@SpringBootTest
 @DirtiesContext
-@EmbeddedKafka(partitions = 1, topics = {"topic.OdeRawEncodedMAPJson"}, ports = 4242)
 class MapReceiverTest {
+    private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
     @Autowired
     UDPReceiverProperties udpReceiverProperties;
 
     @Autowired
-    OdeKafkaProperties odeKafkaProperties;
-
-    @Autowired
     RawEncodedJsonTopics rawEncodedJsonTopics;
 
-    @Autowired
-    private EmbeddedKafkaBroker embeddedKafka;
-
-    ServiceManager rm;
-    TestUDPClient udpClient;
-    MapReceiver mapReceiver;
-
-    @BeforeEach
-    public void setUp() {
-        rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
-
-        mapReceiver = new MapReceiver(udpReceiverProperties.getMap(),
-                odeKafkaProperties,
-                rawEncodedJsonTopics.getMap());
+    @Test
+    void testMapReceiver() throws IOException {
+        String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
+        List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path, "\u0000\u0012");
 
         // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
         DateTimeUtils.setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
@@ -81,21 +65,12 @@ class MapReceiverTest {
         // and the schema version is set to the static schema version in the constructor. This means that the schema version
         // will be set to 6 for all OdeMsgMetadata objects created in the MapReceiver run method's code path.
         OdeMsgMetadata.setStaticSchemaVersion(7);
-    }
 
-    @AfterEach
-    public void tearDown() {
-        mapReceiver.setStopped(true);
-        udpClient.close();
-    }
-
-    @Test
-    void testMapReceiver() throws IOException {
-        String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
-        List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path, "\u0000\u0012");
-
-        // Start the MapReceiver in a new thread
-        rm.submit(mapReceiver);
+        try {
+            embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getMap(), 1, (short) 1));
+        } catch (Exception e) {
+            log.warn("Couldn't create topics. If the error indicates the topics already exist, this message is safe to ignore", e);
+        }
 
         // Set up a Kafka consumer
         Map<String, Object> consumerProps = KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
