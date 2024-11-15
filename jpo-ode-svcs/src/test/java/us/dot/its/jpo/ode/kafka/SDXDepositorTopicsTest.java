@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 
 import static org.junit.jupiter.api.Assertions.*;
 
