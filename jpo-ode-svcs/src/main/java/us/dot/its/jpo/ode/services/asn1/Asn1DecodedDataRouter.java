@@ -40,7 +40,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final MessageProducer<String, OdeBsmData> bsmProducer;
     private final MessageProducer<String, String> timProducer;
     private final MessageProducer<String, String> spatProducer;
-    private final MessageProducer<String, String> mapProducer;
+//    private final MessageProducer<String, String> mapProducer;
     private final MessageProducer<String, String> ssmProducer;
     private final MessageProducer<String, String> srmProducer;
     private final MessageProducer<String, String> psmProducer;
@@ -61,9 +61,9 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.spatProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                 odeKafkaProperties.getProducer().getType(),
                 odeKafkaProperties.getDisabledTopics());
-        this.mapProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-                odeKafkaProperties.getProducer().getType(),
-                odeKafkaProperties.getDisabledTopics());
+//        this.mapProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+//                odeKafkaProperties.getProducer().getType(),
+//                odeKafkaProperties.getDisabledTopics());
         this.ssmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                 odeKafkaProperties.getProducer().getType(),
                 odeKafkaProperties.getDisabledTopics());
@@ -136,13 +136,14 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
     }
 
     private void routeMAP(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
-        String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumedData).toString();
-        if (recordType == RecordType.mapTx) {
-            mapProducer.send(pojoTopics.getTxMap(), getRecord().key(), odeMapData);
-        }
-        // Send all Map also to OdeMapJson
-        mapProducer.send(jsonTopics.getMap(), getRecord().key(), odeMapData);
-        log.debug("Submitted to MAP Pojo topic {}", jsonTopics.getMap());
+//        String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumedData).toString();
+//        if (recordType == RecordType.mapTx) {
+//            mapProducer.send(pojoTopics.getTxMap(), getRecord().key(), odeMapData);
+//        }
+//        // Send all Map also to OdeMapJson
+//        mapProducer.send(jsonTopics.getMap(), getRecord().key(), odeMapData);
+//        log.debug("Submitted to MAP Pojo topic {}", jsonTopics.getMap());
+        log.debug("routeMAP consumedData: {} recordType: {}", consumedData, recordType);
     }
 
     private void routeSPAT(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
