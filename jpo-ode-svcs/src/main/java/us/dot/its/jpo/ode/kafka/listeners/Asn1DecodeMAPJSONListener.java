@@ -25,13 +25,14 @@ public class Asn1DecodeMAPJSONListener {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    @Value("${ode.kafka.topics.asn1.decoder-input}")
-    private String publishTopic;
+    private final String publishTopic;
 
     private final KafkaTemplate<String, OdeObject> kafkaTemplate;
 
-    public Asn1DecodeMAPJSONListener(KafkaTemplate<String, OdeObject> kafkaTemplate) {
+    public Asn1DecodeMAPJSONListener(KafkaTemplate<String, OdeObject> kafkaTemplate,
+                                     @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic) {
         this.kafkaTemplate = kafkaTemplate;
+        this.publishTopic = publishTopic;
     }
 
     @KafkaHandler
