@@ -15,13 +15,14 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.wrapper;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.Callable;
-
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * @author 572682
@@ -31,6 +32,7 @@ import org.apache.kafka.common.TopicPartition;
  * @param <K> Message Key type
  * @param <V> Message Value type
  */
+@Slf4j
 public abstract class MessageProcessor<K, V> implements Callable<Object> {
 
    private ConsumerRecord<K, V> record;
@@ -45,6 +47,10 @@ public abstract class MessageProcessor<K, V> implements Callable<Object> {
          try {
             call();
             processedOffsets.put(topicPartition, recordMetadata.offset());
+         } catch (UnsupportedDataTypeException e)  {
+            // catch and log at debug level to avoid spammy log messages during migration to Spring Kafka while still
+            // reporting the specific error messages to debug logs for investigations
+            log.debug(e.getMessage());
          } catch (Exception e) {
             throw new Exception("Error processing message", e);
          }

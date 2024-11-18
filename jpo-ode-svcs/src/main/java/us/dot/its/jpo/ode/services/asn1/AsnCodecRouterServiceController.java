@@ -51,6 +51,7 @@ public class AsnCodecRouterServiceController {
 
         Asn1DecodedDataRouter decoderRouter = new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
 
+        // TODO: do I also need to ignore MAP messages in this consumer to ensure correct processing?
         MessageConsumer<String, String> asn1DecoderConsumer = MessageConsumer.defaultStringMessageConsumer(
                 odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), decoderRouter);
 

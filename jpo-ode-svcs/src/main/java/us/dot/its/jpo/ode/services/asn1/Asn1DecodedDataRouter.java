@@ -30,6 +30,7 @@ import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.wrapper.AbstractSubscriberProcessor;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
+import us.dot.its.jpo.ode.wrapper.UnsupportedDataTypeException;
 import us.dot.its.jpo.ode.wrapper.serdes.OdeBsmSerializer;
 
 @Slf4j
@@ -40,7 +41,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final MessageProducer<String, OdeBsmData> bsmProducer;
     private final MessageProducer<String, String> timProducer;
     private final MessageProducer<String, String> spatProducer;
-//    private final MessageProducer<String, String> mapProducer;
+    //    private final MessageProducer<String, String> mapProducer;
     private final MessageProducer<String, String> ssmProducer;
     private final MessageProducer<String, String> srmProducer;
     private final MessageProducer<String, String> psmProducer;
@@ -99,6 +100,10 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
                 case PersonalSafetyMessage -> routePSM(consumedData, recordType);
                 case null, default -> log.warn("Unknown message type: {}", messageId);
             }
+        } catch (UnsupportedDataTypeException e) {
+            // catch and rethrow for MessageProcessor handling to prevent acknowledgement of unsupported messages
+            // during the spring kafka migration effort
+            throw e;
         } catch (Exception e) {
             log.error("Failed to route received data: {}", consumedData, e);
         }
@@ -135,7 +140,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
         log.debug("Submitted to SSM Pojo topic {}", jsonTopics.getSsm());
     }
 
-    private void routeMAP(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
+    private void routeMAP(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException, UnsupportedDataTypeException {
 //        String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumedData).toString();
 //        if (recordType == RecordType.mapTx) {
 //            mapProducer.send(pojoTopics.getTxMap(), getRecord().key(), odeMapData);
@@ -144,6 +149,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
 //        mapProducer.send(jsonTopics.getMap(), getRecord().key(), odeMapData);
 //        log.debug("Submitted to MAP Pojo topic {}", jsonTopics.getMap());
         log.debug("routeMAP consumedData: {} recordType: {}", consumedData, recordType);
+        throw new UnsupportedDataTypeException("MAP data processing no longer supported in this router.");
     }
 
     private void routeSPAT(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
