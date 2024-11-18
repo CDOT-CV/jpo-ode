@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.services.asn1.message;
+package us.dot.its.jpo.ode.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -20,12 +20,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeMapMetadata;
+import us.dot.its.jpo.ode.services.asn1.message.Asn1DecodeMAPJSON;
 import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
 
