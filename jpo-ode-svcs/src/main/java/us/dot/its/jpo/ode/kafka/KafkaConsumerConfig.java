@@ -1,6 +1,8 @@
 package us.dot.its.jpo.ode.kafka;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.json.JSONObject;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,13 +11,18 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import us.dot.its.jpo.ode.context.AppContext;
+import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeMapData;
+import us.dot.its.jpo.ode.plugin.j2735.J2735DSRCmsgID;
+import us.dot.its.jpo.ode.util.XmlUtils;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @EnableKafka
 @Configuration
+@Slf4j
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
@@ -24,10 +31,12 @@ public class KafkaConsumerConfig {
         this.kafkaProperties = kafkaProperties;
     }
 
+    @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(kafkaProperties.buildConsumerProperties());
     }
 
+    @Bean
     public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
@@ -44,6 +53,45 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, OdeMapData> odeMapDataConsumerListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, OdeMapData> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(odeMapDataConsumerFactory());
+        return factory;
+    }
+
+    /**
+     * @return factory A listener factory that supports filtering out messages that don't match a specific pattern
+     * <p>
+     * @deprecated This method is intended to be short-lived. It exists to allow consumption via the Asn1DecodedDataRouter &
+     * the Asn1DecodedDataListener while we are migrating from hand-rolled Kafka implementation to Spring's Kafka implementation
+     */
+    @Bean
+    @Deprecated(forRemoval = true)
+    public ConcurrentKafkaListenerContainerFactory<String, String> tempFilteringKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory());
+
+        // While migrating to Spring Kafka the consumers provided from this factory will only consume (and ack) messages
+        // that match the predicate provided. All other messages will be handled by the Asn1DecodedDataRouter
+        factory.setRecordFilterStrategy(consumerRecord -> {
+            try {
+                JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value()).getJSONObject(OdeAsn1Data.class.getSimpleName());
+
+                J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
+                        consumed.getJSONObject(AppContext.PAYLOAD_STRING)
+                                .getJSONObject(AppContext.DATA_STRING)
+                                .getJSONObject("MessageFrame")
+                                .getInt("messageId")
+                );
+
+                // Filter out all messages EXCEPT for MAP messages
+                return !J2735DSRCmsgID.MAPMessage.equals(messageId);
+            } catch (XmlUtils.XmlUtilsException e) {
+                log.warn("Unable to parse JSON object", e);
+                return false;
+            } catch (Exception e) {
+                log.warn("Failed to detect message ID", e);
+                return false;
+            }
+        });
+
         return factory;
     }
 }
