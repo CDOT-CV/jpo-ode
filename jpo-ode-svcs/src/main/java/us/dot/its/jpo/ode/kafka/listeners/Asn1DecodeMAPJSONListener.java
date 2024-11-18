@@ -48,7 +48,10 @@ public class Asn1DecodeMAPJSONListener {
         String payloadHexString = ((JSONObject) ((JSONObject) rawMapJsonObject.get("payload")).get("data")).getString("bytes");
         payloadHexString = UperUtil.stripDot2Header(payloadHexString, SupportedMessageType.MAP.getStartFlag());
 
-        send(new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString)));
+        OdeAsn1Payload payload = new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
+
+        OdeAsn1Data data = new OdeAsn1Data(metadata, payload);
+        send(data);
     }
 
     private void send(OdeObject odeObject) {
