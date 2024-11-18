@@ -5,7 +5,7 @@ package us.dot.its.jpo.ode.wrapper;
  *  in the specified code path. It's used mainly to indicate to the MessageProcessor that we should acknowledge
  *  receipt and processing of the message on the kafak topic.
  */
-public class UnsupportedDataTypeException extends RuntimeException {
+public class UnsupportedDataTypeException extends Exception {
     public UnsupportedDataTypeException(String msg) {
         super(msg);
     }

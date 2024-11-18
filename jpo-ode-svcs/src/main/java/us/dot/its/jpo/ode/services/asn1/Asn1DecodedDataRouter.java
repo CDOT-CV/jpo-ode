@@ -41,7 +41,6 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final MessageProducer<String, OdeBsmData> bsmProducer;
     private final MessageProducer<String, String> timProducer;
     private final MessageProducer<String, String> spatProducer;
-    //    private final MessageProducer<String, String> mapProducer;
     private final MessageProducer<String, String> ssmProducer;
     private final MessageProducer<String, String> srmProducer;
     private final MessageProducer<String, String> psmProducer;
@@ -62,9 +61,6 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.spatProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                 odeKafkaProperties.getProducer().getType(),
                 odeKafkaProperties.getDisabledTopics());
-//        this.mapProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-//                odeKafkaProperties.getProducer().getType(),
-//                odeKafkaProperties.getDisabledTopics());
         this.ssmProducer = MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
                 odeKafkaProperties.getProducer().getType(),
                 odeKafkaProperties.getDisabledTopics());
@@ -94,16 +90,15 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
                 case BasicSafetyMessage -> routeBSM(consumedData, recordType);
                 case TravelerInformation -> routeTIM(consumed, recordType);
                 case SPATMessage -> routeSPAT(consumedData, recordType);
-                case MAPMessage -> routeMAP(consumedData, recordType);
+                case MAPMessage ->
+                    // throw for MessageProcessor handling to prevent acknowledgement of unsupported messages
+                    // during the spring kafka migration effort
+                        throw new UnsupportedDataTypeException("MAP data processing no longer supported in this router.");
                 case SSMMessage -> routeSSM(consumedData, recordType);
                 case SRMMessage -> routeSRM(consumedData, recordType);
                 case PersonalSafetyMessage -> routePSM(consumedData, recordType);
                 case null, default -> log.warn("Unknown message type: {}", messageId);
             }
-        } catch (UnsupportedDataTypeException e) {
-            // catch and rethrow for MessageProcessor handling to prevent acknowledgement of unsupported messages
-            // during the spring kafka migration effort
-            throw e;
         } catch (Exception e) {
             log.error("Failed to route received data: {}", consumedData, e);
         }
@@ -138,11 +133,6 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
         // Send all SSMs also to OdeSsmJson
         ssmProducer.send(jsonTopics.getSsm(), getRecord().key(), odeSsmData);
         log.debug("Submitted to SSM Pojo topic {}", jsonTopics.getSsm());
-    }
-
-    private void routeMAP(String consumedData, RecordType recordType) throws UnsupportedDataTypeException {
-        log.debug("routeMAP consumedData: {} recordType: {}", consumedData, recordType);
-        throw new UnsupportedDataTypeException("MAP data processing no longer supported in this router.");
     }
 
     private void routeSPAT(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException {
