@@ -5,7 +5,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 
 public final class EmbeddedKafkaHolder {
 
-    private static final EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, false)
+    private static final EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1, true, 1)
             .brokerListProperty("spring.kafka.bootstrap-servers");
 
     private static boolean started;
