@@ -140,14 +140,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
         log.debug("Submitted to SSM Pojo topic {}", jsonTopics.getSsm());
     }
 
-    private void routeMAP(String consumedData, RecordType recordType) throws XmlUtils.XmlUtilsException, UnsupportedDataTypeException {
-//        String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumedData).toString();
-//        if (recordType == RecordType.mapTx) {
-//            mapProducer.send(pojoTopics.getTxMap(), getRecord().key(), odeMapData);
-//        }
-//        // Send all Map also to OdeMapJson
-//        mapProducer.send(jsonTopics.getMap(), getRecord().key(), odeMapData);
-//        log.debug("Submitted to MAP Pojo topic {}", jsonTopics.getMap());
+    private void routeMAP(String consumedData, RecordType recordType) throws UnsupportedDataTypeException {
         log.debug("routeMAP consumedData: {} recordType: {}", consumedData, recordType);
         throw new UnsupportedDataTypeException("MAP data processing no longer supported in this router.");
     }

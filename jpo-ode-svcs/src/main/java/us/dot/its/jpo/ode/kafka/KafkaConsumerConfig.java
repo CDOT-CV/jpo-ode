@@ -10,6 +10,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.listener.adapter.RecordFilterStrategy;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -68,9 +69,19 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
 
-        // While migrating to Spring Kafka the consumers provided from this factory will only consume (and ack) messages
-        // that match the predicate provided. All other messages will be handled by the Asn1DecodedDataRouter
-        factory.setRecordFilterStrategy(consumerRecord -> {
+
+        factory.setRecordFilterStrategy(getFilterStrategySpringKafkaSupportedMessageTypesOnly());
+
+        return factory;
+    }
+
+    /**
+     * While migrating to Spring Kafka the consumers provided from this factory will only consume (and ack) messages
+     * we support via the Spring Kafka implementation. All other messages will be handled by the Asn1DecodedDataRouter
+     * @return RecordFilterStrategy<String, String> filter
+     */
+    private static RecordFilterStrategy<String, String> getFilterStrategySpringKafkaSupportedMessageTypesOnly() {
+        return consumerRecord -> {
             try {
                 JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value()).getJSONObject(OdeAsn1Data.class.getSimpleName());
 
@@ -90,8 +101,6 @@ public class KafkaConsumerConfig {
                 log.warn("Failed to detect message ID", e);
                 return false;
             }
-        });
-
-        return factory;
+        };
     }
 }
