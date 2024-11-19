@@ -30,7 +30,6 @@ import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.wrapper.AbstractSubscriberProcessor;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
-import us.dot.its.jpo.ode.wrapper.UnsupportedDataTypeException;
 import us.dot.its.jpo.ode.wrapper.serdes.OdeBsmSerializer;
 
 @Slf4j
@@ -90,10 +89,7 @@ public class Asn1DecodedDataRouter extends AbstractSubscriberProcessor<String, S
                 case BasicSafetyMessage -> routeBSM(consumedData, recordType);
                 case TravelerInformation -> routeTIM(consumed, recordType);
                 case SPATMessage -> routeSPAT(consumedData, recordType);
-                case MAPMessage ->
-                    // throw for MessageProcessor handling to prevent acknowledgement of unsupported messages
-                    // during the spring kafka migration effort
-                        throw new UnsupportedDataTypeException("MAP data processing no longer supported in this router.");
+                case MAPMessage -> log.debug("MAP data processing no longer supported in this router.");
                 case SSMMessage -> routeSSM(consumedData, recordType);
                 case SRMMessage -> routeSRM(consumedData, recordType);
                 case PersonalSafetyMessage -> routePSM(consumedData, recordType);

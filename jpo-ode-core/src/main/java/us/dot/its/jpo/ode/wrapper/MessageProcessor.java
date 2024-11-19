@@ -47,10 +47,6 @@ public abstract class MessageProcessor<K, V> implements Callable<Object> {
          try {
             call();
             processedOffsets.put(topicPartition, recordMetadata.offset());
-         } catch (UnsupportedDataTypeException e)  {
-            // catch and log at debug level to avoid spammy log messages during migration to Spring Kafka while still
-            // reporting the specific error messages to debug logs for investigations
-            log.debug(e.getMessage());
          } catch (Exception e) {
             throw new Exception("Error processing message", e);
          }
