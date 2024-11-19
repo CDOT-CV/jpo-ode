@@ -68,8 +68,6 @@ public class KafkaConsumerConfig {
     public ConcurrentKafkaListenerContainerFactory<String, String> tempFilteringKafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-
-
         factory.setRecordFilterStrategy(getFilterStrategySpringKafkaSupportedMessageTypesOnly());
 
         return factory;
