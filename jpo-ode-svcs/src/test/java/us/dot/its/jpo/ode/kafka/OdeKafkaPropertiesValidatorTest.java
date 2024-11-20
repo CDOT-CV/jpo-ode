@@ -72,4 +72,21 @@ class OdeKafkaPropertiesValidatorTest {
             assertTrue(errors.hasErrors());
             assertNotNull(errors.getFieldError("kafkaType"));
         }
+
+        @Test
+    void errorThrownForInvalidConfluentProperties(){
+            OdeKafkaProperties properties = new OdeKafkaProperties();
+            OdeKafkaProperties.Producer producer = new OdeKafkaProperties.Producer();
+            properties.setProducer(producer);
+            properties.setKafkaType("CONFLUENT");
+            ConfluentProperties confluentProperties = new ConfluentProperties();
+            properties.setConfluent(confluentProperties);
+
+            OdeKafkaPropertiesValidator validator = new OdeKafkaPropertiesValidator();
+            org.springframework.validation.BeanPropertyBindingResult errors = new org.springframework.validation.BeanPropertyBindingResult(properties, "properties");
+            validator.validate(properties, errors);
+            assertTrue(errors.hasErrors());
+            assertNotNull(errors.getFieldError("confluent.password"));
+            assertNotNull(errors.getFieldError("confluent.username"));
+        }
 }
