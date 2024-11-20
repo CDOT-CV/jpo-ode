@@ -72,7 +72,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
                                  JsonTopics jsonTopics,
                                  SDXDepositorTopics sdxDepositorTopics,
                                  RsuProperties rsuProperties,
-                                 SecurityServicesProperties securityServicesProperties) {
+                                 SecurityServicesProperties securityServicesProperties,
+                                 OdeTimJsonTopology odeTimJsonTopology) {
         super();
 
         this.asn1CoderTopics = asn1CoderTopics;
@@ -86,10 +87,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
         this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 
-        odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties);
-        if (!odeTimJsonTopology.isRunning()) {
-            odeTimJsonTopology.start();
-        }
+        this.odeTimJsonTopology = odeTimJsonTopology;
     }
 
     @Override
