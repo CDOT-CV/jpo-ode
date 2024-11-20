@@ -15,14 +15,20 @@ import us.dot.its.jpo.ode.model.OdeObject;
 public class KafkaProducerConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final OdeKafkaProperties odeKafkaProperties;
 
-    public KafkaProducerConfig(KafkaProperties kafkaProperties) {
+    public KafkaProducerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties) {
         this.kafkaProperties = kafkaProperties;
+        this.odeKafkaProperties = odeKafkaProperties;
     }
 
     @Bean
     public ProducerFactory<String, String> producerFactory() {
-        return new DefaultKafkaProducerFactory<>(kafkaProperties.buildProducerProperties());
+        var producerProps = kafkaProperties.buildProducerProperties();
+        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+            producerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
+        }
+        return new DefaultKafkaProducerFactory<>(producerProps);
     }
 
     @Bean

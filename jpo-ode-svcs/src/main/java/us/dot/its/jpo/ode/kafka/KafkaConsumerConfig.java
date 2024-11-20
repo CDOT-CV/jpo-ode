@@ -27,14 +27,20 @@ import java.util.Map;
 public class KafkaConsumerConfig {
 
     private final KafkaProperties kafkaProperties;
+    private final OdeKafkaProperties odeKafkaProperties;
 
-    public KafkaConsumerConfig(KafkaProperties kafkaProperties) {
+    public KafkaConsumerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties) {
         this.kafkaProperties = kafkaProperties;
+        this.odeKafkaProperties = odeKafkaProperties;
     }
 
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
-        return new DefaultKafkaConsumerFactory<>(kafkaProperties.buildConsumerProperties());
+        var consumerProps = kafkaProperties.buildConsumerProperties();
+        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+            consumerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
+        }
+        return new DefaultKafkaConsumerFactory<>(consumerProps);
     }
 
     @Bean
@@ -76,6 +82,7 @@ public class KafkaConsumerConfig {
     /**
      * While migrating to Spring Kafka the consumers provided from this factory will only consume (and ack) messages
      * we support via the Spring Kafka implementation. All other messages will be handled by the Asn1DecodedDataRouter
+     *
      * @return RecordFilterStrategy<String, String> filter
      */
     private static RecordFilterStrategy<String, String> getFilterStrategySpringKafkaSupportedMessageTypesOnly() {
