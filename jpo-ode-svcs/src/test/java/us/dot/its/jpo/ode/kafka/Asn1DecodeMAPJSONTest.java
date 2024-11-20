@@ -8,9 +8,7 @@ import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -19,9 +17,6 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
-import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
 
@@ -33,10 +28,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
 
 @Slf4j
-@SpringBootTest(properties = {"ode.kafka.topics.raw-encoded-json.map=topic.Asn1DecoderTestMAPJSON", "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderMAPInput"})
-@ExtendWith(SpringExtension.class)
+@SpringBootTest(properties = {"ode.kafka.topics.raw-encoded-json.map=topic.Asn1DecoderTestMAPJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderMAPInput"})
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = {RawEncodedJsonTopics.class, Asn1CoderTopics.class})
 @DirtiesContext
 class Asn1DecodeMAPJSONTest {
 
