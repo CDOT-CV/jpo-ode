@@ -57,4 +57,19 @@ class OdeKafkaPropertiesValidatorTest {
 
             assertTrue(errors.hasErrors());
         }
+
+        @Test
+        void errorThrownForInvalidKafkaType() {
+            OdeKafkaProperties properties = new OdeKafkaProperties();
+            OdeKafkaProperties.Producer producer = new OdeKafkaProperties.Producer();
+            properties.setProducer(producer);
+            properties.setKafkaType("REDPANDA");
+
+            OdeKafkaPropertiesValidator validator = new OdeKafkaPropertiesValidator();
+            org.springframework.validation.BeanPropertyBindingResult errors = new org.springframework.validation.BeanPropertyBindingResult(properties, "properties");
+            validator.validate(properties, errors);
+
+            assertTrue(errors.hasErrors());
+            assertNotNull(errors.getFieldError("kafkaType"));
+        }
 }

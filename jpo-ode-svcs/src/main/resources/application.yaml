@@ -31,6 +31,7 @@ ode:
     password: ${RSU_PASSWORD}
   kafka:
     brokers: ${DOCKER_HOST_IP}:9092
+    kafka-type: ${KAFKA_TYPE}
     producer:
       type: "sync"
       acks: ${KAFKA_ACKS}

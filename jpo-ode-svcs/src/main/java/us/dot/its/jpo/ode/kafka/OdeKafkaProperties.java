@@ -16,6 +16,7 @@ public class OdeKafkaProperties {
     private String brokers;
     private Set<String> disabledTopics;
     private Producer producer;
+    private String kafkaType;
 
     @Data
     public static class Producer {
