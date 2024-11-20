@@ -25,19 +25,19 @@ import java.util.Properties;
 @Component
 public class OdeTimJsonTopology {
 
-    private final Properties streamsProperties = new Properties();
     private final KafkaStreams streams;
 
     public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps) {
+        Properties streamsProperties = new Properties();
         if (odeKafkaProps.getBrokers() != null) {
-            this.streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
-            this.streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
-            this.streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-            this.streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+            streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
+            streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
+            streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+            streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
     
             String kafkaType = System.getenv("KAFKA_TYPE");
             if (kafkaType != null && kafkaType.equals("CONFLUENT")) {
-                addConfluentProperties(this.streamsProperties);
+                addConfluentProperties(streamsProperties);
             }  
         }  else {
             log.error("Kafka Brokers not set in OdeProperties");
@@ -64,7 +64,7 @@ public class OdeTimJsonTopology {
             String auth = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
                 "username=\"" + username + "\" " +
                 "password=\"" + password + "\";";
-            this.streamsProperties.put("sasl.jaas.config", auth);
+          properties.put("sasl.jaas.config", auth);
         }
         else {
             log.error("Environment variables CONFLUENT_KEY and CONFLUENT_SECRET are not set. Set these in the .env file to use Confluent Cloud");
