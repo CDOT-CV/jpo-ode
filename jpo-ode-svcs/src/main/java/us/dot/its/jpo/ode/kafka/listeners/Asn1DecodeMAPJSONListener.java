@@ -20,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Component
-@KafkaListener(id = "MAPJSONListener", topics = "${ode.kafka.topics.raw-encoded-json.map}")
+@KafkaListener(id = "Asn1DecodeMAPJSONListener", topics = "${ode.kafka.topics.raw-encoded-json.map}")
 public class Asn1DecodeMAPJSONListener {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();

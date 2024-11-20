@@ -19,19 +19,20 @@ import java.util.Map;
 
 @Slf4j
 @Component
-@KafkaListener(topics = "${ode.kafka.topics.asn1.decoder-output}", containerFactory = "tempFilteringKafkaListenerContainerFactory")
+@KafkaListener(id = "Asn1DecodedDataListener", topics = "${ode.kafka.topics.asn1.decoder-output}", containerFactory = "tempFilteringKafkaListenerContainerFactory")
 public class Asn1DecodedDataListener {
 
-    @Value("${ode.kafka.topics.json.map}")
-    private String jsonMapTopic;
 
-    @Value("${ode.kafka.topics.pojo.tx-map}")
-    private String pojoTxMapTopic;
+    private final String jsonMapTopic;
+    private final String pojoTxMapTopic;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
-    KafkaTemplate<String, String> kafkaTemplate;
-
-    public Asn1DecodedDataListener(KafkaTemplate<String, String> kafkaTemplate) {
+    public Asn1DecodedDataListener(KafkaTemplate<String, String> kafkaTemplate,
+                                   @Value("${ode.kafka.topics.pojo.tx-map}") String pojoTxMapTopic,
+                                   @Value("${ode.kafka.topics.json.map}") String jsonMapTopic) {
         this.kafkaTemplate = kafkaTemplate;
+        this.pojoTxMapTopic = pojoTxMapTopic;
+        this.jsonMapTopic = jsonMapTopic;
     }
 
     @KafkaHandler
