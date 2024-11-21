@@ -31,12 +31,12 @@ public class OdeTimJsonTopology {
 
         this.streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
         this.streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
-        this.streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-        this.streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        this.streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        this.streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
 
         String kafkaType = System.getenv("KAFKA_TYPE");
         if (kafkaType != null && kafkaType.equals("CONFLUENT")) {
-            addConfluentProperties(this.streamsProperties);
+            this.streamsProperties.put("sasl.jaas.config", odeKafkaProps.getConfluent().getSaslJaasConfig());
         }
         streams = new KafkaStreams(buildTopology(), streamsProperties);
         streams.start();
@@ -66,19 +66,5 @@ public class OdeTimJsonTopology {
 
     public String query(String uuid) {
         return (String) streams.store(StoreQueryParameters.fromNameAndType("timjson-store", QueryableStoreTypes.keyValueStore())).get(uuid);
-    }
-
-    private void addConfluentProperties(Properties properties) {
-        String username = System.getenv("CONFLUENT_KEY");
-        String password = System.getenv("CONFLUENT_SECRET");
-
-        if (username != null && password != null) {
-            String auth = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
-                          "username=\"" + username + "\" " +
-                          "password=\"" + password + "\";";
-            properties.put("sasl.jaas.config", auth);
-        } else {
-            log.error("Environment variables CONFLUENT_KEY and CONFLUENT_SECRET are not set. Set these in the .env file to use Confluent Cloud");
-        }
     }
 }
