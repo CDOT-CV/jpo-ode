@@ -44,6 +44,7 @@ class Asn1DecodeMAPJSONTest {
 
     @Test
     void testProcess_ApprovalTest() throws IOException {
+        Awaitility.setDefaultTimeout(250, java.util.concurrent.TimeUnit.MILLISECONDS);
         try {
             EmbeddedKafkaHolder.getEmbeddedKafka().addTopics(
                     new NewTopic(rawEncodedMapJson, 1, (short) 1),
