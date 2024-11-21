@@ -265,7 +265,7 @@ public class TimDepositController {
             stringMsgProducer.send(jsonTopics.getJ2735TimBroadcast(), null, obfuscatedJ2735Tim);
             // publish J2735 TIM also to general un-filtered TIM topic
             // with streamID as key
-            stringMsgProducer.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
+         stringMsgProducer.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
 
             serialIdOde.increment();
             serialIdJ2735.increment();
