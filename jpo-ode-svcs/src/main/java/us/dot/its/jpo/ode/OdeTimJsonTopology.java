@@ -25,7 +25,7 @@ public class OdeTimJsonTopology {
 
     private final KafkaStreams streams;
 
-    public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps) {
+    public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps, String topic) {
 
         Properties streamsProperties = new Properties();
         streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
@@ -35,31 +35,27 @@ public class OdeTimJsonTopology {
 
         String kafkaType = System.getenv("KAFKA_TYPE");
         if (kafkaType != null && kafkaType.equals("CONFLUENT")) {
-            this.streamsProperties.put("sasl.jaas.config", odeKafkaProps.getConfluent().getSaslJaasConfig());
+            streamsProperties.put("sasl.jaas.config", odeKafkaProps.getConfluent().getSaslJaasConfig());
         }
-        streams = new KafkaStreams(buildTopology(), streamsProperties);
-        streams.start();
-    }
-
-    public void start() {
-        log.info("Starting Ode Tim Json Topology");
+        streams = new KafkaStreams(buildTopology(topic), streamsProperties);
+        streams.setStateListener((newState, oldState) ->
+                log.info("Transitioning from {} to {}", oldState, newState)
+        );
         streams.start();
     }
 
     public void stop() {
-        if (streams != null) {
-            log.info("Stopping Ode Tim Json Topology");
-            streams.close();
-        }
+        log.info("Stopping Ode Tim Json Topology");
+        streams.close();
     }
 
     public boolean isRunning() {
-        return streams != null && streams.state().isRunningOrRebalancing();
+        return streams.state().isRunningOrRebalancing();
     }
 
-    public Topology buildTopology() {
+    public Topology buildTopology(String topic) {
         StreamsBuilder builder = new StreamsBuilder();
-        builder.table("topic.OdeTimJson", Materialized.<String, String>as(Stores.inMemoryKeyValueStore("timjson-store")));
+        builder.table(topic, Materialized.<String, String>as(Stores.inMemoryKeyValueStore("timjson-store")));
         return builder.build();
     }
 

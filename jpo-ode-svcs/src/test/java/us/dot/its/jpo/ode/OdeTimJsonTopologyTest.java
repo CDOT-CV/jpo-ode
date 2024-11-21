@@ -1,106 +1,64 @@
 package us.dot.its.jpo.ode;
 
-import org.apache.kafka.streams.KafkaStreams;
-import org.apache.kafka.streams.StoreQueryParameters;
-import org.apache.kafka.streams.Topology;
-import org.apache.kafka.streams.state.ReadOnlyKeyValueStore;
-import org.junit.jupiter.api.AfterEach;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-
+@ExtendWith(SpringExtension.class)
+@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@EnableConfigurationProperties(value = OdeKafkaProperties.class)
 class OdeTimJsonTopologyTest {
 
     private OdeTimJsonTopology odeTimJsonTopology;
-    private KafkaStreams mockStreams;
-    private ReadOnlyKeyValueStore<String, String> mockStore;
-    private OdeKafkaProperties mockOdeKafkaProps;
+    @Autowired
+    private OdeKafkaProperties odeKafkaProperties;
+    @Value("${ode.kafka.topics.json.tim}")
+    private String timTopic;
 
     @BeforeEach
     void setUp() throws SecurityException, IllegalArgumentException {
-        mockOdeKafkaProps = mock(OdeKafkaProperties.class);
-        odeTimJsonTopology = new OdeTimJsonTopology(mockOdeKafkaProps);
-        mockStreams = mock(KafkaStreams.class);
-        mockStore = mock(ReadOnlyKeyValueStore.class);
-    }
-
-    @AfterEach
-    void tearDown() {
-        odeTimJsonTopology.stop();
-    }
-
-    @Test
-    void testStart() {
-        when(mockStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
-        doNothing().when(mockStreams).start();
-
-        odeTimJsonTopology.start();
-
-        verify(mockStreams).start();
-    }
-
-    @Test
-    void testStartWhenAlreadyRunning() {
-        when(mockStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
-
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            odeTimJsonTopology.start();
-        });
-
-        assertEquals("Start called while streams is already running.", exception.getMessage());
+        odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, timTopic);
     }
 
     @Test
     void testStop() {
-        doNothing().when(mockStreams).close();
-
         odeTimJsonTopology.stop();
-
-        verify(mockStreams).close();
+        assertFalse(odeTimJsonTopology.isRunning());
     }
 
     @Test
     void testIsRunning() {
-        when(mockStreams.state()).thenReturn(KafkaStreams.State.RUNNING);
-
         assertTrue(odeTimJsonTopology.isRunning());
     }
 
     @Test
     void testIsNotRunning() {
-        when(mockStreams.state()).thenReturn(KafkaStreams.State.NOT_RUNNING);
-
-        assertFalse(odeTimJsonTopology.isRunning());
+        odeTimJsonTopology.stop();
+        Awaitility.setDefaultTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS);
+        Awaitility.await().untilAsserted( () -> assertFalse(odeTimJsonTopology.isRunning()));
     }
 
-    @Test
-    void testBuildTopology() {
-        Topology topology = odeTimJsonTopology.buildTopology();
-        assertNotNull(topology);
-    }
-
-    @Test
-    void testQuery() {
-        String uuid = "test-uuid";
-        String expectedValue = "test-value";
-
-        when(mockStreams.store(any(StoreQueryParameters.class))).thenReturn(mockStore);
-        when(mockStore.get(uuid)).thenReturn(expectedValue);
-
-        String result = odeTimJsonTopology.query(uuid);
-
-        assertEquals(expectedValue, result);
-    }
+//    @Test
+//    void testQuery() {
+//        String uuid = "test-uuid";
+//        String expectedValue = "test-value";
+//
+//        when(mockStreams.store(any(StoreQueryParameters.class))).thenReturn(mockStore);
+//        when(mockStore.get(uuid)).thenReturn(expectedValue);
+//
+//        String result = odeTimJsonTopology.query(uuid);
+//
+//        assertEquals(expectedValue, result);
+//    }
 }

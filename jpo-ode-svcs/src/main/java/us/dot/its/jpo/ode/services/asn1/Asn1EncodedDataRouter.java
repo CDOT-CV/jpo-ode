@@ -86,7 +86,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
         this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 
-        odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties);
+        odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
     }
 
     @Override
