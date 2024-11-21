@@ -16,12 +16,12 @@
 package us.dot.its.jpo.ode.services.asn1;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.streams.kstream.KStream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
@@ -43,7 +43,7 @@ public class AsnCodecRouterServiceController {
                                            SDXDepositorTopics sdxDepositorTopics,
                                            RsuProperties rsuProperties,
                                            SecurityServicesProperties securityServicesProperties,
-                                           KStream<String, String> kStream) {
+                                           OdeTimJsonTopology odeTimJsonTopology) {
         super();
 
         log.info("Starting {}", this.getClass().getSimpleName());
@@ -69,7 +69,7 @@ public class AsnCodecRouterServiceController {
                 sdxDepositorTopics,
                 rsuProperties,
                 securityServicesProperties,
-                kStream);
+                odeTimJsonTopology);
 
         MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
                 odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), encoderRouter);

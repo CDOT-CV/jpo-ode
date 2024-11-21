@@ -16,17 +16,15 @@
 package us.dot.its.jpo.ode.services.asn1;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.serialization.Serdes;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.Produced;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
@@ -64,7 +62,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     private final JsonTopics jsonTopics;
 
     private final MessageProducer<String, String> stringMsgProducer;
-    private final KStream<String, String> kafkaStream;
+    private final OdeTimJsonTopology odeTimJsonTopology;
     private final Asn1CommandManager asn1CommandManager;
     private final boolean dataSigningEnabledSDW;
     private final boolean dataSigningEnabledRSU;
@@ -75,7 +73,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
                                  SDXDepositorTopics sdxDepositorTopics,
                                  RsuProperties rsuProperties,
                                  SecurityServicesProperties securityServicesProperties,
-                                 KStream<String, String> kafkaStream) {
+                                 OdeTimJsonTopology odeTimJsonTopology) {
         super();
 
         this.asn1CoderTopics = asn1CoderTopics;
@@ -89,7 +87,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
         this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 
-        this.kafkaStream = kafkaStream;
+        this.odeTimJsonTopology = odeTimJsonTopology;
     }
 
     @Override
@@ -422,18 +420,17 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
                 return;
             }
 
-            // find the TIM on the stream's topic, update it with the ASN1 data, and send it to the TMC-filtered topic
-            kafkaStream.filter((k, v) -> streamId.equals(k))
-                    .mapValues(timString -> {
-                        // Set ASN1 data in TIM metadata
-                        JSONObject timJSON = new JSONObject(timString);
-                        JSONObject metadataJSON = timJSON.getJSONObject("metadata");
-                        metadataJSON.put("asn1", hexEncodedTim);
-                        timJSON.put("metadata", metadataJSON);
-                        log.debug("TIM with ASN1 data: {}", timJSON);
-                        return timJSON.toString();
-                    })
-                    .to(jsonTopics.getTimTmcFiltered(), Produced.with(Serdes.String(), Serdes.String()));
+            String timString = odeTimJsonTopology.query(streamId);
+            if (timString != null) {
+                // Set ASN1 data in TIM metadata
+                JSONObject timJSON = new JSONObject(timString);
+                JSONObject metadataJSON = timJSON.getJSONObject("metadata");
+                metadataJSON.put("asn1", hexEncodedTim);
+                timJSON.put("metadata", metadataJSON);
+
+                // Send the message w/ asn1 data to the TMC-filtered topic
+                stringMsgProducer.send(jsonTopics.getTimTmcFiltered(), null, timJSON.toString());
+            }
         } catch (JSONException e) {
             log.error("Error while fetching recordGeneratedBy field: {}", e.getMessage());
         } catch (Exception e) {
