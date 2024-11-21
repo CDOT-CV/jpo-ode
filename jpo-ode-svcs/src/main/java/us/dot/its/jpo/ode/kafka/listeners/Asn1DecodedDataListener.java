@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
@@ -54,23 +53,23 @@ public class Asn1DecodedDataListener {
                     );
             if (recordType == OdeLogMetadata.RecordType.mapTx) {
                 log.debug("Publishing message with recordType: {} to {} ", recordType, pojoTxMapTopic);
-                send(keys.get(KafkaHeaders.RECEIVED_KEY).toString(), odeMapData, pojoTxMapTopic);
+                send(odeMapData, pojoTxMapTopic);
             }
 
             // Send all MAP data to OdeMapJson despite the record type
-            send(keys.get(KafkaHeaders.RECEIVED_KEY).toString(), odeMapData, jsonMapTopic);
+            send(odeMapData, jsonMapTopic);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
     }
 
-    private void send(String key, String odeMapData, String publishTopic) {
+    private void send(String odeMapData, String publishTopic) {
         if (disabledTopics.contains(publishTopic)) {
             log.debug("Topic {} is disabled. Skipping sending message.", publishTopic);
             return;
         }
 
-        var future = kafkaTemplate.send(publishTopic, key, odeMapData);
+        var future = kafkaTemplate.send(publishTopic, odeMapData);
         future.whenComplete((result, ex) -> {
             if (ex != null) {
                 log.error(ex.getMessage(), ex);
