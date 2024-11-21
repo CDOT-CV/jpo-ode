@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.services.asn1;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -42,8 +41,7 @@ public class AsnCodecRouterServiceController {
                                            Asn1CoderTopics asn1CoderTopics,
                                            SDXDepositorTopics sdxDepositorTopics,
                                            RsuProperties rsuProperties,
-                                           SecurityServicesProperties securityServicesProperties,
-                                           OdeTimJsonTopology odeTimJsonTopology) {
+                                           SecurityServicesProperties securityServicesProperties) {
         super();
 
         log.info("Starting {}", this.getClass().getSimpleName());
@@ -53,6 +51,7 @@ public class AsnCodecRouterServiceController {
 
         Asn1DecodedDataRouter decoderRouter = new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
 
+        // TODO: do I also need to ignore MAP messages in this consumer to ensure correct processing?
         MessageConsumer<String, String> asn1DecoderConsumer = MessageConsumer.defaultStringMessageConsumer(
                 odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), decoderRouter);
 
@@ -68,8 +67,7 @@ public class AsnCodecRouterServiceController {
                 jsonTopics,
                 sdxDepositorTopics,
                 rsuProperties,
-                securityServicesProperties,
-                odeTimJsonTopology);
+                securityServicesProperties);
 
         MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
                 odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), encoderRouter);

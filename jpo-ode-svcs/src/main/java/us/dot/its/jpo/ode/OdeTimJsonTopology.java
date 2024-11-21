@@ -10,7 +10,6 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.state.QueryableStoreTypes;
 import org.apache.kafka.streams.state.Stores;
-import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 
 import java.util.Properties;
@@ -22,11 +21,11 @@ import java.util.Properties;
  * This class creates a K-Table that houses TMC-generated TIMs which can be queried by UUID.
  **/
 @Slf4j
-@Component
 public class OdeTimJsonTopology {
 
+
     private final Properties streamsProperties = new Properties();
-    private final KafkaStreams streams;
+    static KafkaStreams streams;
 
     public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps) {
         if (odeKafkaProps.getBrokers() != null) {
@@ -42,8 +41,29 @@ public class OdeTimJsonTopology {
         }  else {
             log.error("Kafka Brokers not set in OdeProperties");
         }
-        streams = new KafkaStreams(buildTopology(), streamsProperties);
-        streams.start();
+    }
+
+    public void start() {
+        if (streams != null && streams.state().isRunningOrRebalancing()) {
+            throw new IllegalStateException("Start called while streams is already running.");
+        } else {
+            if (streams == null) {
+                streams = new KafkaStreams(buildTopology(), streamsProperties);
+            }
+            log.info("Starting Ode Tim Json Topology");
+            streams.start();
+        }
+    }
+
+    public void stop() {
+        if (streams != null) {
+            log.info("Stopping Ode Tim Json Topology");
+            streams.close();
+        }
+    }
+
+    public boolean isRunning() {
+        return streams != null && streams.state().isRunningOrRebalancing();
     }
 
     public Topology buildTopology() {
