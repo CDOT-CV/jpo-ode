@@ -23,16 +23,15 @@ import java.util.Properties;
 @Slf4j
 public class OdeTimJsonTopology {
 
-
-    private final Properties streamsProperties = new Properties();
     private final KafkaStreams streams;
 
     public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps) {
 
-        this.streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
-        this.streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
-        this.streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
-        this.streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        Properties streamsProperties = new Properties();
+        streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
+        streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
+        streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
+        streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
 
         String kafkaType = System.getenv("KAFKA_TYPE");
         if (kafkaType != null && kafkaType.equals("CONFLUENT")) {
