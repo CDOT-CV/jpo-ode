@@ -15,7 +15,6 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.wrapper;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.common.TopicPartition;
@@ -32,7 +31,6 @@ import java.util.concurrent.Callable;
  * @param <K> Message Key type
  * @param <V> Message Value type
  */
-@Slf4j
 public abstract class MessageProcessor<K, V> implements Callable<Object> {
 
    private ConsumerRecord<K, V> record;
