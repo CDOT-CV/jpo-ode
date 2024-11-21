@@ -29,7 +29,6 @@ import org.springframework.stereotype.Component;
 @Import(BuildProperties.class)
 public class OdeProperties {
 
-//    private int outputSchemaVersion = 7;
     private static final byte[] JPO_ODE_GROUP_ID = "jode".getBytes();
 
     final BuildProperties buildProperties;
@@ -43,7 +42,6 @@ public class OdeProperties {
         log.info("groupId: {}", buildProperties.getGroup());
         log.info("artifactId: {}", buildProperties.getArtifact());
         log.info("version: {}", buildProperties.getVersion());
-//        OdeMsgMetadata.setStaticSchemaVersion(this.outputSchemaVersion);
     }
 
     public String getVersion() {
