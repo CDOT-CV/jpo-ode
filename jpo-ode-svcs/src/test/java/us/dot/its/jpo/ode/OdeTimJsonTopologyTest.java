@@ -20,45 +20,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties(value = OdeKafkaProperties.class)
 class OdeTimJsonTopologyTest {
 
-    private OdeTimJsonTopology odeTimJsonTopology;
     @Autowired
     private OdeKafkaProperties odeKafkaProperties;
+
     @Value("${ode.kafka.topics.json.tim}")
     private String timTopic;
+
+    private OdeTimJsonTopology odeTimJsonTopology;
 
     @BeforeEach
     void setUp() throws SecurityException, IllegalArgumentException {
         odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, timTopic);
+        Awaitility.setDefaultTimeout(250, java.util.concurrent.TimeUnit.MILLISECONDS);
     }
 
     @Test
     void testStop() {
         odeTimJsonTopology.stop();
-        assertFalse(odeTimJsonTopology.isRunning());
+        Awaitility.await().untilAsserted(() -> assertFalse(odeTimJsonTopology.isRunning()));
     }
 
     @Test
     void testIsRunning() {
-        assertTrue(odeTimJsonTopology.isRunning());
+        Awaitility.await().untilAsserted(() -> assertTrue(odeTimJsonTopology.isRunning()));
     }
-
-    @Test
-    void testIsNotRunning() {
-        odeTimJsonTopology.stop();
-        Awaitility.setDefaultTimeout(15000, java.util.concurrent.TimeUnit.MILLISECONDS);
-        Awaitility.await().untilAsserted( () -> assertFalse(odeTimJsonTopology.isRunning()));
-    }
-
-//    @Test
-//    void testQuery() {
-//        String uuid = "test-uuid";
-//        String expectedValue = "test-value";
-//
-//        when(mockStreams.store(any(StoreQueryParameters.class))).thenReturn(mockStore);
-//        when(mockStore.get(uuid)).thenReturn(expectedValue);
-//
-//        String result = odeTimJsonTopology.query(uuid);
-//
-//        assertEquals(expectedValue, result);
-//    }
 }
