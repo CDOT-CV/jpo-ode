@@ -25,34 +25,26 @@ public class OdeTimJsonTopology {
 
 
     private final Properties streamsProperties = new Properties();
-    static KafkaStreams streams;
+    private final KafkaStreams streams;
 
     public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps) {
-        if (odeKafkaProps.getBrokers() != null) {
-            this.streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
-            this.streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
-            this.streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-            this.streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
-    
-            String kafkaType = System.getenv("KAFKA_TYPE");
-            if (kafkaType != null && kafkaType.equals("CONFLUENT")) {
-                addConfluentProperties(this.streamsProperties);
-            }  
-        }  else {
-            log.error("Kafka Brokers not set in OdeProperties");
+
+        this.streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
+        this.streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
+        this.streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+        this.streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
+
+        String kafkaType = System.getenv("KAFKA_TYPE");
+        if (kafkaType != null && kafkaType.equals("CONFLUENT")) {
+            addConfluentProperties(this.streamsProperties);
         }
+        streams = new KafkaStreams(buildTopology(), streamsProperties);
+        streams.start();
     }
 
     public void start() {
-        if (streams != null && streams.state().isRunningOrRebalancing()) {
-            throw new IllegalStateException("Start called while streams is already running.");
-        } else {
-            if (streams == null) {
-                streams = new KafkaStreams(buildTopology(), streamsProperties);
-            }
-            log.info("Starting Ode Tim Json Topology");
-            streams.start();
-        }
+        log.info("Starting Ode Tim Json Topology");
+        streams.start();
     }
 
     public void stop() {
@@ -82,11 +74,10 @@ public class OdeTimJsonTopology {
 
         if (username != null && password != null) {
             String auth = "org.apache.kafka.common.security.plain.PlainLoginModule required " +
-                "username=\"" + username + "\" " +
-                "password=\"" + password + "\";";
-            this.streamsProperties.put("sasl.jaas.config", auth);
-        }
-        else {
+                          "username=\"" + username + "\" " +
+                          "password=\"" + password + "\";";
+            properties.put("sasl.jaas.config", auth);
+        } else {
             log.error("Environment variables CONFLUENT_KEY and CONFLUENT_SECRET are not set. Set these in the .env file to use Confluent Cloud");
         }
     }

@@ -34,13 +34,11 @@ class OdeTimJsonTopologyTest {
         odeTimJsonTopology = new OdeTimJsonTopology(mockOdeKafkaProps);
         mockStreams = mock(KafkaStreams.class);
         mockStore = mock(ReadOnlyKeyValueStore.class);
-
-        OdeTimJsonTopology.streams = mockStreams;
     }
 
     @AfterEach
     void tearDown() {
-        OdeTimJsonTopology.streams = null;
+        odeTimJsonTopology.stop();
     }
 
     @Test
