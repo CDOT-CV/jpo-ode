@@ -31,12 +31,17 @@ class Asn1DecodeSRMJSONTest {
     @Autowired
     Asn1CoderTopics asn1CoderTopics;
 
-    static {
-        EmbeddedKafkaHolder.getEmbeddedKafka().addTopics(new NewTopic("topic.Asn1DecoderInputSRM", 1, (short) 1));
-    }
-
     @Test
     void testProcess() throws JSONException {
+        var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+        try {
+            embeddedKafka.addTopics(new NewTopic(asn1CoderTopics.getDecoderInput(), 1, (short) 1));
+        } catch (Exception e) {
+            // ignore because we only care that the topic exists not that it was created in this test.
+            // this test doesn't actually consume anything from the queue, it just needs the kafka broker running
+            // and configured with the decoder input topic so that it can verify the message produced to the topic
+        }
+
         Asn1DecodeSRMJSON testDecodeSrmJson = new Asn1DecodeSRMJSON(odeKafkaProperties, asn1CoderTopics.getDecoderInput());
 
         OdeAsn1Data resultOdeObj = testDecodeSrmJson.process(json);
