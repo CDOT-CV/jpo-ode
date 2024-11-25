@@ -195,7 +195,7 @@
           <artifactId>maven-checkstyle-plugin</artifactId>
           <version>${checkstyle-maven-plugin.version}</version>
           <configuration>
-            <configLocation>google_checks.xml</configLocation>
+            <configLocation>checkstyle.xml</configLocation>
             <suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>
             <inputEncoding>UTF-8</inputEncoding>
             <outputEncoding>UTF-8</outputEncoding>
@@ -223,7 +223,7 @@
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>${checkstyle-maven-plugin.version}</version>
         <configuration>
-          <configLocation>google_checks.xml</configLocation>
+          <configLocation>checkstyle.xml</configLocation>
         </configuration>
       </plugin>
     </plugins>
