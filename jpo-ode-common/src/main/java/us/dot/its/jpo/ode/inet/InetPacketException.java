@@ -24,6 +24,6 @@ public class InetPacketException extends Exception {
 	}
 	
 	public InetPacketException(String message, Throwable cause) {
-		super(message, cause);
+		 super(message, cause);
 	}
 }
