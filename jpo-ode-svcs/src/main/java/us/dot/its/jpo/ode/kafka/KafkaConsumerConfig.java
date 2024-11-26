@@ -26,89 +26,105 @@ import java.util.Map;
 @Slf4j
 public class KafkaConsumerConfig {
 
-    private final KafkaProperties kafkaProperties;
-    private final OdeKafkaProperties odeKafkaProperties;
+  private final KafkaProperties kafkaProperties;
+  private final OdeKafkaProperties odeKafkaProperties;
 
-    public KafkaConsumerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties) {
-        this.kafkaProperties = kafkaProperties;
-        this.odeKafkaProperties = odeKafkaProperties;
+  public KafkaConsumerConfig(KafkaProperties kafkaProperties,
+      OdeKafkaProperties odeKafkaProperties) {
+    this.kafkaProperties = kafkaProperties;
+    this.odeKafkaProperties = odeKafkaProperties;
+  }
+
+  @Bean
+  public ConsumerFactory<String, String> consumerFactory() {
+    return new DefaultKafkaConsumerFactory<>(getKafkaConsumerProperties());
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, String> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(consumerFactory());
+    return factory;
+  }
+
+  @Bean
+  public ConsumerFactory<String, OdeMapData> odeMapDataConsumerFactory() {
+    return new DefaultKafkaConsumerFactory<>(getKafkaConsumerProperties(), new StringDeserializer(),
+        new JsonDeserializer<>(OdeMapData.class));
+  }
+
+  @Bean
+  public ConcurrentKafkaListenerContainerFactory<String, OdeMapData> odeMapDataConsumerListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, OdeMapData> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(odeMapDataConsumerFactory());
+    return factory;
+  }
+
+  /**
+   * @return factory A listener factory that supports filtering out messages that don't match a
+   * specific pattern
+   * <p>
+   * @deprecated This method is intended to be short-lived. It exists to allow consumption via the
+   * Asn1DecodedDataRouter & the Asn1DecodedDataListener while we are migrating from hand-rolled
+   * Kafka implementation to Spring's Kafka implementation
+   */
+  @Bean
+  @Deprecated(forRemoval = true)
+  public ConcurrentKafkaListenerContainerFactory<String, String> tempFilteringKafkaListenerContainerFactory() {
+    ConcurrentKafkaListenerContainerFactory<String, String> factory =
+        new ConcurrentKafkaListenerContainerFactory<>();
+    factory.setConsumerFactory(consumerFactory());
+    factory.setRecordFilterStrategy(getFilterStrategySpringKafkaSupportedMessageTypesOnly());
+
+    return factory;
+  }
+
+  /**
+   * While migrating to Spring Kafka the consumers provided from this factory will only consume (and
+   * ack) messages we support via the Spring Kafka implementation. All other messages will be
+   * handled by the Asn1DecodedDataRouter
+   *
+   * @return RecordFilterStrategy<String, String> filter
+   */
+  private static RecordFilterStrategy<String, String> getFilterStrategySpringKafkaSupportedMessageTypesOnly() {
+    return consumerRecord -> {
+      try {
+        JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
+            .getJSONObject(OdeAsn1Data.class.getSimpleName());
+
+        J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
+            consumed.getJSONObject(AppContext.PAYLOAD_STRING)
+                .getJSONObject(AppContext.DATA_STRING)
+                .getJSONObject("MessageFrame")
+                .getInt("messageId")
+        );
+
+        // Filter out all messages EXCEPT for MAP messages
+        return !J2735DSRCmsgID.MAPMessage.equals(messageId);
+      } catch (XmlUtils.XmlUtilsException e) {
+        log.warn("Unable to parse JSON object", e);
+        return false;
+      } catch (Exception e) {
+        log.warn("Failed to detect message ID", e);
+        return false;
+      }
+    };
+  }
+
+
+  /**
+   * Retrieves the configuration properties for a Kafka consumer. If the Kafka type is "CONFLUENT",
+   * adds SASL JAAS config for secure communication.
+   *
+   * @return a map containing Kafka consumer properties
+   */
+  private Map<String, Object> getKafkaConsumerProperties() {
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
+    if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+      props.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
     }
-
-    @Bean
-    public ConsumerFactory<String, String> consumerFactory() {
-        var consumerProps = kafkaProperties.buildConsumerProperties();
-        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
-            consumerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
-        }
-        return new DefaultKafkaConsumerFactory<>(consumerProps);
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-        return factory;
-    }
-
-    @Bean
-    public ConsumerFactory<String, OdeMapData> odeMapDataConsumerFactory() {
-        Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
-        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
-            props.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
-        }
-        return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(OdeMapData.class));
-    }
-
-    @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, OdeMapData> odeMapDataConsumerListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, OdeMapData> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(odeMapDataConsumerFactory());
-        return factory;
-    }
-
-    /**
-     * @return factory A listener factory that supports filtering out messages that don't match a specific pattern
-     * <p>
-     * @deprecated This method is intended to be short-lived. It exists to allow consumption via the Asn1DecodedDataRouter &
-     * the Asn1DecodedDataListener while we are migrating from hand-rolled Kafka implementation to Spring's Kafka implementation
-     */
-    @Bean
-    @Deprecated(forRemoval = true)
-    public ConcurrentKafkaListenerContainerFactory<String, String> tempFilteringKafkaListenerContainerFactory() {
-        ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
-        factory.setConsumerFactory(consumerFactory());
-        factory.setRecordFilterStrategy(getFilterStrategySpringKafkaSupportedMessageTypesOnly());
-
-        return factory;
-    }
-
-    /**
-     * While migrating to Spring Kafka the consumers provided from this factory will only consume (and ack) messages
-     * we support via the Spring Kafka implementation. All other messages will be handled by the Asn1DecodedDataRouter
-     *
-     * @return RecordFilterStrategy<String, String> filter
-     */
-    private static RecordFilterStrategy<String, String> getFilterStrategySpringKafkaSupportedMessageTypesOnly() {
-        return consumerRecord -> {
-            try {
-                JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value()).getJSONObject(OdeAsn1Data.class.getSimpleName());
-
-                J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
-                        consumed.getJSONObject(AppContext.PAYLOAD_STRING)
-                                .getJSONObject(AppContext.DATA_STRING)
-                                .getJSONObject("MessageFrame")
-                                .getInt("messageId")
-                );
-
-                // Filter out all messages EXCEPT for MAP messages
-                return !J2735DSRCmsgID.MAPMessage.equals(messageId);
-            } catch (XmlUtils.XmlUtilsException e) {
-                log.warn("Unable to parse JSON object", e);
-                return false;
-            } catch (Exception e) {
-                log.warn("Failed to detect message ID", e);
-                return false;
-            }
-        };
-    }
+    return props;
+  }
 }
