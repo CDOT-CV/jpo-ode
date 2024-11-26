@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.kafka;
 
+import java.util.Map;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,40 +15,41 @@ import us.dot.its.jpo.ode.model.OdeObject;
 @Configuration
 public class KafkaProducerConfig {
 
-    private final KafkaProperties kafkaProperties;
-    private final OdeKafkaProperties odeKafkaProperties;
+  private final KafkaProperties kafkaProperties;
+  private final OdeKafkaProperties odeKafkaProperties;
 
-    public KafkaProducerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties) {
-        this.kafkaProperties = kafkaProperties;
-        this.odeKafkaProperties = odeKafkaProperties;
-    }
+  public KafkaProducerConfig(KafkaProperties kafkaProperties,
+      OdeKafkaProperties odeKafkaProperties) {
+    this.kafkaProperties = kafkaProperties;
+    this.odeKafkaProperties = odeKafkaProperties;
+  }
 
-    @Bean
-    public ProducerFactory<String, String> producerFactory() {
-        var producerProps = kafkaProperties.buildProducerProperties();
-        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
-            producerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
-        }
-        return new DefaultKafkaProducerFactory<>(producerProps);
-    }
+  @Bean
+  public ProducerFactory<String, String> producerFactory() {
+    return new DefaultKafkaProducerFactory<>(buildProducerProperties());
+  }
 
-    @Bean
-    public KafkaTemplate<String, String> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
-    }
+  @Bean
+  public KafkaTemplate<String, String> kafkaTemplate() {
+    return new KafkaTemplate<>(producerFactory());
+  }
 
-    @Bean
-    public ProducerFactory<String, OdeObject> odeDataProducerFactory() {
-        var producerProps = kafkaProperties.buildProducerProperties();
-        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
-            producerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
-        }
-        return new DefaultKafkaProducerFactory<>(producerProps,
-                new StringSerializer(), new XMLOdeObjectSerializer());
-    }
+  @Bean
+  public ProducerFactory<String, OdeObject> odeDataProducerFactory() {
+    return new DefaultKafkaProducerFactory<>(buildProducerProperties(),
+        new StringSerializer(), new XMLOdeObjectSerializer());
+  }
 
-    @Bean
-    public KafkaTemplate<String, OdeObject> odeDataKafkaTemplate() {
-        return new KafkaTemplate<>(odeDataProducerFactory());
+  private Map<String, Object> buildProducerProperties() {
+    var producerProps = kafkaProperties.buildProducerProperties();
+    if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+      producerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
     }
+    return producerProps;
+  }
+
+  @Bean
+  public KafkaTemplate<String, OdeObject> odeDataKafkaTemplate() {
+    return new KafkaTemplate<>(odeDataProducerFactory());
+  }
 }
