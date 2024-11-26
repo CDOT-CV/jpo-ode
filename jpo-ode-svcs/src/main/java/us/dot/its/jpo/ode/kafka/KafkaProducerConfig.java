@@ -38,7 +38,11 @@ public class KafkaProducerConfig {
 
     @Bean
     public ProducerFactory<String, OdeObject> odeDataProducerFactory() {
-        return new DefaultKafkaProducerFactory<>(kafkaProperties.buildProducerProperties(),
+        var producerProps = kafkaProperties.buildProducerProperties();
+        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+            producerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
+        }
+        return new DefaultKafkaProducerFactory<>(producerProps,
                 new StringSerializer(), new XMLOdeObjectSerializer());
     }
 
