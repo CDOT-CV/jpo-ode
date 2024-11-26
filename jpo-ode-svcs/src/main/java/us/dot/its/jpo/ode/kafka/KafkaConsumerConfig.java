@@ -53,6 +53,9 @@ public class KafkaConsumerConfig {
     @Bean
     public ConsumerFactory<String, OdeMapData> odeMapDataConsumerFactory() {
         Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
+        if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+            props.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
+        }
         return new DefaultKafkaConsumerFactory<>(props, new StringDeserializer(), new JsonDeserializer<>(OdeMapData.class));
     }
 
