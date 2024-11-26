@@ -253,6 +253,8 @@
       <property name="lineWrappingIndentation" value="4"/>
       <property name="arrayInitIndent" value="2"/>
     </module>
+<!--    The ODE uses many helpful abbreviations. We don't want to dissuade developers from using these abbreviations where they see fit
+        so we are excluding the AbbreviationAsWordInName module normally found here in Google's Style Guide-->
     <module name="NoWhitespaceBeforeCaseDefaultColon"/>
     <module name="OverloadMethodsDeclarationOrder"/>
     <module name="VariableDeclarationUsageDistance"/>
