@@ -44,7 +44,7 @@ public class UdpHexDecoder {
             throw new InvalidPayloadException("Payload is null");
         // convert bytes to hex string and verify identity
         String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-        if (!payloadHexString.contains(msgType.getStartFlag()))
+        if (!payloadHexString.contains(HexUtils.toHexString(msgType.getStartFlag().getBytes())))
             throw new InvalidPayloadException("Payload does not contain start flag");
 
         log.debug("Full {} packet: {}", msgType, payloadHexString);
