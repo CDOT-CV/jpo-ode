@@ -558,6 +558,9 @@ chosen IDE follow one of the following guides. This repo's checkstyle configurat
 - [VSCode](https://code.visualstudio.com/docs/java/java-linting#_checkstyle)
 - [Eclipse](https://checkstyle.org/eclipse-cs/#!/project-setup)
 
+If you prefer the command line for your checkstyle output. You can run `mvn checkstyle:check` to
+check the whole project. See [Checkstyle's Github](https://github.com/checkstyle/checkstyle) for more info.
+
 [Back to top](#table-of-contents)
 
 
