@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.udp.bsm;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -11,6 +12,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +63,7 @@ class BsmReceiverTest {
         Files.readString(Paths.get(
             "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.json"));
 
+    String expected = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
     // create the needed topic for production
     try {
       embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getBsm(), 1, (short) 1));
@@ -89,10 +92,18 @@ class BsmReceiverTest {
 
     // read record from produce topic
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
-    // confirm it looks as expected
-    assertEquals(
-        "{\"metadata\":{\"bsmSource\":\"EV\",\"recordType\":\"bsmTx\",\"securityResultCode\":\"success\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"unavailable\",\"longitude\":\"unavailable\",\"elevation\":\"unavailable\",\"speed\":\"unavailable\",\"heading\":\"unavailable\"},\"rxSource\":\"RSU\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"de02c4a6-9ae3-4417-8bbc-636119ac0767\",\"bundleSize\":1,\"bundleId\":0,\"recordId\":0,\"serialNumber\":0},\"odeReceivedAt\":\"2024-11-26T23:53:21.120Z\",\"schemaVersion\":7,\"maxDurationTime\":0,\"recordGeneratedBy\":\"OBU\",\"sanitized\":false,\"asn1\":\"303031347B0A2020226D65746164617461223A207B0A202020202262736D536F75726365223A20224556222C0A20202020226C6F6746696C654E616D65223A202262736D54782E677A222C0A20202020227265636F726454797065223A202262736D5478222C0A20202020227365637572697479526573756C74436F6465223A202273756363657373222C0A202020202272656365697665644D65737361676544657461696C73223A207B0A202020202020226C6F636174696F6E44617461223A207B0A2020202020202020226C61746974756465223A202234302E35363537383831222C0A2020202020202020226C6F6E676974756465223A20222D3130352E30333136373432222C0A202020202020202022656C65766174696F6E223A202231343839222C0A2020202020202020227370656564223A2022302E34222C0A20202020202020202268656164696E67223A20223236372E34220A2020202020207D2C0A202020202020227278536F75726365223A20224E41220A202020207D2C0A20202020227061796C6F616454797065223A202275732E646F742E6974732E6A706F2E6F64652E6D6F64656C2E4F646542736D5061796C6F6164222C0A202020202273657269616C4964223A207B0A2020202020202273747265616D4964223A202238303137383063622D643931642D343400\",\"originIp\":\"127.0.0.1\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"303031347B0A2020226D65746164617461223A207B0A202020202262736D536F75726365223A20224556222C0A20202020226C6F6746696C654E616D65223A202262736D54782E677A222C0A20202020227265636F726454797065223A202262736D5478222C0A20202020227365637572697479526573756C74436F6465223A202273756363657373222C0A202020202272656365697665644D65737361676544657461696C73223A207B0A202020202020226C6F636174696F6E44617461223A207B0A2020202020202020226C61746974756465223A202234302E35363537383831222C0A2020202020202020226C6F6E676974756465223A20222D3130352E30333136373432222C0A202020202020202022656C65766174696F6E223A202231343839222C0A2020202020202020227370656564223A2022302E34222C0A20202020202020202268656164696E67223A20223236372E34220A2020202020207D2C0A202020202020227278536F75726365223A20224E41220A202020207D2C0A20202020227061796C6F616454797065223A202275732E646F742E6974732E6A706F2E6F64652E6D6F64656C2E4F646542736D5061796C6F6164222C0A202020202273657269616C4964223A207B0A2020202020202273747265616D4964223A202238303137383063622D643931642D343400\"}}}",
-        singleRecord.value());
+    // confirm the stream-id is different, then remove it from both so that we can test equality of all other fields
+    assertNotEquals(expected, singleRecord.value());
+    JSONObject producedJson = new JSONObject(singleRecord.value());
+    JSONObject expectedJson = new JSONObject(expected);
 
+    // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
+    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"), producedJson.getJSONObject("metadata").get("serialId"));
+    expectedJson.getJSONObject("metadata").remove("serialId");
+    producedJson.getJSONObject("metadata").remove("serialId");
+
+    assertEquals(
+        expectedJson.toString(2),
+        producedJson.toString(2));
   }
 }
