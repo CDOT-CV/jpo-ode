@@ -1,26 +1,26 @@
 package us.dot.its.jpo.ode.udp.tim;
 
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.StringPublisher;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
-import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 import java.net.DatagramPacket;
+import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 
 @Slf4j
 public class TimReceiver extends AbstractUdpReceiverPublisher {
 
-    private final StringPublisher timPublisher;
+    private final KafkaTemplate<String, String> timPublisher;
     private final String publishTopic;
 
-    public TimReceiver(UDPReceiverProperties.ReceiverProperties receiverProperties, OdeKafkaProperties odeKafkaProperties, String publishTopic) {
+    public TimReceiver(ReceiverProperties receiverProperties,
+        KafkaTemplate<String, String> kafkaTemplate, String publishTopic) {
         super(receiverProperties.getReceiverPort(), receiverProperties.getBufferSize());
 
         this.publishTopic = publishTopic;
-        this.timPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(), odeKafkaProperties.getDisabledTopics());
+        this.timPublisher = kafkaTemplate;
     }
 
     @Override
@@ -39,9 +39,8 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
 
                     String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
                     if (timJson != null) {
-                        timPublisher.publish(publishTopic, timJson);
+                        timPublisher.send(publishTopic, timJson);
                     }
-
                 }
             } catch (InvalidPayloadException e) {
                 log.error("Error decoding packet", e);

@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,7 +55,7 @@ class TimReceiverTest {
   RawEncodedJsonTopics rawEncodedJsonTopics;
 
   @Autowired
-  OdeKafkaProperties odeKafkaProperties;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
@@ -76,8 +77,8 @@ class TimReceiverTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
-    TimReceiver timReceiver = new TimReceiver(udpReceiverProperties.getTim(), odeKafkaProperties,
-        rawEncodedJsonTopics.getTim());
+    TimReceiver timReceiver = new TimReceiver(udpReceiverProperties.getTim(),
+        kafkaTemplate, rawEncodedJsonTopics.getTim());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(timReceiver);
 
