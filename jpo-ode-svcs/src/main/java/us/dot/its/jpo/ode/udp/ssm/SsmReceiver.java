@@ -1,26 +1,26 @@
 package us.dot.its.jpo.ode.udp.ssm;
 
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.StringPublisher;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
-import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 import java.net.DatagramPacket;
+import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 
 @Slf4j
 public class SsmReceiver extends AbstractUdpReceiverPublisher {
 
-    private final StringPublisher ssmPublisher;
+    private final KafkaTemplate<String, String> ssmPublisher;
     private final String publishTopic;
 
-    public SsmReceiver(UDPReceiverProperties.ReceiverProperties receiverProperties, OdeKafkaProperties odeKafkaProperties, String publishTopic) {
+    public SsmReceiver(ReceiverProperties receiverProperties,
+        KafkaTemplate<String, String> kafkaTemplate, String publishTopic) {
         super(receiverProperties.getReceiverPort(), receiverProperties.getBufferSize());
 
         this.publishTopic = publishTopic;
-        this.ssmPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(), odeKafkaProperties.getDisabledTopics());
+        this.ssmPublisher = kafkaTemplate;
     }
 
     @Override
@@ -36,7 +36,7 @@ public class SsmReceiver extends AbstractUdpReceiverPublisher {
                 if (packet.getLength() > 0) {
                     String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
                     if (ssmJson != null) {
-                        ssmPublisher.publish(this.publishTopic, ssmJson);
+                        ssmPublisher.send(publishTopic, ssmJson);
                     }
                 }
             } catch (InvalidPayloadException e) {

@@ -20,6 +20,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -54,7 +55,7 @@ class SsmReceiverTest {
   RawEncodedJsonTopics rawEncodedJsonTopics;
 
   @Autowired
-  OdeKafkaProperties odeKafkaProperties;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
@@ -75,7 +76,8 @@ class SsmReceiverTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
-    SsmReceiver ssmReceiver = new SsmReceiver(udpReceiverProperties.getSsm(), odeKafkaProperties, rawEncodedJsonTopics.getSsm());
+    SsmReceiver ssmReceiver = new SsmReceiver(udpReceiverProperties.getSsm(), kafkaTemplate,
+        rawEncodedJsonTopics.getSsm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(ssmReceiver);
 

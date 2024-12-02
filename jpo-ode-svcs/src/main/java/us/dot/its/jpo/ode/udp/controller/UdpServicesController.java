@@ -31,7 +31,7 @@ public class UdpServicesController {
 
         rm.submit(new BsmReceiver(udpProps.getBsm(), kafkaTemplate, rawEncodedJsonTopics.getBsm()));
         rm.submit(new TimReceiver(udpProps.getTim(), kafkaTemplate, rawEncodedJsonTopics.getTim()));
-        rm.submit(new SsmReceiver(udpProps.getSsm(), odeKafkaProperties, rawEncodedJsonTopics.getSsm()));
+        rm.submit(new SsmReceiver(udpProps.getSsm(), kafkaTemplate, rawEncodedJsonTopics.getSsm()));
         rm.submit(new SrmReceiver(udpProps.getSrm(), odeKafkaProperties, rawEncodedJsonTopics.getSrm()));
         rm.submit(new SpatReceiver(udpProps.getSpat(), odeKafkaProperties, rawEncodedJsonTopics.getSpat()));
         rm.submit(new MapReceiver(udpProps.getMap(), kafkaTemplate, rawEncodedJsonTopics.getMap()));
