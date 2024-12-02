@@ -64,7 +64,7 @@ class BsmReceiverTest {
   void testRun() throws Exception {
     String fileContent =
         Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.json"));
+            "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
 
     String expected = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
     // create the needed topic for production
