@@ -76,6 +76,7 @@ class MapReceiverTest {
     // and the schema version is set to the static schema version in the constructor. This means that the schema version
     // will be set to 6 for all OdeMsgMetadata objects created in the MapReceiver run method's code path.
     OdeMsgMetadata.setStaticSchemaVersion(7);
+
     MapReceiver mapReceiver = new MapReceiver(udpReceiverProperties.getMap(), kafkaTemplate, rawEncodedJsonTopics.getMap());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(mapReceiver);
@@ -96,10 +97,6 @@ class MapReceiverTest {
     Consumer<Integer, String> consumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
 
-    // Clarifying note (for Spring newbies):
-    // UdpServicesController is annotated with @Controller, and this test class is annotated with @SpringBootTest
-    // so a UdpServicesController will be instantiated before this test runs. That means the MapReceiver will also
-    // be instantiated and ready to consume UDP traffic from the same port we configure the TestUDPClient to send packets to.
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
 
     for (ApprovalTestCase approvalTestCase : approvalTestCases) {
