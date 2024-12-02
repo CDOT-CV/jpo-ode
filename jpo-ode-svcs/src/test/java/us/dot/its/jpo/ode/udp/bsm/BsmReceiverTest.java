@@ -44,13 +44,10 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
     }
 )
 @ContextConfiguration(classes = {
-    OdeKafkaProperties.class, UDPReceiverProperties.class,
+    UDPReceiverProperties.class,
     RawEncodedJsonTopics.class, KafkaProperties.class
 })
 class BsmReceiverTest {
-
-  @Autowired
-  OdeKafkaProperties odeKafkaProperties;
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
