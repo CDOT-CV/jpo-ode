@@ -1,0 +1,29 @@
+{
+  "metadata" : {
+    "recordType" : "spatTx",
+    "securityResultCode" : "success",
+    "payloadType" : "us.dot.its.jpo.ode.model.OdeAsn1Payload",
+    "serialId" : {
+      "streamId" : "38337a4b-9972-4c9e-86dd-ce18c4d0830c",
+      "bundleSize" : 1,
+      "bundleId" : 0,
+      "recordId" : 0,
+      "serialNumber" : 0
+    },
+    "odeReceivedAt" : "2024-11-26T23:53:21.120Z",
+    "schemaVersion" : 7,
+    "maxDurationTime" : 0,
+    "recordGeneratedBy" : "RSU",
+    "sanitized" : false,
+    "asn1" : "3030313333383030303831376137383030303030383936383035303032303436343262333432623334383032303231613135613935356139343031383131393061636430616364323031303038363835353563353535633030313034333432616165326161653030323832316131353537313535373000",
+    "spatSource" : "RSU",
+    "originIp" : "127.0.0.1",
+    "isCertPresent" : false
+  },
+  "payload" : {
+    "dataType" : "us.dot.its.jpo.ode.model.OdeHexByteArray",
+    "data" : {
+      "bytes" : "3030313333383030303831376137383030303030383936383035303032303436343262333432623334383032303231613135613935356139343031383131393061636430616364323031303038363835353563353535633030313034333432616165326161653030323832316131353537313535373000"
+    }
+  }
+}
