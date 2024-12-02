@@ -33,180 +33,190 @@ import java.net.DatagramPacket;
 @Slf4j
 public class UdpHexDecoder {
 
-    private UdpHexDecoder() {
-        throw new UnsupportedOperationException();
-    }
+  private UdpHexDecoder() {
+    throw new UnsupportedOperationException();
+  }
 
-    public static OdeAsn1Payload getPayloadHexString(DatagramPacket packet, SupportedMessageType msgType) throws InvalidPayloadException {
-        // extract the actual packet from the buffer
-        byte[] payload = packet.getData();
-        if (payload == null)
-            throw new InvalidPayloadException("Payload is null");
-        // convert bytes to hex string and verify identity
-        String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-        if (!payloadHexString.contains(HexUtils.toHexString(msgType.getStartFlag().getBytes())))
-            throw new InvalidPayloadException("Payload does not contain start flag");
+  public static OdeAsn1Payload getPayloadHexString(DatagramPacket packet,
+      SupportedMessageType msgType) throws InvalidPayloadException {
+    // extract the actual packet from the buffer
+    byte[] payload = packet.getData();
+      if (payload == null) {
+          throw new InvalidPayloadException("Payload is null");
+      }
+    // convert bytes to hex string and verify identity
+    String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
+      if (!payloadHexString.contains(HexUtils.toHexString(msgType.getStartFlag().getBytes()))) {
+          throw new InvalidPayloadException("Payload does not contain start flag");
+      }
 
-        log.debug("Full {} packet: {}", msgType, payloadHexString);
+    log.debug("Full {} packet: {}", msgType, payloadHexString);
 
-        payloadHexString = UperUtil.stripTrailingZeros(UperUtil.stripDot3Header(payloadHexString, msgType.getStartFlag())).toLowerCase();
-        log.debug("Stripped {} packet: {}", msgType, payloadHexString);
+    payloadHexString = UperUtil.stripTrailingZeros(
+        UperUtil.stripDot3Header(payloadHexString, msgType.getStartFlag())).toLowerCase();
+    log.debug("Stripped {} packet: {}", msgType, payloadHexString);
 
-        return new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
-    }
+    return new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
+  }
 
-    public static String buildJsonMapFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+  public static String buildJsonMapFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-        // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload mapPayload = getPayloadHexString(packet, SupportedMessageType.MAP);
-        OdeMapMetadata mapMetadata = new OdeMapMetadata(mapPayload);
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload mapPayload = getPayloadHexString(packet, SupportedMessageType.MAP);
+    OdeMapMetadata mapMetadata = new OdeMapMetadata(mapPayload);
 
-        // Add header data for the decoding process
-        mapMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    // Add header data for the decoding process
+    mapMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        mapMetadata.setOriginIp(senderIp);
-        mapMetadata.setMapSource(MapSource.RSU);
-        mapMetadata.setRecordType(RecordType.mapTx);
-        mapMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
-        mapMetadata.setSecurityResultCode(SecurityResultCode.success);
+    mapMetadata.setOriginIp(senderIp);
+    mapMetadata.setMapSource(MapSource.RSU);
+    mapMetadata.setRecordType(RecordType.mapTx);
+    mapMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
+    mapMetadata.setSecurityResultCode(SecurityResultCode.success);
 
-        return JsonUtils.toJson(new OdeAsn1Data(mapMetadata, mapPayload), false);
-    }
+    return JsonUtils.toJson(new OdeAsn1Data(mapMetadata, mapPayload), false);
+  }
 
-    public static String buildJsonSpatFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+  public static String buildJsonSpatFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-        // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload spatPayload = getPayloadHexString(packet, SupportedMessageType.SPAT);
-        OdeSpatMetadata spatMetadata = new OdeSpatMetadata(spatPayload);
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload spatPayload = getPayloadHexString(packet, SupportedMessageType.SPAT);
+    OdeSpatMetadata spatMetadata = new OdeSpatMetadata(spatPayload);
 
-        // Add header data for the decoding process
-        spatMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    // Add header data for the decoding process
+    spatMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        spatMetadata.setOriginIp(senderIp);
-        spatMetadata.setSpatSource(SpatSource.RSU);
-        spatMetadata.setRecordType(RecordType.spatTx);
-        spatMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
-        spatMetadata.setSecurityResultCode(SecurityResultCode.success);
+    spatMetadata.setOriginIp(senderIp);
+    spatMetadata.setSpatSource(SpatSource.RSU);
+    spatMetadata.setRecordType(RecordType.spatTx);
+    spatMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
+    spatMetadata.setSecurityResultCode(SecurityResultCode.success);
 
+    return JsonUtils.toJson(new OdeAsn1Data(spatMetadata, spatPayload), false);
+  }
 
-        return JsonUtils.toJson(new OdeAsn1Data(spatMetadata, spatPayload), false);
-    }
+  public static String buildJsonTimFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-    public static String buildJsonTimFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload timPayload = getPayloadHexString(packet, SupportedMessageType.TIM);
+    OdeTimMetadata timMetadata = new OdeTimMetadata(timPayload);
 
-        // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload timPayload = getPayloadHexString(packet, SupportedMessageType.TIM);
-        OdeTimMetadata timMetadata = new OdeTimMetadata(timPayload);
+    // Add header data for the decoding process
+    timMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        // Add header data for the decoding process
-        timMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    timMetadata.setOriginIp(senderIp);
+    timMetadata.setRecordType(RecordType.timMsg);
+    timMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
+    timMetadata.setSecurityResultCode(SecurityResultCode.success);
+    return JsonUtils.toJson(new OdeAsn1Data(timMetadata, timPayload), false);
+  }
 
-        timMetadata.setOriginIp(senderIp);
-        timMetadata.setRecordType(RecordType.timMsg);
-        timMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
-        timMetadata.setSecurityResultCode(SecurityResultCode.success);
-        return JsonUtils.toJson(new OdeAsn1Data(timMetadata, timPayload), false);
-    }
+  public static String buildJsonBsmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-    public static String buildJsonBsmFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+    OdeAsn1Payload bsmPayload = getPayloadHexString(packet, SupportedMessageType.BSM);
+    OdeBsmMetadata bsmMetadata = new OdeBsmMetadata(bsmPayload);
 
-        OdeAsn1Payload bsmPayload = getPayloadHexString(packet, SupportedMessageType.BSM);
-        OdeBsmMetadata bsmMetadata = new OdeBsmMetadata(bsmPayload);
+    // Set BSM Metadata values that can be assumed from the UDP endpoint
+    bsmMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        // Set BSM Metadata values that can be assumed from the UDP endpoint
-        bsmMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    ReceivedMessageDetails receivedMessageDetails = new ReceivedMessageDetails();
+    OdeLogMsgMetadataLocation locationData = new OdeLogMsgMetadataLocation(
+        "unavailable",
+        "unavailable",
+        "unavailable",
+        "unavailable",
+        "unavailable");
+    receivedMessageDetails.setRxSource(RxSource.RSU);
+    receivedMessageDetails.setLocationData(locationData);
+    bsmMetadata.setReceivedMessageDetails(receivedMessageDetails);
 
-        ReceivedMessageDetails receivedMessageDetails = new ReceivedMessageDetails();
-        OdeLogMsgMetadataLocation locationData = new OdeLogMsgMetadataLocation(
-                "unavailable",
-                "unavailable",
-                "unavailable",
-                "unavailable",
-                "unavailable");
-        receivedMessageDetails.setRxSource(RxSource.RSU);
-        receivedMessageDetails.setLocationData(locationData);
-        bsmMetadata.setReceivedMessageDetails(receivedMessageDetails);
+    bsmMetadata.setOriginIp(senderIp);
+    bsmMetadata.setBsmSource(BsmSource.EV);
+    bsmMetadata.setRecordType(RecordType.bsmTx);
+    bsmMetadata.setRecordGeneratedBy(GeneratedBy.OBU);
+    bsmMetadata.setSecurityResultCode(SecurityResultCode.success);
 
-        bsmMetadata.setOriginIp(senderIp);
-        bsmMetadata.setBsmSource(BsmSource.EV);
-        bsmMetadata.setRecordType(RecordType.bsmTx);
-        bsmMetadata.setRecordGeneratedBy(GeneratedBy.OBU);
-        bsmMetadata.setSecurityResultCode(SecurityResultCode.success);
+    return JsonUtils.toJson(new OdeAsn1Data(bsmMetadata, bsmPayload), false);
+  }
 
-        return JsonUtils.toJson(new OdeAsn1Data(bsmMetadata, bsmPayload), false);
-    }
+  public static String buildJsonSsmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-    public static String buildJsonSsmFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload ssmPayload = getPayloadHexString(packet, SupportedMessageType.SSM);
+    OdeSsmMetadata ssmMetadata = new OdeSsmMetadata(ssmPayload);
 
-        // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload ssmPayload = getPayloadHexString(packet, SupportedMessageType.SSM);
-        OdeSsmMetadata ssmMetadata = new OdeSsmMetadata(ssmPayload);
+    // Add header data for the decoding process
+    ssmMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        // Add header data for the decoding process
-        ssmMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    ssmMetadata.setOriginIp(senderIp);
+    ssmMetadata.setSsmSource(SsmSource.RSU);
+    ssmMetadata.setRecordType(RecordType.ssmTx);
+    ssmMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
+    ssmMetadata.setSecurityResultCode(SecurityResultCode.success);
 
-        ssmMetadata.setOriginIp(senderIp);
-        ssmMetadata.setSsmSource(SsmSource.RSU);
-        ssmMetadata.setRecordType(RecordType.ssmTx);
-        ssmMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
-        ssmMetadata.setSecurityResultCode(SecurityResultCode.success);
+    return JsonUtils.toJson(new OdeAsn1Data(ssmMetadata, ssmPayload), false);
+  }
 
-        return JsonUtils.toJson(new OdeAsn1Data(ssmMetadata, ssmPayload), false);
-    }
+  public static String buildJsonSrmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-    public static String buildJsonSrmFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload srmPayload = getPayloadHexString(packet, SupportedMessageType.SRM);
+    OdeSrmMetadata srmMetadata = new OdeSrmMetadata(srmPayload);
 
-        // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload srmPayload = getPayloadHexString(packet, SupportedMessageType.SRM);
-        OdeSrmMetadata srmMetadata = new OdeSrmMetadata(srmPayload);
+    // Add header data for the decoding process
+    srmMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        // Add header data for the decoding process
-        srmMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    srmMetadata.setOriginIp(senderIp);
+    srmMetadata.setSrmSource(SrmSource.RSU);
+    srmMetadata.setRecordType(RecordType.srmTx);
+    srmMetadata.setRecordGeneratedBy(GeneratedBy.OBU);
+    srmMetadata.setSecurityResultCode(SecurityResultCode.success);
 
-        srmMetadata.setOriginIp(senderIp);
-        srmMetadata.setSrmSource(SrmSource.RSU);
-        srmMetadata.setRecordType(RecordType.srmTx);
-        srmMetadata.setRecordGeneratedBy(GeneratedBy.OBU);
-        srmMetadata.setSecurityResultCode(SecurityResultCode.success);
+    return JsonUtils.toJson(new OdeAsn1Data(srmMetadata, srmPayload), false);
+  }
 
-        return JsonUtils.toJson(new OdeAsn1Data(srmMetadata, srmPayload), false);
-    }
+  public static String buildJsonPsmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-    public static String buildJsonPsmFromPacket(DatagramPacket packet) throws InvalidPayloadException {
-        String senderIp = packet.getAddress().getHostAddress();
-        int senderPort = packet.getPort();
-        log.debug("Packet received from {}:{}", senderIp, senderPort);
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload psmPayload = getPayloadHexString(packet, SupportedMessageType.PSM);
+    OdePsmMetadata psmMetadata = new OdePsmMetadata(psmPayload);
+    // Add header data for the decoding process
+    psmMetadata.setOdeReceivedAt(DateTimeUtils.now());
 
-        // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-        OdeAsn1Payload psmPayload = getPayloadHexString(packet, SupportedMessageType.PSM);
-        OdePsmMetadata psmMetadata = new OdePsmMetadata(psmPayload);
-        // Add header data for the decoding process
-        psmMetadata.setOdeReceivedAt(DateTimeUtils.now());
+    psmMetadata.setOriginIp(senderIp);
+    psmMetadata.setPsmSource(PsmSource.RSU);
+    psmMetadata.setRecordType(RecordType.psmTx);
+    psmMetadata.setRecordGeneratedBy(GeneratedBy.UNKNOWN);
+    psmMetadata.setSecurityResultCode(SecurityResultCode.success);
 
-        psmMetadata.setOriginIp(senderIp);
-        psmMetadata.setPsmSource(PsmSource.RSU);
-        psmMetadata.setRecordType(RecordType.psmTx);
-        psmMetadata.setRecordGeneratedBy(GeneratedBy.UNKNOWN);
-        psmMetadata.setSecurityResultCode(SecurityResultCode.success);
-
-        return JsonUtils.toJson(new OdeAsn1Data(psmMetadata, psmPayload), false);
-    }
+    return JsonUtils.toJson(new OdeAsn1Data(psmMetadata, psmPayload), false);
+  }
 }
