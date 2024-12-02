@@ -41,14 +41,14 @@ public class UdpHexDecoder {
       SupportedMessageType msgType) throws InvalidPayloadException {
     // extract the actual packet from the buffer
     byte[] payload = packet.getData();
-      if (payload == null) {
-          throw new InvalidPayloadException("Payload is null");
-      }
+    if (payload == null) {
+      throw new InvalidPayloadException("Payload is null");
+    }
     // convert bytes to hex string and verify identity
     String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-      if (!payloadHexString.contains(HexUtils.toHexString(msgType.getStartFlag().getBytes()))) {
-          throw new InvalidPayloadException("Payload does not contain start flag");
-      }
+    if (!payloadHexString.contains(HexUtils.toHexString(msgType.getStartFlag().getBytes()))) {
+      throw new InvalidPayloadException("Payload does not contain start flag");
+    }
 
     log.debug("Full {} packet: {}", msgType, payloadHexString);
 
