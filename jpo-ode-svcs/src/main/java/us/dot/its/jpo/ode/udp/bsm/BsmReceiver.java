@@ -1,26 +1,24 @@
 package us.dot.its.jpo.ode.udp.bsm;
 
+import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.StringPublisher;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
-import java.net.DatagramPacket;
-
 @Slf4j
 public class BsmReceiver extends AbstractUdpReceiverPublisher {
 
-    private final StringPublisher bsmPublisher;
+    private final KafkaTemplate<String, String> bsmPublisher;
     private final String publishTopic;
 
-    public BsmReceiver(UDPReceiverProperties.ReceiverProperties receiverProperties, OdeKafkaProperties odeKafkaProperties, String publishTopic) {
+    public BsmReceiver(UDPReceiverProperties.ReceiverProperties receiverProperties, KafkaTemplate<String, String> template, String publishTopic) {
         super(receiverProperties.getReceiverPort(), receiverProperties.getBufferSize());
 
         this.publishTopic = publishTopic;
-        this.bsmPublisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(), odeKafkaProperties.getDisabledTopics());
+        this.bsmPublisher = template;
     }
 
     @Override
@@ -36,7 +34,14 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
                 if (packet.getLength() > 0) {
                     String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
                     if (bsmJson != null) {
-                        bsmPublisher.publish(publishTopic, bsmJson);
+                        log.debug("Publishing String data to {}", publishTopic);
+
+                        var sendResult = bsmPublisher.send(publishTopic, bsmJson);
+                        sendResult.whenCompleteAsync( (result, error) -> {
+                            if (error != null) {
+                                log.error("Error sending BSM to Kafka", error);
+                            }
+                        });
                     }
                 }
             } catch (InvalidPayloadException e) {

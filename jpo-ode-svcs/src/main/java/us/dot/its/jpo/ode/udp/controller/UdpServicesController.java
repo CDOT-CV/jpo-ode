@@ -29,7 +29,7 @@ public class UdpServicesController {
         ServiceManager rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
         log.debug("Starting UDP receiver services...");
 
-        rm.submit(new BsmReceiver(udpProps.getBsm(), odeKafkaProperties, rawEncodedJsonTopics.getBsm()));
+        rm.submit(new BsmReceiver(udpProps.getBsm(), kafkaTemplate, rawEncodedJsonTopics.getBsm()));
         rm.submit(new TimReceiver(udpProps.getTim(), odeKafkaProperties, rawEncodedJsonTopics.getTim()));
         rm.submit(new SsmReceiver(udpProps.getSsm(), odeKafkaProperties, rawEncodedJsonTopics.getSsm()));
         rm.submit(new SrmReceiver(udpProps.getSrm(), odeKafkaProperties, rawEncodedJsonTopics.getSrm()));
