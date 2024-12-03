@@ -19,6 +19,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ContextConfiguration;
@@ -53,7 +54,7 @@ class SrmReceiverTest {
   RawEncodedJsonTopics rawEncodedJsonTopics;
 
   @Autowired
-  OdeKafkaProperties odeKafkaProperties;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
@@ -78,9 +79,8 @@ class SrmReceiverTest {
 
     SrmReceiver srmReceiver = new SrmReceiver(
         udpReceiverProperties.getSrm(),
-        odeKafkaProperties,
-        rawEncodedJsonTopics.getSrm()
-    );
+        rawEncodedJsonTopics.getSrm(),
+        kafkaTemplate);
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(srmReceiver);
 
