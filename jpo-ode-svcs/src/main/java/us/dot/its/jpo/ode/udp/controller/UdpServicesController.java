@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Controller;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.udp.bsm.BsmReceiver;
 import us.dot.its.jpo.ode.udp.generic.GenericReceiver;
@@ -23,7 +22,7 @@ import us.dot.its.jpo.ode.udp.tim.TimReceiver;
 public class UdpServicesController {
 
     @Autowired
-    public UdpServicesController(UDPReceiverProperties udpProps, OdeKafkaProperties odeKafkaProperties, RawEncodedJsonTopics rawEncodedJsonTopics, KafkaTemplate<String, String> kafkaTemplate) {
+    public UdpServicesController(UDPReceiverProperties udpProps, RawEncodedJsonTopics rawEncodedJsonTopics, KafkaTemplate<String, String> kafkaTemplate) {
         super();
 
         ServiceManager rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
