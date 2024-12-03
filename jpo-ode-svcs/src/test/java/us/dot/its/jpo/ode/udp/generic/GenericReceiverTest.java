@@ -36,7 +36,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 @SpringBootTest(
     classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class},
     properties = {
-        "ode.receivers.generic.receiver-port=15459",
+        "ode.receivers.generic.receiver-port=15460",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.GenericReceiverTestBSM",
         "ode.kafka.topics.raw-encoded-json.map=topic.GenericReceiverTestMAP",
         "ode.kafka.topics.raw-encoded-json.psm=topic.GenericReceiverTestPSM",
