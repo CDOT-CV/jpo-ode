@@ -79,8 +79,8 @@ class SrmReceiverTest {
 
     SrmReceiver srmReceiver = new SrmReceiver(
         udpReceiverProperties.getSrm(),
-        rawEncodedJsonTopics.getSrm(),
-        kafkaTemplate);
+        kafkaTemplate, rawEncodedJsonTopics.getSrm()
+    );
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(srmReceiver);
 

@@ -14,8 +14,8 @@ public class SrmReceiver extends AbstractUdpReceiverPublisher {
     private final KafkaTemplate<String, String> srmPublisher;
     private final String publishTopic;
 
-    public SrmReceiver(ReceiverProperties receiverProperties, String publishTopic,
-        KafkaTemplate<String, String> kafkaTemplate) {
+    public SrmReceiver(ReceiverProperties receiverProperties,
+        KafkaTemplate<String, String> kafkaTemplate, String publishTopic) {
         super(receiverProperties.getReceiverPort(), receiverProperties.getBufferSize());
 
         this.publishTopic = publishTopic;

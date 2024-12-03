@@ -102,8 +102,8 @@ class GenericReceiverTest {
 
     GenericReceiver genericReceiver = new GenericReceiver(
         udpReceiverProperties.getGeneric(),
-        rawEncodedJsonTopics,
-        kafkaTemplate);
+        kafkaTemplate, rawEncodedJsonTopics
+    );
 
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(genericReceiver);

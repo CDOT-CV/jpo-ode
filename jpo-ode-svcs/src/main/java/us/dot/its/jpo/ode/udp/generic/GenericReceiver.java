@@ -20,8 +20,8 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
   private final KafkaTemplate<String, String> publisher;
   private final RawEncodedJsonTopics rawEncodedJsonTopics;
 
-  public GenericReceiver(ReceiverProperties props, RawEncodedJsonTopics rawEncodedJsonTopics,
-      KafkaTemplate<String, String> kafkaTemplate) {
+  public GenericReceiver(ReceiverProperties props, KafkaTemplate<String, String> kafkaTemplate,
+      RawEncodedJsonTopics rawEncodedJsonTopics) {
     super(props.getReceiverPort(), props.getBufferSize());
 
     this.publisher = kafkaTemplate;
