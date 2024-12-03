@@ -31,7 +31,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.testUtilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
-import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @RunWith(SpringRunner.class)
@@ -83,7 +82,7 @@ class BsmReceiverTest {
     executorService.submit(bsmReceiver);
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getBsm().getReceiverPort());
-    udpClient.send(SupportedMessageType.BSM.getStartFlag() + fileContent);
+    udpClient.send(fileContent);
 
     // setup the consumer for the topic bsmreceiver produces to
     var consumerProps = KafkaTestUtils.consumerProps(
