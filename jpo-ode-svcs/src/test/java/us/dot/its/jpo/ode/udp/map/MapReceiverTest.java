@@ -66,7 +66,7 @@ class MapReceiverTest {
   void testMapReceiver() throws IOException {
     String path =
         "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
-    List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path, "\u0000\u0012");
+    List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
     // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
     DateTimeUtils.setClock(
@@ -114,7 +114,7 @@ class MapReceiverTest {
       expectedJson.getJSONObject("metadata").remove("serialId");
       producedJson.getJSONObject("metadata").remove("serialId");
 
-      assertEquals(expectedJson.toString(), producedJson.toString());
+      assertEquals(expectedJson.toString(), producedJson.toString(), approvalTestCase.getDescription());
     }
   }
 }

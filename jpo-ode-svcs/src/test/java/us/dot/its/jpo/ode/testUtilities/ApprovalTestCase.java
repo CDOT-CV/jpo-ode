@@ -20,10 +20,6 @@ public class ApprovalTestCase {
     public String expected;
 
     public static List<ApprovalTestCase> deserializeTestCases(String path) throws IOException {
-        return deserializeTestCases(path, "");
-    }
-
-    public static List<ApprovalTestCase> deserializeTestCases(String path, String startFlag) throws IOException {
         List<ApprovalTestCase> cases = new ArrayList<>();
         File file = new File(path);
         byte[] jsonData = Files.readAllBytes(file.toPath());
@@ -38,7 +34,7 @@ public class ApprovalTestCase {
             approvalTestCase.setDescription(json.getString("description"));
 
             Object input = json.get("input");
-            approvalTestCase.setInput(startFlag + input.toString()); // Add the 2-byte length prefix to the input
+            approvalTestCase.setInput(input.toString());
 
             approvalTestCase.setExpected(json.get("expected").toString());
 
