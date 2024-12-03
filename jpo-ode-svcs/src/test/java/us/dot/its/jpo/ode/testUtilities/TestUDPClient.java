@@ -8,6 +8,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import org.apache.tomcat.util.buf.HexUtils;
 
 @Slf4j
 public class TestUDPClient {
@@ -24,7 +25,8 @@ public class TestUDPClient {
     }
 
     public void send(String msg) throws IOException {
-        buf = msg.getBytes();
+        buf = HexUtils.fromHexString(msg);
+
         DatagramPacket packet = new DatagramPacket(buf, buf.length, address, sendPort);
         socket.send(packet);
     }

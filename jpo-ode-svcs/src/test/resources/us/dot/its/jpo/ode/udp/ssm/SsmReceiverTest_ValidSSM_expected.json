@@ -15,14 +15,14 @@
     "maxDurationTime": 0,
     "recordGeneratedBy": "RSU",
     "sanitized": false,
-    "asn1": "30303165313230303030303030303035653963303430373161323636313463303630303030343062613000",
+    "asn1": "001E120000000005E9C04071A26614C06000040BA000",
     "originIp": "127.0.0.1",
     "ssmSource": "RSU"
   },
   "payload": {
     "dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
     "data": {
-      "bytes": "30303165313230303030303030303035653963303430373161323636313463303630303030343062613000"
+      "bytes": "001E120000000005E9C04071A26614C06000040BA000"
     }
   }
 }

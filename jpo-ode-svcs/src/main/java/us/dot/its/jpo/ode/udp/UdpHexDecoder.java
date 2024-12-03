@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.udp;
 
+import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -28,8 +29,6 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
-import java.net.DatagramPacket;
-
 @Slf4j
 public class UdpHexDecoder {
 
@@ -46,7 +45,7 @@ public class UdpHexDecoder {
     }
     // convert bytes to hex string and verify identity
     String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-    if (!payloadHexString.contains(HexUtils.toHexString(msgType.getStartFlag().getBytes()))) {
+    if (!payloadHexString.contains(msgType.getStartFlag())) {
       throw new InvalidPayloadException("Payload does not contain start flag");
     }
 

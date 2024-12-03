@@ -75,10 +75,6 @@ public class UperUtil {
    */
   public static String stripDot3Header(String hexString, String payloadStartFlag) {
     int payloadStartIndex = findValidStartFlagLocation(hexString, payloadStartFlag);
-    if (payloadStartIndex == -1) {
-      log.debug("no start flag found for {}", payloadStartFlag);
-      return hexString;
-    }
     String headers = hexString.substring(0, payloadStartIndex);
     String payload = hexString.substring(payloadStartIndex);
     log.debug("Base payload: {}", payload);
