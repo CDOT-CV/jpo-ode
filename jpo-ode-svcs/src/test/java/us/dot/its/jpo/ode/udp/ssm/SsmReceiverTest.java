@@ -61,12 +61,6 @@ class SsmReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
-
-    String expected = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM_expected.json"));
-
     try {
       embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getSsm(), 1, (short) 1));
     } catch (Exception e) {
@@ -80,6 +74,12 @@ class SsmReceiverTest {
         rawEncodedJsonTopics.getSsm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(ssmReceiver);
+
+    String fileContent =
+        Files.readString(Paths.get(
+            "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSsm().getReceiverPort());
     udpClient.send(fileContent);
