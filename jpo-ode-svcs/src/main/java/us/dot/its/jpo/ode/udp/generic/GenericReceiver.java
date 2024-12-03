@@ -1,28 +1,29 @@
 package us.dot.its.jpo.ode.udp.generic;
 
+import java.net.DatagramPacket;
+import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
-import us.dot.its.jpo.ode.coder.StringPublisher;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
-import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
+import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 import us.dot.its.jpo.ode.uper.UperUtil;
-
-import java.net.DatagramPacket;
 
 @Slf4j
 public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
-    private final StringPublisher publisher;
+    private final KafkaTemplate<String, String> publisher;
     private final RawEncodedJsonTopics rawEncodedJsonTopics;
 
-    public GenericReceiver(UDPReceiverProperties.ReceiverProperties props, OdeKafkaProperties odeKafkaProperties, RawEncodedJsonTopics rawEncodedJsonTopics) {
+    public GenericReceiver(ReceiverProperties props, RawEncodedJsonTopics rawEncodedJsonTopics,
+        KafkaTemplate<String, String> kafkaTemplate) {
         super(props.getReceiverPort(), props.getBufferSize());
 
-        this.publisher = new StringPublisher(odeKafkaProperties.getBrokers(), odeKafkaProperties.getProducer().getType(), odeKafkaProperties.getDisabledTopics());
+        this.publisher = kafkaTemplate;
         this.rawEncodedJsonTopics = rawEncodedJsonTopics;
     }
 
@@ -55,51 +56,59 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
                 log.debug("Detected Message Type {}", messageType);
 
+              CompletableFuture<SendResult<String, String>> completableFuture = null;
                 switch (messageType) {
                     case "MAP" -> {
                         String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
                         log.debug("Sending Data to Topic {}", mapJson);
                         if (mapJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getMap(), mapJson);
+                          completableFuture = publisher.send(rawEncodedJsonTopics.getMap(), mapJson);
                         }
                     }
                     case "SPAT" -> {
                         String spatJson = UdpHexDecoder.buildJsonSpatFromPacket(packet);
                         if (spatJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getSpat(), spatJson);
+                          completableFuture = publisher.send(rawEncodedJsonTopics.getSpat(), spatJson);
                         }
                     }
                     case "TIM" -> {
                         String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
                         if (timJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getTim(), timJson);
+                          completableFuture = publisher.send(rawEncodedJsonTopics.getTim(), timJson);
                         }
                     }
                     case "BSM" -> {
                         String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
                         if (bsmJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getBsm(), bsmJson);
+                          completableFuture = publisher.send(rawEncodedJsonTopics.getBsm(), bsmJson);
                         }
                     }
                     case "SSM" -> {
                         String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
                         if (ssmJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getSsm(), ssmJson);
+                          completableFuture =  publisher.send(rawEncodedJsonTopics.getSsm(), ssmJson);
                         }
                     }
                     case "SRM" -> {
                         String srmJson = UdpHexDecoder.buildJsonSrmFromPacket(packet);
                         if (srmJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getSrm(), srmJson);
+                          completableFuture =  publisher.send(rawEncodedJsonTopics.getSrm(), srmJson);
                         }
                     }
                     case "PSM" -> {
                         String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);
                         if (psmJson != null) {
-                            publisher.publish(rawEncodedJsonTopics.getPsm(), psmJson);
+                          completableFuture = publisher.send(rawEncodedJsonTopics.getPsm(), psmJson);
                         }
                     }
                     default -> log.debug("Unknown Message Type");
+                }
+                if (completableFuture != null) {
+                   completableFuture.whenCompleteAsync((message, exception) -> {
+                     if (exception != null) {
+                       log.error("Exception while publishing {} message", messageType, exception);
+                     }
+                   });
                 }
             } catch (InvalidPayloadException e) {
                 log.error("Error decoding packet", e);
