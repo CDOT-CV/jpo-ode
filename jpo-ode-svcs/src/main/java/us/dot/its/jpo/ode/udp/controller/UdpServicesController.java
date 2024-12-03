@@ -21,22 +21,24 @@ import us.dot.its.jpo.ode.udp.tim.TimReceiver;
 @Slf4j
 public class UdpServicesController {
 
-    @Autowired
-    public UdpServicesController(UDPReceiverProperties udpProps, RawEncodedJsonTopics rawEncodedJsonTopics, KafkaTemplate<String, String> kafkaTemplate) {
-        super();
+  @Autowired
+  public UdpServicesController(UDPReceiverProperties udpProps,
+      RawEncodedJsonTopics rawEncodedJsonTopics,
+      KafkaTemplate<String, String> kafkaTemplate) {
+    super();
 
-        ServiceManager rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
-        log.debug("Starting UDP receiver services...");
+    ServiceManager rm = new ServiceManager(new UdpServiceThreadFactory("UdpReceiverManager"));
+    log.debug("Starting UDP receiver services...");
 
-        rm.submit(new BsmReceiver(udpProps.getBsm(), kafkaTemplate, rawEncodedJsonTopics.getBsm()));
-        rm.submit(new TimReceiver(udpProps.getTim(), kafkaTemplate, rawEncodedJsonTopics.getTim()));
-        rm.submit(new SsmReceiver(udpProps.getSsm(), kafkaTemplate, rawEncodedJsonTopics.getSsm()));
-        rm.submit(new SrmReceiver(udpProps.getSrm(), rawEncodedJsonTopics.getSrm(), kafkaTemplate));
-        rm.submit(new SpatReceiver(udpProps.getSpat(), kafkaTemplate, rawEncodedJsonTopics.getSpat()));
-        rm.submit(new MapReceiver(udpProps.getMap(), kafkaTemplate, rawEncodedJsonTopics.getMap()));
-        rm.submit(new PsmReceiver(udpProps.getPsm(), kafkaTemplate, rawEncodedJsonTopics.getPsm()));
-        rm.submit(new GenericReceiver(udpProps.getGeneric(), rawEncodedJsonTopics, kafkaTemplate));
+    rm.submit(new BsmReceiver(udpProps.getBsm(), kafkaTemplate, rawEncodedJsonTopics.getBsm()));
+    rm.submit(new TimReceiver(udpProps.getTim(), kafkaTemplate, rawEncodedJsonTopics.getTim()));
+    rm.submit(new SsmReceiver(udpProps.getSsm(), kafkaTemplate, rawEncodedJsonTopics.getSsm()));
+    rm.submit(new SrmReceiver(udpProps.getSrm(), rawEncodedJsonTopics.getSrm(), kafkaTemplate));
+    rm.submit(new SpatReceiver(udpProps.getSpat(), kafkaTemplate, rawEncodedJsonTopics.getSpat()));
+    rm.submit(new MapReceiver(udpProps.getMap(), kafkaTemplate, rawEncodedJsonTopics.getMap()));
+    rm.submit(new PsmReceiver(udpProps.getPsm(), kafkaTemplate, rawEncodedJsonTopics.getPsm()));
+    rm.submit(new GenericReceiver(udpProps.getGeneric(), rawEncodedJsonTopics, kafkaTemplate));
 
-        log.debug("UDP receiver services started.");
-    }
+    log.debug("UDP receiver services started.");
+  }
 }
