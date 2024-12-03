@@ -66,23 +66,7 @@ class GenericReceiverTest {
   @Test
   void testRun() throws Exception {
     // Read in the test and expected data from the bsm, map, spat, srm, ssm, and tim files
-    String psmFileContent = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
-    String expectedPsm = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
 
-    String bsmFileContent = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
-    String expectedBsm = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
-
-    String mapFileContent = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP.txt"));
-    String expectedMap = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP_expected.json"));
-
-    String spatFileContent = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
-    String expectedSpat = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
-
-    String ssmFileContent = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
-    String expectedSsm = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM_expected.json"));
-
-    String timFileContent = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
-    String expectedTim = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
 
 
     // Topics setup
@@ -108,7 +92,8 @@ class GenericReceiverTest {
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(genericReceiver);
 
-    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getGeneric().getReceiverPort());
+    TestUDPClient udpClient = new TestUDPClient(
+        udpReceiverProperties.getGeneric().getReceiverPort());
 
     var consumerProps = KafkaTestUtils.consumerProps("GenericReceiverTest", "true", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
@@ -125,27 +110,63 @@ class GenericReceiverTest {
     DateTimeUtils.setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
 
     // Test the PSM path
+    String psmFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
+    String expectedPsm = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
+
     udpClient.send(psmFileContent);
     var psmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getPsm());
     assertExpected("Produced PSM message does not match expected", psmRecord.value(), expectedPsm);
 
+    // Test the BSM path
+    String bsmFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
+    String expectedBsm = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
     udpClient.send(bsmFileContent);
-    var bsmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
-    assertExpected("Produced BSM message does not match expected",bsmRecord.value(), expectedBsm);
 
+    var bsmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
+    assertExpected("Produced BSM message does not match expected", bsmRecord.value(), expectedBsm);
+
+    // Test the MAP path
+    String mapFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP.txt"));
+    String expectedMap = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP_expected.json"));
     udpClient.send(mapFileContent);
+
     var mapRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
     assertExpected("Produced MAP message does not match expected", mapRecord.value(), expectedMap);
 
+    // Test the SPAT path
+    String spatFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
+    String expectedSpat = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
     udpClient.send(spatFileContent);
-    var spatRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSpat());
-    assertExpected("Produced SPAT message does not match expected", spatRecord.value(), expectedSpat);
 
+    var spatRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSpat());
+    assertExpected("Produced SPAT message does not match expected", spatRecord.value(),
+        expectedSpat);
+
+    // Test the SSM path
+    String ssmFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
+    String expectedSsm = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM_expected.json"));
     udpClient.send(ssmFileContent);
+
     var ssmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSsm());
     assertExpected("Produced SSM message does not match expected", ssmRecord.value(), expectedSsm);
 
+    // Test the TIM path
+    String timFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
+    String expectedTim = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
     udpClient.send(timFileContent);
+
     var timRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getTim());
     assertExpected("Produced TIM message does not match expected", timRecord.value(), expectedTim);
   }
