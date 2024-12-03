@@ -43,6 +43,9 @@ public class KafkaProducerConfig {
   private Map<String, Object> buildProducerProperties() {
     var producerProps = kafkaProperties.buildProducerProperties();
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+      producerProps.put("ssl.endpoint.identification.algorithm", "https");
+      producerProps.put("security.protocol", "SASL_SSL");
+      producerProps.put("sasl.mechanism", "PLAIN");
       producerProps.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
     }
     return producerProps;
