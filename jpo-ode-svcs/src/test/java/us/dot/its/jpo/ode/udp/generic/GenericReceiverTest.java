@@ -127,30 +127,30 @@ class GenericReceiverTest {
     // Test the PSM path
     udpClient.send(psmFileContent);
     var psmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getPsm());
-    assertExpected(psmRecord.value(), expectedPsm);
+    assertExpected("Produced PSM message does not match expected", psmRecord.value(), expectedPsm);
 
     udpClient.send(bsmFileContent);
     var bsmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
-    assertExpected(bsmRecord.value(), expectedBsm);
+    assertExpected("Produced BSM message does not match expected",bsmRecord.value(), expectedBsm);
 
     udpClient.send(mapFileContent);
     var mapRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
-    assertExpected(mapRecord.value(), expectedMap);
+    assertExpected("Produced MAP message does not match expected", mapRecord.value(), expectedMap);
 
     udpClient.send(spatFileContent);
     var spatRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSpat());
-    assertExpected(spatRecord.value(), expectedSpat);
+    assertExpected("Produced SPAT message does not match expected", spatRecord.value(), expectedSpat);
 
     udpClient.send(ssmFileContent);
     var ssmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSsm());
-    assertExpected(ssmRecord.value(), expectedSsm);
+    assertExpected("Produced SSM message does not match expected", ssmRecord.value(), expectedSsm);
 
     udpClient.send(timFileContent);
     var timRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getTim());
-    assertExpected(timRecord.value(), expectedTim);
+    assertExpected("Produced TIM message does not match expected", timRecord.value(), expectedTim);
   }
 
-  private static void assertExpected(String actual, String expected) {
+  private static void assertExpected(String failureMsg, String actual, String expected) {
     JSONObject producedJson = new JSONObject(actual);
     JSONObject expectedJson = new JSONObject(expected);
 
@@ -159,6 +159,6 @@ class GenericReceiverTest {
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(expectedJson.toString(2), producedJson.toString(2));
+    assertEquals(expectedJson.toString(2), producedJson.toString(2), failureMsg);
   }
 }
