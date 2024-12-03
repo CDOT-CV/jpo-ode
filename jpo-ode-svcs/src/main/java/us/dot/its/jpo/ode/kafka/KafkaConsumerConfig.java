@@ -123,10 +123,7 @@ public class KafkaConsumerConfig {
   private Map<String, Object> getKafkaConsumerProperties() {
     Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
-      props.put("ssl.endpoint.identification.algorithm", "https");
-      props.put("security.protocol", "SASL_SSL");
-      props.put("sasl.mechanism", "PLAIN");
-      props.put("sasl.jaas.config", odeKafkaProperties.getConfluent().getSaslJaasConfig());
+      props.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
     }
     return props;
   }

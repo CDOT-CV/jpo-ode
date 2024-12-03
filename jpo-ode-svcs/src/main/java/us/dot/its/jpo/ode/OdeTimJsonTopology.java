@@ -34,7 +34,7 @@ public class OdeTimJsonTopology {
         streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
 
         if ("CONFLUENT".equals(odeKafkaProps.getKafkaType())) {
-            streamsProperties.put("sasl.jaas.config", odeKafkaProps.getConfluent().getSaslJaasConfig());
+            streamsProperties.putAll(odeKafkaProps.getConfluent().buildConfluentProperties());
         }
         streams = new KafkaStreams(buildTopology(topic), streamsProperties);
         streams.setStateListener((newState, oldState) ->
