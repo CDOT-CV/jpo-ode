@@ -60,14 +60,6 @@ class PsmReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    // Replace with your actual file path
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
-
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
-
     try {
       embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getPsm(), 1, (short) 1));
     } catch (Exception e) {
@@ -81,6 +73,12 @@ class PsmReceiverTest {
         rawEncodedJsonTopics.getPsm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(psmReceiver);
+
+    String fileContent =
+        Files.readString(Paths.get(
+            "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getPsm().getReceiverPort());
     udpClient.send(fileContent);
