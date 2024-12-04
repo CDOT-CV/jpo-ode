@@ -29,6 +29,7 @@ import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.util.JsonUtils;
+import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
 @Slf4j
 @SpringBootTest(
@@ -60,11 +61,9 @@ class KafkaProducerConfigTest {
       }
     }
     stringKafkaTemplate =
-        kafkaProducerConfig.kafkaTemplate(kafkaProducerConfig.producerFactory(),
-            kafkaProducerConfig.disabledTopicsStringInterceptor(odeKafkaProperties));
+        kafkaProducerConfig.kafkaTemplate(kafkaProducerConfig.producerFactory());
     odeObjectKafkaTemplate =
-        kafkaProducerConfig.odeDataKafkaTemplate(kafkaProducerConfig.odeDataProducerFactory(),
-            kafkaProducerConfig.disabledTopicsOdeObjectInterceptor(odeKafkaProperties));
+        kafkaProducerConfig.odeDataKafkaTemplate(kafkaProducerConfig.odeDataProducerFactory());
   }
 
   @Test
@@ -83,7 +82,8 @@ class KafkaProducerConfigTest {
   }
 
   @Test
-  void kafkaTemplateInterceptorPreventsSendingToDisabledTopics() throws IOException {
+  void kafkaTemplateInterceptorPreventsSendingToDisabledTopics()
+      throws IOException, JsonUtilsException {
     var consumerProps =
         KafkaTestUtils.consumerProps("interceptor-disabled",
             "false",
@@ -95,7 +95,7 @@ class KafkaProducerConfigTest {
     // Attempt to send to a topic not in the disabledTopics set with the odeObject template
     String fileContent = Files.readString(
         Paths.get("src/test/resources/us/dot/its/jpo/ode/kafka/ValidOdeObject.json"));
-    OdeObject odeObject = (OdeAsn1Data) JsonUtils.fromJson(fileContent, OdeAsn1Data.class);
+    OdeObject odeObject = (OdeAsn1Data) JsonUtils.jacksonFromJson(fileContent, OdeAsn1Data.class);
 
     // Attempting to send to a disabled topic
     for (String topic : odeKafkaProperties.getDisabledTopics()) {

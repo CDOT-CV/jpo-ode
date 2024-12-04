@@ -20,7 +20,7 @@ import org.apache.kafka.clients.producer.RecordMetadata;
  * @param <V> the type of the value for Kafka producer records
  */
 @Slf4j
-public abstract class AbstractDisabledTopicsProducerInterceptor<K, V>
+public class DisabledTopicsProducerInterceptor<K, V>
     implements ProducerInterceptor<K, V> {
 
   private final Set<String> disabledTopics;
@@ -32,7 +32,7 @@ public abstract class AbstractDisabledTopicsProducerInterceptor<K, V>
    * @param disabledTopics a set of topic names that are disabled. Messages intended for these
    *                       topics will be intercepted and will not be sent.
    */
-  protected AbstractDisabledTopicsProducerInterceptor(Set<String> disabledTopics) {
+  protected DisabledTopicsProducerInterceptor(Set<String> disabledTopics) {
     this.disabledTopics = disabledTopics;
   }
 
