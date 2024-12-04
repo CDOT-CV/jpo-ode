@@ -14,12 +14,30 @@ import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 import us.dot.its.jpo.ode.uper.UperUtil;
 
+/**
+ * GenericReceiver is a class that listens for UDP packets and processes them based on the
+ * determined message type. It extends AbstractUdpReceiverPublisher to take advantage of
+ * the runnable interface for running the receiver service in a separate thread.
+ *
+ * </p>The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType}
+ * message types encoded in UDP packets such as and routes them to the appropriate Kafka topic.
+ */
 @Slf4j
 public class GenericReceiver extends AbstractUdpReceiverPublisher {
 
   private final KafkaTemplate<String, String> publisher;
   private final RawEncodedJsonTopics rawEncodedJsonTopics;
 
+  /**
+   * Constructs a new GenericReceiver with the specified properties, Kafka template, and raw encoded
+   * JSON topics.
+   *
+   * @param props                the receiver properties containing configuration settings such as
+   *                             port and buffer size
+   * @param kafkaTemplate        the KafkaTemplate used for publishing messages
+   * @param rawEncodedJsonTopics the configuration object containing the topics used to publish
+   *                             messages
+   */
   public GenericReceiver(ReceiverProperties props, KafkaTemplate<String, String> kafkaTemplate,
       RawEncodedJsonTopics rawEncodedJsonTopics) {
     super(props.getReceiverPort(), props.getBufferSize());
