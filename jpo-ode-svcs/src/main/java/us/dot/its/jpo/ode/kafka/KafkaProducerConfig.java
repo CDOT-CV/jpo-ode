@@ -74,8 +74,14 @@ public class KafkaProducerConfig {
    *         with String keys and values, facilitating message sending operations in Kafka.
    */
   @Bean
-  public KafkaTemplate<String, String> kafkaTemplate() {
-    return new KafkaTemplate<>(producerFactory());
+  public KafkaTemplate<String, String> kafkaTemplate(
+      ProducerFactory<String, String> producerFactory,
+      DisabledTopicsStringProducerInterceptor disabledTopicsStringProducerInterceptor) {
+    var template = new KafkaTemplate<>(producerFactory);
+
+    template.setProducerInterceptor(disabledTopicsStringProducerInterceptor);
+
+    return template;
   }
 
   /**
@@ -99,6 +105,12 @@ public class KafkaProducerConfig {
       producerProps.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
     }
     return producerProps;
+  }
+
+  @Bean
+  public DisabledTopicsStringProducerInterceptor disabledTopicsInterceptor(
+      OdeKafkaProperties odeKafkaProperties) {
+    return new DisabledTopicsStringProducerInterceptor(odeKafkaProperties);
   }
 
   /**
