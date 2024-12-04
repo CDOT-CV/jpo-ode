@@ -81,6 +81,7 @@ public class KafkaProducerConfig {
     var template = new KafkaTemplate<>(producerFactory);
 
     template.setProducerInterceptor(disabledTopicsStringProducerInterceptor);
+    template.setProducerListener(new LoggingProducerListener<>());
 
     return template;
   }
@@ -135,6 +136,7 @@ public class KafkaProducerConfig {
   ) {
     var template = new KafkaTemplate<>(producerFactory);
     template.setProducerInterceptor(disabledTopicsOdeObjectProducerInterceptor);
+    template.setProducerListener(new LoggingProducerListener<>());
 
     return template;
   }
