@@ -34,12 +34,28 @@ public class KafkaConsumerConfig {
   private final KafkaProperties kafkaProperties;
   private final OdeKafkaProperties odeKafkaProperties;
 
+  /**
+   * Constructs a new instance of KafkaConsumerConfig with the specified Kafka properties.
+   *
+   * @param kafkaProperties    The general Kafka properties used for configuring consumer settings.
+   * @param odeKafkaProperties The specific Ode Kafka properties which may include custom
+   *                           configurations relevant to the Ode system, possibly including
+   *                           brokers and other kafka-specific settings.
+   */
   public KafkaConsumerConfig(KafkaProperties kafkaProperties,
       OdeKafkaProperties odeKafkaProperties) {
     this.kafkaProperties = kafkaProperties;
     this.odeKafkaProperties = odeKafkaProperties;
   }
 
+  /**
+   * Creates and configures a {@link ConsumerFactory} for Kafka consumers with String key and
+   * value deserialization. The factory is configured using Kafka consumer properties defined
+   * in the application configuration.
+   *
+   * @return a {@link ConsumerFactory} instance configured to produce Kafka consumers with
+   *         String key and value serialization.
+   */
   @Bean
   public ConsumerFactory<String, String> consumerFactory() {
     return new DefaultKafkaConsumerFactory<>(getKafkaConsumerProperties());
@@ -67,8 +83,7 @@ public class KafkaConsumerConfig {
    * deserializing the key and a {@link JsonDeserializer} for deserializing values of type
    * {@link OdeMapData}.
    *
-   * <p>
-   * The consumer factory is configured using Kafka properties, which are retrieved from the
+   * <p>The consumer factory is configured using Kafka properties, which are retrieved from the
    * application's configuration settings.
    *
    * @return a configured {@link ConsumerFactory} for {@link String} keys and {@link OdeMapData}
