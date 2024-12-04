@@ -65,6 +65,4 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
       }
     } while (!isStopped());
   }
-
-
 }
