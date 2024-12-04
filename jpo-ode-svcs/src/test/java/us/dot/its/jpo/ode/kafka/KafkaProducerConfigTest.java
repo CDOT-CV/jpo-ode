@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -17,6 +18,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import us.dot.its.jpo.ode.kafka.producer.DisabledTopicsStringProducerInterceptor;
 import us.dot.its.jpo.ode.kafka.producer.DisabledTopicsStringProducerInterceptor.DisabledTopicException;
@@ -41,6 +43,18 @@ class KafkaProducerConfigTest {
   DisabledTopicsStringProducerInterceptor interceptor;
   @Autowired
   OdeKafkaProperties odeKafkaProperties;
+  EmbeddedKafkaBroker embeddedKafka;
+
+  @BeforeEach
+  public void beforeClass() {
+    embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+    var topics = embeddedKafka.getTopics();
+    for (String topic : odeKafkaProperties.getDisabledTopics()) {
+      if (!topics.contains(topic)) {
+        embeddedKafka.addTopics(new NewTopic(topic, 1, (short) 1));
+      }
+    }
+  }
 
   @Test
   void odeDataProducerFactory_shouldReturnNonNull() {
@@ -59,17 +73,10 @@ class KafkaProducerConfigTest {
 
   @Test
   void kafkaTemplateInterceptorPreventsSendingToDisabledTopics() {
-    var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    try {
-      for (String topic : odeKafkaProperties.getDisabledTopics()) {
-        embeddedKafka.addTopics(new NewTopic(topic, 1, (short) 1));
-      }
-    } catch (Exception e) {
-      // ignore because we only care that the topics exist
-    }
-
     var consumerProps =
-        KafkaTestUtils.consumerProps(this.getClass().getSimpleName(), "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("interceptor-disabled",
+            "false",
+            embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
     var consumer = cf.createConsumer();
     embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
@@ -79,32 +86,30 @@ class KafkaProducerConfigTest {
 
     // Attempting to send to a disabled topic
     for (String topic : odeKafkaProperties.getDisabledTopics()) {
-      assertThrows(DisabledTopicException.class, () -> kafkaTemplate.send(topic, "key", "value"));
+      assertThrows(DisabledTopicException.class,
+          () -> kafkaTemplate.send(topic, "key", "value"));
 
       var records = KafkaTestUtils.getEndOffsets(consumer, topic, 0);
-      // Assert that the message to the disabled topic was intercepted and not sent
-      assertTrue(records.entrySet().stream().allMatch(e -> e.getValue() == 0L));
+      // Assert that the message we attempted to send to the disabled topic was intercepted
+      // and not sent
+      assertTrue(records
+          .entrySet()
+          .stream()
+          .allMatch(e -> e.getValue() == 0L)
+      );
     }
   }
 
   @Test
   void kafkaTemplateInterceptorAllowsSendingToTopicsNotInDisabledSet() {
-    var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    for (String topic : odeKafkaProperties.getDisabledTopics()) {
-      var stringExceptionMap =
-          embeddedKafka.addTopicsWithResults(new NewTopic(topic, 1, (short) 1));
-      log.debug("Created topic {} with result {}", topic, stringExceptionMap);
-    }
     String enabledTopic = "topic.enabled" + this.getClass().getSimpleName();
-    var stringExceptionMap =
-        embeddedKafka.addTopicsWithResults(new NewTopic(enabledTopic, 1, (short) 1));
-    log.debug("Created topic {} with result {}", enabledTopic, stringExceptionMap);
+    embeddedKafka.addTopics(new NewTopic(enabledTopic, 1, (short) 1));
 
     var consumerProps =
-        KafkaTestUtils.consumerProps(this.getClass().getSimpleName(), "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("interceptor-enabled", "false", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
     var consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, enabledTopic);
 
     KafkaTemplate<String, String> kafkaTemplate =
         kafkaProducerConfig.kafkaTemplate(kafkaProducerConfig.producerFactory(), interceptor);
