@@ -29,6 +29,20 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
+/**
+ * The `UdpHexDecoder` class provides functionalities to decode UDP DatagramPackets into specific
+ * JSON representations based on the message type. It supports the extraction and conversion of the
+ * packet payloads into ASN.1 payloads for various message types such as MAP, SPAT, TIM, BSM, SSM,
+ * SRM, and PSM.
+ *
+ * <p>
+ * The class logs details about the packet's origin and ensures the payload contains the correct
+ * message type start flag. It provides methods to build JSON objects encapsulating metadata about
+ * each packet's origin, source, record type, and security information.
+ *
+ * <p>
+ * Note that this class cannot be instantiated.
+ */
 @Slf4j
 public class UdpHexDecoder {
 
@@ -36,6 +50,17 @@ public class UdpHexDecoder {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Extracts the payload from the given {@link DatagramPacket} and converts it into an
+   * {@link OdeAsn1Payload} object. The method validates that the payload contains the necessary
+   * start flag for the specified message type.
+   *
+   * @param packet  the DatagramPacket containing the data
+   * @param msgType the type of message expected in the payload
+   * @return the extracted OdeAsn1Payload from the packet
+   * @throws InvalidPayloadException if the payload is null or does not contain the expected start
+   *                                 flag
+   */
   public static OdeAsn1Payload getPayloadHexString(DatagramPacket packet,
       SupportedMessageType msgType) throws InvalidPayloadException {
     // extract the actual packet from the buffer
@@ -58,6 +83,14 @@ public class UdpHexDecoder {
     return new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a MAP
+   * message. It extracts metadata and payload, then structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the MAP data
+   * @return a JSON string representing the MAP message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonMapFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
@@ -80,6 +113,14 @@ public class UdpHexDecoder {
     return JsonUtils.toJson(new OdeAsn1Data(mapMetadata, mapPayload), false);
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing an SPAT
+   * message. It extracts metadata and payload, then structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the SPAT data
+   * @return a JSON string representing the SPAT message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonSpatFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
@@ -102,6 +143,14 @@ public class UdpHexDecoder {
     return JsonUtils.toJson(new OdeAsn1Data(spatMetadata, spatPayload), false);
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a TIM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the TIM data
+   * @return a JSON string representing the TIM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonTimFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
@@ -122,6 +171,15 @@ public class UdpHexDecoder {
     return JsonUtils.toJson(new OdeAsn1Data(timMetadata, timPayload), false);
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string
+   * representing a BSM message. It extracts metadata and payload, then
+   * structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the BSM data
+   * @return a JSON string representing the BSM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonBsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
@@ -154,6 +212,15 @@ public class UdpHexDecoder {
     return JsonUtils.toJson(new OdeAsn1Data(bsmMetadata, bsmPayload), false);
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string
+   * representing an SSM message. It extracts metadata and payload, then
+   * structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the SSM data
+   * @return a JSON string representing the SSM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonSsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
@@ -176,6 +243,15 @@ public class UdpHexDecoder {
     return JsonUtils.toJson(new OdeAsn1Data(ssmMetadata, ssmPayload), false);
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string
+   * representing an SRM message. It extracts metadata and payload, then
+   * structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the SRM data
+   * @return a JSON string representing the SRM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonSrmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
@@ -198,6 +274,15 @@ public class UdpHexDecoder {
     return JsonUtils.toJson(new OdeAsn1Data(srmMetadata, srmPayload), false);
   }
 
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string
+   * representing a PSM message. It extracts metadata and payload, then
+   * structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the PSM data
+   * @return a JSON string representing the PSM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
   public static String buildJsonPsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
