@@ -21,6 +21,13 @@ import us.dot.its.jpo.ode.udp.tim.TimReceiver;
 @Slf4j
 public class UdpServicesController {
 
+  /**
+   * Constructs a UdpServicesController to manage UDP receiver services for different message types.
+   *
+   * @param udpProps Properties containing configuration for each UDP receiver.
+   * @param rawEncodedJsonTopics Topics to which the decoded messages will be published via Kafka.
+   * @param kafkaTemplate Template to facilitate sending messages to Kafka topics.
+   */
   @Autowired
   public UdpServicesController(UDPReceiverProperties udpProps,
       RawEncodedJsonTopics rawEncodedJsonTopics,
