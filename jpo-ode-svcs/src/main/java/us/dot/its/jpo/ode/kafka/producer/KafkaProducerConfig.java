@@ -85,6 +85,17 @@ public class KafkaProducerConfig {
     return template;
   }
 
+  /**
+   * Provides a bean of type DisabledTopicsStringProducerInterceptor which is used to intercept
+   * Kafka producer records and prevent messages from being sent to disabled topics specified in the
+   * OdeKafkaProperties configuration.
+   *
+   * @param odeKafkaProperties the ODE-specific Kafka properties which include the set of topics
+   *                           that are disabled; the interceptor uses this configuration to
+   *                           determine which topics are not permitted to receive messages.
+   * @return an instance of DisabledTopicsStringProducerInterceptor configured with the disabled
+   *         topics defined in the provided OdeKafkaProperties.
+   */
   @Bean
   public DisabledTopicsStringProducerInterceptor disabledTopicsStringInterceptor(
       OdeKafkaProperties odeKafkaProperties) {
@@ -136,10 +147,21 @@ public class KafkaProducerConfig {
     return producerProps;
   }
 
+  /**
+   * Provides a bean of type DisabledTopicsOdeObjectProducerInterceptor used
+   * to intercept Kafka producer records, preventing messages from being sent
+   * to disabled topics as specified in the OdeKafkaProperties configuration.
+   *
+   * @param odeKafkaProperties the ODE-specific Kafka properties which include
+   *                           a set of disabled topics; the interceptor uses
+   *                           this configuration to determine which topics are
+   *                           not permitted to receive messages.
+   * @return an instance of DisabledTopicsOdeObjectProducerInterceptor configured
+   *         with the disabled topics defined in the provided OdeKafkaProperties.
+   */
   @Bean
   public DisabledTopicsOdeObjectProducerInterceptor disabledTopicsOdeObjectInterceptor(
-      OdeKafkaProperties odeKafkaProperties
-  ) {
+      OdeKafkaProperties odeKafkaProperties) {
     return new DisabledTopicsOdeObjectProducerInterceptor(odeKafkaProperties.getDisabledTopics());
   }
 }
