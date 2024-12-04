@@ -18,7 +18,9 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
-import us.dot.its.jpo.ode.kafka.DisabledTopicsStringProducerInterceptor.DisabledTopicException;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicsStringProducerInterceptor;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicsStringProducerInterceptor.DisabledTopicException;
+import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 

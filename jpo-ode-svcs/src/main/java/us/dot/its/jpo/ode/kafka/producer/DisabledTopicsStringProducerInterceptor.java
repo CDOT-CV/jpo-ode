@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.kafka;
+package us.dot.its.jpo.ode.kafka.producer;
 
 import java.util.Map;
 import java.util.Set;
@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerInterceptor;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 
 @Slf4j
 public class DisabledTopicsStringProducerInterceptor

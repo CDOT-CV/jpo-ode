@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.kafka;
+package us.dot.its.jpo.ode.kafka.producer;
 
 import java.util.Map;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -9,6 +9,8 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.XMLOdeObjectSerializer;
 import us.dot.its.jpo.ode.model.OdeObject;
 
 /**

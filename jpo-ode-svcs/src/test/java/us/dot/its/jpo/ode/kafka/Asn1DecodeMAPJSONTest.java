@@ -25,6 +25,7 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.kafka.listeners.Asn1DecodeMAPJSONListener;
+import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
