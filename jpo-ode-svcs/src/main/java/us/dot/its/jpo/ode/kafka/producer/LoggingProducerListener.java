@@ -6,8 +6,19 @@ import org.apache.kafka.clients.producer.RecordMetadata;
 import org.springframework.kafka.support.ProducerListener;
 import org.springframework.lang.Nullable;
 
+/**
+ * The LoggingProducerListener is a Kafka ProducerListener implementation that
+ * handles logging for Kafka producer events. It provides detailed logging
+ * for both successful message productions and error scenarios.
+ *
+ * </p>This class uses Slf4j for logging and should be added to Kafka producer
+ * configurations where logging of producer activity is required.
+ *
+ * @param <K> the type of the key for Kafka producer records
+ * @param <V> the type of the value for Kafka producer records
+ */
 @Slf4j
-public class LoggingProducerListener<K, V>
+public final class LoggingProducerListener<K, V>
     implements ProducerListener<K, V> {
 
   @Override
