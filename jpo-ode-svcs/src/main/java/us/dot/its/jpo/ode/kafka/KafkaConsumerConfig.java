@@ -1,5 +1,7 @@
 package us.dot.its.jpo.ode.kafka;
 
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
@@ -18,9 +20,12 @@ import us.dot.its.jpo.ode.model.OdeMapData;
 import us.dot.its.jpo.ode.plugin.j2735.J2735DSRCmsgID;
 import us.dot.its.jpo.ode.util.XmlUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-
+/**
+ * Configures Kafka consumer settings and provides various consumer factories and listener container
+ * factories for handling different types of data in a Kafka messaging system. This class sets up
+ * the consumer properties, including any security configurations for Confluent deployments, and
+ * provides mechanisms to filter messages based on specific criteria.
+ */
 @EnableKafka
 @Configuration
 @Slf4j
@@ -40,6 +45,14 @@ public class KafkaConsumerConfig {
     return new DefaultKafkaConsumerFactory<>(getKafkaConsumerProperties());
   }
 
+  /**
+   * Creates and configures a ConcurrentKafkaListenerContainerFactory for Kafka listeners. This
+   * factory is responsible for creating listener containers, which are used to receive messages
+   * from Kafka topics.
+   *
+   * @return a ConcurrentKafkaListenerContainerFactory setup with a defined consumer factory that
+   *      determines how Kafka consumers are created and configured.
+   */
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
     ConcurrentKafkaListenerContainerFactory<String, String> factory =
@@ -48,12 +61,33 @@ public class KafkaConsumerConfig {
     return factory;
   }
 
+  /**
+   * Creates a Kafka {@link ConsumerFactory} for consuming messages with keys of type {@link String}
+   * and values of type {@link OdeMapData}. This method utilizes a {@link StringDeserializer} for
+   * deserializing the key and a {@link JsonDeserializer} for deserializing values of type
+   * {@link OdeMapData}.
+   *
+   * <p>
+   * The consumer factory is configured using Kafka properties, which are retrieved from the
+   * application's configuration settings.
+   *
+   * @return a configured {@link ConsumerFactory} for {@link String} keys and {@link OdeMapData}
+   *      values.
+   */
   @Bean
   public ConsumerFactory<String, OdeMapData> odeMapDataConsumerFactory() {
     return new DefaultKafkaConsumerFactory<>(getKafkaConsumerProperties(), new StringDeserializer(),
         new JsonDeserializer<>(OdeMapData.class));
   }
 
+  /**
+   * Creates and configures a ConcurrentKafkaListenerContainerFactory for consuming Kafka messages
+   * with keys of type String and values of type OdeMapData. The factory is configured with a
+   * consumer factory provided by the odeMapDataConsumerFactory method.
+   *
+   * @return a configured ConcurrentKafkaListenerContainerFactory instance for processing Kafka
+   *      messages with keys of type String and values of type OdeMapData.
+   */
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, OdeMapData> odeMapDataConsumerListenerContainerFactory() {
     ConcurrentKafkaListenerContainerFactory<String, OdeMapData> factory =
@@ -63,12 +97,14 @@ public class KafkaConsumerConfig {
   }
 
   /**
+   * Creates a {@link ConcurrentKafkaListenerContainerFactory} for processing Kafka messages. This
+   * factory is configured to filter out certain messages based on a defined strategy.
+   *
    * @return factory A listener factory that supports filtering out messages that don't match a
-   * specific pattern
-   * <p>
+   *      specific pattern
    * @deprecated This method is intended to be short-lived. It exists to allow consumption via the
-   * Asn1DecodedDataRouter & the Asn1DecodedDataListener while we are migrating from hand-rolled
-   * Kafka implementation to Spring's Kafka implementation
+   *      Asn1DecodedDataRouter & the Asn1DecodedDataListener while we are migrating from hand-rolled
+   *      Kafka implementation to Spring's Kafka implementation
    */
   @Bean
   @Deprecated(forRemoval = true)
@@ -86,7 +122,7 @@ public class KafkaConsumerConfig {
    * ack) messages we support via the Spring Kafka implementation. All other messages will be
    * handled by the Asn1DecodedDataRouter
    *
-   * @return RecordFilterStrategy<String, String> filter
+   * @return filter
    */
   private static RecordFilterStrategy<String, String> getFilterStrategySpringKafkaSupportedMessageTypesOnly() {
     return consumerRecord -> {
@@ -95,11 +131,8 @@ public class KafkaConsumerConfig {
             .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
         J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
-            consumed.getJSONObject(AppContext.PAYLOAD_STRING)
-                .getJSONObject(AppContext.DATA_STRING)
-                .getJSONObject("MessageFrame")
-                .getInt("messageId")
-        );
+            consumed.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING)
+                .getJSONObject("MessageFrame").getInt("messageId"));
 
         // Filter out all messages EXCEPT for MAP messages
         return !J2735DSRCmsgID.MAPMessage.equals(messageId);
