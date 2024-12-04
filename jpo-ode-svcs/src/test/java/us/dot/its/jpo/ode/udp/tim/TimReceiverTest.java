@@ -61,14 +61,8 @@ class TimReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
-
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
-    // create the needed topic for production
     try {
+
       embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getTim(), 1, (short) 1));
     } catch (Exception e) {
       // ignore because we only care that the topics exist not that they're unique
@@ -82,6 +76,12 @@ class TimReceiverTest {
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(timReceiver);
 
+    String fileContent =
+        Files.readString(Paths.get(
+            "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
+
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getTim().getReceiverPort());
     udpClient.send(fileContent);
 
@@ -92,7 +92,6 @@ class TimReceiverTest {
     Consumer<Integer, String> consumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getTim());
 
-    // read record from produce topic
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getTim());
     // confirm the stream-id is different, then remove it from both so that we can test equality of all other fields
     assertNotEquals(expected, singleRecord.value());

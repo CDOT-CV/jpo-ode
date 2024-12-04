@@ -61,11 +61,6 @@ class BsmReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
-
-    String expected = Files.readString(Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
     // create the needed topic for production
     try {
       embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getBsm(), 1, (short) 1));
@@ -81,10 +76,15 @@ class BsmReceiverTest {
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(bsmReceiver);
 
+    String fileContent =
+        Files.readString(Paths.get(
+            "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
+
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getBsm().getReceiverPort());
     udpClient.send(fileContent);
 
-    // setup the consumer for the topic bsmreceiver produces to
     var consumerProps = KafkaTestUtils.consumerProps(
         "BsmReceiverTest", "true", embeddedKafka);
     DefaultKafkaConsumerFactory<Integer, String> cf =
@@ -100,7 +100,8 @@ class BsmReceiverTest {
     JSONObject expectedJson = new JSONObject(expected);
 
     // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
-    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"), producedJson.getJSONObject("metadata").get("serialId"));
+    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+        producedJson.getJSONObject("metadata").get("serialId"));
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 

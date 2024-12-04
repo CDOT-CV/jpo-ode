@@ -63,12 +63,6 @@ class SpatReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    String fileContent = // Read your test data file for SPAT
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
-
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
 
     try {
       embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getSpat(), 1, (short) 1));
@@ -83,6 +77,13 @@ class SpatReceiverTest {
         rawEncodedJsonTopics.getSpat());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(spatReceiver);
+
+    String fileContent =
+        Files.readString(Paths.get(
+            "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
+
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSpat().getReceiverPort());
     udpClient.send(fileContent);
