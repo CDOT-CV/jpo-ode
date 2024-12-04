@@ -14,14 +14,13 @@ import us.dot.its.jpo.ode.kafka.XMLOdeObjectSerializer;
 import us.dot.its.jpo.ode.model.OdeObject;
 
 /**
- * KafkaProducerConfig is a configuration class for setting up Kafka producers
- * with Spring Boot. This class utilizes the KafkaProperties and OdeKafkaProperties
- * to define and construct the necessary producer factories and Kafka templates
- * for producing messages to Kafka topics.
+ * KafkaProducerConfig is a configuration class for setting up Kafka producers with Spring Boot.
+ * This class utilizes the KafkaProperties and OdeKafkaProperties to define and construct the
+ * necessary producer factories and Kafka templates for producing messages to Kafka topics.
  *
  * </p>It provides configuration for two types of Kafka producer factories and templates:
- * one for producing regular String messages and another for producing
- * `OdeObject` messages serialized as XML.
+ * one for producing regular String messages and another for producing `OdeObject` messages
+ * serialized as XML.
  *
  * </p>This configuration is crucial for integrating with Kafka by providing
  * necessary producer settings and managing producer instances.
@@ -34,15 +33,15 @@ public class KafkaProducerConfig {
   private final OdeKafkaProperties odeKafkaProperties;
 
   /**
-   * Constructor for the KafkaProducerConfig class, which sets up the configuration
-   * for Kafka producers using provided Kafka properties.
+   * Constructor for the KafkaProducerConfig class, which sets up the configuration for Kafka
+   * producers using provided Kafka properties.
    *
-   * @param kafkaProperties the properties related to Kafka configuration as set up
-   *        in the Spring environment, providing necessary configurations for creating
-   *        Kafka producers.
-   * @param odeKafkaProperties the properties specific to the ODE Kafka setup,
-   *        including custom configurations like Kafka type (e.g., CONFLUENT)
-   *        and other specialized settings for integrating with the ODE infrastructure.
+   * @param kafkaProperties    the properties related to Kafka configuration as set up in the Spring
+   *                           environment, providing necessary configurations for creating Kafka
+   *                           producers.
+   * @param odeKafkaProperties the properties specific to the ODE Kafka setup, including custom
+   *                           configurations like Kafka type (e.g., CONFLUENT) and other
+   *                           specialized settings for integrating with the ODE infrastructure.
    */
   public KafkaProducerConfig(KafkaProperties kafkaProperties,
       OdeKafkaProperties odeKafkaProperties) {
@@ -101,20 +100,6 @@ public class KafkaProducerConfig {
         new StringSerializer(), new XMLOdeObjectSerializer());
   }
 
-  private Map<String, Object> buildProducerProperties() {
-    var producerProps = kafkaProperties.buildProducerProperties();
-    if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
-      producerProps.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
-    }
-    return producerProps;
-  }
-
-  @Bean
-  public DisabledTopicsStringProducerInterceptor disabledTopicsInterceptor(
-      OdeKafkaProperties odeKafkaProperties) {
-    return new DisabledTopicsStringProducerInterceptor(odeKafkaProperties);
-  }
-
   /**
    * Creates and returns a KafkaTemplate for sending messages with String keys
    * and OdeObject values to Kafka topics. The template is configured using the
@@ -129,5 +114,19 @@ public class KafkaProducerConfig {
   @Bean
   public KafkaTemplate<String, OdeObject> odeDataKafkaTemplate() {
     return new KafkaTemplate<>(odeDataProducerFactory());
+  }
+
+  private Map<String, Object> buildProducerProperties() {
+    var producerProps = kafkaProperties.buildProducerProperties();
+    if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
+      producerProps.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
+    }
+    return producerProps;
+  }
+
+  @Bean
+  public DisabledTopicsStringProducerInterceptor disabledTopicsInterceptor(
+      OdeKafkaProperties odeKafkaProperties) {
+    return new DisabledTopicsStringProducerInterceptor(odeKafkaProperties);
   }
 }
