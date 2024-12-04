@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.testUtilities;
+package us.dot.its.jpo.ode.test.utilities;
 
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;

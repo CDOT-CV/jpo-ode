@@ -16,7 +16,7 @@ import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeTimMetadata;
-import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
+import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

@@ -1,7 +1,7 @@
 package us.dot.its.jpo.ode.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
+import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,8 +26,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.kafka.listeners.Asn1DecodeMAPJSONListener;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
-import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
+import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
+import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 @Slf4j

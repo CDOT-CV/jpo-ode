@@ -28,8 +28,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.ode.kafka.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
-import us.dot.its.jpo.ode.testUtilities.TestUDPClient;
+import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
+import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 

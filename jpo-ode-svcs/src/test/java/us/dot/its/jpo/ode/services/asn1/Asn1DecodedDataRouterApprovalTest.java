@@ -29,8 +29,8 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.listeners.Asn1DecodedDataListener;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeMapData;
-import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
-import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
+import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
+import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 @Slf4j

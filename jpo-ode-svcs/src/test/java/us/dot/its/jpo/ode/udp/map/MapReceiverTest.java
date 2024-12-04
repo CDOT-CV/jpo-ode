@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.udp.map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static us.dot.its.jpo.ode.testUtilities.ApprovalTestCase.deserializeTestCases;
+import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
 
 import java.io.IOException;
 import java.time.Clock;
@@ -31,9 +31,9 @@ import us.dot.its.jpo.ode.kafka.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
-import us.dot.its.jpo.ode.testUtilities.ApprovalTestCase;
-import us.dot.its.jpo.ode.testUtilities.EmbeddedKafkaHolder;
-import us.dot.its.jpo.ode.testUtilities.TestUDPClient;
+import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
+import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
+import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
