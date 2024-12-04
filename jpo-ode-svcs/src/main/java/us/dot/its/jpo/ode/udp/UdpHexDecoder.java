@@ -35,13 +35,11 @@ import us.dot.its.jpo.ode.util.JsonUtils;
  * packet payloads into ASN.1 payloads for various message types such as MAP, SPAT, TIM, BSM, SSM,
  * SRM, and PSM.
  *
- * <p>
- * The class logs details about the packet's origin and ensures the payload contains the correct
+ * <p>The class logs details about the packet's origin and ensures the payload contains the correct
  * message type start flag. It provides methods to build JSON objects encapsulating metadata about
  * each packet's origin, source, record type, and security information.
  *
- * <p>
- * Note that this class cannot be instantiated.
+ * <p>Note that this class cannot be instantiated.
  */
 @Slf4j
 public class UdpHexDecoder {
@@ -172,9 +170,8 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a JSON string
-   * representing a BSM message. It extracts metadata and payload, then
-   * structures them into a JSON format.
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a BSM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
    *
    * @param packet the DatagramPacket containing the BSM data
    * @return a JSON string representing the BSM message
@@ -213,9 +210,8 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a JSON string
-   * representing an SSM message. It extracts metadata and payload, then
-   * structures them into a JSON format.
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing an SSM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
    *
    * @param packet the DatagramPacket containing the SSM data
    * @return a JSON string representing the SSM message
@@ -244,9 +240,8 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a JSON string
-   * representing an SRM message. It extracts metadata and payload, then
-   * structures them into a JSON format.
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing an SRM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
    *
    * @param packet the DatagramPacket containing the SRM data
    * @return a JSON string representing the SRM message
@@ -275,9 +270,8 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a JSON string
-   * representing a PSM message. It extracts metadata and payload, then
-   * structures them into a JSON format.
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a PSM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
    *
    * @param packet the DatagramPacket containing the PSM data
    * @return a JSON string representing the PSM message
