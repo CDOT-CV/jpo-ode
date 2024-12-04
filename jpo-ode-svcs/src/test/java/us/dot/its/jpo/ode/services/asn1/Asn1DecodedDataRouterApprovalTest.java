@@ -71,12 +71,11 @@ class Asn1DecodedDataRouterApprovalTest {
     NewTopic outputTopicJson = new NewTopic(jsonMapTopic, 1, (short) 1);
     try {
       embeddedKafka.addTopics(inputTopic, outputTopicTx, outputTopicJson);
-    } catch (RuntimeException e) {
-      // this usually happens when the topic already exists on the broker. We don't care if it already exists and
-      // add topic fails. we only care that the topics are created and we can run the tests.
-      log.warn("Exception while adding input topic", e);
+    } catch (Exception e) {
+      // Ignore. We only care that the topics exist not that we created them here
     }
 
+    @SuppressWarnings("checkstyle:linelength")
     List<ApprovalTestCase> testCases = ApprovalTestCase.deserializeTestCases(
         "src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapTxPojo.json");
 
@@ -109,6 +108,7 @@ class Asn1DecodedDataRouterApprovalTest {
       KafkaTestUtils.getSingleRecord(consumer, jsonMapTopic);
     }
 
+    @SuppressWarnings("checkstyle:linelength")
     List<ApprovalTestCase> jsonTestCases = ApprovalTestCase.deserializeTestCases(
         "src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapJson.json");
 
