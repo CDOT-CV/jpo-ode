@@ -1,7 +1,5 @@
 package us.dot.its.jpo.ode.udp.spat;
 
-/* imports similar to the ones in TimReceiverTest and BsmReceiverTest */
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
