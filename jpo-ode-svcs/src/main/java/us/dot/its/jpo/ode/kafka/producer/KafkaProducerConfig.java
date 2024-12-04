@@ -85,6 +85,12 @@ public class KafkaProducerConfig {
     return template;
   }
 
+  @Bean
+  public DisabledTopicsStringProducerInterceptor disabledTopicsStringInterceptor(
+      OdeKafkaProperties odeKafkaProperties) {
+    return new DisabledTopicsStringProducerInterceptor(odeKafkaProperties);
+  }
+
   /**
    * Creates a Kafka ProducerFactory specifically configured for handling messages with
    * String keys and OdeObject values. This factory utilizes a custom XML serializer
@@ -112,8 +118,14 @@ public class KafkaProducerConfig {
    *         to Kafka topics within the application's messaging infrastructure.
    */
   @Bean
-  public KafkaTemplate<String, OdeObject> odeDataKafkaTemplate() {
-    return new KafkaTemplate<>(odeDataProducerFactory());
+  public KafkaTemplate<String, OdeObject> odeDataKafkaTemplate(
+      ProducerFactory<String, OdeObject> producerFactory,
+      DisabledTopicsOdeObjectProducerInterceptor disabledTopicsOdeObjectProducerInterceptor
+  ) {
+    var template = new KafkaTemplate<>(producerFactory);
+    template.setProducerInterceptor(disabledTopicsOdeObjectProducerInterceptor);
+
+    return template;
   }
 
   private Map<String, Object> buildProducerProperties() {
@@ -125,8 +137,9 @@ public class KafkaProducerConfig {
   }
 
   @Bean
-  public DisabledTopicsStringProducerInterceptor disabledTopicsInterceptor(
-      OdeKafkaProperties odeKafkaProperties) {
-    return new DisabledTopicsStringProducerInterceptor(odeKafkaProperties);
+  public DisabledTopicsOdeObjectProducerInterceptor disabledTopicsOdeObjectInterceptor(
+      OdeKafkaProperties odeKafkaProperties
+  ) {
+    return new DisabledTopicsOdeObjectProducerInterceptor(odeKafkaProperties.getDisabledTopics());
   }
 }
