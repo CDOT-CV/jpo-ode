@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * integration. This class is designed to be used with Spring Boot's configuration properties
  * mechanism, allowing for easy externalization and injection of property values.
  *
- * <p>
- * This class provides a method to build a map of Confluent-specific Kafka properties, which
+ * <p>This class provides a method to build a map of Confluent-specific Kafka properties, which
  * includes authentication settings necessary for connecting to a Confluent-managed Kafka cluster.
  */
 @Configuration
