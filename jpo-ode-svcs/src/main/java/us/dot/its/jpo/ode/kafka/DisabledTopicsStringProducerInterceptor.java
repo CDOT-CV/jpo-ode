@@ -20,7 +20,7 @@ public class DisabledTopicsStringProducerInterceptor
   @Override
   public ProducerRecord<String, String> onSend(ProducerRecord<String, String> producerRecord) {
     if (disabledTopics.contains(producerRecord.topic())) {
-      log.debug("Topic {} is disabled. Skipping sending message.", producerRecord.topic());
+      throw new DisabledTopicException(producerRecord.topic());
     }
     return producerRecord;
   }
@@ -39,5 +39,12 @@ public class DisabledTopicsStringProducerInterceptor
   @Override
   public void configure(Map<String, ?> map) {
 
+  }
+
+  public static final class DisabledTopicException extends RuntimeException {
+
+    public DisabledTopicException(String topic) {
+      super(String.format("Topic %s is disabled.", topic));
+    }
   }
 }
