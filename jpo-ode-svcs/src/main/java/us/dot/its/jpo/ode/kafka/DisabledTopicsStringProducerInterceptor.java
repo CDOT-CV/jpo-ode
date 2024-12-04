@@ -27,12 +27,13 @@ public class DisabledTopicsStringProducerInterceptor
 
   @Override
   public void onAcknowledgement(RecordMetadata recordMetadata, Exception e) {
-
+    log.debug("Acknowledged message with offset {} on partition {}", recordMetadata.offset(),
+        recordMetadata.partition());
   }
 
   @Override
   public void close() {
-
+    log.debug("Closing StringProducerInterceptor");
   }
 
   @Override
