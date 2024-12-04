@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.uper;
 
+import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.json.JSONObject;
@@ -7,8 +8,10 @@ import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
-import java.util.HashMap;
-
+/**
+ * Utility class for handling and manipulating hexadecimal strings representing network packet data,
+ * particularly those adhering to IEEE 1609.2 and 1609.3 standards.
+ */
 @Slf4j
 public class UperUtil {
 
@@ -16,7 +19,19 @@ public class UperUtil {
     throw new UnsupportedOperationException();
   }
 
-  // Strips the IEEE 1609.2 security header (if it exists) and returns the payload
+  /**
+   * Strips the IEEE 1609.2 security header (if it exists) and returns the payload
+   * from a given hexadecimal string. The method searches for a specified start flag
+   * that indicates the beginning of the payload.
+   *
+   * @param hexString the input hexadecimal string from which the IEEE 1609.2
+   *                  security header needs to be stripped.
+   * @param payloadStartFlag the start flag indicating the beginning of the payload.
+   * @return a string representing the payload without the IEEE 1609.2 security header,
+   *         if the start flag is found.
+   * @throws StartFlagNotFoundException if the specified start flag is not found within
+   *                                    the hexadecimal string.
+   */
   public static String stripDot2Header(String hexString, String payloadStartFlag)
       throws StartFlagNotFoundException {
     hexString = hexString.toLowerCase();
@@ -28,7 +43,7 @@ public class UperUtil {
     return stripTrailingZeros(hexString.substring(startIndex));
   }
 
-  /*
+  /**
    * Strips the 1609.3 and unsigned 1609.2 headers if they are present.
    * Will return the payload with a signed 1609.2 header if it is present.
    * Otherwise, returns just the payload.
@@ -38,8 +53,8 @@ public class UperUtil {
     String hexString = HexUtils.toHexString(packet);
     String hexPacketParsed = "";
 
-    for (String start_flag : msgStartFlags.values()) {
-      int payloadStartIndex = findValidStartFlagLocation(hexString, start_flag);
+    for (String startFlag : msgStartFlags.values()) {
+      int payloadStartIndex = findValidStartFlagLocation(hexString, startFlag);
       if (payloadStartIndex == -1) {
         continue;
       }
@@ -68,7 +83,7 @@ public class UperUtil {
     return HexUtils.fromHexString(hexPacketParsed);
   }
 
-  /*
+  /**
    * Strips the 1609.3 and unsigned 1609.2 headers if they are present.
    * Will return the payload with a signed 1609.2 header if it is present.
    * Otherwise, returns just the payload.
@@ -90,7 +105,7 @@ public class UperUtil {
   }
 
   /**
-   * Determines the message type based off the most likely start flag
+   * Determines the message type based off the most likely start flag.
    *
    * @param payload The OdeMsgPayload to check the content of.
    */
@@ -108,9 +123,15 @@ public class UperUtil {
     return messageType;
   }
 
+  /**
+   * Determines the type of hex packet based on predefined start flags for various message types
+   * defined by {@link SupportedMessageType}.
+   *
+   * @param hexString the hexadecimal string representing a packet whose type is to be determined
+   * @return a string indicating the type of the packet, such as "MAP", "SPAT", "TIM", "BSM", "SSM",
+   *      "PSM", or "SRM". If no valid type is found, returns an empty string.
+   */
   public static String determineHexPacketType(String hexString) {
-
-    String messageType = "";
     HashMap<String, Integer> flagIndexes = new HashMap<>();
 
     flagIndexes.put("MAP",
@@ -129,6 +150,7 @@ public class UperUtil {
         findValidStartFlagLocation(hexString, SupportedMessageType.SRM.getStartFlag()));
 
     int lowestIndex = Integer.MAX_VALUE;
+    String messageType = "";
     for (String key : flagIndexes.keySet()) {
       if (flagIndexes.get(key) == -1) {
         log.debug("This message is not of type {}", key);
@@ -142,6 +164,19 @@ public class UperUtil {
     return messageType;
   }
 
+  /**
+   * Searches for the location of the given start flag in the provided hex string and ensures it is
+   * on an even numbered byte. If the start flag is found at the beginning of the string or not
+   * found at all, it returns immediately. Otherwise, it continues searching from the fifth
+   * position. The method ensures that the found start flag is located on an even byte boundary.
+   *
+   * @param hexString the string representation of the message in hexadecimal format where the
+   *                  search for the start flag will be conducted.
+   * @param startFlag the specific flag pattern to locate within the given hex string, indicating
+   *                  the start of a valid message.
+   * @return the index of the start flag within the hex string if found, and located on an even byte
+   *     boundary; -1 if not found.
+   */
   public static int findValidStartFlagLocation(String hexString, String startFlag) {
     int index = hexString.indexOf(startFlag);
 
@@ -163,7 +198,7 @@ public class UperUtil {
   /**
    * Trims extra `00` bytes off of the end of an ASN1 payload string This is remove the padded bytes
    * added to the payload when receiving ASN1 payloads and leaves one remaining byte of `00`s for
-   * decoding
+   * decoding.
    *
    * @param payload The OdeMsgPayload as a string to trim.
    */
