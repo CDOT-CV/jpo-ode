@@ -9,8 +9,8 @@ import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 
 /**
- * SrmReceiver is responsible for receiving UDP packets containing SRM (Signal Request Message) data,
- * decoding them, and publishing the decoded messages to a specified Kafka topic.
+ * SrmReceiver is responsible for receiving UDP packets containing SRM (Signal Request Message)
+ * data, decoding them, and publishing the decoded messages to a specified Kafka topic.
  *
  * </p>
  * This class extends the AbstractUdpReceiverPublisher and overrides its run method to implement
