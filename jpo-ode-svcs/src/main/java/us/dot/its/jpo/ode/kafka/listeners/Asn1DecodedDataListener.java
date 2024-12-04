@@ -82,11 +82,11 @@ public class Asn1DecodedDataListener {
       if (recordType == OdeLogMetadata.RecordType.mapTx) {
         log.debug("Publishing message with recordType: {} to {} ", recordType,
             pojoTxMapTopic);
-        kafkaTemplate.send(odeMapData, pojoTxMapTopic);
+        kafkaTemplate.send(pojoTxMapTopic, odeMapData);
       }
 
       // Send all MAP data to OdeMapJson despite the record type
-      kafkaTemplate.send(odeMapData, jsonMapTopic);
+      kafkaTemplate.send(jsonMapTopic, odeMapData);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
     }
