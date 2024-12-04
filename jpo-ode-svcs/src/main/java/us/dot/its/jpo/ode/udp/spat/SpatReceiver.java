@@ -9,12 +9,13 @@ import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 
 /**
- * The SpatReceiver class is responsible for receiving UDP packets containing SPaT (Signal Phase and Timing) data,
+ * The SpatReceiver class is responsible for receiving UDP packets containing
+ * SPaT (Signal Phase and Timing) data,
  * decoding these packets, and publishing the resulting JSON string to a specified Kafka topic.
  *
  * </p>
- * This class extends the AbstractUdpReceiverPublisher, allowing it to run as a separate thread and handle incoming UDP packets.
- * It utilizes a Kafka template to publish decoded data.
+ * This class extends the AbstractUdpReceiverPublisher, allowing it to run as a separate
+ * thread and handle incoming UDP packets. It utilizes a Kafka template to publish decoded data.
  */
 @Slf4j
 public class SpatReceiver extends AbstractUdpReceiverPublisher {
@@ -24,8 +25,8 @@ public class SpatReceiver extends AbstractUdpReceiverPublisher {
 
   /**
    * Constructs a SpatReceiver object that is responsible for receiving UDP packets containing SPaT
-   * (Signal Phase and Timing) data, decoding these packets, and publishing the resulting JSON string
-   * to a specified Kafka topic.
+   * (Signal Phase and Timing) data, decoding these packets, and publishing the resulting JSON
+   * string to a specified Kafka topic.
    *
    * @param receiverProperties the properties for the receiver including the port and buffer size
    * @param kafkaTemplate the Kafka template used for publishing the decoded SPaT data
