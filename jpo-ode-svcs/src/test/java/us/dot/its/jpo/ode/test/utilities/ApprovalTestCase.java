@@ -11,8 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 /**
- * Represents a test case for an approval test, containing a description,
- * input, and expected output.
+ * Represents a test case for an approval test, containing a description, input, and expected
+ * output.
  */
 @Getter
 @Setter
@@ -23,10 +23,10 @@ public class ApprovalTestCase {
   public String expected;
 
   /**
-   * Deserializes a list of approval test cases from a JSON file located at the specified path.
-   * The JSON file is expected to have a structure where the test cases are contained
-   * in an array named "cases". Each test case is represented by a JSON object that
-   * includes a "description", "input", and "expected" field.
+   * Deserializes a list of approval test cases from a JSON file located at the specified path. The
+   * JSON file is expected to have a structure where the test cases are contained in an array named
+   * "cases". Each test case is represented by a JSON object that includes a "description", "input",
+   * and "expected" field.
    *
    * @param path the file path to the JSON file containing the test cases
    * @return a list of ApprovalTestCase objects deserialized from the JSON file
