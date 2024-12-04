@@ -8,14 +8,13 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
  * for Kafka producers that work with String keys and values. This interceptor checks whether the
  * Kafka topic specified in a ProducerRecord is disabled. If the topic is disabled, it throws a
  * DisabledTopicException, preventing the message from being sent.
- *
- * </p>This interceptor is used to enforce topic-based controls within Kafka message
- * publishing, allowing certain topics to be disabled dynamically based on the configuration.
+ * See {@link AbstractDisabledTopicsProducerInterceptor} for more detail
  */
 @Slf4j
 public class DisabledTopicsStringProducerInterceptor
     extends AbstractDisabledTopicsProducerInterceptor<String, String> {
 
+  @SuppressWarnings("checkstyle:missingJavadocMethod")
   public DisabledTopicsStringProducerInterceptor(OdeKafkaProperties odeKafkaProperties) {
     super(odeKafkaProperties.getDisabledTopics());
   }
