@@ -24,12 +24,15 @@ public class PsmReceiver extends AbstractUdpReceiverPublisher {
   private final String publishTopic;
 
   /**
-   * Constructs a PsmReceiver object that listens for UDP packets containing Position & Status Message (PSM) data,
-   * decodes them, and publishes the decoded JSON data to a specified Kafka topic.
+   * Constructs a PsmReceiver object that listens for UDP packets containing
+   * Position & Status Message (PSM) data, decodes them, and publishes the decoded
+   * JSON data to a specified Kafka topic.
    *
-   * @param receiverProperties The properties containing configuration details such as the port to listen on and buffer size.
+   * @param receiverProperties The properties containing configuration details such as the port to
+   *                           listen on and buffer size.
    * @param kafkaTemplate The KafkaTemplate used to publish messages to a Kafka topic.
-   * @param publishTopic The name of the Kafka topic to which decoded PSM JSON messages should be published.
+   * @param publishTopic The name of the Kafka topic to which decoded PSM JSON messages
+   *                     should be published.
    */
   public PsmReceiver(ReceiverProperties receiverProperties,
       KafkaTemplate<String, String> kafkaTemplate, String publishTopic) {
