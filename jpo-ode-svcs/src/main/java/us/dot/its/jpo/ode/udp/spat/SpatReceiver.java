@@ -3,19 +3,20 @@ package us.dot.its.jpo.ode.udp.spat;
 import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 
 /**
- * The SpatReceiver class is responsible for receiving UDP packets containing
- * SPaT (Signal Phase and Timing) data,
- * decoding these packets, and publishing the resulting JSON string to a specified Kafka topic.
+ * The SpatReceiver class is responsible for receiving UDP packets containing SPaT (Signal Phase and
+ * Timing) data, decoding these packets, and publishing the resulting JSON string to a specified
+ * Kafka topic.
  *
  * </p>
- * This class extends the AbstractUdpReceiverPublisher, allowing it to run as a separate
- * thread and handle incoming UDP packets. It utilizes a Kafka template to publish decoded data.
+ * This class extends the AbstractUdpReceiverPublisher, allowing it to run as a separate thread and
+ * handle incoming UDP packets. It utilizes a Kafka template to publish decoded data.
  */
 @Slf4j
 public class SpatReceiver extends AbstractUdpReceiverPublisher {
@@ -29,8 +30,8 @@ public class SpatReceiver extends AbstractUdpReceiverPublisher {
    * string to a specified Kafka topic.
    *
    * @param receiverProperties the properties for the receiver including the port and buffer size
-   * @param kafkaTemplate the Kafka template used for publishing the decoded SPaT data
-   * @param publishTopic the Kafka topic to which the decoded SPaT data will be published
+   * @param kafkaTemplate      the Kafka template used for publishing the decoded SPaT data
+   * @param publishTopic       the Kafka topic to which the decoded SPaT data will be published
    */
   public SpatReceiver(
       ReceiverProperties receiverProperties, KafkaTemplate<String, String> kafkaTemplate,
@@ -57,6 +58,8 @@ public class SpatReceiver extends AbstractUdpReceiverPublisher {
             spatPublisher.send(publishTopic, spatJson);
           }
         }
+      } catch (DisabledTopicException e) {
+        log.warn(e.getMessage());
       } catch (InvalidPayloadException e) {
         log.error("Error decoding packet", e);
       } catch (Exception e) {

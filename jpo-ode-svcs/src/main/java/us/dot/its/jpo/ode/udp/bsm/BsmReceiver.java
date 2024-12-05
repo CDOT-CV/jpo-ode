@@ -3,6 +3,7 @@ package us.dot.its.jpo.ode.udp.bsm;
 import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
@@ -21,16 +22,13 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
   private final String publishTopic;
 
   /**
-   * Constructs a BsmReceiver object that is responsible for receiving UDP packets,
-   * decoding Basic Safety Message (BSM) data, and publishing the decoded message
-   * to a specified Kafka topic.
+   * Constructs a BsmReceiver object that is responsible for receiving UDP packets, decoding Basic
+   * Safety Message (BSM) data, and publishing the decoded message to a specified Kafka topic.
    *
-   * @param receiverProperties properties that configure the UDP receiver, including
-   *                           the port and buffer size.
-   * @param template           KafkaTemplate used for sending messages to the Kafka
-   *                           broker.
-   * @param publishTopic       the Kafka topic to which the decoded BSM data should
-   *                           be published.
+   * @param receiverProperties properties that configure the UDP receiver, including the port and
+   *                           buffer size.
+   * @param template           KafkaTemplate used for sending messages to the Kafka broker.
+   * @param publishTopic       the Kafka topic to which the decoded BSM data should be published.
    */
   public BsmReceiver(UDPReceiverProperties.ReceiverProperties receiverProperties,
       KafkaTemplate<String, String> template, String publishTopic) {
@@ -63,6 +61,8 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
             });
           }
         }
+      } catch (DisabledTopicException e) {
+        log.warn(e.getMessage());
       } catch (InvalidPayloadException e) {
         log.error("Error decoding packet", e);
       } catch (Exception e) {

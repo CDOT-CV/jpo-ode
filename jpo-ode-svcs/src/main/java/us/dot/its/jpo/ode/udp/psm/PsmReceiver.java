@@ -3,6 +3,7 @@ package us.dot.its.jpo.ode.udp.psm;
 import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
@@ -58,6 +59,8 @@ public class PsmReceiver extends AbstractUdpReceiverPublisher {
             psmPublisher.send(publishTopic, psmJson);
           }
         }
+      } catch (DisabledTopicException e) {
+        log.warn(e.getMessage());
       } catch (InvalidPayloadException e) {
         log.error("Error decoding packet", e);
       } catch (Exception e) {

@@ -5,6 +5,7 @@ import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.kafka.core.KafkaTemplate;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
@@ -14,8 +15,8 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 
 /**
  * GenericReceiver is a class that listens for UDP packets and processes them based on the
- * determined message type. It extends AbstractUdpReceiverPublisher to take advantage of
- * the runnable interface for running the receiver service in a separate thread.
+ * determined message type. It extends AbstractUdpReceiverPublisher to take advantage of the
+ * runnable interface for running the receiver service in a separate thread.
  *
  * </p>The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType}
  * message types encoded in UDP packets such as and routes them to the appropriate Kafka topic.
@@ -72,6 +73,8 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         String messageType = UperUtil.determineHexPacketType(payloadHexString);
         routeMessageByMessageType(messageType, packet);
 
+      } catch (DisabledTopicException e) {
+        log.warn(e.getMessage());
       } catch (UnsupportedMessageTypeException e) {
         log.error("Unsupported Message Type", e);
       } catch (InvalidPayloadException e) {
