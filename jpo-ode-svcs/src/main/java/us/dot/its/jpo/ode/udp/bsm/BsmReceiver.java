@@ -9,31 +9,10 @@ import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 /**
- * The BsmReceiver class is responsible for receiving UDP packets containing Basic Safety Message (BSM) data,
- * decoding the packets, and publishing the decoded message to a specified Kafka topic.
- * It extends the AbstractUdpReceiverPublisher, leveraging its capabilities to receive UDP packets asynchronously.
- *
- * </p>
- * This class is intended to be used in systems where BSM data is transmitted over UDP and needs to be relayed
- * to a Kafka message broker for further processing or analysis.
- *
- * </p>
- * The class utilizes a KafkaTemplate to facilitate the publishing of messages to Kafka and logs activities
- * for monitoring and debugging purposes.
- *
- * </p>
- * It operates as a continuous service, running in a loop until instructed to stop, and handles errors related
- * to packet reception and decoding, as well as errors occurring during the publishing process.
- *
- * </p>
- * Constructor initializes the receiver with specified UDP receiver properties, Kafka template, and topic to publish.
- *
- * </p>
- * Responsibilities include:
- * - Receiving and processing UDP packets containing BSM information.
- * - Decoding the packets using UdpHexDecoder and converting them to JSON format.
- * - Publishing the JSON-formatted BSM data to a Kafka topic.
- * - Handling exceptions related to network operations and invalid payloads.
+ * The BsmReceiver class is responsible for receiving UDP packets containing Basic Safety Message
+ * (BSM) data, decoding the packets, and publishing the decoded message to a specified Kafka topic.
+ * It extends the AbstractUdpReceiverPublisher, leveraging its capabilities to receive UDP packets
+ * asynchronously.
  */
 @Slf4j
 public class BsmReceiver extends AbstractUdpReceiverPublisher {

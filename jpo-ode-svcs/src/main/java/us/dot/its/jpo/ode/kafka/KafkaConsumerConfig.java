@@ -161,13 +161,6 @@ public class KafkaConsumerConfig {
     };
   }
 
-
-  /**
-   * Retrieves the configuration properties for a Kafka consumer. If the Kafka type is "CONFLUENT",
-   * adds SASL JAAS config for secure communication.
-   *
-   * @return a map containing Kafka consumer properties
-   */
   private Map<String, Object> getKafkaConsumerProperties() {
     Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {

@@ -65,9 +65,6 @@ class GenericReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    // Read in the test and expected data from the bsm, map, spat, srm, ssm, and tim files
-
-    // Topics setup
     try {
       embeddedKafka.addTopics(
           new NewTopic(rawEncodedJsonTopics.getBsm(), 1, (short) 1),

@@ -27,8 +27,10 @@ public class UperUtil {
    * @param hexString        the input hexadecimal string from which the IEEE 1609.2 security header
    *                         needs to be stripped.
    * @param payloadStartFlag the start flag indicating the beginning of the payload.
+   *
    * @return a string representing the payload without the IEEE 1609.2 security header, if the start
    *         flag is found.
+   *
    * @throws StartFlagNotFoundException if the specified start flag is not found within the
    *                                    hexadecimal string.
    */
@@ -194,7 +196,7 @@ public class UperUtil {
 
 
   /**
-   * Trims extra `00` bytes off of the end of an ASN1 payload string This is remove the padded bytes
+   * Trims extra `00` bytes off of the end of an ASN1 payload string. This removes the padded bytes
    * added to the payload when receiving ASN1 payloads and leaves one remaining byte of `00`s for
    * decoding.
    *

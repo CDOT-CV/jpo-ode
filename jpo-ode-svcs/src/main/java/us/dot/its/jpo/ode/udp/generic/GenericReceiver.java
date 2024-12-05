@@ -2,11 +2,9 @@ package us.dot.its.jpo.ode.udp.generic;
 
 import io.netty.handler.codec.UnsupportedMessageTypeException;
 import java.net.DatagramPacket;
-import java.util.concurrent.CompletableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.support.SendResult;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.InvalidPayloadException;
@@ -72,15 +70,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         log.debug("Raw Payload {}", payloadHexString);
 
         String messageType = UperUtil.determineHexPacketType(payloadHexString);
-
-        log.debug("Detected Message Type {}", messageType);
-
-        var completableFuture = routeMessageByMessageType(messageType, packet);
-        completableFuture.whenCompleteAsync((message, exception) -> {
-          if (exception != null) {
-            log.error("Exception while publishing {} message", messageType, exception);
-          }
-        });
+        routeMessageByMessageType(messageType, packet);
 
       } catch (UnsupportedMessageTypeException e) {
         log.error("Unsupported Message Type", e);
@@ -92,57 +82,56 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     } while (!isStopped());
   }
 
-  private CompletableFuture<SendResult<String, String>> routeMessageByMessageType(
+  private void routeMessageByMessageType(
       String messageType,
       DatagramPacket packet
   ) throws InvalidPayloadException, UnsupportedMessageTypeException {
-    CompletableFuture<SendResult<String, String>> completableFuture = null;
+    log.debug("Detected Message Type {}", messageType);
     switch (messageType) {
       case "MAP" -> {
         String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
         log.debug("Sending Data to Topic {}", mapJson);
         if (mapJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getMap(), mapJson);
+          publisher.send(rawEncodedJsonTopics.getMap(), mapJson);
         }
       }
       case "SPAT" -> {
         String spatJson = UdpHexDecoder.buildJsonSpatFromPacket(packet);
         if (spatJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getSpat(), spatJson);
+          publisher.send(rawEncodedJsonTopics.getSpat(), spatJson);
         }
       }
       case "TIM" -> {
         String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
         if (timJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getTim(), timJson);
+          publisher.send(rawEncodedJsonTopics.getTim(), timJson);
         }
       }
       case "BSM" -> {
         String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
         if (bsmJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getBsm(), bsmJson);
+          publisher.send(rawEncodedJsonTopics.getBsm(), bsmJson);
         }
       }
       case "SSM" -> {
         String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
         if (ssmJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getSsm(), ssmJson);
+          publisher.send(rawEncodedJsonTopics.getSsm(), ssmJson);
         }
       }
       case "SRM" -> {
         String srmJson = UdpHexDecoder.buildJsonSrmFromPacket(packet);
         if (srmJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getSrm(), srmJson);
+          publisher.send(rawEncodedJsonTopics.getSrm(), srmJson);
         }
       }
       case "PSM" -> {
         String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);
         if (psmJson != null) {
-          completableFuture = publisher.send(rawEncodedJsonTopics.getPsm(), psmJson);
+          publisher.send(rawEncodedJsonTopics.getPsm(), psmJson);
         }
       }
       default -> throw new UnsupportedMessageTypeException(messageType);
     }
-    return completableFuture;
   }
 }

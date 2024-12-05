@@ -8,8 +8,7 @@ import org.springframework.lang.Nullable;
 
 /**
  * The LoggingProducerListener is a Kafka ProducerListener implementation that
- * handles logging for Kafka producer events. It provides detailed logging
- * for both successful message productions and error scenarios.
+ * handles logging for Kafka producer events.
  *
  * </p>This class uses Slf4j for logging and should be added to Kafka producer
  * configurations where logging of producer activity is required.
@@ -28,9 +27,17 @@ public final class LoggingProducerListener<K, V>
   }
 
   @Override
-  public void onError(ProducerRecord<K, V> producerRecord, @Nullable RecordMetadata recordMetadata,
+  public void onError(
+      ProducerRecord<K, V> producerRecord,
+      @Nullable RecordMetadata recordMetadata,
       Exception exception) {
-    log.error("Error producing key {} and value {} to topic {}", producerRecord.key(),
-        producerRecord.value(), producerRecord.topic(), exception);
+    if (exception instanceof DisabledTopicException) {
+      log.warn(
+          "Disabled topic exception encountered while producing key {} and value {} to topic {}",
+          producerRecord.key(), producerRecord.value(), producerRecord.topic());
+    } else {
+      log.error("Failed to produce key {} and value {} to topic {}", producerRecord.key(),
+          producerRecord.value(), producerRecord.topic(), exception);
+    }
   }
 }

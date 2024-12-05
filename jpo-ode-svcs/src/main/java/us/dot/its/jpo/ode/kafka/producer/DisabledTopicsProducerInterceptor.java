@@ -26,11 +26,12 @@ public class DisabledTopicsProducerInterceptor<K, V>
   private final Set<String> disabledTopics;
 
   /**
-   * Constructs an AbstractDisabledTopicsProducerInterceptor with a specified set of disabled
-   * topics. This interceptor will prevent messages from being sent to any of these topics.
+   * Constructs a DisabledTopicsProducerInterceptor with a specified set of disabled topics.
+   * This set determines which topics are restricted from message dispatching.
    *
-   * @param disabledTopics a set of topic names that are disabled. Messages intended for these
-   *                       topics will be intercepted and will not be sent.
+   * @param disabledTopics a set of topic names that are marked as disabled. Messages sent to these
+   *                       topics will result in a DisabledTopicException being thrown, ensuring
+   *                       they are not dispatched.
    */
   protected DisabledTopicsProducerInterceptor(Set<String> disabledTopics) {
     this.disabledTopics = disabledTopics;
