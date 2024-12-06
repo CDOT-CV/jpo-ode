@@ -48,19 +48,23 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
       try {
         log.debug("Waiting for UDP BSM packets...");
         this.socket.receive(packet);
-        if (packet.getLength() > 0) {
-          String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
-          if (bsmJson != null) {
-            log.debug("Publishing String data to {}", publishTopic);
-
-            var sendResult = bsmPublisher.send(publishTopic, bsmJson);
-            sendResult.whenCompleteAsync((result, error) -> {
-              if (error != null) {
-                log.error("Error sending BSM to Kafka", error);
-              }
-            });
-          }
+        if ((packet.getLength() <= 0)) {
+          log.debug("Skipping empty payload");
+          continue;
         }
+
+        String bsmJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
+        if (bsmJson != null) {
+          log.debug("Publishing String data to {}", publishTopic);
+
+          var sendResult = bsmPublisher.send(publishTopic, bsmJson);
+          sendResult.whenCompleteAsync((result, error) -> {
+            if (error != null) {
+              log.error("Error sending BSM to Kafka", error);
+            }
+          });
+        }
+
       } catch (DisabledTopicException e) {
         log.warn(e.getMessage());
       } catch (InvalidPayloadException e) {
