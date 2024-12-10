@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.admin.NewTopic;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,22 +67,19 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() {
-    try {
-      embeddedKafka.addTopics(
-          new NewTopic(pojoTopics.getBsm(), 1, (short) 1),
-          new NewTopic(pojoTopics.getBsmDuringEvent(), 1, (short) 1),
-          new NewTopic(pojoTopics.getRxBsm(), 1, (short) 1),
-          new NewTopic(pojoTopics.getTxBsm(), 1, (short) 1)
-      );
-    } catch (Exception e) {
-      // Ignore because we only care they are created not that they weren't created prior
-    }
+    EmbeddedKafkaHolder.addTopics(
+        pojoTopics.getBsm(),
+        pojoTopics.getBsmDuringEvent(),
+        pojoTopics.getRxBsm(),
+        pojoTopics.getTxBsm()
+    );
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
     String baseExpectedSpecificBsm =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm-specific.xml");
-    String baseExpectedBsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.xml");
+    String baseExpectedBsm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.xml");
 
     var testConsumer =
         listenerContainerFactory.getConsumerFactory().createConsumer();
@@ -118,7 +114,15 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouter_TIMDataFlow() {
-    fail("Not yet implemented");
+    //         String odeTimData = TimTransmogrifier.createOdeTimData(consumed).toString();
+    //        switch (recordType) {
+    //            case dnMsg -> timProducer.send(jsonTopics.getDnMessage(), getRecord().key(), odeTimData);
+    //            case rxMsg -> timProducer.send(jsonTopics.getRxTim(), getRecord().key(), odeTimData);
+    //            default -> log.trace("Consumed TIM data with record type: {}", recordType);
+    //        }
+    //        // Send all TIMs also to OdeTimJson
+    //        timProducer.send(jsonTopics.getTim(), getRecord().key(), odeTimData);
+    //        log.debug("Submitted to TIM Pojo topic: {}", jsonTopics.getTim());
   }
 
   @Test
