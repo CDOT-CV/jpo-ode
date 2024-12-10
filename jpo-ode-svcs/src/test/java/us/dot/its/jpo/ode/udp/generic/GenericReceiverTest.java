@@ -43,7 +43,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.psm=topic.GenericReceiverTestPSM",
         "ode.kafka.topics.raw-encoded-json.spat=topic.GenericReceiverTestSPAT",
         "ode.kafka.topics.raw-encoded-json.ssm=topic.GenericReceiverTestSSM",
-        "ode.kafka.topics.raw-encoded-json.tim=topic.GenericReceiverTestTIM"
+        "ode.kafka.topics.raw-encoded-json.tim=topic.GenericReceiverTestTIM",
+        "ode.kafka.topics.raw-encoded-json.srm=topic.GenericReceiverTestSRM"
     }
 )
 @ContextConfiguration(classes = {
@@ -73,7 +74,8 @@ class GenericReceiverTest {
           new NewTopic(rawEncodedJsonTopics.getSpat(), 1, (short) 1),
           new NewTopic(rawEncodedJsonTopics.getSrm(), 1, (short) 1),
           new NewTopic(rawEncodedJsonTopics.getSsm(), 1, (short) 1),
-          new NewTopic(rawEncodedJsonTopics.getTim(), 1, (short) 1)
+          new NewTopic(rawEncodedJsonTopics.getTim(), 1, (short) 1),
+          new NewTopic(rawEncodedJsonTopics.getSrm(), 1, (short) 1)
       );
     } catch (Exception e) {
       // Ignore topic creation exceptions
@@ -99,7 +101,8 @@ class GenericReceiverTest {
         rawEncodedJsonTopics.getPsm(),
         rawEncodedJsonTopics.getSpat(),
         rawEncodedJsonTopics.getTim(),
-        rawEncodedJsonTopics.getBsm()
+        rawEncodedJsonTopics.getBsm(),
+        rawEncodedJsonTopics.getSrm()
     );
 
     DateTimeUtils.setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
@@ -164,6 +167,17 @@ class GenericReceiverTest {
 
     var timRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getTim());
     assertExpected("Produced TIM message does not match expected", timRecord.value(), expectedTim);
+
+    String srmFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt")
+    );
+    String expectedSrm = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json")
+    );
+    udpClient.send(srmFileContent);
+
+    var srmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSrm());
+    assertExpected("Produced SRM message does not match expected", srmRecord.value(), expectedSrm);
   }
 
   private static void assertExpected(String failureMsg, String actual, String expected) {
