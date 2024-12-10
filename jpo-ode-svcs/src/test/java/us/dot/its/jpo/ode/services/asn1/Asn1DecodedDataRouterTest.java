@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,15 +87,8 @@ class Asn1DecodedDataRouterTest {
 
   ObjectMapper mapper = new ObjectMapper();
 
-  @Test
-  void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
-    EmbeddedKafkaHolder.addTopics(
-        pojoTopics.getBsm(),
-        pojoTopics.getBsmDuringEvent(),
-        pojoTopics.getRxBsm(),
-        pojoTopics.getTxBsm()
-    );
-
+  @BeforeEach
+  void setup() {
     Asn1DecodedDataRouter decoderRouter =
         new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
 
@@ -104,6 +98,16 @@ class Asn1DecodedDataRouterTest {
 
     asn1DecoderConsumer.setName("Asn1DecoderConsumer");
     decoderRouter.start(asn1DecoderConsumer, asn1CoderTopics.getDecoderOutput());
+  }
+
+  @Test
+  void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
+    EmbeddedKafkaHolder.addTopics(
+        pojoTopics.getBsm(),
+        pojoTopics.getBsmDuringEvent(),
+        pojoTopics.getRxBsm(),
+        pojoTopics.getTxBsm()
+    );
 
     String decodedBsmXml =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
