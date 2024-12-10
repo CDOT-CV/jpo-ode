@@ -13,18 +13,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
@@ -32,6 +29,7 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeBsmData;
+import us.dot.its.jpo.ode.model.OdeSpatData;
 import us.dot.its.jpo.ode.services.asn1.message.AsnCodecMessageServiceController;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
@@ -47,7 +45,6 @@ import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
         JsonTopics.class,
         Asn1CoderTopics.class,
         KafkaProducerConfig.class,
-        KafkaConsumerConfig.class,
         RawEncodedJsonTopics.class,
         Asn1CoderTopics.class,
         OdeKafkaProperties.class,
@@ -78,8 +75,6 @@ class Asn1DecodedDataRouterTest {
   PojoTopics pojoTopics;
   @Autowired
   JsonTopics jsonTopics;
-  @Qualifier("kafkaListenerContainerFactory")
-  ConcurrentKafkaListenerContainerFactory<String, String> listenerContainerFactory;
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
   @Autowired
@@ -152,16 +147,16 @@ class Asn1DecodedDataRouterTest {
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
-    String baseExpectedSpecificTim =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim-specific.xml");
-    String baseExpectedTim =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.xml");
 
-    var testConsumer =
-        listenerContainerFactory.getConsumerFactory().createConsumer();
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "timDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var testConsumer = consumerFactory.createConsumer();
+
     embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
 
-    String recordTypeToReplace = "dnMsg";
+    String baseExpectedTim =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
     for (String recordType : new String[] {"dnMsg", "rxMsg"}) {
       String topic;
       switch (recordType) {
@@ -171,24 +166,19 @@ class Asn1DecodedDataRouterTest {
       }
 
       String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
-      kafkaStringTemplate.send(topic, inputData);
-      kafkaStringTemplate.send(jsonTopics.getTim(), inputData);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
 
-      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
       var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
-
-      String expectedTim = replaceRecordType(baseExpectedTim,
-          recordTypeToReplace, recordType);
+      var expectedTim = replaceJSONRecordType(baseExpectedTim, "dnMsg", recordType);
       assertEquals(expectedTim, consumedTim.value());
 
-      String expectedSpecificTim = replaceRecordType(baseExpectedSpecificTim,
-          recordTypeToReplace, recordType);
-      assertEquals(expectedSpecificTim, consumedSpecific.value());
+      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
+      assertEquals(expectedTim, consumedSpecific.value());
     }
   }
 
   @Test
-  void testAsn1DecodedDataRouter_SPaTDataFlow() {
+  void testAsn1DecodedDataRouter_SPaTDataFlow() throws IOException {
     EmbeddedKafkaHolder.addTopics(
         jsonTopics.getSpat(),
         jsonTopics.getRxSpat(),
@@ -198,16 +188,13 @@ class Asn1DecodedDataRouterTest {
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-spat.xml");
-    String baseExpectedSpecificSpat =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-spat-specific.xml");
-    String baseExpectedSpat =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-spat.xml");
 
-    var testConsumer =
-        listenerContainerFactory.getConsumerFactory().createConsumer();
-    embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "spatDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, OdeSpatData>(consumerProps);
+    consumerFactory.setValueDeserializer(new MessagingDeserializer<>());
+    var testConsumer = consumerFactory.createConsumer();
 
-    String recordTypeToReplace = "spatTx";
     for (String recordType : new String[] {"spatTx", "rxMsg", "dnMsg"}) {
       String topic;
       switch (recordType) {
@@ -224,13 +211,12 @@ class Asn1DecodedDataRouterTest {
       var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
       var consumedSpat = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSpat());
 
-      String expectedSpat = replaceRecordType(baseExpectedSpat,
-          recordTypeToReplace, recordType);
+      OdeSpatData expectedSpat = mapper.readValue(
+          new File("src/test/resources/us/dot/its/jpo/ode/services/asn1/expected-spat.xml"),
+          OdeSpatData.class
+      );
       assertEquals(expectedSpat, consumedSpat.value());
-
-      String expectedSpecificSpat = replaceRecordType(baseExpectedSpecificSpat,
-          recordTypeToReplace, recordType);
-      assertEquals(expectedSpecificSpat, consumedSpecific.value());
+      assertEquals(expectedSpat, consumedSpecific.value());
     }
 
   }
@@ -272,5 +258,10 @@ class Asn1DecodedDataRouterTest {
   private String replaceRecordType(String testData, String curRecordType, String recordType) {
     return testData.replace("<recordType>" + curRecordType + "</recordType>",
         "<recordType>" + recordType + "</recordType>");
+  }
+
+  private String replaceJSONRecordType(String testData, String curRecordType, String recordType) {
+    return testData.replace("\"recordType\":\"" + curRecordType + "\"",
+        "\"recordType\":\"" + recordType + "\"");
   }
 }
