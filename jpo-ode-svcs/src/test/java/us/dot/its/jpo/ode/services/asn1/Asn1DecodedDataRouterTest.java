@@ -24,6 +24,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.services.asn1.message.AsnCodecMessageServiceController;
@@ -36,6 +37,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         AsnCodecMessageServiceController.class,
         KafkaProperties.class,
         PojoTopics.class,
+        JsonTopics.class,
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
         RawEncodedJsonTopics.class,
@@ -46,6 +48,9 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         "ode.kafka.topics.pojo.rx-bsm=topic.RxBsmAsn1DecodedDataRouterTest",
         "ode.kafka.topics.pojo.tx-bsm=topic.TxBsmAsn1DecodedDataRouterTest",
         "ode.kafka.topics.pojo.bsm=topic.BsmAsn1DecodedDataRouterTest",
+        "ode.kafka.topics.json.dn-message=topic.DnMessageAsn1DecodedDataRouterTest",
+        "ode.kafka.topics.json.rx-tim=topic.RxTimAsn1DecodedDataRouterTest",
+        "ode.kafka.topics.json.tim=topic.TimAsn1DecodedDataRouterTest",
     }
 )
 @EnableConfigurationProperties
@@ -61,6 +66,8 @@ class Asn1DecodedDataRouterTest {
   KafkaTemplate<String, String> kafkaStringTemplate;
   @Autowired
   PojoTopics pojoTopics;
+  @Autowired
+  JsonTopics jsonTopics;
   @Qualifier("kafkaListenerContainerFactory")
   @Autowired
   ConcurrentKafkaListenerContainerFactory<String, String> listenerContainerFactory;
@@ -113,16 +120,48 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouter_TIMDataFlow() {
-    //         String odeTimData = TimTransmogrifier.createOdeTimData(consumed).toString();
-    //        switch (recordType) {
-    //            case dnMsg -> timProducer.send(jsonTopics.getDnMessage(), getRecord().key(), odeTimData);
-    //            case rxMsg -> timProducer.send(jsonTopics.getRxTim(), getRecord().key(), odeTimData);
-    //            default -> log.trace("Consumed TIM data with record type: {}", recordType);
-    //        }
-    //        // Send all TIMs also to OdeTimJson
-    //        timProducer.send(jsonTopics.getTim(), getRecord().key(), odeTimData);
-    //        log.debug("Submitted to TIM Pojo topic: {}", jsonTopics.getTim());
+  void testAsn1DecodedDataRouterTIMDataFlow() {
+    EmbeddedKafkaHolder.addTopics(
+        jsonTopics.getDnMessage(),
+        jsonTopics.getRxTim(),
+        jsonTopics.getTim()
+    );
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
+    String baseExpectedSpecificTim =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim-specific.xml");
+    String baseExpectedTim =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.xml");
+
+    var testConsumer =
+        listenerContainerFactory.getConsumerFactory().createConsumer();
+    embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
+
+    String recordTypeToReplace = "dnMsg";
+    for (String recordType : new String[] {"dnMsg", "rxMsg"}) {
+      String topic;
+      switch (recordType) {
+        case "rxMsg" -> topic = jsonTopics.getRxTim();
+        case "dnMsg" -> topic = jsonTopics.getDnMessage();
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
+
+      String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
+      kafkaStringTemplate.send(topic, inputData);
+      kafkaStringTemplate.send(jsonTopics.getTim(), inputData);
+
+      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
+      var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+
+      String expectedTim = replaceRecordType(baseExpectedTim,
+          recordTypeToReplace, recordType);
+      assertEquals(expectedTim, consumedTim.value());
+
+      String expectedSpecificTim = replaceRecordType(baseExpectedSpecificTim,
+          recordTypeToReplace, recordType);
+      assertEquals(expectedSpecificTim, consumedSpecific.value());
+    }
   }
 
   @Test
