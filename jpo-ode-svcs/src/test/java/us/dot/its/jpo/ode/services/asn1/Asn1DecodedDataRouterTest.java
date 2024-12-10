@@ -29,7 +29,6 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeBsmData;
-import us.dot.its.jpo.ode.model.OdeSpatData;
 import us.dot.its.jpo.ode.services.asn1.message.AsnCodecMessageServiceController;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
@@ -178,7 +177,7 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouter_SPaTDataFlow() throws IOException {
+  void testAsn1DecodedDataRouter_SPaTDataFlow() {
     EmbeddedKafkaHolder.addTopics(
         jsonTopics.getSpat(),
         jsonTopics.getRxSpat(),
@@ -191,10 +190,12 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "spatDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, OdeSpatData>(consumerProps);
-    consumerFactory.setValueDeserializer(new MessagingDeserializer<>());
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
     var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
 
+    String baseExpectedSpat =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-spat.json");
     for (String recordType : new String[] {"spatTx", "rxMsg", "dnMsg"}) {
       String topic;
       switch (recordType) {
@@ -205,20 +206,15 @@ class Asn1DecodedDataRouterTest {
       }
 
       String inputData = replaceRecordType(baseTestData, "spatTx", recordType);
-      kafkaStringTemplate.send(topic, inputData);
-      kafkaStringTemplate.send(jsonTopics.getSpat(), inputData);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
 
       var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
       var consumedSpat = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSpat());
 
-      OdeSpatData expectedSpat = mapper.readValue(
-          new File("src/test/resources/us/dot/its/jpo/ode/services/asn1/expected-spat.xml"),
-          OdeSpatData.class
-      );
+      var expectedSpat = replaceJSONRecordType(baseExpectedSpat, "spatTx", recordType);
       assertEquals(expectedSpat, consumedSpat.value());
       assertEquals(expectedSpat, consumedSpecific.value());
     }
-
   }
 
   @Test
