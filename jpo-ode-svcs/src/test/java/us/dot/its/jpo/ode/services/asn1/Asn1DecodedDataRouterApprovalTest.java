@@ -65,7 +65,7 @@ class Asn1DecodedDataRouterApprovalTest {
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   @Test
-  void testAsn1DecodedDataRouter() throws IOException {
+  void testAsn1DecodedDataRouter_MAPDataFlow() throws IOException {
     NewTopic inputTopic = new NewTopic(decoderOutputTopic, 1, (short) 1);
     NewTopic outputTopicTx = new NewTopic(txMapTopic, 1, (short) 1);
     NewTopic outputTopicJson = new NewTopic(jsonMapTopic, 1, (short) 1);
