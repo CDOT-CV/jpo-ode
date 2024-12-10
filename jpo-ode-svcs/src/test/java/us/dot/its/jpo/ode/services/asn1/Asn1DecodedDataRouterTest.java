@@ -67,7 +67,7 @@ class Asn1DecodedDataRouterTest {
   ConcurrentKafkaListenerContainerFactory<String, String> listenerContainerFactory;
 
   @Test
-  void testAsn1DecodedDataRouter_BSMDataFlow() {
+  void testAsn1DecodedDataRouterBSMDataFlow() {
     try {
       embeddedKafka.addTopics(
           new NewTopic(pojoTopics.getBsm(), 1, (short) 1),
@@ -89,6 +89,7 @@ class Asn1DecodedDataRouterTest {
         listenerContainerFactory.getConsumerFactory().createConsumer();
     embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
 
+    String recordTypeToReplace = "bsmLogDuringEvent";
     for (String recordType : new String[] {"bsmLogDuringEvent", "rxMsg", "bsmTx"}) {
       String topic;
       switch (recordType) {
@@ -98,38 +99,21 @@ class Asn1DecodedDataRouterTest {
         default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
 
-      String inputData = baseTestData.replace("<recordType>bsmTx</recordType>",
-          "<recordType>" + recordType + "</recordType>");
+      String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
       kafkaStringTemplate.send(topic, inputData);
       kafkaStringTemplate.send(pojoTopics.getBsm(), inputData);
 
       var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
       var consumedBsm = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getBsm());
 
-      String expectedBsm = baseExpectedBsm.replace(
-          "<recordType>bsmLogDuringEvent</recordType>",
-          "<recordType>" + recordType + "</recordType>");
+      String expectedBsm = replaceRecordType(baseExpectedBsm,
+          recordTypeToReplace, recordType);
       assertEquals(expectedBsm, consumedBsm.value());
 
-      String expectedSpecificBsm = baseExpectedSpecificBsm.replace(
-          "<recordType>bsmLogDuringEvent</recordType>",
-          "<recordType>" + recordType + "</recordType>");
+      String expectedSpecificBsm = replaceRecordType(baseExpectedSpecificBsm,
+          recordTypeToReplace, recordType);
       assertEquals(expectedSpecificBsm, consumedSpecific.value());
     }
-  }
-
-  private String loadFromResource(String resourcePath) {
-    String baseTestData;
-    try (InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream(resourcePath)) {
-      if (inputStream == null) {
-        throw new FileNotFoundException("Resource not found: decoder-output-bsm.xml");
-      }
-      baseTestData = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to load test data from decoder-output-bsm.xml", e);
-    }
-    return baseTestData;
   }
 
   @Test
@@ -160,5 +144,24 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_MAPDataFlow() {
     fail("Not yet implemented");
+  }
+
+  private String loadFromResource(String resourcePath) {
+    String baseTestData;
+    try (InputStream inputStream = getClass().getClassLoader()
+        .getResourceAsStream(resourcePath)) {
+      if (inputStream == null) {
+        throw new FileNotFoundException("Resource not found: decoder-output-bsm.xml");
+      }
+      baseTestData = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load test data from decoder-output-bsm.xml", e);
+    }
+    return baseTestData;
+  }
+
+  private String replaceRecordType(String testData, String curRecordType, String recordType) {
+    return testData.replace("<recordType>" + curRecordType + "</recordType>",
+        "<recordType>" + recordType + "</recordType>");
   }
 }
