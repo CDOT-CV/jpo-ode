@@ -3,6 +3,8 @@ package us.dot.its.jpo.ode.services.asn1;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -15,6 +17,7 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
@@ -27,9 +30,12 @@ import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
+import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.services.asn1.message.AsnCodecMessageServiceController;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
+import us.dot.its.jpo.ode.wrapper.MessageConsumer;
+import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
 
 @Slf4j
 @SpringBootTest(
@@ -38,12 +44,15 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         KafkaProperties.class,
         PojoTopics.class,
         JsonTopics.class,
+        Asn1CoderTopics.class,
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
         RawEncodedJsonTopics.class,
         Asn1CoderTopics.class,
+        OdeKafkaProperties.class,
     },
     properties = {
+        "ode.kafka.topics.asn1.decoder-output=topic.DecoderOutputAsn1DecodedDataRouterTest",
         "ode.kafka.topics.pojo.bsm-during-event=topic.BsmDuringEventAsn1DecodedDataRouterTest",
         "ode.kafka.topics.pojo.rx-bsm=topic.RxBsmAsn1DecodedDataRouterTest",
         "ode.kafka.topics.pojo.tx-bsm=topic.TxBsmAsn1DecodedDataRouterTest",
@@ -69,11 +78,16 @@ class Asn1DecodedDataRouterTest {
   @Autowired
   JsonTopics jsonTopics;
   @Qualifier("kafkaListenerContainerFactory")
-  @Autowired
   ConcurrentKafkaListenerContainerFactory<String, String> listenerContainerFactory;
+  @Autowired
+  Asn1CoderTopics asn1CoderTopics;
+  @Autowired
+  OdeKafkaProperties odeKafkaProperties;
+
+  ObjectMapper mapper = new ObjectMapper();
 
   @Test
-  void testAsn1DecodedDataRouterBSMDataFlow() {
+  void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
     EmbeddedKafkaHolder.addTopics(
         pojoTopics.getBsm(),
         pojoTopics.getBsmDuringEvent(),
@@ -81,18 +95,29 @@ class Asn1DecodedDataRouterTest {
         pojoTopics.getTxBsm()
     );
 
-    String baseTestData =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
-    String baseExpectedSpecificBsm =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm-specific.xml");
-    String baseExpectedBsm =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.xml");
+    Asn1DecodedDataRouter decoderRouter =
+        new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
 
-    var testConsumer =
-        listenerContainerFactory.getConsumerFactory().createConsumer();
+    MessageConsumer<String, String> asn1DecoderConsumer =
+        MessageConsumer.defaultStringMessageConsumer(
+            odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), decoderRouter);
+
+    asn1DecoderConsumer.setName("Asn1DecoderConsumer");
+    decoderRouter.start(asn1DecoderConsumer, asn1CoderTopics.getDecoderOutput());
+
+    String decodedBsmXml =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "bsmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, OdeBsmData>(consumerProps);
+    consumerFactory.setValueDeserializer(new MessagingDeserializer<>());
+    var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
 
-    String recordTypeToReplace = "bsmLogDuringEvent";
+    OdeBsmData expectedBsm = mapper.readValue(
+        new File("src/test/resources/us/dot/its/jpo/ode/services/asn1/expected-bsm.json"),
+        OdeBsmData.class);
     for (String recordType : new String[] {"bsmLogDuringEvent", "rxMsg", "bsmTx"}) {
       String topic;
       switch (recordType) {
@@ -102,20 +127,14 @@ class Asn1DecodedDataRouterTest {
         default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
 
-      String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
-      kafkaStringTemplate.send(topic, inputData);
-      kafkaStringTemplate.send(pojoTopics.getBsm(), inputData);
+      String inputData = replaceRecordType(decodedBsmXml, "bsmTx", recordType);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
 
       var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
       var consumedBsm = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getBsm());
 
-      String expectedBsm = replaceRecordType(baseExpectedBsm,
-          recordTypeToReplace, recordType);
       assertEquals(expectedBsm, consumedBsm.value());
-
-      String expectedSpecificBsm = replaceRecordType(baseExpectedSpecificBsm,
-          recordTypeToReplace, recordType);
-      assertEquals(expectedSpecificBsm, consumedSpecific.value());
+      assertEquals(expectedBsm, consumedSpecific.value());
     }
   }
 
@@ -166,7 +185,50 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouter_SPaTDataFlow() {
-    fail("Not yet implemented");
+    EmbeddedKafkaHolder.addTopics(
+        jsonTopics.getSpat(),
+        jsonTopics.getRxSpat(),
+        jsonTopics.getDnMessage(),
+        pojoTopics.getTxSpat()
+    );
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-spat.xml");
+    String baseExpectedSpecificSpat =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-spat-specific.xml");
+    String baseExpectedSpat =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-spat.xml");
+
+    var testConsumer =
+        listenerContainerFactory.getConsumerFactory().createConsumer();
+    embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
+
+    String recordTypeToReplace = "spatTx";
+    for (String recordType : new String[] {"spatTx", "rxMsg", "dnMsg"}) {
+      String topic;
+      switch (recordType) {
+        case "rxMsg" -> topic = jsonTopics.getRxSpat();
+        case "dnMsg" -> topic = jsonTopics.getDnMessage();
+        case "spatTx" -> topic = pojoTopics.getTxSpat();
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
+
+      String inputData = replaceRecordType(baseTestData, "spatTx", recordType);
+      kafkaStringTemplate.send(topic, inputData);
+      kafkaStringTemplate.send(jsonTopics.getSpat(), inputData);
+
+      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
+      var consumedSpat = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSpat());
+
+      String expectedSpat = replaceRecordType(baseExpectedSpat,
+          recordTypeToReplace, recordType);
+      assertEquals(expectedSpat, consumedSpat.value());
+
+      String expectedSpecificSpat = replaceRecordType(baseExpectedSpecificSpat,
+          recordTypeToReplace, recordType);
+      assertEquals(expectedSpecificSpat, consumedSpecific.value());
+    }
+
   }
 
   @Test
