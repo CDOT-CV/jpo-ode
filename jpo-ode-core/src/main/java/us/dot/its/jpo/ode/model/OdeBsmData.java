@@ -20,12 +20,14 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.EqualsAndHashCode;
 
 /**
  * Represents a specialized type of data in the Open Data Environment (ODE) system, specifically
  * related to Basic Safety Messages (BSM). This class extends OdeData and provides BSM-specific
  * metadata and payload handling.
  */
+@EqualsAndHashCode(callSuper = false)
 public class OdeBsmData extends OdeData {
 
   private static final long serialVersionUID = 4944935387116447760L;
