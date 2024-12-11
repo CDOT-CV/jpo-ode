@@ -105,7 +105,7 @@ class Asn1DecodedDataRouterTest {
     var container =
         new KafkaMessageListenerContainer<>(consumerFactory, containerProps);
     var asn1DecodedDataListener =
-        new Asn1DecodedDataListener(kafkaStringTemplate, kafkaBsmTemplate, pojoTopics, jsonTopics);
+        new Asn1DecodedDataRouter(kafkaStringTemplate, kafkaBsmTemplate, pojoTopics, jsonTopics);
 
     container.setupMessageListener((MessageListener<String, String>) consumerRecord -> {
       try {

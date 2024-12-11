@@ -24,7 +24,7 @@ import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
 /**
- * The Asn1DecodedDataListener class is a component responsible for processing decoded ASN.1 data
+ * The Asn1DecodedDataRouter class is a component responsible for processing decoded ASN.1 data
  * from Kafka topics. It listens to messages on a specified Kafka topic and handles the incoming
  * data by processing and forwarding it to different topics based on specific criteria.
  *
@@ -36,7 +36,7 @@ import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
  * allowing it to automatically consume messages from a configured Kafka topic.</p>
  */
 @Slf4j
-public class Asn1DecodedDataListener {
+public class Asn1DecodedDataRouter {
 
   private final PojoTopics pojoTopics;
   private final JsonTopics jsonTopics;
@@ -44,11 +44,11 @@ public class Asn1DecodedDataListener {
   private final KafkaTemplate<String, OdeBsmData> bsmDataKafkaTemplate;
 
   /**
-   * Constructs an instance of Asn1DecodedDataListener.
+   * Constructs an instance of Asn1DecodedDataRouter.
    *
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
-  public Asn1DecodedDataListener(KafkaTemplate<String, String> kafkaTemplate,
+  public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate,
       KafkaTemplate<String, OdeBsmData> bsmDataKafkaTemplate,
       PojoTopics pojoTopics,
       JsonTopics jsonTopics) {
@@ -63,7 +63,7 @@ public class Asn1DecodedDataListener {
    * appropriate Kafka topics based on its record type.
    */
   @KafkaListener(
-      id = "Asn1DecodedDataListener",
+      id = "Asn1DecodedDataRouter",
       topics = "${ode.kafka.topics.asn1.decoder-output}"
   )
   public void listen(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException {

@@ -37,7 +37,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @Slf4j
 @SpringBootTest(
     classes = {
-        Asn1DecodedDataListener.class,
+        Asn1DecodedDataRouter.class,
         KafkaProperties.class,
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class},
@@ -53,7 +53,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     PojoTopics.class, JsonTopics.class
 })
 @DirtiesContext
-class Asn1DecodedDataListenerApprovalTest {
+class Asn1DecodedDataRouterApprovalTest {
 
   @Value("${ode.kafka.topics.asn1.decoder-output}")
   private String decoderOutputTopic;
