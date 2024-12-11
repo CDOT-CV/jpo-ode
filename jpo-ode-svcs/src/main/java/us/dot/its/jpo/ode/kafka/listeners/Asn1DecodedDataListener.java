@@ -68,7 +68,7 @@ public class Asn1DecodedDataListener {
       id = "Asn1DecodedDataListener",
       topics = "${ode.kafka.topics.asn1.decoder-output}"
   )
-  public void listenToMAPs(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException {
+  public void listen(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())

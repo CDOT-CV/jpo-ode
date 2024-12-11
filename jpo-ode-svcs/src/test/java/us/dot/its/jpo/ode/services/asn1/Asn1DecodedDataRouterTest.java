@@ -110,7 +110,7 @@ class Asn1DecodedDataRouterTest {
 
     container.setupMessageListener((MessageListener<String, String>) consumerRecord -> {
       try {
-        asn1DecodedDataListener.listenToMAPs(consumerRecord);
+        asn1DecodedDataListener.listen(consumerRecord);
       } catch (XmlUtilsException e) {
         throw new RuntimeException(e);
       }
