@@ -1,7 +1,6 @@
 package us.dot.its.jpo.ode.services.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
@@ -13,6 +12,7 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -336,9 +336,41 @@ class Asn1DecodedDataRouterTest {
     }
   }
 
+  @Disabled("Enable once migrated to one Spring Kafka Listener implementation")
   @Test
   void testAsn1DecodedDataRouter_MAPDataFlow() {
-    fail("Not yet implemented");
+    String[] topics = Arrays.array(
+        jsonTopics.getMap(),
+        pojoTopics.getTxMap()
+    );
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-map.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "mapDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+
+    String baseExpectedMap =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-map.json");
+    for (String recordType : new String[] {"mapTx", "unsupported"}) {
+
+      String inputData = replaceRecordType(baseTestData, "MapTx", recordType);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+
+      var expectedMap = replaceJSONRecordType(baseExpectedMap, "mapTx", recordType);
+
+      var consumedMap = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getMap());
+      assertEquals(expectedMap, consumedMap.value());
+
+      if (recordType.equals("mapTx")) {
+        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getTxMap());
+        assertEquals(expectedMap, consumedSpecific.value());
+      }
+    }
   }
 
   private String loadFromResource(String resourcePath) {
