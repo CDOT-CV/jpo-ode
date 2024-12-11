@@ -5,6 +5,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
@@ -13,6 +14,7 @@ import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.context.AppContext;
+import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -36,6 +38,7 @@ import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
  * allowing it to automatically consume messages from a configured Kafka topic.</p>
  */
 @Slf4j
+@Component
 public class Asn1DecodedDataRouter {
 
   private final PojoTopics pojoTopics;
@@ -85,15 +88,19 @@ public class Asn1DecodedDataRouter {
             .getString("recordType")
         );
 
-    switch (messageId) {
-      case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
-      case TravelerInformation -> routeTIM(consumerRecord, recordType);
-      case SPATMessage -> routeSPAT(consumerRecord, recordType);
-      case MAPMessage -> routeMAP(consumerRecord, recordType);
-      case SSMMessage -> routeSSM(consumerRecord, recordType);
-      case SRMMessage -> routeSRM(consumerRecord, recordType);
-      case PersonalSafetyMessage -> routePSM(consumerRecord, recordType);
-      case null, default -> log.warn("Unknown message type: {}", messageId);
+    try {
+      switch (messageId) {
+        case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
+        case TravelerInformation -> routeTIM(consumerRecord, recordType);
+        case SPATMessage -> routeSPAT(consumerRecord, recordType);
+        case MAPMessage -> routeMAP(consumerRecord, recordType);
+        case SSMMessage -> routeSSM(consumerRecord, recordType);
+        case SRMMessage -> routeSRM(consumerRecord, recordType);
+        case PersonalSafetyMessage -> routePSM(consumerRecord, recordType);
+        case null, default -> log.warn("Unknown message type: {}", messageId);
+      }
+    } catch (DisabledTopicException e) {
+      log.warn(e.getMessage());
     }
   }
 
