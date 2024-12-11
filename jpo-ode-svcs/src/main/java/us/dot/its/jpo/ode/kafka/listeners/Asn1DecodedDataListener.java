@@ -12,6 +12,7 @@ import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
+import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
@@ -20,7 +21,6 @@ import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735DSRCmsgID;
-import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
@@ -51,7 +51,7 @@ public class Asn1DecodedDataListener {
   /**
    * Constructs an instance of Asn1DecodedDataListener.
    *
-   * @param kafkaTemplate  the KafkaTemplate used for sending messages to Kafka topics.
+   * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
   public Asn1DecodedDataListener(KafkaTemplate<String, String> kafkaTemplate,
       KafkaTemplate<String, OdeBsmData> bsmDataKafkaTemplate,
@@ -68,7 +68,6 @@ public class Asn1DecodedDataListener {
    * it to appropriate Kafka topics based on its record type. Specifically, it publishes all
    * transformed MAP data to a JSON topic and conditionally to a transaction-map topic if the record
    * type is `mapTx`.
-   *
    */
   @KafkaHandler
   public void listenToMAPs(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException {
@@ -89,10 +88,10 @@ public class Asn1DecodedDataListener {
             .getJSONObject(AppContext.METADATA_STRING)
             .getString("recordType")
         );
-    
+
     switch (messageId) {
       case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
-      case TravelerInformation -> routeTIM(consumerRecord.key(), consumed, recordType);
+      case TravelerInformation -> routeTIM(consumerRecord, recordType);
       case SPATMessage -> routeSPAT(consumerRecord, recordType);
       case MAPMessage -> routeMAP(consumerRecord, recordType);
       case SSMMessage -> routeSSM(consumerRecord, recordType);
@@ -163,15 +162,17 @@ public class Asn1DecodedDataListener {
     kafkaTemplate.send(jsonTopics.getMap(), odeMapData);
   }
 
-  private void routeTIM(String key, JSONObject consumed, RecordType recordType) {
-    String odeTimData = TimTransmogrifier.createOdeTimData(consumed).toString();
+  private void routeTIM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
+      throws XmlUtilsException {
+    String odeTimData =
+        OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
     switch (recordType) {
-      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), key, odeTimData);
-      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), key, odeTimData);
+      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
+      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
       default -> log.trace("Consumed TIM data with record type: {}", recordType);
     }
     // Send all TIMs also to OdeTimJson
-    kafkaTemplate.send(jsonTopics.getTim(), key, odeTimData);
+    kafkaTemplate.send(jsonTopics.getTim(), consumerRecord.key(), odeTimData);
     log.debug("Submitted to TIM Pojo topic: {}", jsonTopics.getTim());
   }
 
