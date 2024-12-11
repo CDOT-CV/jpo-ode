@@ -39,6 +39,7 @@ public final class EmbeddedKafkaHolder {
     if (!started) {
       try {
         embeddedKafka.kafkaPorts(4242);
+        embeddedKafka.brokerProperty("spring.kafka.admin.auto-create", false);
         embeddedKafka.afterPropertiesSet();
       } catch (Exception e) {
         throw new KafkaException("Embedded broker failed to start", e);
