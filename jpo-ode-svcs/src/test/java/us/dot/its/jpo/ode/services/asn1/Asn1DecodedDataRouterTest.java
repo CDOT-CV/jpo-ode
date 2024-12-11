@@ -262,12 +262,42 @@ class Asn1DecodedDataRouterTest {
         assertEquals(expectedSsm, consumedSpecific.value());
       }
     }
-
   }
 
   @Test
   void testAsn1DecodedDataRouter_SRMDataFlow() {
-    fail("Not yet implemented");
+    String[] topics = Arrays.array(
+        jsonTopics.getSrm(),
+        pojoTopics.getTxSrm()
+    );
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-srm.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "srmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+
+    String baseExpectedSrm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-srm.json");
+    for (String recordType : new String[] {"srmTx", "unsupported"}) {
+
+      String inputData = replaceRecordType(baseTestData, "srmTx", recordType);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+
+      var expectedSrm = replaceJSONRecordType(baseExpectedSrm, "srmTx", recordType);
+
+      var consumedSrm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSrm());
+      assertEquals(expectedSrm, consumedSrm.value());
+
+      if (recordType.equals("srmTx")) {
+        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getTxSrm());
+        assertEquals(expectedSrm, consumedSpecific.value());
+      }
+    }
   }
 
   @Test
