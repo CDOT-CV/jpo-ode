@@ -8,7 +8,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -28,7 +27,6 @@ import us.dot.its.jpo.ode.util.XmlUtils;
  * allowing it to automatically consume messages from a configured Kafka topic.
  */
 @Slf4j
-@Component
 @KafkaListener(
     id = "Asn1DecodedDataListener",
     topics = "${ode.kafka.topics.asn1.decoder-output}",
