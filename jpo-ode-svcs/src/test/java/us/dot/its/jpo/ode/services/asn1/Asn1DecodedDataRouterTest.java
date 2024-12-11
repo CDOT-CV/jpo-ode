@@ -302,7 +302,38 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouter_PSMDataFlow() {
-    fail("Not yet implemented");
+    String[] topics = Arrays.array(
+        jsonTopics.getPsm(),
+        pojoTopics.getTxPsm()
+    );
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-psm.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "psmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+
+    String baseExpectedPsm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-psm.json");
+    for (String recordType : new String[] {"psmTx", "unsupported"}) {
+
+      String inputData = replaceRecordType(baseTestData, "psmTx", recordType);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+
+      var expectedPsm = replaceJSONRecordType(baseExpectedPsm, "psmTx", recordType);
+
+      var consumedPsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getPsm());
+      assertEquals(expectedPsm, consumedPsm.value());
+
+      if (recordType.equals("psmTx")) {
+        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getTxPsm());
+        assertEquals(expectedPsm, consumedSpecific.value());
+      }
+    }
   }
 
   @Test
