@@ -12,7 +12,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -353,7 +352,6 @@ class Asn1DecodedDataRouterTest {
     }
   }
 
-  @Disabled("Enable once migrated to one Spring Kafka Listener implementation")
   @Test
   void testAsn1DecodedDataRouter_MAPDataFlow() {
     String[] topics = Arrays.array(
@@ -375,7 +373,7 @@ class Asn1DecodedDataRouterTest {
         loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-map.json");
     for (String recordType : new String[] {"mapTx", "unsupported"}) {
 
-      String inputData = replaceRecordType(baseTestData, "MapTx", recordType);
+      String inputData = replaceRecordType(baseTestData, "mapTx", recordType);
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
 
       var expectedMap = replaceJSONRecordType(baseExpectedMap, "mapTx", recordType);
