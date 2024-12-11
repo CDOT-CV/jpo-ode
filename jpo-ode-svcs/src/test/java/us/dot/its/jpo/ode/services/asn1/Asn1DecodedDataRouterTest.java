@@ -20,11 +20,17 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.listeners.Asn1DecodedDataListener;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -33,7 +39,7 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
-import us.dot.its.jpo.ode.wrapper.MessageConsumer;
+import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
 
 @Slf4j
@@ -43,6 +49,7 @@ import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
         PojoTopics.class,
         JsonTopics.class,
         Asn1CoderTopics.class,
+        KafkaConsumerConfig.class,
         KafkaProducerConfig.class,
         RawEncodedJsonTopics.class,
         Asn1CoderTopics.class,
@@ -61,16 +68,17 @@ class Asn1DecodedDataRouterTest {
   @Autowired
   KafkaTemplate<String, String> kafkaStringTemplate;
   @Autowired
+  KafkaTemplate<String, OdeBsmData> kafkaBsmTemplate;
+  @Autowired
   PojoTopics pojoTopics;
   @Autowired
   JsonTopics jsonTopics;
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
   @Autowired
-  OdeKafkaProperties odeKafkaProperties;
+  KafkaConsumerConfig kafkaConsumerConfig;
 
   ObjectMapper mapper = new ObjectMapper();
-  Asn1DecodedDataRouter decoderRouter;
 
   @BeforeEach
   void setup() {
@@ -91,15 +99,25 @@ class Asn1DecodedDataRouterTest {
     // add the ingress topic for all test data here so that it's available to the decoderRouter
     // and the individual tests
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderOutput());
-    decoderRouter =
-        new Asn1DecodedDataRouter(odeKafkaProperties, pojoTopics, jsonTopics);
 
-    MessageConsumer<String, String> asn1DecoderConsumer =
-        MessageConsumer.defaultStringMessageConsumer(
-            odeKafkaProperties.getBrokers(), this.getClass().getSimpleName() + uuid, decoderRouter);
+    var consumerFactory = kafkaConsumerConfig.consumerFactory();
+    ContainerProperties containerProps =
+        new ContainerProperties(asn1CoderTopics.getDecoderOutput());
+    var container =
+        new KafkaMessageListenerContainer<>(consumerFactory, containerProps);
+    var asn1DecodedDataListener =
+        new Asn1DecodedDataListener(kafkaStringTemplate, kafkaBsmTemplate, pojoTopics, jsonTopics);
 
-    asn1DecoderConsumer.setName("Asn1DecoderConsumer");
-    decoderRouter.start(asn1DecoderConsumer, asn1CoderTopics.getDecoderOutput());
+    container.setupMessageListener((MessageListener<String, String>) consumerRecord -> {
+      try {
+        asn1DecodedDataListener.listenToMAPs(consumerRecord);
+      } catch (XmlUtilsException e) {
+        throw new RuntimeException(e);
+      }
+    });
+    container.setBeanName("Asn1DecodedDataListenerContainer" + uuid);
+    container.start();
+    ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
   }
 
   @Test
