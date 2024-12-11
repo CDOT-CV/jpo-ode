@@ -1,6 +1,5 @@
 package us.dot.its.jpo.ode.kafka.listeners;
 
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
