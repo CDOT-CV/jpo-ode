@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Arrays;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +78,7 @@ class Asn1DecodedDataRouterTest {
   KafkaConsumerConfig kafkaConsumerConfig;
 
   ObjectMapper mapper = new ObjectMapper();
+  KafkaMessageListenerContainer<String, String> container;
 
   @BeforeEach
   void setup() {
@@ -101,7 +103,7 @@ class Asn1DecodedDataRouterTest {
     var consumerFactory = kafkaConsumerConfig.consumerFactory();
     ContainerProperties containerProps =
         new ContainerProperties(asn1CoderTopics.getDecoderOutput());
-    var container =
+    container =
         new KafkaMessageListenerContainer<>(consumerFactory, containerProps);
     var asn1DecodedDataListener =
         new Asn1DecodedDataRouter(kafkaStringTemplate, kafkaBsmTemplate, pojoTopics, jsonTopics);
@@ -116,6 +118,11 @@ class Asn1DecodedDataRouterTest {
     container.setBeanName("Asn1DecodedDataListenerContainer" + uuid);
     container.start();
     ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
+  }
+
+  @AfterEach
+  void tearDown() {
+    container.stop();
   }
 
   @Test
