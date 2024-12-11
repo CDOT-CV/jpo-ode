@@ -27,6 +27,8 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.listeners.Asn1DecodedDataListener;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeMapData;
 import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
@@ -48,7 +50,8 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
     UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
+    RawEncodedJsonTopics.class, KafkaProperties.class,
+    PojoTopics.class, JsonTopics.class
 })
 @DirtiesContext
 class Asn1DecodedDataRouterApprovalTest {

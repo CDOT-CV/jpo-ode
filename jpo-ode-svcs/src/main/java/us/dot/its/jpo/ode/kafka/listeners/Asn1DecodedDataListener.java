@@ -3,7 +3,6 @@ package us.dot.its.jpo.ode.kafka.listeners;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
-import org.springframework.kafka.annotation.KafkaHandler;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
@@ -37,10 +36,6 @@ import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
  * allowing it to automatically consume messages from a configured Kafka topic.
  */
 @Slf4j
-@KafkaListener(
-    id = "Asn1DecodedDataListener",
-    topics = "${ode.kafka.topics.asn1.decoder-output}"
-)
 public class Asn1DecodedDataListener {
 
   private final PojoTopics pojoTopics;
@@ -69,7 +64,10 @@ public class Asn1DecodedDataListener {
    * transformed MAP data to a JSON topic and conditionally to a transaction-map topic if the record
    * type is `mapTx`.
    */
-  @KafkaHandler
+  @KafkaListener(
+      id = "Asn1DecodedDataListener",
+      topics = "${ode.kafka.topics.asn1.decoder-output}"
+  )
   public void listenToMAPs(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
