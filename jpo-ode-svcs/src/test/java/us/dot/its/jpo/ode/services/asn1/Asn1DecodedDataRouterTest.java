@@ -13,7 +13,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Arrays;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -229,45 +228,41 @@ class Asn1DecodedDataRouterTest {
     }
   }
 
-  @Disabled
   @Test
   void testAsn1DecodedDataRouter_SSMDataFlow() {
-//    EmbeddedKafkaHolder.addTopics(
-//        jsonTopics.getSsm(),
-//        pojoTopics.getSsm()
-//    );
-//
-//    String baseTestData =
-//        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-ssm.xml");
-//
-//    var consumerProps = KafkaTestUtils.consumerProps(
-//        "ssmDecoderTest", "false", embeddedKafka);
-//    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
-//    var testConsumer = consumerFactory.createConsumer();
-//    embeddedKafka.consumeFromAllEmbeddedTopics(testConsumer);
-//
-//    String baseExpectedSsm =
-//        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-ssm.json");
-//    for (String recordType : new String[] {"ssmTx", "rxMsg", "dnMsg"}) {
-//      String topic;
-//      switch (recordType) {
-//        case "rxMsg" -> topic = jsonTopics.getRxSsm();
-//        case "dnMsg" -> topic = jsonTopics.getDnMessage();
-//        case "ssmTx" -> topic = pojoTopics.getTxSsm();
-//        default -> throw new IllegalStateException("Unexpected value: " + recordType);
-//      }
-//
-//      String inputData = replaceRecordType(baseTestData, "ssmTx", recordType);
-//      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
-//
-//      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
-//      var consumedSsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSsm());
-//
-//      var expectedSsm = replaceJSONRecordType(baseExpectedSsm, "ssmTx", recordType);
-//      assertEquals(expectedSsm, consumedSsm.value());
-//      assertEquals(expectedSsm, consumedSpecific.value());
-//    }
-//
+    String[] topics = Arrays.array(
+        jsonTopics.getSsm(),
+        pojoTopics.getSsm()
+    );
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-ssm.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "ssmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+
+    String baseExpectedSsm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-ssm.json");
+    for (String recordType : new String[] {"ssmTx", "unsupported"}) {
+
+      String inputData = replaceRecordType(baseTestData, "ssmTx", recordType);
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+
+      var expectedSsm = replaceJSONRecordType(baseExpectedSsm, "ssmTx", recordType);
+
+      var consumedSsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSsm());
+      assertEquals(expectedSsm, consumedSsm.value());
+
+      if (recordType.equals("ssmTx")) {
+        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getSsm());
+        assertEquals(expectedSsm, consumedSpecific.value());
+      }
+    }
+
   }
 
   @Test
