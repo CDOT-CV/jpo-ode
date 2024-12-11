@@ -15,9 +15,11 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 
 
 /**
- * The OdeTimJsonTopology class sets up and manages a Kafka Streams topology for processing TIM
- * (Traveler Information Message) JSON data from the OdeTimJson Kafka topic. This class creates a
- * K-Table that houses TMC-generated TIMs which can be queried by UUID.
+ * The OdeTimJsonTopology class sets up and manages a Kafka Streams topology
+ * for processing TIM (Traveler Information Message) JSON data from the
+ * OdeTimJson Kafka topic.
+ * This class creates a K-Table that houses TMC-generated TIMs which can be
+ * queried by UUID.
  **/
 @Slf4j
 public class OdeTimJsonTopology {
@@ -74,11 +76,10 @@ public class OdeTimJsonTopology {
   }
 
   /**
-   * Retrieves the value associated with a given UUID from the TIM JSON data store.
+   * Query the K-Table by a specified UUID.
    *
-   * @param uuid the unique identifier used to query the value from the store
-   * @return the value associated with the given UUID, or null if the UUID does not exist in the store
-   */
+   * @param uuid The specified UUID to query for.
+   **/
   public String query(String uuid) {
     return (String) streams.store(
             StoreQueryParameters.fromNameAndType("timjson-store", QueryableStoreTypes.keyValueStore()))
