@@ -83,7 +83,7 @@ class KafkaProducerConfigTest {
             embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
     var consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAllEmbeddedTopics(consumer);
+    embeddedKafka.consumeFromEmbeddedTopics(consumer, odeKafkaProperties.getDisabledTopics().toArray(new String[0]));
 
     // Attempting to send to a disabled topic
     for (String topic : odeKafkaProperties.getDisabledTopics()) {
@@ -104,7 +104,7 @@ class KafkaProducerConfigTest {
   @Test
   void kafkaTemplateInterceptorAllowsSendingToTopicsNotInDisabledSet() {
     String enabledTopic = "topic.enabled" + this.getClass().getSimpleName();
-    embeddedKafka.addTopics(new NewTopic(enabledTopic, 1, (short) 1));
+    EmbeddedKafkaHolder.addTopics(enabledTopic);
 
     var consumerProps =
         KafkaTestUtils.consumerProps("interceptor-enabled", "false", embeddedKafka);
