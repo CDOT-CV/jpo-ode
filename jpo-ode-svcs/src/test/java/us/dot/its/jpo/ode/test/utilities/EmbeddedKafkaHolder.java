@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.test.utilities;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.kafka.KafkaException;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
@@ -18,6 +19,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
  *
  * </p>The class is designed to be non-instantiable with a private constructor.
  */
+@Slf4j
 public final class EmbeddedKafkaHolder {
 
   private static final EmbeddedKafkaBroker embeddedKafka = new EmbeddedKafkaBroker(1,
@@ -62,6 +64,7 @@ public final class EmbeddedKafkaHolder {
         embeddedKafka.addTopics(newTopic);
       } catch (Exception e) {
         // Ignore because we only care they are created not that they weren't created prior
+        log.debug("exception adding topic {} to embedded kafka broker", topic, e);
       }
     }
   }
