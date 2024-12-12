@@ -9,10 +9,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.util.Arrays;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.awaitility.Awaitility;
+import org.awaitility.Duration;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -20,11 +23,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.KafkaMessageListenerContainer;
-import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,7 +37,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
-import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
 
 @Slf4j
@@ -53,7 +51,9 @@ import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
         RawEncodedJsonTopics.class,
         Asn1CoderTopics.class,
         OdeKafkaProperties.class,
-    }
+        Asn1DecodedDataRouter.class
+    },
+    properties = {"ode.kafka.disabled-topics="}
 )
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
@@ -63,67 +63,17 @@ import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
 @DirtiesContext
 class Asn1DecodedDataRouterTest {
 
-  EmbeddedKafkaBroker embeddedKafka;
+  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
   @Autowired
   KafkaTemplate<String, String> kafkaStringTemplate;
-  @Autowired
-  KafkaTemplate<String, OdeBsmData> kafkaBsmTemplate;
   @Autowired
   PojoTopics pojoTopics;
   @Autowired
   JsonTopics jsonTopics;
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
-  @Autowired
-  KafkaConsumerConfig kafkaConsumerConfig;
 
   ObjectMapper mapper = new ObjectMapper();
-  KafkaMessageListenerContainer<String, String> container;
-
-  @BeforeEach
-  void setup() {
-    // since some tests produce/consume from the same topics, we need to create unique topic names
-    // to isolate the test executions
-    var uuid = UUID.randomUUID().toString().split("-")[0];
-
-    pojoTopics.setBsmDuringEvent("topic.BsmDuringEventAsn1DecodedDataRouterTest" + uuid);
-    pojoTopics.setRxBsm("topic.RxBsmAsn1DecodedDataRouterTest" + uuid);
-    pojoTopics.setTxBsm("topic.TxBsmAsn1DecodedDataRouterTest" + uuid);
-    pojoTopics.setBsm("topic.BsmAsn1DecodedDataRouterTest" + uuid);
-    jsonTopics.setDnMessage("topic.DnMessageAsn1DecodedDataRouterTest" + uuid);
-    jsonTopics.setRxTim("topic.RxTimAsn1DecodedDataRouterTest" + uuid);
-    jsonTopics.setTim("topic.TimAsn1DecodedDataRouterTest" + uuid);
-    asn1CoderTopics.setDecoderOutput("topic.DecoderOutputAsn1DecodedDataRouterTest" + uuid);
-
-    embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    // add the ingress topic for all test data here so that it's available to the decoderRouter
-    // and the individual tests
-    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderOutput());
-
-    var consumerFactory = kafkaConsumerConfig.consumerFactory();
-    ContainerProperties containerProps =
-        new ContainerProperties(asn1CoderTopics.getDecoderOutput());
-    container =
-        new KafkaMessageListenerContainer<>(consumerFactory, containerProps);
-    var asn1DecodedDataListener =
-        new Asn1DecodedDataRouter(kafkaStringTemplate, kafkaBsmTemplate, pojoTopics, jsonTopics);
-
-    container.setupMessageListener((MessageListener<String, String>) consumerRecord -> {
-      try {
-        asn1DecodedDataListener.listen(consumerRecord);
-      } catch (XmlUtilsException e) {
-        throw new RuntimeException(e);
-      }
-    });
-    container.setBeanName("Asn1DecodedDataListenerContainer" + uuid);
-    container.start();
-    ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
-  }
-
-  @AfterEach
-  void tearDown() {
-    container.stop();
-  }
 
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
@@ -135,16 +85,16 @@ class Asn1DecodedDataRouterTest {
     );
     EmbeddedKafkaHolder.addTopics(topics);
 
-    String decodedBsmXml =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
-
     var consumerProps = KafkaTestUtils.consumerProps(
         "bsmDecoderTest", "false", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<String, OdeBsmData>(consumerProps);
+    consumerFactory.setKeyDeserializer(new StringDeserializer());
     consumerFactory.setValueDeserializer(new MessagingDeserializer<>());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
+    String decodedBsmXml =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
     OdeBsmData expectedBsm = mapper.readValue(
         new File("src/test/resources/us/dot/its/jpo/ode/services/asn1/expected-bsm.json"),
         OdeBsmData.class);
@@ -158,18 +108,36 @@ class Asn1DecodedDataRouterTest {
       }
 
       String inputData = replaceRecordType(decodedBsmXml, "bsmTx", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
-      var consumedBsm = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getBsm());
-
-      assertEquals(expectedBsm, consumedBsm.value());
-      assertEquals(expectedBsm, consumedSpecific.value());
+      AtomicReference<ConsumerRecord<String, OdeBsmData>> consumedSpecific =
+          new AtomicReference<>();
+      AtomicReference<ConsumerRecord<String, OdeBsmData>> consumedBsm = new AtomicReference<>();
+      Awaitility.await().until(() -> {
+        var records = KafkaTestUtils.getRecords(testConsumer);
+        for (ConsumerRecord<String, OdeBsmData> cr : records.records(topic)) {
+          if (cr.key().equals(uniqueKey)) {
+            consumedSpecific.set(cr);
+            break;
+          }
+        }
+        for (ConsumerRecord<String, OdeBsmData> cr : records.records(pojoTopics.getBsm())) {
+          if (cr.key().equals(uniqueKey)) {
+            consumedBsm.set(cr);
+            break;
+          }
+        }
+        return consumedSpecific.get() != null && consumedBsm.get() != null;
+      });
+      assertEquals(expectedBsm, consumedSpecific.get().value());
+      assertEquals(expectedBsm, consumedBsm.get().value());
     }
   }
 
   @Test
   void testAsn1DecodedDataRouterTIMDataFlow() {
+    Awaitility.setDefaultTimeout(Duration.FOREVER);
     String[] topics = Arrays.array(
         jsonTopics.getDnMessage(),
         jsonTopics.getRxTim(),
@@ -182,7 +150,8 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "timDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
 
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
@@ -198,14 +167,31 @@ class Asn1DecodedDataRouterTest {
       }
 
       String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-      var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+      AtomicReference<ConsumerRecord<String, String>> consumedSpecific = new AtomicReference<>();
+      AtomicReference<ConsumerRecord<String, String>> consumedTim = new AtomicReference<>();
+      Awaitility.await().until(() -> {
+        var records = KafkaTestUtils.getRecords(testConsumer);
+        for (ConsumerRecord<String, String> cr : records.records(topic)) {
+          if (cr.key().equals(uniqueKey)) {
+            consumedSpecific.set(cr);
+            break;
+          }
+        }
+        for (ConsumerRecord<String, String> cr : records.records(jsonTopics.getTim())) {
+          if (cr.key().equals(uniqueKey)) {
+            consumedTim.set(cr);
+            break;
+          }
+        }
+        return consumedSpecific.get() != null && consumedTim.get() != null;
+      });
       var expectedTim = replaceJSONRecordType(baseExpectedTim, "dnMsg", recordType);
-      assertEquals(expectedTim, consumedTim.value());
+      assertEquals(expectedTim, consumedSpecific.get().value());
+      assertEquals(expectedTim, consumedTim.get().value());
 
-      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
-      assertEquals(expectedTim, consumedSpecific.value());
     }
   }
 
@@ -224,7 +210,8 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "spatDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
@@ -240,7 +227,8 @@ class Asn1DecodedDataRouterTest {
       }
 
       String inputData = replaceRecordType(baseTestData, "spatTx", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
       var consumedSpat = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSpat());
@@ -264,7 +252,8 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "ssmDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
@@ -273,7 +262,8 @@ class Asn1DecodedDataRouterTest {
     for (String recordType : new String[] {"ssmTx", "unsupported"}) {
 
       String inputData = replaceRecordType(baseTestData, "ssmTx", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedSsm = replaceJSONRecordType(baseExpectedSsm, "ssmTx", recordType);
 
@@ -300,7 +290,8 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "srmDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
@@ -309,7 +300,8 @@ class Asn1DecodedDataRouterTest {
     for (String recordType : new String[] {"srmTx", "unsupported"}) {
 
       String inputData = replaceRecordType(baseTestData, "srmTx", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedSrm = replaceJSONRecordType(baseExpectedSrm, "srmTx", recordType);
 
@@ -336,7 +328,8 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "psmDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
@@ -345,7 +338,8 @@ class Asn1DecodedDataRouterTest {
     for (String recordType : new String[] {"psmTx", "unsupported"}) {
 
       String inputData = replaceRecordType(baseTestData, "psmTx", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedPsm = replaceJSONRecordType(baseExpectedPsm, "psmTx", recordType);
 
@@ -372,7 +366,8 @@ class Asn1DecodedDataRouterTest {
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "mapDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
@@ -381,7 +376,8 @@ class Asn1DecodedDataRouterTest {
     for (String recordType : new String[] {"mapTx", "unsupported"}) {
 
       String inputData = replaceRecordType(baseTestData, "mapTx", recordType);
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), inputData);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedMap = replaceJSONRecordType(baseExpectedMap, "mapTx", recordType);
 
