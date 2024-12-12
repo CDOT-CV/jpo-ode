@@ -20,6 +20,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.annotation.DirtiesContext;
 import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.model.OdeObject;
@@ -34,6 +35,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
     }
 )
 @EnableConfigurationProperties
+@DirtiesContext
 class KafkaProducerConfigTest {
 
   @Autowired
