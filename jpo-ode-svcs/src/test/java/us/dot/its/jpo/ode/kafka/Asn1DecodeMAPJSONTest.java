@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.awaitility.Awaitility;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,7 +59,6 @@ class Asn1DecodeMAPJSONTest {
 
   @Test
   void testProcess_ApprovalTest() throws IOException {
-    Awaitility.setDefaultTimeout(250, java.util.concurrent.TimeUnit.MILLISECONDS);
     String[] topics = {rawEncodedMapJson, asn1DecoderInput};
     EmbeddedKafkaHolder.addTopics(topics);
 
@@ -69,17 +67,18 @@ class Asn1DecodeMAPJSONTest {
     List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
     Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("Asn1DecodeMapJSONTestConsumer", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> cf =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> testConsumer = cf.createConsumer();
+        KafkaTestUtils.consumerProps("Asn1DecodeMapJSONTestConsumer", "false", embeddedKafka);
+    var cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps,
+            new StringDeserializer(), new StringDeserializer());
+    Consumer<String, String> testConsumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1DecoderInput);
 
     for (ApprovalTestCase approvalTestCase : approvalTestCases) {
       // produce the test case input to the topic for consumption by the asn1RawMAPJSONConsumer
       producer.send(rawEncodedMapJson, approvalTestCase.getInput());
 
-      ConsumerRecord<Integer, String> actualRecord =
+      var actualRecord =
           KafkaTestUtils.getSingleRecord(testConsumer, asn1DecoderInput);
       assertEquals(approvalTestCase.getExpected(), actualRecord.value(),
           approvalTestCase.getDescription());
