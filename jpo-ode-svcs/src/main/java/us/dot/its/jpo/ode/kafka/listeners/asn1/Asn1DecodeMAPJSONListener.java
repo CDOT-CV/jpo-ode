@@ -30,15 +30,17 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 @KafkaListener(id = "Asn1DecodeMAPJSONListener", topics = "${ode.kafka.topics.raw-encoded-json.map}")
 public class Asn1DecodeMAPJSONListener {
 
-  private static final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
 
   private final String publishTopic;
   private final KafkaTemplate<String, OdeObject> kafkaTemplate;
 
   public Asn1DecodeMAPJSONListener(KafkaTemplate<String, OdeObject> kafkaTemplate,
-      @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic) {
+      @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic,
+      ObjectMapper objectMapper) {
     this.kafkaTemplate = kafkaTemplate;
     this.publishTopic = publishTopic;
+    this.objectMapper = objectMapper;
   }
 
   /**

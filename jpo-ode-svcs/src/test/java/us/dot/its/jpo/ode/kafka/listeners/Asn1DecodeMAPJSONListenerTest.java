@@ -21,6 +21,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.listeners.asn1.Asn1DecodeMAPJSONListener;
@@ -35,7 +36,8 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     classes = {
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
-        Asn1DecodeMAPJSONListener.class
+        Asn1DecodeMAPJSONListener.class,
+        SerializationConfig.class
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.map=topic.Asn1DecoderTestMAPJSON",
