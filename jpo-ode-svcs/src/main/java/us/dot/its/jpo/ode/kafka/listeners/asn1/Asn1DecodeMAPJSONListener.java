@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.kafka.listeners;
+package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
