@@ -21,7 +21,8 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 
 /**
  * A Kafka listener component that processes ASN.1 encoded BSM JSON messages from a specified Kafka
- * topic. It processes the raw encoded JSON messages and publishes them to the specified topic
+ * topic. It processes the raw encoded JSON messages and publishes them to be decoded by the ASN.1
+ * codec
  */
 @Component
 public class RawEncodedBSMJsonListener {
