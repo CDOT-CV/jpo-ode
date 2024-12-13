@@ -1,14 +1,14 @@
 package us.dot.its.jpo.ode.kafka.listeners;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
 
 import java.io.IOException;
-import java.util.List;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,31 +17,28 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.listeners.asn1.RawEncodedMAPJsonListener;
+import us.dot.its.jpo.ode.kafka.listeners.asn1.RawEncodedBSMJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
-@Slf4j
 @SpringBootTest(
     classes = {
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
-        RawEncodedMAPJsonListener.class,
+        RawEncodedBSMJsonRouter.class,
         SerializationConfig.class
     },
     properties = {
-        "ode.kafka.topics.raw-encoded-json.map=topic.Asn1DecoderTestMAPJSON",
-        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderMAPInput"
+        "ode.kafka.topics.raw-encoded-json.bsm=topic.Asn1DecoderTestBSMJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput"
     })
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
@@ -49,43 +46,45 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     RawEncodedJsonTopics.class, KafkaProperties.class
 })
 @DirtiesContext
-class RawEncodedMAPJsonListenerTest {
+class RawEncodedBSMJsonRouterTest {
 
-  @Value(value = "${ode.kafka.topics.raw-encoded-json.map}")
-  private String rawEncodedMapJson;
+  @Value(value = "${ode.kafka.topics.raw-encoded-json.bsm}")
+  private String rawEncodedBsmJson;
 
   @Value(value = "${ode.kafka.topics.asn1.decoder-input}")
   private String asn1DecoderInput;
-  @Autowired
-  KafkaTemplate<String, String> producer;
 
-  private static final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
 
   @Test
-  void testProcess_ApprovalTest() throws IOException {
-    String[] topics = {rawEncodedMapJson, asn1DecoderInput};
-    EmbeddedKafkaHolder.addTopics(topics);
-
-    String path =
-        "src/test/resources/us.dot.its.jpo.ode.udp.map/JSONEncodedMAP_to_Asn1DecoderInput_Validation.json";
-    List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
+  void testProcess() throws JSONException, IOException {
+    var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+    EmbeddedKafkaHolder.addTopics(asn1DecoderInput, rawEncodedBsmJson);
 
     Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("Asn1DecodeMapJSONTestConsumer", "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("Asn1DecodeBSMJSONTestConsumer", "false", embeddedKafka);
     var cf =
         new DefaultKafkaConsumerFactory<>(consumerProps,
             new StringDeserializer(), new StringDeserializer());
     Consumer<String, String> testConsumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1DecoderInput);
 
-    for (ApprovalTestCase approvalTestCase : approvalTestCases) {
-      // produce the test case input to the topic for consumption by the asn1RawMAPJSONConsumer
-      producer.send(rawEncodedMapJson, approvalTestCase.getInput());
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/decoder-input-bsm.json");
+    assert inputStream != null;
+    var bsmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    kafkaTemplate.send(rawEncodedBsmJson, bsmJson);
 
-      var actualRecord =
-          KafkaTestUtils.getSingleRecord(testConsumer, asn1DecoderInput);
-      assertEquals(approvalTestCase.getExpected(), actualRecord.value(),
-          approvalTestCase.getDescription());
-    }
+    inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/expected-bsm.xml");
+    assert inputStream != null;
+    var expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+    var produced =
+        KafkaTestUtils.getSingleRecord(testConsumer, asn1DecoderInput);
+    var odeBsmData = produced.value();
+    assertEquals(expectedBsm, odeBsmData);
   }
 }
