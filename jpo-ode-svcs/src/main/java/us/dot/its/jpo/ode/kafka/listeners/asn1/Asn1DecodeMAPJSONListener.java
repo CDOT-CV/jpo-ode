@@ -35,6 +35,15 @@ public class Asn1DecodeMAPJSONListener {
   private final String publishTopic;
   private final KafkaTemplate<String, OdeObject> kafkaTemplate;
 
+  /**
+   * Constructor for the Asn1DecodeMAPJSONListener class.
+   *
+   * @param kafkaTemplate The KafkaTemplate instance used to publish decoded data to the specified
+   *                      Kafka topic.
+   * @param publishTopic  The Kafka topic to which the decoded and processed data is published.
+   * @param objectMapper  The ObjectMapper instance used for JSON serialization and
+   *                      deserialization.
+   */
   public Asn1DecodeMAPJSONListener(KafkaTemplate<String, OdeObject> kafkaTemplate,
       @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic,
       ObjectMapper objectMapper) {
@@ -44,16 +53,16 @@ public class Asn1DecodeMAPJSONListener {
   }
 
   /**
-   * Processes consumed Kafka messages that contain ASN.1 encoded data within JSON format.
-   * This method decodes the message, extracts metadata and payload, and then publishes
-   * the decoded data to a specified Kafka topic.
+   * Processes consumed Kafka messages that contain ASN.1 encoded data within JSON format. This
+   * method decodes the message, extracts metadata and payload, and then publishes the decoded data
+   * to a specified Kafka topic.
    *
-   * @param consumedData The raw JSON string consumed from the Kafka topic. This string
-   *                     is expected to contain ASN.1 encoded data that needs processing
-   *                     and further publication.
-   * @throws JsonProcessingException If there is an error in processing the JSON string.
-   * @throws StartFlagNotFoundException If the start flag is not found in the payload
-   *                                    during header stripping.
+   * @param consumedData The raw JSON string consumed from the Kafka topic. This string is expected
+   *                     to contain ASN.1 encoded data that needs processing and further
+   *                     publication.
+   * @throws JsonProcessingException    If there is an error in processing the JSON string.
+   * @throws StartFlagNotFoundException If the start flag is not found in the payload during header
+   *                                    stripping.
    */
   @KafkaHandler
   public void listen(String consumedData)
