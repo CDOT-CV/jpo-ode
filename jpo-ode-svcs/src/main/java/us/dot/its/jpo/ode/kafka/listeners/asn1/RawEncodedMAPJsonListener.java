@@ -20,15 +20,15 @@ import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.uper.UperUtil;
 
 /**
- * The Asn1DecodeMAPJSONListener class is a component designed to listen to messages from a
+ * The RawEncodedMAPJsonListener class is a component designed to listen to messages from a
  * specified Kafka topic, decode the ASN.1 encoded data from received JSON, and publish the decoded
  * data to another Kafka topic. This class utilizes the @KafkaListener and @KafkaHandler annotations
  * to process incoming Kafka messages.
  */
 @Slf4j
 @Component
-@KafkaListener(id = "Asn1DecodeMAPJSONListener", topics = "${ode.kafka.topics.raw-encoded-json.map}")
-public class Asn1DecodeMAPJSONListener {
+@KafkaListener(id = "RawEncodedMAPJsonListener", topics = "${ode.kafka.topics.raw-encoded-json.map}")
+public class RawEncodedMAPJsonListener {
 
   private final ObjectMapper objectMapper;
 
@@ -36,7 +36,7 @@ public class Asn1DecodeMAPJSONListener {
   private final KafkaTemplate<String, OdeObject> kafkaTemplate;
 
   /**
-   * Constructor for the Asn1DecodeMAPJSONListener class.
+   * Constructor for the RawEncodedMAPJsonListener class.
    *
    * @param kafkaTemplate The KafkaTemplate instance used to publish decoded data to the specified
    *                      Kafka topic.
@@ -44,7 +44,7 @@ public class Asn1DecodeMAPJSONListener {
    * @param objectMapper  The ObjectMapper instance used for JSON serialization and
    *                      deserialization.
    */
-  public Asn1DecodeMAPJSONListener(KafkaTemplate<String, OdeObject> kafkaTemplate,
+  public RawEncodedMAPJsonListener(KafkaTemplate<String, OdeObject> kafkaTemplate,
       @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic,
       ObjectMapper objectMapper) {
     this.kafkaTemplate = kafkaTemplate;
