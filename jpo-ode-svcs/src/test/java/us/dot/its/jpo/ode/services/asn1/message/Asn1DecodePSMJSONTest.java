@@ -2,27 +2,42 @@ package us.dot.its.jpo.ode.services.asn1.message;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.apache.kafka.clients.admin.NewTopic;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
-import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
-import us.dot.its.jpo.ode.model.OdeAsn1Data;
-import us.dot.its.jpo.ode.model.OdeAsn1Payload;
-import us.dot.its.jpo.ode.model.OdePsmMetadata;
+import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
-@SuppressWarnings("checkstyle:abbreviationAsWordInName")
-@ExtendWith(SpringExtension.class)
+@SpringBootTest(
+    classes = {
+        KafkaProducerConfig.class,
+        KafkaProperties.class
+    },
+    properties = {
+        "ode.kafka.topics.raw-encoded-json.psm=topic.Asn1DecoderTestPSMJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderPSMInput"
+    })
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = {OdeKafkaProperties.class, Asn1CoderTopics.class})
+@EnableConfigurationProperties(value = {
+    OdeKafkaProperties.class,
+    Asn1CoderTopics.class,
+    RawEncodedJsonTopics.class})
 class Asn1DecodePSMJSONTest {
 
   @Autowired
@@ -30,36 +45,42 @@ class Asn1DecodePSMJSONTest {
 
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  private KafkaTemplate<String, String> kafkaTemplate;
 
   @Test
-  void testProcess() throws JSONException {
+  void testProcess() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    try {
-      embeddedKafka.addTopics(new NewTopic(asn1CoderTopics.getDecoderInput(), 1, (short) 1));
-    } catch (Exception e) {
-      // ignore because we only care that the topic exists not that it was created in this test.
-    }
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getPsm());
     Asn1DecodePSMJSON testDecodePsmJson =
         new Asn1DecodePSMJSON(odeKafkaProperties, asn1CoderTopics.getDecoderInput());
 
-    @SuppressWarnings("checkstyle:linelength")
-    String json =
-        "{\"metadata\":{\"recordType\":\"psmTx\",\"securityResultCode\":\"success\",\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"fa3dfe1b-80cd-45cb-ae2c-c604a214fe56\",\"bundleSize\":1,\"bundleId\":0,\"recordId\":0,\"serialNumber\":0},\"odeReceivedAt\":\"2024-03-15T19:16:35.212860500Z\",\"schemaVersion\":6,\"maxDurationTime\":0,\"recordGeneratedBy\":\"UNKNOWN\",\"sanitized\":false,\"psmSource\":\"RSU\",\"originIp\":\"192.168.0.1\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC798601000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000\"}}}";
-    OdeAsn1Data resultOdeObj = testDecodePsmJson.process(json);
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps("Asn1DecodePSMJSONTest", "false", embeddedKafka);
+    var cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps,
+            new StringDeserializer(), new StringDeserializer());
+    var testConsumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1CoderTopics.getDecoderInput());
 
-    // Validate the metadata
-    OdePsmMetadata jsonMetadataObj = (OdePsmMetadata) resultOdeObj.getMetadata();
-    assertEquals(OdePsmMetadata.PsmSource.RSU, jsonMetadataObj.getPsmSource());
-    assertEquals("unsecuredData", jsonMetadataObj.getEncodings().getFirst().getElementName());
-    assertEquals("MessageFrame", jsonMetadataObj.getEncodings().getFirst().getElementType());
-    assertEquals(EncodingRule.UPER, jsonMetadataObj.getEncodings().getFirst().getEncodingRule());
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/decoder-input-psm.json");
+    assert inputStream != null;
+    var psmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    // Validate the payload
-    @SuppressWarnings("checkstyle:linelength")
-    String expectedPayload =
-        "{\"bytes\":\"00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100\"}";
-    OdeAsn1Payload jsonPayloadObj = (OdeAsn1Payload) resultOdeObj.getPayload();
-    assertEquals("us.dot.its.jpo.ode.model.OdeHexByteArray", jsonPayloadObj.getDataType());
-    assertEquals(expectedPayload, jsonPayloadObj.getData().toString());
+    testDecodePsmJson.process(psmJson);
+
+    inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/expected-psm.xml");
+    assert inputStream != null;
+    var expectedPsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+    var produced =
+        KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
+    var odePsmData = produced.value();
+    assertEquals(expectedPsm, odePsmData);
   }
 }
