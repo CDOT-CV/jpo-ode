@@ -21,17 +21,16 @@ import us.dot.its.jpo.ode.util.SerializationUtils;
 
 /**
  * MessagingDeserializer is a generic base class implementing the Kafka Deserializer interface to
- * provide serialization of objects for use in Kafka messages.
+ * provide deserialization of objects for use in Kafka messages.
  *
- * <p>This class uses a generic type parameter, allowing it to handle serialization
- * of various types. Internal serialization is performed using an instance of the SerializationUtils
- * class, which leverages Kryo for efficient object serialization.</p>
+ * <p>This class uses a generic type parameter, allowing it to handle deserialization
+ * of various types. Internal deserialization is performed using an instance of the
+ * SerializationUtils class, which leverages Kryo for efficient object deserialization.</p>
  *
  * <p>The class is declared as sealed, restricting which other classes can directly extend it. It
- * will
- * soon be marked as final to prevent incorrect usage through unnecessary subtyping</p>
+ * will soon be marked as final to prevent incorrect usage through unnecessary subtyping</p>
  *
- * @param <T> the type of data to be serialized
+ * @param <T> the type of data to be deserialized
  */
 public sealed class MessagingDeserializer<T> implements Deserializer<T>
     permits OdeBsmDeserializer {
