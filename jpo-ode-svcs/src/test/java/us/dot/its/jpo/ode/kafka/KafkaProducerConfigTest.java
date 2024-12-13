@@ -117,6 +117,29 @@ class KafkaProducerConfigTest {
     assertEquals("value", produced.value());
   }
 
+  @Test
+  void kafkaTemplateInterceptorCanSendAfterAttemptToSendToDisabledTopic() {
+    String enabledTopic = "topic.enabled" + this.getClass().getSimpleName();
+    EmbeddedKafkaHolder.addTopics(enabledTopic);
+
+    var consumerProps =
+        KafkaTestUtils.consumerProps("interceptor-enabled", "false", embeddedKafka);
+    var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
+    var consumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, enabledTopic);
+
+    KafkaTemplate<String, String> stringKafkaTemplate = kafkaProducerConfig.kafkaTemplate(
+        kafkaProducerConfig.producerFactory());
+    stringKafkaTemplate.send(odeKafkaProperties.getDisabledTopics().iterator().next(), "key", "value");
+    stringKafkaTemplate.send(enabledTopic, "key", "value");
+
+    var records = KafkaTestUtils.getRecords(consumer);
+    var produced = records.records(enabledTopic).iterator().next();
+    assertEquals("key", produced.key());
+    assertEquals("value", produced.value());
+  }
+
   @TestConfiguration
   static class KafkaProducerConfigTestConfig {
 
