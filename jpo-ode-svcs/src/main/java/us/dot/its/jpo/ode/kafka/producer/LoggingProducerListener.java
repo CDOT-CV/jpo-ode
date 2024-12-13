@@ -22,7 +22,7 @@ public final class LoggingProducerListener<K, V>
 
   @Override
   public void onSuccess(ProducerRecord<K, V> producerRecord, RecordMetadata recordMetadata) {
-    log.debug("Successfully produced to topic with {} key {} and value {} ", producerRecord.topic(),
+    log.debug("Successfully produced to topic {} with key {} and value {} ", producerRecord.topic(),
         producerRecord.key(), producerRecord.value());
   }
 
