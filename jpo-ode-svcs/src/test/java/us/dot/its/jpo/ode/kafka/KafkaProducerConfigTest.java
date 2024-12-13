@@ -1,9 +1,9 @@
 package us.dot.its.jpo.ode.kafka;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
@@ -28,7 +28,6 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties.Producer;
-import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
@@ -80,8 +79,7 @@ class KafkaProducerConfigTest {
         kafkaProducerConfig.producerFactory());
     // Attempting to send to a disabled topic
     for (String topic : odeKafkaProperties.getDisabledTopics()) {
-      assertThrows(DisabledTopicException.class,
-          () -> stringKafkaTemplate.send(topic, "key", "value"));
+      stringKafkaTemplate.send(topic, "key", "value");
 
       var records = KafkaTestUtils.getEndOffsets(consumer, topic, 0);
       // Assert that the message we attempted to send to the disabled topic was intercepted
@@ -123,7 +121,7 @@ class KafkaProducerConfigTest {
     EmbeddedKafkaHolder.addTopics(enabledTopic);
 
     var consumerProps =
-        KafkaTestUtils.consumerProps("interceptor-enabled", "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("send-after", "false", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var consumer = cf.createConsumer();
@@ -131,10 +129,13 @@ class KafkaProducerConfigTest {
 
     KafkaTemplate<String, String> stringKafkaTemplate = kafkaProducerConfig.kafkaTemplate(
         kafkaProducerConfig.producerFactory());
-    stringKafkaTemplate.send(odeKafkaProperties.getDisabledTopics().iterator().next(), "key", "value");
+    var blockedTopic = odeKafkaProperties.getDisabledTopics().iterator().next();
+    stringKafkaTemplate.send(blockedTopic, "blocked", "not sent");
     stringKafkaTemplate.send(enabledTopic, "key", "value");
 
     var records = KafkaTestUtils.getRecords(consumer);
+    assertFalse(records.records(blockedTopic).iterator().hasNext());
+
     var produced = records.records(enabledTopic).iterator().next();
     assertEquals("key", produced.key());
     assertEquals("value", produced.value());

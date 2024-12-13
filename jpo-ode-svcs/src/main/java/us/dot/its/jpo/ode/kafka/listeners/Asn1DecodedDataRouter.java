@@ -14,7 +14,6 @@ import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.context.AppContext;
-import us.dot.its.jpo.ode.kafka.producer.DisabledTopicException;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -26,9 +25,9 @@ import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
 /**
- * The Asn1DecodedDataRouter class is a component responsible for processing decoded ASN.1 data
- * from Kafka topics. It listens to messages on a specified Kafka topic and handles the incoming
- * data by processing and forwarding it to different topics based on specific criteria.
+ * The Asn1DecodedDataRouter class is a component responsible for processing decoded ASN.1 data from
+ * Kafka topics. It listens to messages on a specified Kafka topic and handles the incoming data by
+ * processing and forwarding it to different topics based on specific criteria.
  *
  * <p>This listener is specifically designed to handle decoded data produced by the asn1_codec.
  * Upon receiving a payload, it uses transforms the payload and then determines the appropriate
@@ -88,19 +87,15 @@ public class Asn1DecodedDataRouter {
             .getString("recordType")
         );
 
-    try {
-      switch (messageId) {
-        case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
-        case TravelerInformation -> routeTIM(consumerRecord, recordType);
-        case SPATMessage -> routeSPAT(consumerRecord, recordType);
-        case MAPMessage -> routeMAP(consumerRecord, recordType);
-        case SSMMessage -> routeSSM(consumerRecord, recordType);
-        case SRMMessage -> routeSRM(consumerRecord, recordType);
-        case PersonalSafetyMessage -> routePSM(consumerRecord, recordType);
-        case null, default -> log.warn("Unknown message type: {}", messageId);
-      }
-    } catch (DisabledTopicException e) {
-      log.warn(e.getMessage());
+    switch (messageId) {
+      case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
+      case TravelerInformation -> routeTIM(consumerRecord, recordType);
+      case SPATMessage -> routeSPAT(consumerRecord, recordType);
+      case MAPMessage -> routeMAP(consumerRecord, recordType);
+      case SSMMessage -> routeSSM(consumerRecord, recordType);
+      case SRMMessage -> routeSRM(consumerRecord, recordType);
+      case PersonalSafetyMessage -> routePSM(consumerRecord, recordType);
+      case null, default -> log.warn("Unknown message type: {}", messageId);
     }
   }
 

@@ -31,13 +31,7 @@ public final class LoggingProducerListener<K, V>
       ProducerRecord<K, V> producerRecord,
       @Nullable RecordMetadata recordMetadata,
       Exception exception) {
-    if (exception instanceof DisabledTopicException) {
-      log.warn(
-          "Disabled topic exception encountered while producing key {} and value {} to topic {}",
-          producerRecord.key(), producerRecord.value(), producerRecord.topic());
-    } else {
-      log.error("Failed to produce to topic {} with key {} and value {} ", producerRecord.topic(),
-          producerRecord.key(), producerRecord.value(), exception);
-    }
+    log.error("Failed to produce to topic {} with key {} and value {} ", producerRecord.topic(),
+        producerRecord.key(), producerRecord.value(), exception);
   }
 }
