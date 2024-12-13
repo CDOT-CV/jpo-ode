@@ -25,7 +25,7 @@ import us.dot.its.jpo.ode.uper.UperUtil;
  * codec
  */
 @Component
-public class RawEncodedBSMJsonListener {
+public class RawEncodedBSMJsonRouter {
 
   private final ObjectMapper mapper;
   private final KafkaTemplate<String, OdeObject> kafkaTemplate;
@@ -33,14 +33,14 @@ public class RawEncodedBSMJsonListener {
   private static final SupportedMessageType MESSAGE_TYPE = SupportedMessageType.BSM;
 
   /**
-   * Constructs an instance of the RawEncodedBSMJsonListener.
+   * Constructs an instance of the RawEncodedBSMJsonRouter.
    *
    * @param mapper        An instance of ObjectMapper used for JSON serialization and
    *                      deserialization.
    * @param kafkaTemplate A KafkaTemplate for publishing messages to a Kafka topic.
    * @param publishTopic  The name of the Kafka topic to publish the processed messages to.
    */
-  public RawEncodedBSMJsonListener(ObjectMapper mapper,
+  public RawEncodedBSMJsonRouter(ObjectMapper mapper,
       KafkaTemplate<String, OdeObject> kafkaTemplate,
       @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic) {
     this.mapper = mapper;
@@ -59,7 +59,7 @@ public class RawEncodedBSMJsonListener {
    * @throws JsonProcessingException    If there's an error while processing or deserializing JSON
    *                                    data.
    */
-  @KafkaListener(id = "RawEncodedBSMJsonListener", topics = "${ode.kafka.topics.raw-encoded-json.bsm}")
+  @KafkaListener(id = "RawEncodedBSMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.bsm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
       throws StartFlagNotFoundException, JsonProcessingException {
     JSONObject rawBsmJsonObject = new JSONObject(consumerRecord.value());
