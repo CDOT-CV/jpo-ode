@@ -15,10 +15,14 @@ import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.listeners.asn1.RawEncodedSPATJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
@@ -29,6 +33,9 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @SpringBootTest(
     classes = {
         KafkaProducerConfig.class,
+        RawEncodedSPATJsonRouter.class,
+        KafkaConsumerConfig.class,
+        SerializationConfig.class
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.spat=topic.Asn1DecoderTestSPATJSON",
@@ -49,14 +56,13 @@ class Asn1DecodeSPATJSONTest {
   Asn1CoderTopics asn1CoderTopics;
   @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
 
   @Test
   void testProcess() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getSpat());
-
-    Asn1DecodeSPATJSON testDecodeSpatJson =
-        new Asn1DecodeSPATJSON(odeKafkaProperties, asn1CoderTopics.getDecoderInput());
 
     Map<String, Object> consumerProps =
         KafkaTestUtils.consumerProps("Asn1DecodeSPATJSONTestConsumer", "false", embeddedKafka);
@@ -71,8 +77,7 @@ class Asn1DecodeSPATJSONTest {
         .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/decoder-input-spat.json");
     assert inputStream != null;
     var spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-
-    testDecodeSpatJson.process(spatJson);
+    kafkaTemplate.send(rawEncodedJsonTopics.getSpat(), spatJson);
 
     var consumedSpat =
         KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
