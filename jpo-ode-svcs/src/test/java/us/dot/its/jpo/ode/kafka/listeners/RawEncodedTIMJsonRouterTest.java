@@ -47,7 +47,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
 })
 @DirtiesContext
-class Asn1DecodeTIMJSONTest {
+class RawEncodedTIMJsonRouterTest {
 
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
@@ -57,7 +57,7 @@ class Asn1DecodeTIMJSONTest {
   private KafkaTemplate<String, String> kafkaTemplate;
 
   @Test
-  void testProcess() throws JSONException, IOException {
+  void testListen() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getTim());
 
