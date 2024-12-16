@@ -46,7 +46,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
 })
 @DirtiesContext
-class Asn1DecodeSSMJSONTest {
+class RawEncodedSSMJsonRouterTest {
 
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
