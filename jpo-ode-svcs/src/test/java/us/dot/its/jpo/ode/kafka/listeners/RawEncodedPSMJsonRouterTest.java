@@ -44,7 +44,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
     OdeKafkaProperties.class,
     Asn1CoderTopics.class,
     RawEncodedJsonTopics.class})
-class Asn1DecodePSMJSONTest {
+class RawEncodedPSMJsonRouterTest {
 
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
@@ -59,7 +59,7 @@ class Asn1DecodePSMJSONTest {
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getPsm());
 
     Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("Asn1DecodePSMJSONTest", "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("RawEncodedPSMJsonRouterTest", "false", embeddedKafka);
     var cf =
         new DefaultKafkaConsumerFactory<>(consumerProps,
             new StringDeserializer(), new StringDeserializer());
