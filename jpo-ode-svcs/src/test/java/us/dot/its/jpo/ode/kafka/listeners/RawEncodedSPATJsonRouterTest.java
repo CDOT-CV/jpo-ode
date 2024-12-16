@@ -29,7 +29,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
-@SuppressWarnings({"checkstyle:abbreviationAsWordInName", "checkstyle:linelength"})
 @SpringBootTest(
     classes = {
         KafkaProducerConfig.class,
@@ -47,10 +46,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
 })
 @DirtiesContext
-class Asn1DecodeSPATJSONTest {
-
-  @Autowired
-  OdeKafkaProperties odeKafkaProperties;
+class RawEncodedSPATJsonRouterTest {
 
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
@@ -62,7 +58,8 @@ class Asn1DecodeSPATJSONTest {
   @Test
   void testProcess() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getSpat());
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(),
+        rawEncodedJsonTopics.getSpat());
 
     Map<String, Object> consumerProps =
         KafkaTestUtils.consumerProps("Asn1DecodeSPATJSONTestConsumer", "false", embeddedKafka);
@@ -81,7 +78,7 @@ class Asn1DecodeSPATJSONTest {
 
     var consumedSpat =
         KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
-    // Validate the metadata
+
     inputStream = classLoader
         .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/expected-spat.xml");
     assert inputStream != null;
