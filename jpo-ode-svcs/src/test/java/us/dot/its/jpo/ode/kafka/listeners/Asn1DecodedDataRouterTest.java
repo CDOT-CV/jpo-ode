@@ -397,11 +397,11 @@ class Asn1DecodedDataRouterTest {
     try (InputStream inputStream = getClass().getClassLoader()
         .getResourceAsStream(resourcePath)) {
       if (inputStream == null) {
-        throw new FileNotFoundException("Resource not found: decoder-output-bsm.xml");
+        throw new FileNotFoundException("Resource not found: " + resourcePath);
       }
       baseTestData = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to load test data from decoder-output-bsm.xml", e);
+      throw new RuntimeException("Failed to load test data", e);
     }
     return baseTestData;
   }
