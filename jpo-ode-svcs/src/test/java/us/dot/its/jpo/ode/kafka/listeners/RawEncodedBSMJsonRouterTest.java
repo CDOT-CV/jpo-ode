@@ -58,7 +58,7 @@ class RawEncodedBSMJsonRouterTest {
   KafkaTemplate<String, String> kafkaTemplate;
 
   @Test
-  void testProcess() throws JSONException, IOException {
+  void testListen() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
     EmbeddedKafkaHolder.addTopics(asn1DecoderInput, rawEncodedBsmJson);
 
