@@ -230,83 +230,89 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     // - send to SDX
 
     if (!dataObj.has(Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING)) {
-      log.debug("Unsigned message received");
-      // We don't have ASD, therefore it must be just a MessageFrame that needs to be
-      // signed
-      // No support for unsecured MessageFrame only payload.
-      // Cases 1 & 2
-      // Sign and send to RSUs
-
-      JSONObject mfObj = dataObj.getJSONObject(MESSAGE_FRAME);
-
-      String hexEncodedTim = mfObj.getString(BYTES);
-      log.debug("Encoded message - phase 1: {}", hexEncodedTim);
-      // use Asnc1 library to decode the encoded tim returned from ASNC1; another
-      // class two blockers: decode the tim and decode the message-sign
-
-      // Case 1: SNMP-deposit
-      if (dataSigningEnabledRSU && request.getRsus() != null) {
-        hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
-      } else {
-        // if header is present, strip it
-        if (isHeaderPresent(hexEncodedTim)) {
-          String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
-          log.debug("Stripping header from unsigned message: {}", header);
-          hexEncodedTim = stripHeader(hexEncodedTim);
-          mfObj.remove(BYTES);
-          mfObj.put(BYTES, hexEncodedTim);
-          dataObj.remove(MESSAGE_FRAME);
-          dataObj.put(MESSAGE_FRAME, mfObj);
-          consumedObj.remove(AppContext.PAYLOAD_STRING);
-          consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
-        }
-      }
-
-      if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTim) {
-        log.info("Sending message to RSUs...");
-        asn1CommandManager.sendToRsus(request, hexEncodedTim);
-      }
-
-      hexEncodedTim = mfObj.getString(BYTES);
-
-      // Case 2: SDX-deposit
-      if (dataSigningEnabledSDW && request.getSdw() != null) {
-        hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
-      }
-
-      // Deposit encoded & signed TIM to TMC-filtered topic if TMC-generated
-      depositToFilteredTopic(metadataObj, hexEncodedTim);
-      if (request.getSdw() != null) {
-        // Case 2 only
-
-        log.debug("Publishing message for round 2 encoding!");
-        String xmlizedMessage = asn1CommandManager.packageSignedTimIntoAsd(request, hexEncodedTim);
-
-        stringMsgProducer.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
-      }
-
+      processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
     } else {
       // We have encoded ASD. It could be either UNSECURED or secured.
       if (dataSigningEnabledSDW && request.getSdw() != null) {
-        log.debug("Signed message received. Depositing it to SDW.");
-        // We have a ASD with signed MessageFrame
-        // Case 3
-        JSONObject asdObj = dataObj.getJSONObject(
-            Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING);
-        try {
-          JSONObject deposit = new JSONObject();
-          deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
-          deposit.put("encodedMsg", asdObj.getString(BYTES));
-          asn1CommandManager.depositToSdw(deposit.toString());
-        } catch (JSONException | Asn1CommandManagerException e) {
-          String msg = ERROR_ON_SDX_DEPOSIT;
-          log.error(msg, e);
-        }
+        processSignedMessage(request, dataObj);
       } else {
-        log.debug("Unsigned ASD received. Depositing it to SDW.");
-        // We have ASD with UNSECURED MessageFrame
         processEncodedTimUnsecured(request, consumedObj);
       }
+    }
+  }
+
+  private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
+    log.debug("Signed message received. Depositing it to SDW.");
+    // We have a ASD with signed MessageFrame
+    // Case 3
+    JSONObject asdObj = dataObj.getJSONObject(
+        Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING);
+    try {
+      JSONObject deposit = new JSONObject();
+      deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
+      deposit.put("encodedMsg", asdObj.getString(BYTES));
+      asn1CommandManager.depositToSdw(deposit.toString());
+    } catch (JSONException | Asn1CommandManagerException e) {
+      String msg = ERROR_ON_SDX_DEPOSIT;
+      log.error(msg, e);
+    }
+  }
+
+  private void processSNMPDepositOnly(ServiceRequest request, JSONObject consumedObj, JSONObject dataObj,
+      JSONObject metadataObj) {
+    log.debug("Unsigned message received");
+    // We don't have ASD, therefore it must be just a MessageFrame that needs to be
+    // signed
+    // No support for unsecured MessageFrame only payload.
+    // Cases 1 & 2
+    // Sign and send to RSUs
+
+    JSONObject mfObj = dataObj.getJSONObject(MESSAGE_FRAME);
+
+    String hexEncodedTim = mfObj.getString(BYTES);
+    log.debug("Encoded message - phase 1: {}", hexEncodedTim);
+    // use Asnc1 library to decode the encoded tim returned from ASNC1; another
+    // class two blockers: decode the tim and decode the message-sign
+
+    // Case 1: SNMP-deposit
+    if (dataSigningEnabledRSU && request.getRsus() != null) {
+      hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
+    } else {
+      // if header is present, strip it
+      if (isHeaderPresent(hexEncodedTim)) {
+        String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
+        log.debug("Stripping header from unsigned message: {}", header);
+        hexEncodedTim = stripHeader(hexEncodedTim);
+        mfObj.remove(BYTES);
+        mfObj.put(BYTES, hexEncodedTim);
+        dataObj.remove(MESSAGE_FRAME);
+        dataObj.put(MESSAGE_FRAME, mfObj);
+        consumedObj.remove(AppContext.PAYLOAD_STRING);
+        consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
+      }
+    }
+
+    if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTim) {
+      log.info("Sending message to RSUs...");
+      asn1CommandManager.sendToRsus(request, hexEncodedTim);
+    }
+
+    hexEncodedTim = mfObj.getString(BYTES);
+
+    // Case 2: SDX-deposit
+    if (dataSigningEnabledSDW && request.getSdw() != null) {
+      hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
+    }
+
+    // Deposit encoded & signed TIM to TMC-filtered topic if TMC-generated
+    depositToFilteredTopic(metadataObj, hexEncodedTim);
+    if (request.getSdw() != null) {
+      // Case 2 only
+
+      log.debug("Publishing message for round 2 encoding!");
+      String xmlizedMessage = asn1CommandManager.packageSignedTimIntoAsd(request, hexEncodedTim);
+
+      stringMsgProducer.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
     }
   }
 
@@ -317,6 +323,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * @param consumedObj The consumed JSON object
    */
   public void processEncodedTimUnsecured(ServiceRequest request, JSONObject consumedObj) {
+    log.debug("Unsigned ASD received. Depositing it to SDW.");
+    // We have ASD with UNSECURED MessageFrame
     // Send TIMs and record results
     HashMap<String, String> responseList = new HashMap<>();
     JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
