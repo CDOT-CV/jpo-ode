@@ -70,13 +70,13 @@ class RawEncodedSSMJsonRouterTest {
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
         .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-ssm.json");
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-ssm.json");
     assert inputStream != null;
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getSsm(), json);
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-ssm.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-ssm.xml");
     assert inputStream != null;
     var expectedSSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 

@@ -72,13 +72,13 @@ class RawEncodedBSMJsonRouterTest {
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
         .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-bsm.json");
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-bsm.json");
     assert inputStream != null;
     var bsmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedBsmJson, bsmJson);
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-bsm.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-bsm.xml");
     assert inputStream != null;
     var expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 

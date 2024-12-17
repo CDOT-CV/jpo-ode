@@ -71,13 +71,13 @@ class RawEncodedTIMJsonRouterTest {
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
         .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-tim.json");
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-tim.json");
     assert inputStream != null;
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getTim(), json);
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-tim.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-tim.xml");
     assert inputStream != null;
     var expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 

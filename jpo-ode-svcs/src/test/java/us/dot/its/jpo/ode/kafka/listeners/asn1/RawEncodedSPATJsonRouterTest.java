@@ -71,7 +71,7 @@ class RawEncodedSPATJsonRouterTest {
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
         .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-spat.json");
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json");
     assert inputStream != null;
     var spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getSpat(), spatJson);
@@ -80,7 +80,7 @@ class RawEncodedSPATJsonRouterTest {
         KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-spat.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml");
     assert inputStream != null;
     var expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     assertEquals(expectedSpat, consumedSpat.value());

@@ -68,13 +68,13 @@ class RawEncodedPSMJsonRouterTest {
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
         .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-psm.json");
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-psm.json");
     assert inputStream != null;
     var psmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getPsm(), psmJson);
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-psm.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-psm.xml");
     assert inputStream != null;
     var expectedPsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
