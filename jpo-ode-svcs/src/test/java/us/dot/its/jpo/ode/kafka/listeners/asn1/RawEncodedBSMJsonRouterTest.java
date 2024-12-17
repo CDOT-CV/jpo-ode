@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.kafka.listeners;
+package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -11,6 +11,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,67 +23,68 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.listeners.asn1.RawEncodedTIMJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
-import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
-
 
 @SpringBootTest(
     classes = {
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
-        SerializationConfig.class,
-        RawEncodedTIMJsonRouter.class
+        RawEncodedBSMJsonRouter.class,
+        SerializationConfig.class
     },
     properties = {
-        "ode.kafka.topics.raw-encoded-json.tim=topic.Asn1DecoderTestTIMJSON",
-        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderTIMInput"
+        "ode.kafka.topics.raw-encoded-json.bsm=topic.Asn1DecoderTestBSMJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput"
     })
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
     UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
+    RawEncodedJsonTopics.class, KafkaProperties.class
 })
 @DirtiesContext
-class RawEncodedTIMJsonRouterTest {
+class RawEncodedBSMJsonRouterTest {
+
+  @Value(value = "${ode.kafka.topics.raw-encoded-json.bsm}")
+  private String rawEncodedBsmJson;
+
+  @Value(value = "${ode.kafka.topics.asn1.decoder-input}")
+  private String asn1DecoderInput;
 
   @Autowired
-  Asn1CoderTopics asn1CoderTopics;
-  @Autowired
-  RawEncodedJsonTopics rawEncodedJsonTopics;
-  @Autowired
-  private KafkaTemplate<String, String> kafkaTemplate;
+  KafkaTemplate<String, String> kafkaTemplate;
 
   @Test
   void testListen() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getTim());
+    EmbeddedKafkaHolder.addTopics(asn1DecoderInput, rawEncodedBsmJson);
 
     Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("Asn1DecodeTIMJSONTestConsumer", "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("Asn1DecodeBSMJSONTestConsumer", "false", embeddedKafka);
     var cf =
         new DefaultKafkaConsumerFactory<>(consumerProps,
             new StringDeserializer(), new StringDeserializer());
     Consumer<String, String> testConsumer = cf.createConsumer();
-    embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1CoderTopics.getDecoderInput());
+    embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1DecoderInput);
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/decoder-input-tim.json");
+        .getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-bsm.json");
     assert inputStream != null;
-    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    kafkaTemplate.send(rawEncodedJsonTopics.getTim(), json);
+    var bsmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    kafkaTemplate.send(rawEncodedBsmJson, bsmJson);
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/expected-tim.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-bsm.xml");
     assert inputStream != null;
-    var expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    var expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
     var produced =
-        KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
-    assertEquals(expectedTim, produced.value());
+        KafkaTestUtils.getSingleRecord(testConsumer, asn1DecoderInput);
+    var odeBsmData = produced.value();
+    assertEquals(expectedBsm, odeBsmData);
   }
 }

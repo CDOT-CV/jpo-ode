@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.kafka.listeners;
+package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -22,23 +22,23 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.listeners.asn1.RawEncodedSSMJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
+
 @SpringBootTest(
     classes = {
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
-        RawEncodedSSMJsonRouter.class,
-        SerializationConfig.class
+        SerializationConfig.class,
+        RawEncodedTIMJsonRouter.class
     },
     properties = {
-        "ode.kafka.topics.raw-encoded-json.ssm=topic.Asn1DecoderTestSSMJSON",
-        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSSMInput"
+        "ode.kafka.topics.raw-encoded-json.tim=topic.Asn1DecoderTestTIMJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderTIMInput"
     })
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
@@ -46,7 +46,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
 })
 @DirtiesContext
-class RawEncodedSSMJsonRouterTest {
+class RawEncodedTIMJsonRouterTest {
 
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
@@ -58,10 +58,10 @@ class RawEncodedSSMJsonRouterTest {
   @Test
   void testListen() throws JSONException, IOException {
     var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getSsm());
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getTim());
 
     Map<String, Object> consumerProps =
-        KafkaTestUtils.consumerProps("Asn1DecodeSSMJSONTestConsumer", "false", embeddedKafka);
+        KafkaTestUtils.consumerProps("Asn1DecodeTIMJSONTestConsumer", "false", embeddedKafka);
     var cf =
         new DefaultKafkaConsumerFactory<>(consumerProps,
             new StringDeserializer(), new StringDeserializer());
@@ -70,17 +70,19 @@ class RawEncodedSSMJsonRouterTest {
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/decoder-input-ssm.json");
+        .getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/messages/decoder-input-tim.json");
     assert inputStream != null;
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    kafkaTemplate.send(rawEncodedJsonTopics.getSsm(), json);
+    kafkaTemplate.send(rawEncodedJsonTopics.getTim(), json);
 
     inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/messages/expected-ssm.xml");
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/messages/expected-tim.xml");
     assert inputStream != null;
-    var expectedSSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    var expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    var consumedSSM = KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
-    assertEquals(expectedSSM, consumedSSM.value());
+    var produced =
+        KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
+    assertEquals(expectedTim, produced.value());
   }
 }
