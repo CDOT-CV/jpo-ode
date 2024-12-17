@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*=============================================================================
  * Copyright 2018 572682
  *
  * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -76,7 +76,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   private final boolean dataSigningEnabledRSU;
 
   /**
-   * Instantiates the Asn1EncodedDataRouter to actively consume from Kafka and route the
+   * Instantiates the Asn1EncodedDataRouter to actively consume from Kafka and route
    * the encoded TIM messages to the SDX and RSUs.
    *
    * @param odeKafkaProperties The Kafka properties used to consume and produce to Kafka
@@ -103,8 +103,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       odeKafkaProperties.getDisabledTopics());
 
     this.asn1CommandManager = new Asn1CommandManager(
-      odeKafkaProperties, 
-      sdxDepositorTopics, 
+      odeKafkaProperties,
+      sdxDepositorTopics,
       rsuProperties,
       securityServicesProperties);
     this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
@@ -165,7 +165,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
             + TimTransmogrifier.REQUEST_STRING + "' object in the encoder response");
       }
     } catch (Exception e) {
-      String msg = "Error in processing received message from ASN.1 Encoder module: " 
+      String msg = "Error in processing received message from ASN.1 Encoder module: "
           + consumedData;
       if (log.isDebugEnabled()) {
         // print error message and stack trace
@@ -403,7 +403,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     // get max duration time and convert from minutes to milliseconds (unsigned
     // integer valid 0 to 2^32-1 in units of
     // milliseconds.) from metadata
-    int maxDurationTime = Integer.valueOf(metadataObjs.get("maxDurationTime").toString()) 
+    int maxDurationTime = Integer.valueOf(metadataObjs.get("maxDurationTime").toString())
         * 60 * 1000;
     String timpacketID = metadataObjs.getString("odePacketID");
     String timStartDateTime = metadataObjs.getString("odeTimStartDateTime");
