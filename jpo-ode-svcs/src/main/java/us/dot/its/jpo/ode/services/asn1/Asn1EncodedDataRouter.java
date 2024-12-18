@@ -29,10 +29,8 @@ import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
-import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
@@ -89,10 +87,9 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
       Asn1CoderTopics asn1CoderTopics,
       JsonTopics jsonTopics,
-      SDXDepositorTopics sdxDepositorTopics,
       SecurityServicesProperties securityServicesProperties,
-      RsuDepositor rsuDepositor,
-      OdeTimJsonTopology odeTimJsonTopology) {
+      OdeTimJsonTopology odeTimJsonTopology,
+      Asn1CommandManager asn1CommandManager) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
@@ -103,12 +100,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         odeKafkaProperties.getKafkaType(),
         odeKafkaProperties.getDisabledTopics());
 
-    this.asn1CommandManager = new Asn1CommandManager(
-        odeKafkaProperties,
-        sdxDepositorTopics,
-        securityServicesProperties,
-        rsuDepositor
-    );
+    this.asn1CommandManager = asn1CommandManager;
     this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
     this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 

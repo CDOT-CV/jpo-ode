@@ -101,14 +101,19 @@ class Asn1EncodedDataRouterTest {
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
+    var asn1CommandManager = new Asn1CommandManager(
+        odeKafkaProperties,
+        sdxDepositorTopics,
+        securityServicesProperties,
+        mockRsuDepositor
+    );
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
         asn1CoderTopics,
         jsonTopics,
-        sdxDepositorTopics,
         securityServicesProperties,
-        mockRsuDepositor,
-        odeTimJsonTopology);
+        odeTimJsonTopology,
+        asn1CommandManager);
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
@@ -136,7 +141,7 @@ class Asn1EncodedDataRouterTest {
     Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "Asn1EncodedDataRouterTest-asasas", "false", embeddedKafka);
+        "Asn1EncodedDataRouterTest-unsecured", "false", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();

@@ -54,12 +54,17 @@ public class AsnCodecRouterServiceController {
         odeKafkaProperties,
         asn1CoderTopics,
         jsonTopics,
-        sdxDepositorTopics,
         securityServicesProperties,
-        new RsuDepositor(
-            rsuProperties, securityServicesProperties.getIsRsuSigningEnabled()
-        ),
-        new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim())
+        new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim()),
+        new Asn1CommandManager(
+            odeKafkaProperties,
+            sdxDepositorTopics,
+            securityServicesProperties,
+            new RsuDepositor(
+                rsuProperties,
+                securityServicesProperties.getIsRsuSigningEnabled()
+            )
+        )
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
