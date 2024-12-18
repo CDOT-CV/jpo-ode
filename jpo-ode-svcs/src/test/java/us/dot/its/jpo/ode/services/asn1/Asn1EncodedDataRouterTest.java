@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,8 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
         "ode.kafka.topics.json.tim-cert-expiration=topic.Asn1EncodedDataRouterTestTimCertExpiration",
         "ode.kafka.topics.json.tim-tmc-filtered=topic.Asn1EncodedDataRouterTestTimTmcFiltered",
         "ode.kafka.topics.asn1.encoder-input=topic.Asn1EncodedDataRouterTestEncoderInput",
-        "ode.kafka.topics.asn1.encoder-output=topic.Asn1EncodedDataRouterTestEncoderOutput"
+        "ode.kafka.topics.asn1.encoder-output=topic.Asn1EncodedDataRouterTestEncoderOutput",
+        "ode.kafka.topics.sdx-depositor.input=topic.Asn1EncodedDataRouterTestSDXDepositor"
     },
     classes = {
         KafkaProducerConfig.class,
@@ -91,22 +93,14 @@ class Asn1EncodedDataRouterTest {
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   @Test
-  void processSNMPDeposit() throws IOException {
-    //`dataSigningEnabledRSU` AND request.getRsus() is not null AND recordGeneratedBy set to "TMC"
-    //			- produced to getTimCertExpiration topic
-    //			- produced to getEncoderInput topic
-    //			- produced to getTimTmcFiltered
+  void processEncodedTimUnsecured_depositsToSdxTopic() throws IOException, InterruptedException {
+
     String[] topics = {
         asn1CoderTopics.getEncoderInput(),
-        jsonTopics.getTimCertExpiration(),
-        asn1CoderTopics.getEncoderOutput(),
-        jsonTopics.getTimTmcFiltered()
+        sdxDepositorTopics.getInput()
     };
     EmbeddedKafkaHolder.addTopics(topics);
-//    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput());
-
-    // mock RsuDepositor
-    // mock Asn1CommandManager?
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput());
 
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
@@ -123,11 +117,17 @@ class Asn1EncodedDataRouterTest {
     encoderConsumer.setName("Asn1EncoderConsumer");
     encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
 
-    InputStream inputStream = getClass().getClassLoader()
-        .getResourceAsStream("us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim.xml");
+    // Wait for encoderRouter to connect to the broker otherwise the test will fail :(
+    Thread.sleep(2000);
+
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader
+        .getResourceAsStream(
+            "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim.xml");
     assert inputStream != null;
     var input = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
+    var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
+    Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
         "Asn1EncodedDataRouterTest-asasas", "false", embeddedKafka);
@@ -136,14 +136,14 @@ class Asn1EncodedDataRouterTest {
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-    var encoderOutputRecord = KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getEncoderOutput());
-    var timCertExpirationRecord = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimCertExpiration());
-    var timTmcFilteredRecord = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimTmcFiltered());
-    var encoderInputRecord = KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getEncoderInput());
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-sdx-deposit.json");
+    assert inputStream != null;
+    var expected = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    assertEquals("", timCertExpirationRecord.value());
-    assertEquals("", timTmcFilteredRecord.value());
-    assertEquals("", encoderInputRecord.value());
+    var sdxDepositorRecord =
+        KafkaTestUtils.getSingleRecord(testConsumer, sdxDepositorTopics.getInput());
+    assertEquals(expected, sdxDepositorRecord.value());
   }
 
 }
