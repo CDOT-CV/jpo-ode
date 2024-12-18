@@ -425,27 +425,11 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       JSONObject timWithExpiration = new JSONObject();
       timWithExpiration.put("packetID", timpacketID);
       timWithExpiration.put("startDateTime", timStartDateTime);
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-      try {
-        JSONObject jsonResult = JsonUtils
-            .toJSONObject((JsonUtils.toJSONObject(signedResponse).getString("result")));
-        // messageExpiry uses unit of seconds
-        long messageExpiry = Long.parseLong(jsonResult.getString("message-expiry"));
-        timWithExpiration.put("expirationDate", dateFormat.format(new Date(messageExpiry * 1000)));
-      } catch (Exception e) {
-        log.error("Unable to get expiration date from signed messages response ", e);
-        timWithExpiration.put("expirationDate", "null");
-      }
 
-      try {
-        Date parsedtimTimeStamp = dateFormat.parse(timStartDateTime);
-        Date requiredExpirationDate = new Date();
-        requiredExpirationDate.setTime(parsedtimTimeStamp.getTime() + maxDurationTime);
-        timWithExpiration.put("requiredExpirationDate", dateFormat.format(requiredExpirationDate));
-      } catch (Exception e) {
-        log.error("Unable to parse requiredExpirationDate ", e);
-        timWithExpiration.put("requiredExpirationDate", "null");
-      }
+      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+      setExpiryDate(signedResponse, timWithExpiration, dateFormat);
+      setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
+
       // publish to Tim expiration kafka
       stringMsgProducer.send(jsonTopics.getTimCertExpiration(), null,
           timWithExpiration.toString());
@@ -456,6 +440,33 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       log.error("Unable to parse signed message response ", e1);
     }
     return encodedTIM;
+  }
+
+  private static void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
+      int maxDurationTime, JSONObject timWithExpiration) {
+    try {
+      Date parsedtimTimeStamp = dateFormat.parse(timStartDateTime);
+      Date requiredExpirationDate = new Date();
+      requiredExpirationDate.setTime(parsedtimTimeStamp.getTime() + maxDurationTime);
+      timWithExpiration.put("requiredExpirationDate", dateFormat.format(requiredExpirationDate));
+    } catch (Exception e) {
+      log.error("Unable to parse requiredExpirationDate ", e);
+      timWithExpiration.put("requiredExpirationDate", "null");
+    }
+  }
+
+  private static void setExpiryDate(String signedResponse, JSONObject timWithExpiration,
+      SimpleDateFormat dateFormat) {
+    try {
+      JSONObject jsonResult = JsonUtils
+          .toJSONObject((JsonUtils.toJSONObject(signedResponse).getString("result")));
+      // messageExpiry uses unit of seconds
+      long messageExpiry = Long.parseLong(jsonResult.getString("message-expiry"));
+      timWithExpiration.put("expirationDate", dateFormat.format(new Date(messageExpiry * 1000)));
+    } catch (Exception e) {
+      log.error("Unable to get expiration date from signed messages response ", e);
+      timWithExpiration.put("expirationDate", "null");
+    }
   }
 
   /**
