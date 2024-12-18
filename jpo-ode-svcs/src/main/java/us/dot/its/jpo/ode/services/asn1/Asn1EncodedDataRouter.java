@@ -32,7 +32,7 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
-import us.dot.its.jpo.ode.rsu.RsuProperties;
+import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
@@ -44,9 +44,8 @@ import us.dot.its.jpo.ode.wrapper.AbstractSubscriberProcessor;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
 /**
- * The Asn1EncodedDataRouter is responsible for routing encoded TIM messages
- * that are consumed from the Kafka topic.Asn1EncoderOutput topic and decide
- * whether to route to the SDX or an RSU.
+ * The Asn1EncodedDataRouter is responsible for routing encoded TIM messages that are consumed from
+ * the Kafka topic.Asn1EncoderOutput topic and decide whether to route to the SDX or an RSU.
  **/
 @Slf4j
 public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, String> {
@@ -59,6 +58,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * Exception for Asn1EncodedDataRouter specific failures.
    */
   public static class Asn1EncodedDataRouterException extends Exception {
+
     private static final long serialVersionUID = 1L;
 
     public Asn1EncodedDataRouterException(String string) {
@@ -76,41 +76,43 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   private final boolean dataSigningEnabledRSU;
 
   /**
-   * Instantiates the Asn1EncodedDataRouter to actively consume from Kafka and route
-   * the encoded TIM messages to the SDX and RSUs.
+   * Instantiates the Asn1EncodedDataRouter to actively consume from Kafka and route the encoded TIM
+   * messages to the SDX and RSUs.
    *
-   * @param odeKafkaProperties The Kafka properties used to consume and produce to Kafka
-   * @param asn1CoderTopics The specified ASN1 Coder topics
-   * @param jsonTopics The specified JSON topics to write to
-   * @param sdxDepositorTopics The SDX depositor topics to write to
-   * @param rsuProperties The RSU properties to use
+   * @param odeKafkaProperties         The Kafka properties used to consume and produce to Kafka
+   * @param asn1CoderTopics            The specified ASN1 Coder topics
+   * @param jsonTopics                 The specified JSON topics to write to
+   * @param sdxDepositorTopics         The SDX depositor topics to write to
+   * @param rsuProperties              The RSU properties to use
    * @param securityServicesProperties The security services properties to use
    **/
   public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
       Asn1CoderTopics asn1CoderTopics,
       JsonTopics jsonTopics,
       SDXDepositorTopics sdxDepositorTopics,
-      RsuProperties rsuProperties,
-      SecurityServicesProperties securityServicesProperties) {
+      SecurityServicesProperties securityServicesProperties,
+      RsuDepositor rsuDepositor,
+      OdeTimJsonTopology odeTimJsonTopology) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
     this.jsonTopics = jsonTopics;
 
     this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(
-      odeKafkaProperties.getBrokers(),
-      odeKafkaProperties.getKafkaType(),
-      odeKafkaProperties.getDisabledTopics());
+        odeKafkaProperties.getBrokers(),
+        odeKafkaProperties.getKafkaType(),
+        odeKafkaProperties.getDisabledTopics());
 
     this.asn1CommandManager = new Asn1CommandManager(
-      odeKafkaProperties,
-      sdxDepositorTopics,
-      rsuProperties,
-      securityServicesProperties);
+        odeKafkaProperties,
+        sdxDepositorTopics,
+        securityServicesProperties,
+        rsuDepositor
+    );
     this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
     this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 
-    odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
+    this.odeTimJsonTopology = odeTimJsonTopology;
   }
 
   @Override
@@ -208,7 +210,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   /**
    * Process the signed encoded TIM message.
    *
-   * @param request The service request
+   * @param request     The service request
    * @param consumedObj The consumed JSON object
    */
   public void processEncodedTim(ServiceRequest request, JSONObject consumedObj) {
@@ -258,7 +260,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     }
   }
 
-  private void processSNMPDepositOnly(ServiceRequest request, JSONObject consumedObj, JSONObject dataObj,
+  private void processSNMPDepositOnly(ServiceRequest request, JSONObject consumedObj,
+      JSONObject dataObj,
       JSONObject metadataObj) {
     log.debug("Unsigned message received");
     // We don't have ASD, therefore it must be just a MessageFrame that needs to be
@@ -319,7 +322,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   /**
    * Process the unsigned encoded TIM message.
    *
-   * @param request The service request
+   * @param request     The service request
    * @param consumedObj The consumed JSON object
    */
   public void processEncodedTimUnsecured(ServiceRequest request, JSONObject consumedObj) {
@@ -399,7 +402,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   /**
    * Sign the encoded TIM message and write to Kafka with an expiration time.
    *
-   * @param encodedTIM The encoded TIM message to be signed
+   * @param encodedTIM  The encoded TIM message to be signed
    * @param consumedObj The JSON object to be consumed
    * @return The String representation of the encodedTim payload
    */
@@ -415,6 +418,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         * 60 * 1000;
     String timpacketID = metadataObjs.getString("odePacketID");
     String timStartDateTime = metadataObjs.getString("odeTimStartDateTime");
+    log.debug("SENDING: {}", base64EncodedTim);
     String signedResponse = asn1CommandManager.sendForSignature(base64EncodedTim, maxDurationTime);
     try {
       final String hexEncodedTim = CodecUtils.toHex(

@@ -13,15 +13,18 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
+
 package us.dot.its.jpo.ode.services.asn1;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
+import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
@@ -33,32 +36,36 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 @Slf4j
 public class AsnCodecRouterServiceController {
 
-    @Autowired
-    public AsnCodecRouterServiceController(OdeKafkaProperties odeKafkaProperties,
-                                           JsonTopics jsonTopics,
-                                           Asn1CoderTopics asn1CoderTopics,
-                                           SDXDepositorTopics sdxDepositorTopics,
-                                           RsuProperties rsuProperties,
-                                           SecurityServicesProperties securityServicesProperties) {
-        super();
+  @Autowired
+  public AsnCodecRouterServiceController(OdeKafkaProperties odeKafkaProperties,
+      JsonTopics jsonTopics,
+      Asn1CoderTopics asn1CoderTopics,
+      SDXDepositorTopics sdxDepositorTopics,
+      RsuProperties rsuProperties,
+      SecurityServicesProperties securityServicesProperties) {
+    super();
 
-        log.info("Starting {}", this.getClass().getSimpleName());
+    log.info("Starting {}", this.getClass().getSimpleName());
 
-        // asn1_codec Encoder Routing
-        log.info("Routing ENCODED data received ASN.1 Encoder");
+    // asn1_codec Encoder Routing
+    log.info("Routing ENCODED data received ASN.1 Encoder");
 
-        Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-                odeKafkaProperties,
-                asn1CoderTopics,
-                jsonTopics,
-                sdxDepositorTopics,
-                rsuProperties,
-                securityServicesProperties);
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
+        odeKafkaProperties,
+        asn1CoderTopics,
+        jsonTopics,
+        sdxDepositorTopics,
+        securityServicesProperties,
+        new RsuDepositor(
+            rsuProperties, securityServicesProperties.getIsRsuSigningEnabled()
+        ),
+        new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim())
+    );
 
-        MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-                odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), encoderRouter);
+    MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
+        odeKafkaProperties.getBrokers(), this.getClass().getSimpleName(), encoderRouter);
 
-        encoderConsumer.setName("Asn1EncoderConsumer");
-        encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
-    }
+    encoderConsumer.setName("Asn1EncoderConsumer");
+    encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
+  }
 }
