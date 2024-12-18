@@ -26,6 +26,7 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
+import us.dot.its.jpo.ode.security.SecurityServicesClientImpl;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
@@ -59,12 +60,12 @@ public class AsnCodecRouterServiceController {
         new Asn1CommandManager(
             odeKafkaProperties,
             sdxDepositorTopics,
-            securityServicesProperties,
             new RsuDepositor(
                 rsuProperties,
                 securityServicesProperties.getIsRsuSigningEnabled()
             )
-        )
+        ),
+        new SecurityServicesClientImpl(securityServicesProperties.getSignatureEndpoint())
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(

@@ -19,14 +19,7 @@ package us.dot.its.jpo.ode.services.asn1;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -41,7 +34,6 @@ import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
-import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
@@ -68,7 +60,7 @@ public class Asn1CommandManager {
 
   }
 
-  private final String signatureUri;
+
 
   private MessageProducer<String, String> stringMessageProducer;
 
@@ -77,9 +69,7 @@ public class Asn1CommandManager {
 
   public Asn1CommandManager(OdeKafkaProperties odeKafkaProperties,
       SDXDepositorTopics sdxDepositorTopics,
-      SecurityServicesProperties securityServicesProperties,
       RsuDepositor rsuDepositor) {
-    this.signatureUri = securityServicesProperties.getSignatureEndpoint();
 
     try {
       this.rsuDepositor = rsuDepositor;
@@ -106,27 +96,6 @@ public class Asn1CommandManager {
 
   public void sendToRsus(ServiceRequest request, String encodedMsg) {
     rsuDepositor.deposit(request, encodedMsg);
-  }
-
-  public String sendForSignature(String message, int sigValidityOverride) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    Map<String, String> map = new HashMap<>();
-    map.put("message", message);
-    map.put("sigValidityOverride", Integer.toString(sigValidityOverride));
-
-    HttpEntity<Map<String, String>> entity = new HttpEntity<>(map, headers);
-    RestTemplate template = new RestTemplate();
-
-    log.info("Sending data to security services module with validity override at {} to be signed",
-        signatureUri);
-    log.debug("Data to be signed: {}", entity);
-
-    ResponseEntity<String> respEntity = template.postForEntity(signatureUri, entity, String.class);
-
-    log.debug("Security services module response: {}", respEntity);
-
-    return respEntity.getBody();
   }
 
   public String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {

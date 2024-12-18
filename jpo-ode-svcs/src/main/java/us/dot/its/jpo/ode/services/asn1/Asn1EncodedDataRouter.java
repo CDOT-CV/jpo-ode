@@ -31,6 +31,7 @@ import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
+import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
@@ -66,6 +67,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
+  private final ISecurityServicesClient securityServicesClient;
 
   private final MessageProducer<String, String> stringMsgProducer;
   private final OdeTimJsonTopology odeTimJsonTopology;
@@ -80,20 +82,21 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * @param odeKafkaProperties         The Kafka properties used to consume and produce to Kafka
    * @param asn1CoderTopics            The specified ASN1 Coder topics
    * @param jsonTopics                 The specified JSON topics to write to
-   * @param sdxDepositorTopics         The SDX depositor topics to write to
-   * @param rsuProperties              The RSU properties to use
    * @param securityServicesProperties The security services properties to use
+   * @param securityServicesClient
    **/
   public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
       Asn1CoderTopics asn1CoderTopics,
       JsonTopics jsonTopics,
       SecurityServicesProperties securityServicesProperties,
       OdeTimJsonTopology odeTimJsonTopology,
-      Asn1CommandManager asn1CommandManager) {
+      Asn1CommandManager asn1CommandManager,
+      ISecurityServicesClient securityServicesClient) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
     this.jsonTopics = jsonTopics;
+    this.securityServicesClient = securityServicesClient;
 
     this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(
         odeKafkaProperties.getBrokers(),
@@ -411,7 +414,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     String timpacketID = metadataObjs.getString("odePacketID");
     String timStartDateTime = metadataObjs.getString("odeTimStartDateTime");
     log.debug("SENDING: {}", base64EncodedTim);
-    String signedResponse = asn1CommandManager.sendForSignature(base64EncodedTim, maxDurationTime);
+    String signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
     try {
       final String hexEncodedTim = CodecUtils.toHex(
           CodecUtils.fromBase64(

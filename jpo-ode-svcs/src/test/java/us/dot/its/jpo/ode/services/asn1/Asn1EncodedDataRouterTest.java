@@ -17,6 +17,10 @@
 package us.dot.its.jpo.ode.services.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -104,16 +108,18 @@ class Asn1EncodedDataRouterTest {
     var asn1CommandManager = new Asn1CommandManager(
         odeKafkaProperties,
         sdxDepositorTopics,
-        securityServicesProperties,
         mockRsuDepositor
     );
+    var mockSecServClient = mock(ISecurityServicesClient.class);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
         asn1CoderTopics,
         jsonTopics,
         securityServicesProperties,
         odeTimJsonTopology,
-        asn1CommandManager);
+        asn1CommandManager,
+        mockSecServClient
+    );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
