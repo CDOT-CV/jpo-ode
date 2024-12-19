@@ -289,4 +289,101 @@ class Asn1EncodedDataRouterTest {
     assertEquals(expectedEncoderInputWithStableFieldsOnly, encoderInputWithStableFieldsOnly);
   }
 
+  @Test
+  void processEncodedTimUnsecured()
+      throws IOException, InterruptedException {
+    String[] topicsForConsumption = {
+        asn1CoderTopics.getEncoderInput(),
+        jsonTopics.getTimTmcFiltered()
+    };
+    EmbeddedKafkaHolder.addTopics(topicsForConsumption);
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
+
+    var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
+    var asn1CommandManager = new Asn1CommandManager(
+        odeKafkaProperties,
+        sdxDepositorTopics,
+        mockRsuDepositor
+    );
+    var mockSecServClient = new ISecurityServicesClient() {
+      @Override
+      public String signMessage(String message, int sigValidityOverride) {
+        JSONObject json = new JSONObject();
+        JSONObject result = new JSONObject();
+        result.put("message-signed", "<%s>".formatted(message));
+        result.put("message-expiry", "123124124124124141");
+        json.put("result", result);
+        return json.toString();
+      }
+    };
+
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
+        odeKafkaProperties,
+        asn1CoderTopics,
+        jsonTopics,
+        securityServicesProperties,
+        odeTimJsonTopology,
+        asn1CommandManager,
+        mockSecServClient
+    );
+    MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
+        embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
+
+    encoderConsumer.setName("Asn1EncoderConsumer");
+    encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
+
+    // Wait for encoderRouter to connect to the broker otherwise the test will fail :(
+    Thread.sleep(2000);
+
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-tim-json.json");
+    assert inputStream != null;
+    var odeJsonTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
+    var streamId = UUID.randomUUID().toString();
+    odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim.xml");
+    assert inputStream != null;
+    var input = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    input = input.replaceAll("<streamId>.*?</streamId>", "<streamId>" + streamId + "</streamId>");
+    kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "processSNMPDepositOnly", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-sdx-deposit.json");
+    assert inputStream != null;
+    var expected = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+    var records = KafkaTestUtils.getRecords(testConsumer);
+    var sdxDepositorRecord = records
+        .records(sdxDepositorTopics.getInput());
+    for (var consumerRecord : sdxDepositorRecord) {
+      if (consumerRecord.value().contains(streamId)) {
+        assertEquals(expected, consumerRecord.value());
+      }
+    }
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-tim-tmc-filtered.json");
+    assert inputStream != null;
+    var expectedTimTmcFiltered = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    expectedTimTmcFiltered = expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+
+    for (var consumerRecord : records.records(jsonTopics.getTimTmcFiltered())) {
+      if (consumerRecord.value().contains(streamId)) {
+        assertEquals(expectedTimTmcFiltered, consumerRecord.value());
+      }
+    }
+  }
+
 }
