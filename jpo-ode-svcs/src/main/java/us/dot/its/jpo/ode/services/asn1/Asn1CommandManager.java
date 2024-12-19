@@ -22,8 +22,6 @@ import java.text.ParseException;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsdPayload;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
@@ -40,31 +38,25 @@ import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
+/**
+ * Manages operations related to ASN.1 command processing and interaction with RSUs (Road Side
+ * Units). Handles the preparation, packaging, and distribution of messages to RSUs using an
+ * {@link RsuDepositor}.
+ */
 @Slf4j
 public class Asn1CommandManager {
 
   public static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
 
-  public static class Asn1CommandManagerException extends Exception {
-
-    private static final long serialVersionUID = 1L;
-
-    public Asn1CommandManagerException(String string) {
-      super(string);
-    }
-
-    public Asn1CommandManagerException(String msg, Exception e) {
-      super(msg, e);
-    }
-
-  }
-
   private RsuDepositor rsuDepositor;
 
-  public Asn1CommandManager(OdeKafkaProperties odeKafkaProperties,
-      SDXDepositorTopics sdxDepositorTopics,
-      RsuDepositor rsuDepositor) {
-
+  /**
+   * Constructs an instance of Asn1CommandManager and initializes the RSU depositor.
+   *
+   * @param rsuDepositor The RSU depositor instance to be used for managing ASN.1 commands. This
+   *                     instance is started during initialization.
+   */
+  public Asn1CommandManager(RsuDepositor rsuDepositor) {
     try {
       this.rsuDepositor = rsuDepositor;
       this.rsuDepositor.start();
@@ -75,10 +67,27 @@ public class Asn1CommandManager {
     }
   }
 
+  /**
+   * Sends a message to the RSUs (Road Side Units) through the RSU depositor.
+   *
+   * @param request    the service request containing relevant details for the operation
+   * @param encodedMsg the message to be sent, encoded in the desired format
+   */
   public void sendToRsus(ServiceRequest request, String encodedMsg) {
     rsuDepositor.deposit(request, encodedMsg);
   }
 
+  /**
+   * Constructs an XML representation of an Advisory Situation Data (ASD) message containing a
+   * signed Traveler Information Message (TIM). Processes the provided service request and signed
+   * message to create and structure the ASD before converting it to an XML string output.
+   *
+   * @param request   the service request object containing meta information, service region,
+   *                  delivery time, and other necessary data for ASD creation.
+   * @param signedMsg the signed Traveler Information Message (TIM) to be included in the ASD.
+   * @return          a String containing the fully crafted ASD message in XML format. Returns null if the
+   *                  message could not be constructed due to exceptions.
+   */
   public String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
 
     SDW sdw = request.getSdw();
@@ -106,8 +115,6 @@ public class Asn1CommandManager {
             .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
       }
 
-      OdeMsgPayload payload;
-
       ObjectNode dataBodyObj = JsonUtils.newNode();
       ObjectNode asdObj = JsonUtils.toObjectNode(asd.toJson());
       ObjectNode admDetailsObj = (ObjectNode) asdObj.findValue("asdmDetails");
@@ -116,7 +123,7 @@ public class Asn1CommandManager {
 
       dataBodyObj.set(ADVISORY_SITUATION_DATA_STRING, asdObj);
 
-      payload = new OdeAsdPayload(asd);
+      OdeMsgPayload payload = new OdeAsdPayload(asd);
 
       ObjectNode payloadObj = JsonUtils.toObjectNode(payload.toJson());
       payloadObj.set(AppContext.DATA_STRING, dataBodyObj);
@@ -157,7 +164,7 @@ public class Asn1CommandManager {
     return outputXml;
   }
 
-  public static ArrayNode buildEncodings() throws JsonUtilsException {
+  private ArrayNode buildEncodings() throws JsonUtilsException {
     ArrayNode encodings = JsonUtils.newArrayNode();
     encodings.add(TimTransmogrifier.buildEncodingNode(ADVISORY_SITUATION_DATA_STRING,
         ADVISORY_SITUATION_DATA_STRING,
