@@ -111,6 +111,7 @@ class Asn1EncodedDataRouterTest {
         mockRsuDepositor
     );
     var mockSecServClient = mock(ISecurityServicesClient.class);
+    securityServicesProperties.setIsSdwSigningEnabled(true);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
         asn1CoderTopics,
@@ -322,6 +323,8 @@ class Asn1EncodedDataRouterTest {
       }
     };
 
+    securityServicesProperties.setIsSdwSigningEnabled(false);
+    securityServicesProperties.setIsRsuSigningEnabled(false);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
         asn1CoderTopics,
