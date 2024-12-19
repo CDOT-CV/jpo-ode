@@ -17,16 +17,14 @@
 package us.dot.its.jpo.ode.services.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +44,7 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
+import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
@@ -122,7 +121,8 @@ class Asn1EncodedDataRouterTest {
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-        embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
+        embeddedKafka.getBrokersAsString(),
+        "processEncodedTimUnsecured_depositsToSdxTopicAndTimTmcFiltered", encoderRouter);
 
     encoderConsumer.setName("Asn1EncoderConsumer");
     encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
@@ -170,6 +170,110 @@ class Asn1EncodedDataRouterTest {
     var timTmcFilteredRecord =
         KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimTmcFiltered());
     assertEquals(expectedTimTmcFiltered, timTmcFilteredRecord.value());
+  }
+
+  @Test
+  void processSNMPDepositOnly()
+      throws IOException, InterruptedException {
+    String[] topicsForConsumption = {
+        asn1CoderTopics.getEncoderInput(),
+        jsonTopics.getTimCertExpiration(),
+        jsonTopics.getTimTmcFiltered()
+    };
+    EmbeddedKafkaHolder.addTopics(topicsForConsumption);
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
+
+    securityServicesProperties.setIsSdwSigningEnabled(true);
+    var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
+    var asn1CommandManager = new Asn1CommandManager(
+        odeKafkaProperties,
+        sdxDepositorTopics,
+        mockRsuDepositor
+    );
+    var mockSecServClient = new ISecurityServicesClient() {
+      @Override
+      public String signMessage(String message, int sigValidityOverride) {
+        JSONObject json = new JSONObject();
+        JSONObject result = new JSONObject();
+        result.put("message-signed", "<%s>".formatted(message));
+        result.put("message-expiry", "123124124124124141");
+        json.put("result", result);
+        return json.toString();
+      }
+    };
+
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
+        odeKafkaProperties,
+        asn1CoderTopics,
+        jsonTopics,
+        securityServicesProperties,
+        odeTimJsonTopology,
+        asn1CommandManager,
+        mockSecServClient
+    );
+    MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
+        embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
+
+    encoderConsumer.setName("Asn1EncoderConsumer");
+    encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
+
+    // Wait for encoderRouter to connect to the broker otherwise the test will fail :(
+    Thread.sleep(2000);
+
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-tim-json.json");
+    assert inputStream != null;
+    var odeJsonTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
+    kafkaTemplate.send(jsonTopics.getTim(), "266e6742-40fb-4c9e-a6b0-72ed2dddddfe", odeJsonTim);
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim-no-advisory-data.xml");
+    assert inputStream != null;
+    var input = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "Asn1EncodedDataRouterTest-unsecured", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-tim-cert-expired.json");
+    assert inputStream != null;
+    var expectedTimCertExpiry = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    var timCertExpirationRecord =
+        KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimCertExpiration());
+    assertEquals(expectedTimCertExpiry, timCertExpirationRecord.value());
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-tim-tmc-filtered.json");
+    assert inputStream != null;
+    var expectedTimTmcFiltered = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    var timTmcFilteredRecord =
+        KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimTmcFiltered());
+    assertEquals(expectedTimTmcFiltered, timTmcFilteredRecord.value());
+
+    inputStream = classLoader.getResourceAsStream(
+        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-snmp-deposit.xml");
+    assert inputStream != null;
+    var expectedEncoderInput = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    var encoderInputRecord =
+        KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getEncoderInput());
+    var encoderInputWithStableFieldsOnly = encoderInputRecord.value()
+        .replaceAll("<streamId>.*?</streamId>", "")
+        .replaceAll("<requestID>.*?</requestID>", "")
+        .replaceAll("<odeReceivedAt>.*?</odeReceivedAt>", "")
+        .replaceAll("<asdmID>.*?</asdmID>", "");
+    var expectedEncoderInputWithStableFieldsOnly = expectedEncoderInput
+        .replaceAll("<streamId>.*?</streamId>", "")
+        .replaceAll("<requestID>.*?</requestID>", "")
+        .replaceAll("<odeReceivedAt>.*?</odeReceivedAt>", "")
+        .replaceAll("<asdmID>.*?</asdmID>", "");
+    assertEquals(expectedEncoderInputWithStableFieldsOnly, encoderInputWithStableFieldsOnly);
   }
 
 }
