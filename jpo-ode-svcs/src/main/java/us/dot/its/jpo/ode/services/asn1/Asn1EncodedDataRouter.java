@@ -16,6 +16,9 @@
 
 package us.dot.its.jpo.ode.services.asn1;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -23,14 +26,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
+import us.dot.its.jpo.ode.model.OdeAsdPayload;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
+import us.dot.its.jpo.ode.model.OdeMsgMetadata;
+import us.dot.its.jpo.ode.model.OdeMsgPayload;
+import us.dot.its.jpo.ode.plugin.SNMP;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
+import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
+import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
+import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
+import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
@@ -38,6 +52,7 @@ import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
+import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 import us.dot.its.jpo.ode.wrapper.AbstractSubscriberProcessor;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
@@ -45,6 +60,7 @@ import us.dot.its.jpo.ode.wrapper.MessageProducer;
  * The Asn1EncodedDataRouter is responsible for routing encoded TIM messages that are consumed from
  * the Kafka topic.Asn1EncoderOutput topic and decide whether to route to the SDX or an RSU.
  **/
+@Component
 @Slf4j
 public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, String> {
 
@@ -114,7 +130,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     this.odeTimJsonTopology = odeTimJsonTopology;
   }
 
-  @Override
   public Object process(String consumedData) {
     try {
       log.debug("Consumed: {}", consumedData);
