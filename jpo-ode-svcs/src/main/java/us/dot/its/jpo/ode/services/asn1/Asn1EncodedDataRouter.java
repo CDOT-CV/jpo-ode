@@ -457,8 +457,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   private static void setExpiryDate(String signedResponse, JSONObject timWithExpiration,
       SimpleDateFormat dateFormat) {
     try {
-      JSONObject jsonResult = JsonUtils
-          .toJSONObject((JsonUtils.toJSONObject(signedResponse).getString("result")));
+      JSONObject jsonResult = JsonUtils.toJSONObject(signedResponse).getJSONObject("result");
       // messageExpiry uses unit of seconds
       long messageExpiry = Long.parseLong(jsonResult.getString("message-expiry"));
       timWithExpiration.put("expirationDate", dateFormat.format(new Date(messageExpiry * 1000)));

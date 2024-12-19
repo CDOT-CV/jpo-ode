@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
 import org.json.JSONObject;
@@ -136,7 +137,8 @@ class Asn1EncodedDataRouterTest {
     assert inputStream != null;
     var odeJsonTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
-    kafkaTemplate.send(jsonTopics.getTim(), "266e6742-40fb-4c9e-a6b0-72ed2dddddfe", odeJsonTim);
+    var streamId = "266e6742-40fb-4c9e-a6b0-72ed2dddddfe";
+    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
 
     inputStream = classLoader
         .getResourceAsStream(
@@ -147,7 +149,7 @@ class Asn1EncodedDataRouterTest {
     Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "Asn1EncodedDataRouterTest-unsecured", "false", embeddedKafka);
+        "processEncodedTimUnsecured", "false", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -158,18 +160,25 @@ class Asn1EncodedDataRouterTest {
     assert inputStream != null;
     var expected = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    var sdxDepositorRecord =
-        KafkaTestUtils.getSingleRecord(testConsumer, sdxDepositorTopics.getInput());
-    assertEquals(expected, sdxDepositorRecord.value());
+    var records = KafkaTestUtils.getRecords(testConsumer);
+    var sdxDepositorRecord = records
+        .records(sdxDepositorTopics.getInput());
+    for (var consumerRecord : sdxDepositorRecord) {
+      if (consumerRecord.value().contains(streamId)) {
+        assertEquals(expected, consumerRecord.value());
+      }
+    }
 
     inputStream = classLoader.getResourceAsStream(
         "us/dot/its/jpo/ode/services/asn1/expected-tim-tmc-filtered.json");
     assert inputStream != null;
     var expectedTimTmcFiltered = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    var timTmcFilteredRecord =
-        KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimTmcFiltered());
-    assertEquals(expectedTimTmcFiltered, timTmcFilteredRecord.value());
+    for (var consumerRecord : records.records(jsonTopics.getTimTmcFiltered())) {
+      if (consumerRecord.value().contains(streamId)) {
+        assertEquals(expectedTimTmcFiltered, consumerRecord.value());
+      }
+    }
   }
 
   @Test
@@ -226,16 +235,19 @@ class Asn1EncodedDataRouterTest {
     assert inputStream != null;
     var odeJsonTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
-    kafkaTemplate.send(jsonTopics.getTim(), "266e6742-40fb-4c9e-a6b0-72ed2dddddfe", odeJsonTim);
+    var streamId = UUID.randomUUID().toString();
+    odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
 
     inputStream = classLoader.getResourceAsStream(
         "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim-no-advisory-data.xml");
     assert inputStream != null;
     var input = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    input = input.replaceAll("<streamId>.*?</streamId>", "<streamId>" + streamId + "</streamId>");
     kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "Asn1EncodedDataRouterTest-unsecured", "false", embeddedKafka);
+        "processSNMPDepositOnly", "false", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -255,6 +267,7 @@ class Asn1EncodedDataRouterTest {
     var expectedTimTmcFiltered = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     var timTmcFilteredRecord =
         KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTimTmcFiltered());
+    expectedTimTmcFiltered = expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     assertEquals(expectedTimTmcFiltered, timTmcFilteredRecord.value());
 
     inputStream = classLoader.getResourceAsStream(
