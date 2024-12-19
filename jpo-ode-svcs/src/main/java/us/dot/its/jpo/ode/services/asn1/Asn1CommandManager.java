@@ -39,7 +39,6 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
-import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
 @Slf4j
 public class Asn1CommandManager {
@@ -60,11 +59,6 @@ public class Asn1CommandManager {
 
   }
 
-
-
-  private MessageProducer<String, String> stringMessageProducer;
-
-  private String depositTopic;
   private RsuDepositor rsuDepositor;
 
   public Asn1CommandManager(OdeKafkaProperties odeKafkaProperties,
@@ -74,24 +68,11 @@ public class Asn1CommandManager {
     try {
       this.rsuDepositor = rsuDepositor;
       this.rsuDepositor.start();
-      this.stringMessageProducer =
-          MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
-              odeKafkaProperties.getKafkaType(),
-              odeKafkaProperties.getDisabledTopics());
-      this.depositTopic = sdxDepositorTopics.getInput();
     } catch (Exception e) {
       String msg = "Error starting SDW depositor";
       EventLogger.logger.error(msg, e);
       log.error(msg, e);
     }
-  }
-
-  public void depositToSdw(String depositObj) throws Asn1CommandManagerException {
-    stringMessageProducer.send(this.depositTopic, null, depositObj);
-    log.info("Published message to SDW deposit topic {}", this.depositTopic);
-    EventLogger.logger.info("Published message to SDW deposit topic");
-    log.debug("Message deposited: {}", depositObj);
-    EventLogger.logger.debug("Message deposited: {}", depositObj);
   }
 
   public void sendToRsus(ServiceRequest request, String encodedMsg) {

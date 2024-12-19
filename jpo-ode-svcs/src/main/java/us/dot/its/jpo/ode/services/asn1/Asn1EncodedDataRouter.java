@@ -33,7 +33,6 @@ import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
-import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -67,6 +66,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
+  private final String sdxDepositTopic;
   private final ISecurityServicesClient securityServicesClient;
 
   private final MessageProducer<String, String> stringMsgProducer;
@@ -84,6 +84,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * @param jsonTopics                 The specified JSON topics to write to
    * @param securityServicesProperties The security services properties to use
    * @param securityServicesClient
+   * @param sdxDepositTopic
    **/
   public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
       Asn1CoderTopics asn1CoderTopics,
@@ -91,11 +92,13 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       SecurityServicesProperties securityServicesProperties,
       OdeTimJsonTopology odeTimJsonTopology,
       Asn1CommandManager asn1CommandManager,
-      ISecurityServicesClient securityServicesClient) {
+      ISecurityServicesClient securityServicesClient,
+      String sdxDepositTopic) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
     this.jsonTopics = jsonTopics;
+    this.sdxDepositTopic = sdxDepositTopic;
     this.securityServicesClient = securityServicesClient;
 
     this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(
@@ -248,10 +251,9 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       JSONObject deposit = new JSONObject();
       deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
       deposit.put("encodedMsg", asdObj.getString(BYTES));
-      asn1CommandManager.depositToSdw(deposit.toString());
-    } catch (JSONException | Asn1CommandManagerException e) {
-      String msg = ERROR_ON_SDX_DEPOSIT;
-      log.error(msg, e);
+      stringMsgProducer.send(this.sdxDepositTopic, null, deposit.toString());
+    } catch (JSONException e) {
+      log.error(ERROR_ON_SDX_DEPOSIT, e);
     }
   }
 
@@ -346,7 +348,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
           JSONObject deposit = new JSONObject();
           deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
           deposit.put("encodedMsg", asdBytes);
-          asn1CommandManager.depositToSdw(deposit.toString());
+          stringMsgProducer.send(this.sdxDepositTopic, null, deposit.toString());
           log.info("SDX deposit successful.");
         } catch (Exception e) {
           String msg = ERROR_ON_SDX_DEPOSIT;
