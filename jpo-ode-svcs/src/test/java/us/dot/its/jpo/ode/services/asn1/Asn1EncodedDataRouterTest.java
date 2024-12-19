@@ -35,10 +35,13 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
@@ -48,7 +51,6 @@ import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
-import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 
 @SpringBootTest(
     properties = {
@@ -63,6 +65,7 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
     classes = {
         KafkaProducerConfig.class,
         KafkaProperties.class,
+        KafkaConsumerConfig.class,
         Asn1CoderTopics.class,
         JsonTopics.class,
         SecurityServicesProperties.class,
@@ -86,14 +89,15 @@ class Asn1EncodedDataRouterTest {
   String sdxDepositorTopic;
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
+  @Autowired
+  KafkaConsumerConfig kafkaConsumerConfig;
   @Mock
   RsuDepositor mockRsuDepositor;
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   @Test
-  void processSignedMessage_depositsToSdxTopicAndTimTmcFiltered()
-      throws IOException, InterruptedException {
+  void processSignedMessage_depositsToSdxTopicAndTimTmcFiltered() throws IOException {
 
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
@@ -117,15 +121,14 @@ class Asn1EncodedDataRouterTest {
         sdxDepositorTopic
     );
 
-    MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-        embeddedKafka.getBrokersAsString(),
-        "processSignedMessage_depositsToSdxTopicAndTimTmcFiltered", encoderRouter);
-
-    encoderConsumer.setName("Asn1EncoderConsumer");
-    encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
-
-    // Wait for encoderRouter to connect to the broker otherwise the test will fail :(
-    Thread.sleep(2000);
+    var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
+        .createContainer(asn1CoderTopics.getEncoderOutput());
+    container.setupMessageListener(
+        (MessageListener<String, String>) encoderRouter::listen
+    );
+    container.setBeanName("processSignedMessage_depositsToSdxTopicAndTimTmcFiltered");
+    container.start();
+    ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader.getResourceAsStream(
@@ -212,14 +215,14 @@ class Asn1EncodedDataRouterTest {
         mockSecServClient,
         sdxDepositorTopic
     );
-    MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-        embeddedKafka.getBrokersAsString(), "processSNMPDepositOnly-default", encoderRouter);
-
-    encoderConsumer.setName("Asn1EncoderConsumer");
-    encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
-
-    // Wait for encoderRouter to connect to the broker otherwise the test will fail :(
-    Thread.sleep(2000);
+    var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
+        .createContainer(asn1CoderTopics.getEncoderOutput());
+    container.setupMessageListener(
+        (MessageListener<String, String>) encoderRouter::listen
+    );
+    container.setBeanName("processSNMPDepositOnly");
+    container.start();
+    ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader.getResourceAsStream(
@@ -258,7 +261,8 @@ class Asn1EncodedDataRouterTest {
     assert inputStream != null;
     var expectedTimTmcFiltered = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     var records = KafkaTestUtils.getRecords(testConsumer);
-    expectedTimTmcFiltered = expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+    expectedTimTmcFiltered =
+        expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     for (var consumerRecord : records.records(jsonTopics.getTimTmcFiltered())) {
       if (consumerRecord.value().contains(streamId)) {
         assertEquals(expectedTimTmcFiltered, consumerRecord.value());
@@ -287,8 +291,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processEncodedTimUnsecured()
-      throws IOException, InterruptedException {
+  void processEncodedTimUnsecured() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimTmcFiltered()
@@ -321,14 +324,15 @@ class Asn1EncodedDataRouterTest {
         mockSecServClient,
         sdxDepositorTopic
     );
-    MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
-        embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
 
-    encoderConsumer.setName("Asn1EncoderConsumer");
-    encoderRouter.start(encoderConsumer, asn1CoderTopics.getEncoderOutput());
-
-    // Wait for encoderRouter to connect to the broker otherwise the test will fail :(
-    Thread.sleep(2000);
+    var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
+        .createContainer(asn1CoderTopics.getEncoderOutput());
+    container.setupMessageListener(
+        (MessageListener<String, String>) encoderRouter::listen
+    );
+    container.setBeanName("processEncodedTimUnsecured");
+    container.start();
+    ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader.getResourceAsStream(
@@ -372,7 +376,8 @@ class Asn1EncodedDataRouterTest {
         "us/dot/its/jpo/ode/services/asn1/expected-tim-tmc-filtered.json");
     assert inputStream != null;
     var expectedTimTmcFiltered = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    expectedTimTmcFiltered = expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+    expectedTimTmcFiltered =
+        expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
 
     for (var consumerRecord : records.records(jsonTopics.getTimTmcFiltered())) {
       if (consumerRecord.value().contains(streamId)) {
