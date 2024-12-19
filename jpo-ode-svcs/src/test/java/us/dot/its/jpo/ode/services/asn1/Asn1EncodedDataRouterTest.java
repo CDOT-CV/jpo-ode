@@ -43,7 +43,6 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
@@ -65,7 +64,6 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
         KafkaProducerConfig.class,
         KafkaProperties.class,
         Asn1CoderTopics.class,
-        SDXDepositorTopics.class,
         JsonTopics.class,
         SecurityServicesProperties.class,
         RsuProperties.class,
@@ -84,8 +82,8 @@ class Asn1EncodedDataRouterTest {
   SecurityServicesProperties securityServicesProperties;
   @Autowired
   OdeKafkaProperties odeKafkaProperties;
-  @Autowired
-  SDXDepositorTopics sdxDepositorTopics;
+  @Value("${ode.kafka.topics.sdx-depositor.input}")
+  String sdxDepositorTopic;
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
   @Mock
@@ -94,13 +92,13 @@ class Asn1EncodedDataRouterTest {
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   @Test
-  void processSignedMessage_depositsToSdxTopic()
+  void processSignedMessage_depositsToSdxTopicAndTimTmcFiltered()
       throws IOException, InterruptedException {
 
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimTmcFiltered(),
-        sdxDepositorTopics.getInput()
+        sdxDepositorTopic
     };
     EmbeddedKafkaHolder.addTopics(topicsForConsumption);
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
@@ -119,7 +117,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         asn1CommandManager,
         mockSecServClient,
-        sdxDepositorTopics.getInput()
+        sdxDepositorTopic
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
@@ -163,7 +161,7 @@ class Asn1EncodedDataRouterTest {
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records
-        .records(sdxDepositorTopics.getInput());
+        .records(sdxDepositorTopic);
     var foundValidRecord = false;
     for (var consumerRecord : sdxDepositorRecord) {
       if (consumerRecord.value().equals(expected)) {
@@ -209,7 +207,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         asn1CommandManager,
         mockSecServClient,
-        sdxDepositorTopics.getInput()
+        sdxDepositorTopic
     );
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), "processSNMPDepositOnly-default", encoderRouter);
@@ -338,7 +336,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         asn1CommandManager,
         mockSecServClient,
-        sdxDepositorTopics.getInput()
+        sdxDepositorTopic
     );
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
@@ -380,7 +378,7 @@ class Asn1EncodedDataRouterTest {
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records
-        .records(sdxDepositorTopics.getInput());
+        .records(sdxDepositorTopic);
     for (var consumerRecord : sdxDepositorRecord) {
       if (consumerRecord.value().contains(streamId)) {
         assertEquals(expected, consumerRecord.value());
