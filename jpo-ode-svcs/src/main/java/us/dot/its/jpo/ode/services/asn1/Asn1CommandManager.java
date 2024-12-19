@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.text.ParseException;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.context.AppContext;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsdPayload;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
@@ -57,14 +56,8 @@ public class Asn1CommandManager {
    *                     instance is started during initialization.
    */
   public Asn1CommandManager(RsuDepositor rsuDepositor) {
-    try {
-      this.rsuDepositor = rsuDepositor;
-      this.rsuDepositor.start();
-    } catch (Exception e) {
-      String msg = "Error starting SDW depositor";
-      EventLogger.logger.error(msg, e);
-      log.error(msg, e);
-    }
+    this.rsuDepositor = rsuDepositor;
+    this.rsuDepositor.start();
   }
 
   /**
