@@ -26,6 +26,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
@@ -58,6 +60,7 @@ import us.dot.its.jpo.ode.wrapper.MessageProducer;
  * The Asn1EncodedDataRouter is responsible for routing encoded TIM messages that are consumed from
  * the Kafka topic.Asn1EncoderOutput topic and decide whether to route to the SDX or an RSU.
  **/
+@Component
 @Slf4j
 public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, String> {
 
@@ -127,7 +130,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     this.odeTimJsonTopology = odeTimJsonTopology;
   }
 
-  @Override
   public Object process(String consumedData) {
     try {
       log.debug("Consumed: {}", consumedData);

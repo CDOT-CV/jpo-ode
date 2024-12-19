@@ -30,6 +30,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -104,9 +105,6 @@ class Asn1EncodedDataRouterTest {
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
-    var asn1CommandManager = new Asn1CommandManager(
-        mockRsuDepositor
-    );
     var mockSecServClient = mock(ISecurityServicesClient.class);
     securityServicesProperties.setIsSdwSigningEnabled(true);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
@@ -115,7 +113,7 @@ class Asn1EncodedDataRouterTest {
         jsonTopics,
         securityServicesProperties,
         odeTimJsonTopology,
-        asn1CommandManager,
+        mockRsuDepositor,
         mockSecServClient,
         sdxDepositorTopic
     );
@@ -184,9 +182,6 @@ class Asn1EncodedDataRouterTest {
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
-    var asn1CommandManager = new Asn1CommandManager(
-        mockRsuDepositor
-    );
     var mockSecServClient = new ISecurityServicesClient() {
       @Override
       public String signMessage(String message, int sigValidityOverride) {
@@ -205,7 +200,7 @@ class Asn1EncodedDataRouterTest {
         jsonTopics,
         securityServicesProperties,
         odeTimJsonTopology,
-        asn1CommandManager,
+        mockRsuDepositor,
         mockSecServClient,
         sdxDepositorTopic
     );
@@ -311,9 +306,6 @@ class Asn1EncodedDataRouterTest {
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
-    var asn1CommandManager = new Asn1CommandManager(
-        mockRsuDepositor
-    );
     var mockSecServClient = new ISecurityServicesClient() {
       @Override
       public String signMessage(String message, int sigValidityOverride) {
@@ -334,7 +326,7 @@ class Asn1EncodedDataRouterTest {
         jsonTopics,
         securityServicesProperties,
         odeTimJsonTopology,
-        asn1CommandManager,
+        mockRsuDepositor,
         mockSecServClient,
         sdxDepositorTopic
     );
