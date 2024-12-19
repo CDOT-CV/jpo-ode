@@ -23,10 +23,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
@@ -53,7 +55,6 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
-import us.dot.its.jpo.ode.wrapper.AbstractSubscriberProcessor;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
 /**
@@ -62,12 +63,12 @@ import us.dot.its.jpo.ode.wrapper.MessageProducer;
  **/
 @Component
 @Slf4j
-public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, String> {
+public class Asn1EncodedDataRouter {
 
   private static final String BYTES = "bytes";
   private static final String MESSAGE_FRAME = "MessageFrame";
   private static final String ERROR_ON_SDX_DEPOSIT = "Error on SDX deposit.";
-  public static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
+  private static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
 
   /**
    * Exception for Asn1EncodedDataRouter specific failures.
@@ -100,8 +101,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * @param asn1CoderTopics            The specified ASN1 Coder topics
    * @param jsonTopics                 The specified JSON topics to write to
    * @param securityServicesProperties The security services properties to use
-   * @param securityServicesClient
-   * @param sdxDepositTopic
    **/
   public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
       Asn1CoderTopics asn1CoderTopics,
@@ -130,10 +129,11 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     this.odeTimJsonTopology = odeTimJsonTopology;
   }
 
-  public Object process(String consumedData) {
+  @KafkaListener(topics = "${ode.kafka.topics.asn1EncoderOutput}")
+  public void listen(ConsumerRecord<String, String> consumerRecord) {
     try {
-      log.debug("Consumed: {}", consumedData);
-      JSONObject consumedObj = XmlUtils.toJSONObject(consumedData).getJSONObject(
+      log.debug("Consumed: {}", consumerRecord.value());
+      JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value()).getJSONObject(
           OdeAsn1Data.class.getSimpleName());
 
       /*
@@ -181,20 +181,11 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
             + TimTransmogrifier.REQUEST_STRING + "' object in the encoder response");
       }
     } catch (Exception e) {
-      String msg = "Error in processing received message from ASN.1 Encoder module: "
-          + consumedData;
-      if (log.isDebugEnabled()) {
-        // print error message and stack trace
-        EventLogger.logger.error(msg, e);
-        log.error(msg, e);
-      } else {
-        // print error message only
-        EventLogger.logger.error(msg);
-        log.error(msg);
-      }
+      log.error("Error in processing received message with key {} from ASN.1 Encoder module",
+          consumerRecord.key(), e);
     }
-    return null;
   }
+
 
   /**
    * Gets the service request based on the consumed JSONObject.
@@ -287,7 +278,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
     String hexEncodedTim = mfObj.getString(BYTES);
     log.debug("Encoded message - phase 1: {}", hexEncodedTim);
-    // use Asnc1 library to decode the encoded tim returned from ASNC1; another
+    // use ASN.1 library to decode the encoded tim returned from ASN.1; another
     // class two blockers: decode the tim and decode the message-sign
 
     // Case 1: SNMP-deposit
@@ -467,8 +458,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * @param request   the service request object containing meta information, service region,
    *                  delivery time, and other necessary data for ASD creation.
    * @param signedMsg the signed Traveler Information Message (TIM) to be included in the ASD.
-   * @return          a String containing the fully crafted ASD message in XML format. Returns null if the
-   *                  message could not be constructed due to exceptions.
+   * @return a String containing the fully crafted ASD message in XML format. Returns null if the
+   * message could not be constructed due to exceptions.
    */
   public String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
 
@@ -595,7 +586,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
    * Strips header from unsigned message (all bytes before 001F hex value).
    */
   private String stripHeader(String encodedUnsignedTim) {
-    String toReturn = "";
     // find 001F hex value
     int index = encodedUnsignedTim.indexOf("001F");
     if (index == -1) {
@@ -603,8 +593,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       return encodedUnsignedTim;
     }
     // strip everything before 001F
-    toReturn = encodedUnsignedTim.substring(index);
-    return toReturn;
+    return encodedUnsignedTim.substring(index);
   }
 
   private void depositToFilteredTopic(JSONObject metadataObj, String hexEncodedTim) {
