@@ -28,6 +28,7 @@ public class RawEncodedBSMJsonRouter {
    *
    * @param kafkaTemplate A KafkaTemplate for publishing messages to a Kafka topic.
    * @param publishTopic  The name of the Kafka topic to publish the processed messages to.
+   * @param rawEncodedJsonService A service to transform incoming data into the expected output
    */
   public RawEncodedBSMJsonRouter(KafkaTemplate<String, OdeObject> kafkaTemplate,
       RawEncodedJsonService rawEncodedJsonService,

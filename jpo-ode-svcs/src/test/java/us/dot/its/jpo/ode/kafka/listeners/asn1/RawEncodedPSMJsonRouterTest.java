@@ -32,6 +32,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
         KafkaConsumerConfig.class,
         KafkaProperties.class,
         RawEncodedPSMJsonRouter.class,
+        RawEncodedJsonService.class,
         SerializationConfig.class
     },
     properties = {

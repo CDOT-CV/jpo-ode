@@ -32,6 +32,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     classes = {
         KafkaProducerConfig.class,
         RawEncodedSPATJsonRouter.class,
+        RawEncodedJsonService.class,
         KafkaConsumerConfig.class,
         SerializationConfig.class
     },

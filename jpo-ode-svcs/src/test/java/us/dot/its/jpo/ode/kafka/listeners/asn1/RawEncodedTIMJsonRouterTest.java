@@ -34,7 +34,8 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
         SerializationConfig.class,
-        RawEncodedTIMJsonRouter.class
+        RawEncodedTIMJsonRouter.class,
+        RawEncodedJsonService.class,
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.tim=topic.Asn1DecoderTestTIMJSON",

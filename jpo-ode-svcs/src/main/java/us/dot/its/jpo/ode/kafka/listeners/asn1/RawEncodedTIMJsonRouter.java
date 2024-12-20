@@ -1,23 +1,15 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.tomcat.util.buf.HexUtils;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import us.dot.its.jpo.ode.model.Asn1Encoding;
-import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
-import us.dot.its.jpo.ode.model.OdeAsn1Data;
-import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.model.OdeTimMetadata;
 import us.dot.its.jpo.ode.uper.StartFlagNotFoundException;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
-import us.dot.its.jpo.ode.uper.UperUtil;
 
 /**
  * A Kafka listener component that processes ASN.1 encoded TIM JSON messages from a specified Kafka
@@ -27,25 +19,23 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 @Component
 public class RawEncodedTIMJsonRouter {
 
-  private final ObjectMapper mapper;
   private final KafkaTemplate<String, OdeObject> kafkaTemplate;
   private final String publishTopic;
-  private static final SupportedMessageType MESSAGE_TYPE = SupportedMessageType.TIM;
+  private final RawEncodedJsonService rawEncodedJsonService;
 
   /**
    * Constructs an instance of the RawEncodedTIMJsonRouter.
    *
-   * @param mapper        An instance of ObjectMapper used for JSON serialization and
-   *                      deserialization.
-   * @param kafkaTemplate A KafkaTemplate for publishing messages to a Kafka topic.
-   * @param publishTopic  The name of the Kafka topic to publish the processed messages to.
+   * @param kafkaTemplate         A KafkaTemplate for publishing messages to a Kafka topic.
+   * @param publishTopic          The name of the Kafka topic to publish the processed messages to.
+   * @param rawEncodedJsonService A service to transform incoming data into the expected output
    */
-  public RawEncodedTIMJsonRouter(ObjectMapper mapper,
-      KafkaTemplate<String, OdeObject> kafkaTemplate,
-      @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic) {
-    this.mapper = mapper;
+  public RawEncodedTIMJsonRouter(KafkaTemplate<String, OdeObject> kafkaTemplate,
+      @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic,
+      RawEncodedJsonService rawEncodedJsonService) {
     this.kafkaTemplate = kafkaTemplate;
     this.publishTopic = publishTopic;
+    this.rawEncodedJsonService = rawEncodedJsonService;
   }
 
   /**
@@ -62,23 +52,8 @@ public class RawEncodedTIMJsonRouter {
   @KafkaListener(id = "RawEncodedTIMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.tim}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
       throws StartFlagNotFoundException, JsonProcessingException {
-    JSONObject rawTimJsonObject = new JSONObject(consumerRecord.value());
-
-    String jsonStringMetadata = rawTimJsonObject.get("metadata").toString();
-    OdeTimMetadata metadata = mapper.readValue(jsonStringMetadata, OdeTimMetadata.class);
-
-    Asn1Encoding unsecuredDataEncoding =
-        new Asn1Encoding("unsecuredData", "MessageFrame", EncodingRule.UPER);
-    metadata.addEncoding(unsecuredDataEncoding);
-
-    String payloadHexString =
-        ((JSONObject) ((JSONObject) rawTimJsonObject.get("payload")).get("data")).getString(
-            "bytes");
-    payloadHexString = UperUtil.stripDot2Header(payloadHexString, MESSAGE_TYPE.getStartFlag());
-
-    OdeAsn1Payload payload = new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
-
-    var messageToPublish = new OdeAsn1Data(metadata, payload);
+    var messageToPublish = rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
+        SupportedMessageType.TIM, OdeTimMetadata.class);
     kafkaTemplate.send(publishTopic, consumerRecord.key(), messageToPublish);
   }
 }

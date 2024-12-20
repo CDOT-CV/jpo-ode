@@ -1,23 +1,15 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.tomcat.util.buf.HexUtils;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import us.dot.its.jpo.ode.model.Asn1Encoding;
-import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
-import us.dot.its.jpo.ode.model.OdeAsn1Data;
-import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.model.OdePsmMetadata;
 import us.dot.its.jpo.ode.uper.StartFlagNotFoundException;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
-import us.dot.its.jpo.ode.uper.UperUtil;
 
 /**
  * A Kafka listener component that processes ASN.1 encoded PSM JSON messages from a specified Kafka
@@ -27,25 +19,23 @@ import us.dot.its.jpo.ode.uper.UperUtil;
 @Component
 public class RawEncodedPSMJsonRouter {
 
-  private final ObjectMapper mapper;
   private final KafkaTemplate<String, OdeObject> kafkaTemplate;
   private final String publishTopic;
-  private static final SupportedMessageType MESSAGE_TYPE = SupportedMessageType.PSM;
+  private final RawEncodedJsonService rawEncodedJsonService;
 
   /**
    * Constructs an instance of the RawEncodedPSMJsonRouter.
    *
-   * @param mapper        An instance of ObjectMapper used for JSON serialization and
-   *                      deserialization.
    * @param kafkaTemplate A KafkaTemplate for publishing messages to a Kafka topic.
    * @param publishTopic  The name of the Kafka topic to publish the processed messages to.
+   * @param rawEncodedJsonService A service to transform incoming data into the expected output
    */
-  public RawEncodedPSMJsonRouter(ObjectMapper mapper,
-      KafkaTemplate<String, OdeObject> kafkaTemplate,
-      @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic) {
-    this.mapper = mapper;
+  public RawEncodedPSMJsonRouter(KafkaTemplate<String, OdeObject> kafkaTemplate,
+      @Value("${ode.kafka.topics.asn1.decoder-input}") String publishTopic,
+      RawEncodedJsonService rawEncodedJsonService) {
     this.kafkaTemplate = kafkaTemplate;
     this.publishTopic = publishTopic;
+    this.rawEncodedJsonService = rawEncodedJsonService;
   }
 
   /**
@@ -62,23 +52,8 @@ public class RawEncodedPSMJsonRouter {
   @KafkaListener(id = "RawEncodedPSMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.psm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
       throws StartFlagNotFoundException, JsonProcessingException {
-    JSONObject rawPsmJsonObject = new JSONObject(consumerRecord.value());
-
-    String jsonStringMetadata = rawPsmJsonObject.get("metadata").toString();
-    OdePsmMetadata metadata = mapper.readValue(jsonStringMetadata, OdePsmMetadata.class);
-
-    Asn1Encoding unsecuredDataEncoding =
-        new Asn1Encoding("unsecuredData", "MessageFrame", EncodingRule.UPER);
-    metadata.addEncoding(unsecuredDataEncoding);
-
-    String payloadHexString =
-        ((JSONObject) ((JSONObject) rawPsmJsonObject.get("payload")).get("data")).getString(
-            "bytes");
-    payloadHexString = UperUtil.stripDot2Header(payloadHexString, MESSAGE_TYPE.getStartFlag());
-
-    OdeAsn1Payload payload = new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
-
-    var messageToPublish = new OdeAsn1Data(metadata, payload);
+    var messageToPublish = rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
+        SupportedMessageType.PSM, OdePsmMetadata.class);
     kafkaTemplate.send(publishTopic, consumerRecord.key(), messageToPublish);
   }
 }
