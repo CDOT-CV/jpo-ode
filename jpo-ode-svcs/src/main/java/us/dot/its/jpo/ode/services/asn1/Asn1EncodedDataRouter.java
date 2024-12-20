@@ -94,7 +94,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       OdeTimJsonTopology odeTimJsonTopology,
       RsuDepositor rsuDepositor,
       ISecurityServicesClient securityServicesClient,
-      @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic) {
+      String sdxDepositTopic) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;

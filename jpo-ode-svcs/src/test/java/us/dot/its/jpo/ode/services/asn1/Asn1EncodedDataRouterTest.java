@@ -64,6 +64,7 @@ import us.dot.its.jpo.ode.wrapper.MessageConsumer;
         KafkaProducerConfig.class,
         KafkaProperties.class,
         Asn1CoderTopics.class,
+        SDXDepositorTopics.class,
         JsonTopics.class,
         SecurityServicesProperties.class,
         RsuProperties.class,
@@ -82,8 +83,8 @@ class Asn1EncodedDataRouterTest {
   SecurityServicesProperties securityServicesProperties;
   @Autowired
   OdeKafkaProperties odeKafkaProperties;
-  @Value("${ode.kafka.topics.sdx-depositor.input}")
-  String sdxDepositorTopic;
+  @Autowired
+  SDXDepositorTopics sdxDepositorTopics;
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
   @Mock
@@ -98,7 +99,7 @@ class Asn1EncodedDataRouterTest {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimTmcFiltered(),
-        sdxDepositorTopic
+        sdxDepositorTopics.getInput()
     };
     EmbeddedKafkaHolder.addTopics(topicsForConsumption);
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
@@ -117,7 +118,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         asn1CommandManager,
         mockSecServClient,
-        sdxDepositorTopic
+        sdxDepositorTopics.getInput()
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
@@ -161,7 +162,7 @@ class Asn1EncodedDataRouterTest {
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records
-        .records(sdxDepositorTopic);
+        .records(sdxDepositorTopics.getInput());
     for (var consumerRecord : sdxDepositorRecord) {
       if (consumerRecord.value().contains(streamId)) {
         assertEquals(expected, consumerRecord.value());
@@ -216,7 +217,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         asn1CommandManager,
         mockSecServClient,
-        sdxDepositorTopic
+        sdxDepositorTopics.getInput()
     );
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), "processSNMPDepositOnly-default", encoderRouter);
@@ -328,7 +329,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         asn1CommandManager,
         mockSecServClient,
-        sdxDepositorTopic
+        sdxDepositorTopics.getInput()
     );
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);
@@ -370,7 +371,7 @@ class Asn1EncodedDataRouterTest {
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records
-        .records(sdxDepositorTopic);
+        .records(sdxDepositorTopics.getInput());
     for (var consumerRecord : sdxDepositorRecord) {
       if (consumerRecord.value().contains(streamId)) {
         assertEquals(expected, consumerRecord.value());
