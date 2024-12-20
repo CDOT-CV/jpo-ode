@@ -20,6 +20,7 @@ import mockit.Capturing;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -27,6 +28,7 @@ import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.OdeTravelerInputData;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
+import us.dot.its.jpo.ode.services.asn1.Asn1CommandManager.Asn1CommandManagerException;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
@@ -63,6 +65,22 @@ class Asn1CommandManagerTest {
   void testPackageSignedTimIntoAsd() {
     testAsn1CommandManager.packageSignedTimIntoAsd(injectableOdeTravelerInputData.getRequest(),
         "message");
+  }
+
+  @Test
+  @Disabled("These tests don't confirm behavior and don't work with Spring Kafka refactors")
+  void depositToSDWJsonShouldCallMessageProducer() throws Asn1CommandManagerException {
+    JSONObject deposit = new JSONObject();
+    deposit.put("estimatedRemovalDate", "2023-11-04T17:47:11-05:00");
+    deposit.put("encodedMsg", "message");
+
+    testAsn1CommandManager.depositToSdw(deposit.toString());
+  }
+
+  @Test
+  @Disabled("These tests don't confirm behavior and don't work with Spring Kafka refactors")
+  void depositToSDWShouldCallMessageProducer() throws Asn1CommandManagerException {
+    testAsn1CommandManager.depositToSdw("message");
   }
 
   @Test

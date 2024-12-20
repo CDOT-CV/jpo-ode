@@ -119,8 +119,7 @@ class Asn1EncodedDataRouterTest {
         securityServicesProperties,
         odeTimJsonTopology,
         asn1CommandManager,
-        mockSecServClient,
-        sdxDepositorTopics.getInput()
+        mockSecServClient
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
@@ -220,8 +219,7 @@ class Asn1EncodedDataRouterTest {
         securityServicesProperties,
         odeTimJsonTopology,
         asn1CommandManager,
-        mockSecServClient,
-        sdxDepositorTopics.getInput()
+        mockSecServClient
     );
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), "processSNMPDepositOnly-default", encoderRouter);
@@ -334,8 +332,7 @@ class Asn1EncodedDataRouterTest {
         securityServicesProperties,
         odeTimJsonTopology,
         asn1CommandManager,
-        mockSecServClient,
-        sdxDepositorTopics.getInput()
+        mockSecServClient
     );
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
         embeddedKafka.getBrokersAsString(), this.getClass().getSimpleName(), encoderRouter);

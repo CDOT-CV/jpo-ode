@@ -65,8 +65,7 @@ public class AsnCodecRouterServiceController {
                 securityServicesProperties.getIsRsuSigningEnabled()
             )
         ),
-        new SecurityServicesClientImpl(securityServicesProperties.getSignatureEndpoint()),
-        sdxDepositorTopics.getInput()
+        new SecurityServicesClientImpl(securityServicesProperties.getSignatureEndpoint())
     );
 
     MessageConsumer<String, String> encoderConsumer = MessageConsumer.defaultStringMessageConsumer(
