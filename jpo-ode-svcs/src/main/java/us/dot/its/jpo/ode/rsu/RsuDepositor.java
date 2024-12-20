@@ -16,18 +16,18 @@
 
 package us.dot.its.jpo.ode.rsu;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.event.ResponseEvent;
-import org.snmp4j.smi.Address;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @Slf4j
 public class RsuDepositor extends Thread {
@@ -77,7 +77,7 @@ public class RsuDepositor extends Thread {
                         TimTransmogrifier.updateRsuCreds(curRsu, rsuProperties);
                         String httpResponseStatus;
                         try {
-                            ResponseEvent<Address> rsuResponse = SnmpSession.createAndSend(entry.request.getSnmp(),
+                            ResponseEvent rsuResponse = SnmpSession.createAndSend(entry.request.getSnmp(),
                                     curRsu,
                                     entry.encodedMsg,
                                     entry.request.getOde().getVerb(),
@@ -101,7 +101,7 @@ public class RsuDepositor extends Thread {
         }
     }
 
-    private String getResponseStatus(ResponseEvent<Address> rsuResponse, RSU curRsu) {
+    private String getResponseStatus(ResponseEvent rsuResponse, RSU curRsu) {
         String httpResponseStatus;
 
         if (null == rsuResponse || null == rsuResponse.getResponse()) {
