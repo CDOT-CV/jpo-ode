@@ -51,7 +51,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
   private static final String BYTES = "bytes";
   private static final String MESSAGE_FRAME = "MessageFrame";
   private static final String ERROR_ON_SDX_DEPOSIT = "Error on SDX deposit.";
-  public static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
 
   /**
    * Exception for Asn1EncodedDataRouter specific failures.
@@ -72,7 +71,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
   private final MessageProducer<String, String> stringMsgProducer;
   private final OdeTimJsonTopology odeTimJsonTopology;
-  private final RsuDepositor rsuDepositor;
+  private final Asn1CommandManager asn1CommandManager;
   private final boolean dataSigningEnabledSDW;
   private final boolean dataSigningEnabledRSU;
 
@@ -92,7 +91,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       JsonTopics jsonTopics,
       SecurityServicesProperties securityServicesProperties,
       OdeTimJsonTopology odeTimJsonTopology,
-      RsuDepositor rsuDepositor,
+      Asn1CommandManager asn1CommandManager,
       ISecurityServicesClient securityServicesClient,
       String sdxDepositTopic) {
     super();
@@ -107,7 +106,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         odeKafkaProperties.getKafkaType(),
         odeKafkaProperties.getDisabledTopics());
 
-    this.rsuDepositor = rsuDepositor;
+    this.asn1CommandManager = asn1CommandManager;
     this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
     this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 
@@ -230,7 +229,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     // CASE 3: If SDW in metadata and ASD in body (double encoding complete)
     // - send to SDX
 
-    if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
+    if (!dataObj.has(Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING)) {
       processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
     } else {
       // We have encoded ASD. It could be either UNSECURED or secured.
@@ -247,7 +246,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
     // We have a ASD with signed MessageFrame
     // Case 3
     JSONObject asdObj = dataObj.getJSONObject(
-        ADVISORY_SITUATION_DATA_STRING);
+        Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING);
     try {
       JSONObject deposit = new JSONObject();
       deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
@@ -295,7 +294,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
     if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTim) {
       log.info("Sending message to RSUs...");
-      sendToRsus(request, hexEncodedTim);
+      asn1CommandManager.sendToRsus(request, hexEncodedTim);
     }
 
     hexEncodedTim = mfObj.getString(BYTES);
@@ -311,7 +310,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       // Case 2 only
 
       log.debug("Publishing message for round 2 encoding!");
-      String xmlizedMessage = packageSignedTimIntoAsd(request, hexEncodedTim);
+      String xmlizedMessage = asn1CommandManager.packageSignedTimIntoAsd(request, hexEncodedTim);
 
       stringMsgProducer.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
     }
@@ -336,8 +335,8 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
     if (null != request.getSdw()) {
       JSONObject asdObj = null;
-      if (dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
-        asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
+      if (dataObj.has(Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING)) {
+        asdObj = dataObj.getJSONObject(Asn1CommandManager.ADVISORY_SITUATION_DATA_STRING);
       } else {
         log.error("ASD structure present in metadata but not in JSONObject!");
       }
@@ -388,9 +387,9 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       log.debug("Encoded message - phase 2: {}", encodedTim);
 
       // only send message to rsu if snmp, rsus, and message frame fields are present
-      if (null != request.getSnmp() && null != request.getRsus()) {
+      if (null != request.getSnmp() && null != request.getRsus() && null != encodedTim) {
         log.debug("Encoded message phase 3: {}", encodedTim);
-        sendToRsus(request, encodedTim);
+        asn1CommandManager.sendToRsus(request, encodedTim);
       }
     }
 
@@ -442,105 +441,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       log.error("Unable to parse signed message response ", e1);
     }
     return encodedTIM;
-  }
-
-  /**
-   * Constructs an XML representation of an Advisory Situation Data (ASD) message containing a
-   * signed Traveler Information Message (TIM). Processes the provided service request and signed
-   * message to create and structure the ASD before converting it to an XML string output.
-   *
-   * @param request   the service request object containing meta information, service region,
-   *                  delivery time, and other necessary data for ASD creation.
-   * @param signedMsg the signed Traveler Information Message (TIM) to be included in the ASD.
-   * @return          a String containing the fully crafted ASD message in XML format. Returns null if the
-   *                  message could not be constructed due to exceptions.
-   */
-  public String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
-
-    SDW sdw = request.getSdw();
-    SNMP snmp = request.getSnmp();
-    DdsAdvisorySituationData asd;
-
-    byte sendToRsu =
-        request.getRsus() != null ? DdsAdvisorySituationData.RSU : DdsAdvisorySituationData.NONE;
-    byte distroType = (byte) (DdsAdvisorySituationData.IP | sendToRsu);
-
-    String outputXml = null;
-    try {
-      if (null != snmp) {
-
-        asd = new DdsAdvisorySituationData()
-            .setAsdmDetails(snmp.getDeliverystart(), snmp.getDeliverystop(), distroType, null)
-            .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
-            .setTimeToLive(sdw.getTtl())
-            .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
-      } else {
-        asd = new DdsAdvisorySituationData()
-            .setAsdmDetails(sdw.getDeliverystart(), sdw.getDeliverystop(), distroType, null)
-            .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
-            .setTimeToLive(sdw.getTtl())
-            .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
-      }
-
-      ObjectNode dataBodyObj = JsonUtils.newNode();
-      ObjectNode asdObj = JsonUtils.toObjectNode(asd.toJson());
-      ObjectNode admDetailsObj = (ObjectNode) asdObj.findValue("asdmDetails");
-      admDetailsObj.remove("advisoryMessage");
-      admDetailsObj.put("advisoryMessage", signedMsg);
-
-      dataBodyObj.set(ADVISORY_SITUATION_DATA_STRING, asdObj);
-
-      OdeMsgPayload payload = new OdeAsdPayload(asd);
-
-      ObjectNode payloadObj = JsonUtils.toObjectNode(payload.toJson());
-      payloadObj.set(AppContext.DATA_STRING, dataBodyObj);
-
-      OdeMsgMetadata metadata = new OdeMsgMetadata(payload);
-      ObjectNode metaObject = JsonUtils.toObjectNode(metadata.toJson());
-
-      ObjectNode requestObj = JsonUtils.toObjectNode(JsonUtils.toJson(request, false));
-
-      requestObj.remove("tim");
-
-      metaObject.set("request", requestObj);
-
-      ArrayNode encodings = buildEncodings();
-      ObjectNode enc =
-          XmlUtils.createEmbeddedJsonArrayForXmlConversion(AppContext.ENCODINGS_STRING, encodings);
-      metaObject.set(AppContext.ENCODINGS_STRING, enc);
-
-      ObjectNode message = JsonUtils.newNode();
-      message.set(AppContext.METADATA_STRING, metaObject);
-      message.set(AppContext.PAYLOAD_STRING, payloadObj);
-
-      ObjectNode root = JsonUtils.newNode();
-      root.set(AppContext.ODE_ASN1_DATA, message);
-
-      outputXml = XmlUtils.toXmlStatic(root);
-
-      // remove the surrounding <ObjectNode></ObjectNode>
-      outputXml = outputXml.replace("<ObjectNode>", "");
-      outputXml = outputXml.replace("</ObjectNode>", "");
-
-    } catch (ParseException | JsonUtilsException | XmlUtilsException e) {
-      log.error("Parsing exception thrown while populating ASD structure: ", e);
-    }
-
-    log.debug("Fully crafted ASD to be encoded: {}", outputXml);
-
-    return outputXml;
-  }
-
-  private ArrayNode buildEncodings() throws JsonUtilsException {
-    ArrayNode encodings = JsonUtils.newArrayNode();
-    encodings.add(TimTransmogrifier.buildEncodingNode(ADVISORY_SITUATION_DATA_STRING,
-        ADVISORY_SITUATION_DATA_STRING,
-        EncodingRule.UPER));
-    return encodings;
-  }
-
-  private void sendToRsus(ServiceRequest request, String encodedMsg) {
-    rsuDepositor.deposit(request, encodedMsg);
   }
 
   private static void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
