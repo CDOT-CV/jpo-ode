@@ -58,6 +58,8 @@ public class AsnCodecRouterServiceController {
         securityServicesProperties,
         new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim()),
         new Asn1CommandManager(
+            odeKafkaProperties,
+            sdxDepositorTopics,
             new RsuDepositor(
                 rsuProperties,
                 securityServicesProperties.getIsRsuSigningEnabled()

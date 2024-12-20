@@ -106,6 +106,8 @@ class Asn1EncodedDataRouterTest {
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
     var asn1CommandManager = new Asn1CommandManager(
+        odeKafkaProperties,
+        sdxDepositorTopics,
         mockRsuDepositor
     );
     var mockSecServClient = mock(ISecurityServicesClient.class);
@@ -195,6 +197,8 @@ class Asn1EncodedDataRouterTest {
     securityServicesProperties.setIsSdwSigningEnabled(true);
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
     var asn1CommandManager = new Asn1CommandManager(
+        odeKafkaProperties,
+        sdxDepositorTopics,
         mockRsuDepositor
     );
     var mockSecServClient = new ISecurityServicesClient() {
@@ -305,6 +309,8 @@ class Asn1EncodedDataRouterTest {
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
     var asn1CommandManager = new Asn1CommandManager(
+        odeKafkaProperties,
+        sdxDepositorTopics,
         mockRsuDepositor
     );
     var mockSecServClient = new ISecurityServicesClient() {
