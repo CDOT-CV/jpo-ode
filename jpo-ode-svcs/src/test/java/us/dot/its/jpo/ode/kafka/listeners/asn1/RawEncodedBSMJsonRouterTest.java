@@ -33,6 +33,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         KafkaProducerConfig.class,
         KafkaConsumerConfig.class,
         RawEncodedBSMJsonRouter.class,
+        RawEncodedJsonService.class,
         SerializationConfig.class
     },
     properties = {
