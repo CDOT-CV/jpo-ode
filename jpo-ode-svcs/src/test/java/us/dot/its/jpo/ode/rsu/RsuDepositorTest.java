@@ -16,8 +16,6 @@
 
 package us.dot.its.jpo.ode.rsu;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +25,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.model.OdeTravelerInputData;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
@@ -38,6 +39,16 @@ class RsuDepositorTest {
 
     @Autowired
     SecurityServicesProperties securityServicesProperties;
+
+
+    @Test
+    void testShutdown() {
+        RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.getIsRsuSigningEnabled());
+        testRsuDepositor.shutdown();
+        assertFalse(testRsuDepositor.isRunning());
+        assertFalse(testRsuDepositor.isAlive());
+    }
+
 
     @Test
     void testDeposit() {

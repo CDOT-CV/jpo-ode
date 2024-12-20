@@ -51,6 +51,14 @@ public class RsuDepositor extends Thread {
         this.dataSigningEnabled = isDataSigningEnabled;
     }
 
+    public void shutdown() {
+        running = false;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
     @Override
     public void run() {
         try {
