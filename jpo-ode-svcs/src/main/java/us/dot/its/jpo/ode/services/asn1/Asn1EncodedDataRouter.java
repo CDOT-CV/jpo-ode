@@ -33,7 +33,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
@@ -128,16 +127,10 @@ public class Asn1EncodedDataRouter {
    * Listens for messages from the specified Kafka topic and processes them.
    *
    * <p>Cases:
-   *    - CASE 1: no SDW in metadata (SNMP deposit only)
-   *      - sign MF
-   *      - send to RSU
-   *    - CASE 2: SDW in metadata but no ASD in body (send back for another encoding)
-   *      - sign MF
-   *      - send to RSU
-   *      - craft ASD object
-   *      - publish back to encoder stream
-   *    - CASE 3: If SDW in metadata and ASD in body (double encoding complete)
-   *      - send to SDX
+   * - CASE 1: no SDW in metadata (SNMP deposit only) - sign MF - send to RSU - CASE 2: SDW in
+   * metadata but no ASD in body (send back for another encoding) - sign MF - send to RSU - craft
+   * ASD object - publish back to encoder stream - CASE 3: If SDW in metadata and ASD in body
+   * (double encoding complete) - send to SDX
    *
    * </p>
    *
@@ -213,15 +206,11 @@ public class Asn1EncodedDataRouter {
         TimTransmogrifier.REQUEST_STRING).toString();
     log.debug("ServiceRequest: {}", sr);
 
-    // Convert JSON to POJO
     ServiceRequest serviceRequest = null;
     try {
       serviceRequest = (ServiceRequest) JsonUtils.fromJson(sr, ServiceRequest.class);
-
     } catch (Exception e) {
-      String errMsg = "Malformed JSON.";
-      EventLogger.logger.error(errMsg, e);
-      log.error(errMsg, e);
+      log.error("Unable to convert JSON to ServiceRequest", e);
     }
 
     return serviceRequest;
@@ -289,17 +278,7 @@ public class Asn1EncodedDataRouter {
       hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
     } else {
       // if header is present, strip it
-      if (isHeaderPresent(hexEncodedTim)) {
-        String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
-        log.debug("Stripping header from unsigned message: {}", header);
-        hexEncodedTim = stripHeader(hexEncodedTim);
-        mfObj.remove(BYTES);
-        mfObj.put(BYTES, hexEncodedTim);
-        dataObj.remove(MESSAGE_FRAME);
-        dataObj.put(MESSAGE_FRAME, mfObj);
-        consumedObj.remove(AppContext.PAYLOAD_STRING);
-        consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
-      }
+      hexEncodedTim = stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, hexEncodedTim);
     }
 
     if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTim) {
@@ -324,6 +303,22 @@ public class Asn1EncodedDataRouter {
 
       kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
     }
+  }
+
+  private String stripHeaderFromUnsignedMessage(JSONObject consumedObj, JSONObject dataObj,
+      JSONObject mfObj, String hexEncodedTim) {
+    if (isHeaderPresent(hexEncodedTim)) {
+      String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
+      log.debug("Stripping header from unsigned message: {}", header);
+      hexEncodedTim = stripHeader(hexEncodedTim);
+      mfObj.remove(BYTES);
+      mfObj.put(BYTES, hexEncodedTim);
+      dataObj.remove(MESSAGE_FRAME);
+      dataObj.put(MESSAGE_FRAME, mfObj);
+      consumedObj.remove(AppContext.PAYLOAD_STRING);
+      consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
+    }
+    return hexEncodedTim;
   }
 
   /**
@@ -352,25 +347,9 @@ public class Asn1EncodedDataRouter {
       }
 
       if (null != asdObj) {
-        String asdBytes = asdObj.getString(BYTES);
-
-        try {
-          JSONObject deposit = new JSONObject();
-          deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
-          deposit.put("encodedMsg", asdBytes);
-          kafkaTemplate.send(this.sdxDepositTopic, null, deposit.toString());
-          log.info("SDX deposit successful.");
-        } catch (Exception e) {
-          String msg = ERROR_ON_SDX_DEPOSIT;
-          log.error(msg, e);
-          EventLogger.logger.error(msg, e);
-        }
-
-      } else if (log.isErrorEnabled()) {
-        // Added to avoid Sonar's "Invoke method(s) only conditionally." code smell
-        String msg = "ASN.1 Encoder did not return ASD encoding {}";
-        EventLogger.logger.error(msg, consumedObj);
-        log.error(msg, consumedObj);
+        depositToSdx(request, asdObj.getString(BYTES));
+      } else {
+        log.error("ASN.1 Encoder did not return ASD encoding {}", consumedObj);
       }
     }
 
@@ -378,32 +357,32 @@ public class Asn1EncodedDataRouter {
       JSONObject mfObj = dataObj.getJSONObject(MESSAGE_FRAME);
       String encodedTim = mfObj.getString(BYTES);
 
-      // Deposit encoded TIM to TMC-filtered topic if TMC-generated
       depositToFilteredTopic(metadataObj, encodedTim);
 
-      // if header is present, strip it
-      if (isHeaderPresent(encodedTim)) {
-        String header = encodedTim.substring(0, encodedTim.indexOf("001F") + 4);
-        log.debug("Stripping header from unsigned message: {}", header);
-        encodedTim = stripHeader(encodedTim);
-        mfObj.remove(BYTES);
-        mfObj.put(BYTES, encodedTim);
-        dataObj.remove(MESSAGE_FRAME);
-        dataObj.put(MESSAGE_FRAME, mfObj);
-        consumedObj.remove(AppContext.PAYLOAD_STRING);
-        consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
-      }
-
-      log.debug("Encoded message - phase 2: {}", encodedTim);
+      var encodedTimWithoutHeader =
+          stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, encodedTim);
+      log.debug("Encoded message - phase 2: {}", encodedTimWithoutHeader);
 
       // only send message to rsu if snmp, rsus, and message frame fields are present
       if (null != request.getSnmp() && null != request.getRsus()) {
-        log.debug("Encoded message phase 3: {}", encodedTim);
-        sendToRsus(request, encodedTim);
+        log.debug("Encoded message phase 3: {}", encodedTimWithoutHeader);
+        sendToRsus(request, encodedTimWithoutHeader);
       }
     }
 
     log.info("TIM deposit response {}", responseList);
+  }
+
+  private void depositToSdx(ServiceRequest request, String asdBytes) {
+    try {
+      JSONObject deposit = new JSONObject();
+      deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
+      deposit.put("encodedMsg", asdBytes);
+      kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
+      log.info("SDX deposit successful.");
+    } catch (Exception e) {
+      log.error(ERROR_ON_SDX_DEPOSIT, e);
+    }
   }
 
   /**
@@ -421,9 +400,9 @@ public class Asn1EncodedDataRouter {
     // get max duration time and convert from minutes to milliseconds (unsigned
     // integer valid 0 to 2^32-1 in units of
     // milliseconds.) from metadata
-    int maxDurationTime = Integer.valueOf(metadataObjs.get("maxDurationTime").toString())
+    int maxDurationTime = Integer.parseInt(metadataObjs.get("maxDurationTime").toString())
         * 60 * 1000;
-    String timpacketID = metadataObjs.getString("odePacketID");
+    String packetId = metadataObjs.getString("odePacketID");
     String timStartDateTime = metadataObjs.getString("odeTimStartDateTime");
     log.debug("SENDING: {}", base64EncodedTim);
     String signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
@@ -434,7 +413,7 @@ public class Asn1EncodedDataRouter {
                   .getString("message-signed")));
 
       JSONObject timWithExpiration = new JSONObject();
-      timWithExpiration.put("packetID", timpacketID);
+      timWithExpiration.put("packetID", packetId);
       timWithExpiration.put("startDateTime", timStartDateTime);
 
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
@@ -442,11 +421,9 @@ public class Asn1EncodedDataRouter {
       setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
 
       // publish to Tim expiration kafka
-      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), null,
-          timWithExpiration.toString());
+      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
 
       return hexEncodedTim;
-
     } catch (JsonUtilsException e1) {
       log.error("Unable to parse signed message response ", e1);
     }
