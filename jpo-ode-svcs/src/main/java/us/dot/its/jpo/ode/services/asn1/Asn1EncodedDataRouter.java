@@ -615,7 +615,7 @@ public class Asn1EncodedDataRouter {
 
         // Send the message w/ asn1 data to the TMC-filtered topic
         stringMsgProducer.send(jsonTopics.getTimTmcFiltered(), null, timJSON.toString());
-      } else{
+      } else {
         log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
       }
 
