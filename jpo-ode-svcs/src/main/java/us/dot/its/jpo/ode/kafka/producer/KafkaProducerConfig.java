@@ -6,10 +6,12 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.XMLOdeObjectSerializer;
 import us.dot.its.jpo.ode.model.OdeBsmData;
@@ -30,6 +32,7 @@ import us.dot.its.jpo.ode.wrapper.serdes.MessagingSerializer;
  */
 @EnableKafka
 @Configuration
+@Import(value = {KafkaProperties.class, OdeKafkaProperties.class, SerializationConfig.class})
 public class KafkaProducerConfig {
 
   private final KafkaProperties kafkaProperties;
