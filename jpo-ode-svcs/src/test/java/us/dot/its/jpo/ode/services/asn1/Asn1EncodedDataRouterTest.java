@@ -392,17 +392,4 @@ class Asn1EncodedDataRouterTest {
     container.stop();
     log.debug("processEncodedTimUnsecured container stopped");
   }
-
-  @TestConfiguration
-  static class TestKafkaStreamsConfig {
-
-    @Bean
-    public OdeTimJsonTopology odeTimJsonTopology(OdeKafkaProperties odeKafkaProperties,
-        @Value("${ode.kafka.topics.json.tim}") String timTopic) {
-      EmbeddedKafkaHolder.addTopics(timTopic);
-      var topology = new OdeTimJsonTopology(odeKafkaProperties, timTopic);
-      Awaitility.await().until(topology::isRunning);
-      return topology;
-    }
-  }
 }
