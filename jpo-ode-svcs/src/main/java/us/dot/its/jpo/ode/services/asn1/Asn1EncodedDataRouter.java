@@ -29,6 +29,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
@@ -55,7 +56,6 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
-import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
 /**
  * The Asn1EncodedDataRouter is responsible for routing encoded TIM messages that are consumed from
@@ -69,6 +69,7 @@ public class Asn1EncodedDataRouter {
   private static final String MESSAGE_FRAME = "MessageFrame";
   private static final String ERROR_ON_SDX_DEPOSIT = "Error on SDX deposit.";
   private static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
+  private final KafkaTemplate<String, String> kafkaTemplate;
 
   /**
    * Exception for Asn1EncodedDataRouter specific failures.
@@ -87,7 +88,6 @@ public class Asn1EncodedDataRouter {
   private final String sdxDepositTopic;
   private final ISecurityServicesClient securityServicesClient;
 
-  private final MessageProducer<String, String> stringMsgProducer;
   private final OdeTimJsonTopology odeTimJsonTopology;
   private final RsuDepositor rsuDepositor;
   private final boolean dataSigningEnabledSDW;
@@ -109,7 +109,8 @@ public class Asn1EncodedDataRouter {
       OdeTimJsonTopology odeTimJsonTopology,
       RsuDepositor rsuDepositor,
       ISecurityServicesClient securityServicesClient,
-      @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic) {
+      @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic,
+      KafkaTemplate<String, String> kafkaTemplate) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
@@ -117,10 +118,7 @@ public class Asn1EncodedDataRouter {
     this.sdxDepositTopic = sdxDepositTopic;
     this.securityServicesClient = securityServicesClient;
 
-    this.stringMsgProducer = MessageProducer.defaultStringMessageProducer(
-        odeKafkaProperties.getBrokers(),
-        odeKafkaProperties.getKafkaType(),
-        odeKafkaProperties.getDisabledTopics());
+    this.kafkaTemplate = kafkaTemplate;
 
     this.rsuDepositor = rsuDepositor;
     this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
@@ -258,7 +256,7 @@ public class Asn1EncodedDataRouter {
       JSONObject deposit = new JSONObject();
       deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
       deposit.put("encodedMsg", asdObj.getString(BYTES));
-      stringMsgProducer.send(this.sdxDepositTopic, null, deposit.toString());
+      kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
     } catch (JSONException e) {
       log.error(ERROR_ON_SDX_DEPOSIT, e);
     }
@@ -319,7 +317,7 @@ public class Asn1EncodedDataRouter {
       log.debug("Publishing message for round 2 encoding!");
       String xmlizedMessage = packageSignedTimIntoAsd(request, hexEncodedTim);
 
-      stringMsgProducer.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
+      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
     }
   }
 
@@ -355,7 +353,7 @@ public class Asn1EncodedDataRouter {
           JSONObject deposit = new JSONObject();
           deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
           deposit.put("encodedMsg", asdBytes);
-          stringMsgProducer.send(this.sdxDepositTopic, null, deposit.toString());
+          kafkaTemplate.send(this.sdxDepositTopic, null, deposit.toString());
           log.info("SDX deposit successful.");
         } catch (Exception e) {
           String msg = ERROR_ON_SDX_DEPOSIT;
@@ -439,7 +437,7 @@ public class Asn1EncodedDataRouter {
       setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
 
       // publish to Tim expiration kafka
-      stringMsgProducer.send(jsonTopics.getTimCertExpiration(), null,
+      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), null,
           timWithExpiration.toString());
 
       return hexEncodedTim;
@@ -459,7 +457,7 @@ public class Asn1EncodedDataRouter {
    *                  delivery time, and other necessary data for ASD creation.
    * @param signedMsg the signed Traveler Information Message (TIM) to be included in the ASD.
    * @return a String containing the fully crafted ASD message in XML format. Returns null if the
-   * message could not be constructed due to exceptions.
+   *         message could not be constructed due to exceptions.
    */
   public String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
 
@@ -614,7 +612,7 @@ public class Asn1EncodedDataRouter {
         timJSON.put("metadata", metadataJSON);
 
         // Send the message w/ asn1 data to the TMC-filtered topic
-        stringMsgProducer.send(jsonTopics.getTimTmcFiltered(), null, timJSON.toString());
+        kafkaTemplate.send(jsonTopics.getTimTmcFiltered(), null, timJSON.toString());
       } else {
         log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
       }
