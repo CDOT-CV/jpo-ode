@@ -123,7 +123,6 @@ class Asn1EncodedDataRouterTest {
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-        odeKafkaProperties,
         asn1CoderTopics,
         jsonTopics,
         securityServicesProperties,
@@ -199,7 +198,6 @@ class Asn1EncodedDataRouterTest {
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-        odeKafkaProperties,
         asn1CoderTopics,
         jsonTopics,
         securityServicesProperties,
@@ -317,7 +315,6 @@ class Asn1EncodedDataRouterTest {
     securityServicesProperties.setIsSdwSigningEnabled(false);
     securityServicesProperties.setIsRsuSigningEnabled(false);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-        odeKafkaProperties,
         asn1CoderTopics,
         jsonTopics,
         securityServicesProperties,

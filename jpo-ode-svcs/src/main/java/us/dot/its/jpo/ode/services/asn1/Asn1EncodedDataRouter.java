@@ -34,7 +34,6 @@ import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
@@ -97,13 +96,11 @@ public class Asn1EncodedDataRouter {
    * Instantiates the Asn1EncodedDataRouter to actively consume from Kafka and route the encoded TIM
    * messages to the SDX and RSUs.
    *
-   * @param odeKafkaProperties         The Kafka properties used to consume and produce to Kafka
    * @param asn1CoderTopics            The specified ASN1 Coder topics
    * @param jsonTopics                 The specified JSON topics to write to
    * @param securityServicesProperties The security services properties to use
    **/
-  public Asn1EncodedDataRouter(OdeKafkaProperties odeKafkaProperties,
-      Asn1CoderTopics asn1CoderTopics,
+  public Asn1EncodedDataRouter(Asn1CoderTopics asn1CoderTopics,
       JsonTopics jsonTopics,
       SecurityServicesProperties securityServicesProperties,
       OdeTimJsonTopology odeTimJsonTopology,
@@ -127,6 +124,26 @@ public class Asn1EncodedDataRouter {
     this.odeTimJsonTopology = odeTimJsonTopology;
   }
 
+  /**
+   * Listens for messages from the specified Kafka topic and processes them.
+   *
+   * <p>Cases:
+   *    - CASE 1: no SDW in metadata (SNMP deposit only)
+   *      - sign MF
+   *      - send to RSU
+   *    - CASE 2: SDW in metadata but no ASD in body (send back for another encoding)
+   *      - sign MF
+   *      - send to RSU
+   *      - craft ASD object
+   *      - publish back to encoder stream
+   *    - CASE 3: If SDW in metadata and ASD in body (double encoding complete)
+   *      - send to SDX
+   *
+   * </p>
+   *
+   * @param consumerRecord The Kafka consumer record containing the key and value of the consumed
+   *                       message.
+   */
   @KafkaListener(topics = "${ode.kafka.topics.asn1EncoderOutput}")
   public void listen(ConsumerRecord<String, String> consumerRecord) {
     try {
@@ -221,18 +238,6 @@ public class Asn1EncodedDataRouter {
     JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(
         AppContext.DATA_STRING);
     JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
-
-    // CASE 1: no SDW in metadata (SNMP deposit only)
-    // - sign MF
-    // - send to RSU
-    // CASE 2: SDW in metadata but no ASD in body (send back for another
-    // encoding)
-    // - sign MF
-    // - send to RSU
-    // - craft ASD object
-    // - publish back to encoder stream
-    // CASE 3: If SDW in metadata and ASD in body (double encoding complete)
-    // - send to SDX
 
     if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
       processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
