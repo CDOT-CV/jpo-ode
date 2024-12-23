@@ -12,7 +12,7 @@ import us.dot.its.jpo.ode.OdeTimJsonTopology;
 @Configuration
 public class KafkaStreamsConfig {
 
-  @Bean
+  @Bean(destroyMethod = "stop")
   public OdeTimJsonTopology odeTimJsonTopology(
       @Value("${ode.kafka.topics.json.tim}") String timTopic,
       OdeKafkaProperties odeKafkaProperties) {
