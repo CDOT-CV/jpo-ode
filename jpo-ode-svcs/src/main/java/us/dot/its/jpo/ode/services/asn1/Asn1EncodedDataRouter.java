@@ -24,7 +24,6 @@ import java.util.Date;
 import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
@@ -144,45 +143,10 @@ public class Asn1EncodedDataRouter {
       JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value()).getJSONObject(
           OdeAsn1Data.class.getSimpleName());
 
-      /*
-       * When receiving the 'rsus' in xml, since there is only one 'rsu' and
-       * there is no construct for array in xml, the rsus does not translate
-       * to an array of 1 element. The following workaround, resolves this
-       * issue.
-       */
       JSONObject metadata = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
       if (metadata.has(TimTransmogrifier.REQUEST_STRING)) {
-        JSONObject request = metadata.getJSONObject(TimTransmogrifier.REQUEST_STRING);
-        if (request.has(TimTransmogrifier.RSUS_STRING)) {
-          Object rsus = request.get(TimTransmogrifier.RSUS_STRING);
-          if (rsus instanceof JSONObject) {
-            JSONObject rsusIn = (JSONObject) request.get(TimTransmogrifier.RSUS_STRING);
-            if (rsusIn.has(TimTransmogrifier.RSUS_STRING)) {
-              Object rsu = rsusIn.get(TimTransmogrifier.RSUS_STRING);
-              JSONArray rsusOut = new JSONArray();
-              if (rsu instanceof JSONArray) {
-                log.debug("Multiple RSUs exist in the request: {}", request);
-                JSONArray rsusInArray = (JSONArray) rsu;
-                for (int i = 0; i < rsusInArray.length(); i++) {
-                  rsusOut.put(rsusInArray.get(i));
-                }
-                request.put(TimTransmogrifier.RSUS_STRING, rsusOut);
-              } else if (rsu instanceof JSONObject) {
-                log.debug("Single RSU exists in the request: {}", request);
-                rsusOut.put(rsu);
-                request.put(TimTransmogrifier.RSUS_STRING, rsusOut);
-              } else {
-                log.debug("No RSUs exist in the request: {}", request);
-                request.remove(TimTransmogrifier.RSUS_STRING);
-              }
-            }
-          }
-        }
-
-        // Convert JSON to POJO
         ServiceRequest servicerequest = getServicerequest(consumedObj);
-
         processEncodedTim(servicerequest, consumedObj);
       } else {
         throw new Asn1EncodedDataRouterException("Invalid or missing '"
