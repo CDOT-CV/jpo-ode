@@ -618,6 +618,7 @@ public class Asn1EncodedDataRouter {
       } else{
         log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
       }
+
     } catch (JSONException e) {
       log.error("Error while fetching recordGeneratedBy field: {}", e.getMessage());
     } catch (Exception e) {

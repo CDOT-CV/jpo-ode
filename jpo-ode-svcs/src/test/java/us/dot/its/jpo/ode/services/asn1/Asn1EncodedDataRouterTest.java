@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.services.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -95,6 +94,15 @@ class Asn1EncodedDataRouterTest {
   @Mock
   RsuDepositor mockRsuDepositor;
 
+  ISecurityServicesClient mockSecServClient = (message, sigValidityOverride) -> {
+    JSONObject json = new JSONObject();
+    JSONObject result = new JSONObject();
+    result.put("message-signed", "<%s>".formatted(message));
+    result.put("message-expiry", "123124124124124141");
+    json.put("result", result);
+    return json.toString();
+  };
+
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   @Test
@@ -109,7 +117,7 @@ class Asn1EncodedDataRouterTest {
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
-    var mockSecServClient = mock(ISecurityServicesClient.class);
+
     securityServicesProperties.setIsSdwSigningEnabled(true);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
@@ -186,18 +194,6 @@ class Asn1EncodedDataRouterTest {
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
-    var mockSecServClient = new ISecurityServicesClient() {
-      @Override
-      public String signMessage(String message, int sigValidityOverride) {
-        JSONObject json = new JSONObject();
-        JSONObject result = new JSONObject();
-        result.put("message-signed", "<%s>".formatted(message));
-        result.put("message-expiry", "123124124124124141");
-        json.put("result", result);
-        return json.toString();
-      }
-    };
-
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         odeKafkaProperties,
         asn1CoderTopics,
@@ -311,18 +307,6 @@ class Asn1EncodedDataRouterTest {
     EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getEncoderOutput(), jsonTopics.getTim());
 
     var odeTimJsonTopology = new OdeTimJsonTopology(odeKafkaProperties, jsonTopics.getTim());
-    var mockSecServClient = new ISecurityServicesClient() {
-      @Override
-      public String signMessage(String message, int sigValidityOverride) {
-        JSONObject json = new JSONObject();
-        JSONObject result = new JSONObject();
-        result.put("message-signed", "<%s>".formatted(message));
-        result.put("message-expiry", "123124124124124141");
-        json.put("result", result);
-        return json.toString();
-      }
-    };
-
     securityServicesProperties.setIsSdwSigningEnabled(false);
     securityServicesProperties.setIsRsuSigningEnabled(false);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
