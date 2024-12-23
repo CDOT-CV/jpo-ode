@@ -140,6 +140,10 @@ public class Asn1CommandManager {
       ObjectNode payloadObj = JsonUtils.toObjectNode(payload.toJson());
       payloadObj.set(AppContext.DATA_STRING, dataBodyObj);
 
+      // This call will generate a new metadata object with a new streamId. This seems to be intentional
+      // as it will allow depositing this message onto the encoderInput topic without conflicts.
+      // We send messages for encoding twice, so we are trying to avoid conflicts by using a unique
+      // streamId
       OdeMsgMetadata metadata = new OdeMsgMetadata(payload);
       ObjectNode metaObject = JsonUtils.toObjectNode(metadata.toJson());
 

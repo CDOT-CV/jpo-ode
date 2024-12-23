@@ -308,7 +308,7 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
       // Case 2 only
 
       log.debug("Publishing message for round 2 encoding!");
-      String xmlizedMessage = asn1CommandManager.packageSignedTimIntoAsd(request, hexEncodedTim);
+      String xmlizedMessage = asn1CommandManager.packageSignedTimIntoAsd(request, hexEncodedTim, metadataObj);
 
       stringMsgProducer.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
     }
