@@ -43,7 +43,6 @@ import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestKafkaStreamsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
@@ -73,8 +72,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
         Asn1CoderTopics.class,
         JsonTopics.class,
         SecurityServicesProperties.class,
-        RsuProperties.class,
-        OdeKafkaProperties.class
+        RsuProperties.class
     }
 )
 @EnableConfigurationProperties
@@ -87,8 +85,6 @@ class Asn1EncodedDataRouterTest {
   JsonTopics jsonTopics;
   @Autowired
   SecurityServicesProperties securityServicesProperties;
-  @Autowired
-  OdeKafkaProperties odeKafkaProperties;
   @Value("${ode.kafka.topics.sdx-depositor.input}")
   String sdxDepositorTopic;
   @Autowired

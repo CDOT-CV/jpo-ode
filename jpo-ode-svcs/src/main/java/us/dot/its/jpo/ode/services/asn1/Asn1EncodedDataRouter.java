@@ -263,9 +263,9 @@ public class Asn1EncodedDataRouter {
       // Case 2 only
 
       log.debug("Publishing message for round 2 encoding!");
-      String xmlizedMessage = packageSignedTimIntoAsd(request, hexEncodedTim);
+      String asdPackagedTim = packageSignedTimIntoAsd(request, hexEncodedTim);
 
-      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), null, xmlizedMessage);
+      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), asdPackagedTim);
     }
   }
 
@@ -418,7 +418,6 @@ public class Asn1EncodedDataRouter {
     String outputXml = null;
     try {
       if (null != snmp) {
-
         asd = new DdsAdvisorySituationData()
             .setAsdmDetails(snmp.getDeliverystart(), snmp.getDeliverystop(), distroType, null)
             .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
@@ -558,7 +557,7 @@ public class Asn1EncodedDataRouter {
         timJSON.put("metadata", metadataJSON);
 
         // Send the message w/ asn1 data to the TMC-filtered topic
-        kafkaTemplate.send(jsonTopics.getTimTmcFiltered(), null, timJSON.toString());
+        kafkaTemplate.send(jsonTopics.getTimTmcFiltered(), timJSON.toString());
       } else {
         log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
       }
