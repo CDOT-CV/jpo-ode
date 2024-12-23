@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode;
 
+import java.time.Duration;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -52,9 +53,14 @@ public class OdeTimJsonTopology {
     streams.start();
   }
 
+  /**
+   * Stops the Ode Tim Json Topology by gracefully shutting down streams.
+   */
   public void stop() {
     log.info("Stopping Ode Tim Json Topology");
-    streams.close();
+    streams.close(Duration.ofMillis(250));
+    streams.cleanUp();
+    log.info("Stopped Ode Tim Json Topology");
   }
 
   public boolean isRunning() {
@@ -80,9 +86,19 @@ public class OdeTimJsonTopology {
    *
    * @param uuid The specified UUID to query for.
    **/
-  public String query(String uuid) {
-    return (String) streams.store(
+  public String query(String uuid) throws InterruptedException {
+    var attempt = 0;
+    while (attempt++ < 10) {
+      if (isRunning()) {
+        return (String) streams.store(
             StoreQueryParameters.fromNameAndType("timjson-store", QueryableStoreTypes.keyValueStore()))
-        .get(uuid);
+            .get(uuid);
+      } else {
+        log.warn("TimJsonTopology is not running, waiting for it to start...");
+        Thread.sleep(50);
+      }
+    }
+    log.error("TimJsonTopology failed to start after 10 attempts");
+    throw new IllegalStateException("TimJsonTopology failed to start after 10 attempts");
   }
 }
