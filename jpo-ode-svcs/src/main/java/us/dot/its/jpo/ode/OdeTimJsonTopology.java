@@ -58,7 +58,7 @@ public class OdeTimJsonTopology {
   }
 
   public boolean isRunning() {
-    return streams.state().isRunningOrRebalancing();
+    return streams.state().equals(KafkaStreams.State.RUNNING);
   }
 
   /**
