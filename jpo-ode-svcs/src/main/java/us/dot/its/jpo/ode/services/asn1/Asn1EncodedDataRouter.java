@@ -206,7 +206,7 @@ public class Asn1EncodedDataRouter {
 
   private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
     log.debug("Signed message received. Depositing it to SDW.");
-    // We have a ASD with signed MessageFrame
+    // We have an ASD with signed MessageFrame
     // Case 3
     JSONObject asdObj = dataObj.getJSONObject(
         ADVISORY_SITUATION_DATA_STRING);
@@ -239,7 +239,8 @@ public class Asn1EncodedDataRouter {
 
     // Case 1: SNMP-deposit
     if (dataSigningEnabledRSU && request.getRsus() != null) {
-      hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
+      hexEncodedTim = signTimWithExpiration(hexEncodedTim, consumedObj);
+      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), hexEncodedTim);
     } else {
       // if header is present, strip it
       hexEncodedTim = stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, hexEncodedTim);
@@ -254,7 +255,8 @@ public class Asn1EncodedDataRouter {
 
     // Case 2: SDX-deposit
     if (dataSigningEnabledSDW && request.getSdw() != null) {
-      hexEncodedTim = signTIMAndProduceToExpireTopic(hexEncodedTim, consumedObj);
+      var signedTimWithExpiration = signTimWithExpiration(hexEncodedTim, consumedObj);
+      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), signedTimWithExpiration);
     }
 
     // Deposit encoded & signed TIM to TMC-filtered topic if TMC-generated
@@ -350,16 +352,16 @@ public class Asn1EncodedDataRouter {
   }
 
   /**
-   * Sign the encoded TIM message and write to Kafka with an expiration time.
+   * Sign the encoded TIM message, add expiration times, and return the JSON string.
    *
    * @param encodedTIM  The encoded TIM message to be signed
    * @param consumedObj The JSON object to be consumed
-   * @return The String representation of the encodedTim payload
    */
-  public String signTIMAndProduceToExpireTopic(String encodedTIM, JSONObject consumedObj) {
-    log.debug("Sending message for signature! ");
+  private String signTimWithExpiration(String encodedTIM, JSONObject consumedObj) {
+    log.debug("Signing encoded TIM message...");
     String base64EncodedTim = CodecUtils.toBase64(
         CodecUtils.fromHex(encodedTIM));
+
     JSONObject metadataObjs = consumedObj.getJSONObject(AppContext.METADATA_STRING);
     // get max duration time and convert from minutes to milliseconds (unsigned
     // integer valid 0 to 2^32-1 in units of
@@ -370,28 +372,15 @@ public class Asn1EncodedDataRouter {
     String timStartDateTime = metadataObjs.getString("odeTimStartDateTime");
     log.debug("SENDING: {}", base64EncodedTim);
     String signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
-    try {
-      final String hexEncodedTim = CodecUtils.toHex(
-          CodecUtils.fromBase64(
-              JsonUtils.toJSONObject(signedResponse).getJSONObject("result")
-                  .getString("message-signed")));
 
-      JSONObject timWithExpiration = new JSONObject();
-      timWithExpiration.put("packetID", packetId);
-      timWithExpiration.put("startDateTime", timStartDateTime);
+    JSONObject timWithExpiration = new JSONObject();
+    timWithExpiration.put("packetID", packetId);
+    timWithExpiration.put("startDateTime", timStartDateTime);
 
-      SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-      setExpiryDate(signedResponse, timWithExpiration, dateFormat);
-      setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
-
-      // publish to Tim expiration kafka
-      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
-
-      return hexEncodedTim;
-    } catch (JsonUtilsException e1) {
-      log.error("Unable to parse signed message response ", e1);
-    }
-    return encodedTIM;
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    setExpiryDate(signedResponse, timWithExpiration, dateFormat);
+    setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
+    return timWithExpiration.toString();
   }
 
   /**
@@ -455,7 +444,8 @@ public class Asn1EncodedDataRouter {
 
       ArrayNode encodings = buildEncodings();
       ObjectNode enc =
-          XmlUtils.createEmbeddedJsonArrayForXmlConversion(AppContext.ENCODINGS_STRING, encodings);
+          XmlUtils.createEmbeddedJsonArrayForXmlConversion(AppContext.ENCODINGS_STRING,
+              encodings);
       metaObject.set(AppContext.ENCODINGS_STRING, enc);
 
       ObjectNode message = JsonUtils.newNode();
@@ -495,9 +485,9 @@ public class Asn1EncodedDataRouter {
   private static void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
       int maxDurationTime, JSONObject timWithExpiration) {
     try {
-      Date parsedtimTimeStamp = dateFormat.parse(timStartDateTime);
+      Date timTimestamp = dateFormat.parse(timStartDateTime);
       Date requiredExpirationDate = new Date();
-      requiredExpirationDate.setTime(parsedtimTimeStamp.getTime() + maxDurationTime);
+      requiredExpirationDate.setTime(timTimestamp.getTime() + maxDurationTime);
       timWithExpiration.put("requiredExpirationDate", dateFormat.format(requiredExpirationDate));
     } catch (Exception e) {
       log.error("Unable to parse requiredExpirationDate ", e);
