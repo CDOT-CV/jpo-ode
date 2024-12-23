@@ -121,6 +121,7 @@ class Asn1EncodedDataRouterTest {
         mockSecServClient,
         sdxDepositorTopic
     );
+    Awaitility.await().until(odeTimJsonTopology::isRunning);
 
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
         .createContainer(asn1CoderTopics.getEncoderOutput());
@@ -173,7 +174,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processSNMPDepositOnly() throws IOException, InterruptedException {
+  void processSNMPDepositOnly() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimCertExpiration(),
@@ -207,6 +208,8 @@ class Asn1EncodedDataRouterTest {
         mockSecServClient,
         sdxDepositorTopic
     );
+    Awaitility.await().until(odeTimJsonTopology::isRunning);
+
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
         .createContainer(asn1CoderTopics.getEncoderOutput());
     container.setupMessageListener(
@@ -332,6 +335,7 @@ class Asn1EncodedDataRouterTest {
         mockSecServClient,
         sdxDepositorTopic
     );
+    Awaitility.await().until(odeTimJsonTopology::isRunning);
 
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
         .createContainer(asn1CoderTopics.getEncoderOutput());
