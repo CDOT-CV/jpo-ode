@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -104,6 +105,8 @@ class Asn1EncodedDataRouterTest {
   OdeTimJsonTopology odeTimJsonTopology;
   @Autowired
   ObjectMapper objectMapper;
+  @Autowired
+  private XmlMapper xmlMapper;
 
   private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
@@ -134,7 +137,8 @@ class Asn1EncodedDataRouterTest {
         mockRsuDepositor,
         mockSecServClient,
         kafkaTemplate, sdxDepositorTopic,
-        objectMapper);
+        objectMapper,
+        xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter,
         "processSignedMessage"
@@ -188,12 +192,13 @@ class Asn1EncodedDataRouterTest {
         mockRsuDepositor,
         mockSecServClient,
         kafkaTemplate, sdxDepositorTopic,
-        objectMapper);
+        objectMapper,
+        xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processUnsignedMessage");
 
     var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
-    // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
+    // send to tim topic so that the OdeTimJsonTopology k-table has the correct record to return
     var streamId = UUID.randomUUID().toString();
     odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     var topologySendFuture = kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
@@ -282,12 +287,13 @@ class Asn1EncodedDataRouterTest {
         mockRsuDepositor,
         mockSecServClient,
         kafkaTemplate, sdxDepositorTopic,
-        objectMapper);
+        objectMapper,
+        xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processEncodedTimUnsigned");
     var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
 
-    // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
+    // send to tim topic so that the OdeTimJsonTopology k-table has the correct record to return
     var streamId = UUID.randomUUID().toString();
     odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);

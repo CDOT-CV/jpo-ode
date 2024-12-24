@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -68,6 +69,7 @@ public class Asn1EncodedDataRouter {
   private static final String ERROR_ON_SDX_DEPOSIT = "Error on SDX deposit.";
   private static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
   private final KafkaTemplate<String, String> kafkaTemplate;
+  private final XmlMapper xmlMapper;
 
   /**
    * Exception for Asn1EncodedDataRouter specific failures.
@@ -106,7 +108,7 @@ public class Asn1EncodedDataRouter {
                                ISecurityServicesClient securityServicesClient,
                                KafkaTemplate<String, String> kafkaTemplate,
                                @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic,
-                               ObjectMapper mapper) {
+                               ObjectMapper mapper, XmlMapper xmlMapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
@@ -122,6 +124,7 @@ public class Asn1EncodedDataRouter {
 
     this.odeTimJsonTopology = odeTimJsonTopology;
     this.mapper = mapper;
+    this.xmlMapper = xmlMapper;
   }
 
   /**
@@ -210,18 +213,9 @@ public class Asn1EncodedDataRouter {
     log.debug("Encoded message - phase 1: {}", hexEncodedTimBytes);
     var encodedTimWithoutHeaders = stripHeader(hexEncodedTimBytes);
 
-    if (null != request.getSnmp() && null != request.getRsus()) {
-      log.info("Sending message to RSUs...");
-      sendToRsus(request, encodedTimWithoutHeaders);
-    }
-
+    sendToRsus(request, encodedTimWithoutHeaders);
     depositToFilteredTopic(metadataJson, encodedTimWithoutHeaders);
-    if (request.getSdw() != null) {
-      log.debug("Publishing message for round 2 encoding");
-      String asdPackagedTim = packageSignedTimIntoAsd(request, encodedTimWithoutHeaders);
-
-      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), asdPackagedTim);
-    }
+    publishForSecondEncoding(request, encodedTimWithoutHeaders);
   }
 
   private void processEncodedTimUnsigned(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
@@ -301,8 +295,8 @@ public class Asn1EncodedDataRouter {
    * @return a String containing the fully crafted ASD message in XML format. Returns null if the
    *     message could not be constructed due to exceptions.
    */
-  private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
-
+  private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) throws JsonProcessingException, ParseException,
+      JsonUtilsException {
     SDW sdw = request.getSdw();
     SNMP snmp = request.getSnmp();
     DdsAdvisorySituationData asd;
@@ -311,69 +305,56 @@ public class Asn1EncodedDataRouter {
         request.getRsus() != null ? DdsAdvisorySituationData.RSU : DdsAdvisorySituationData.NONE;
     byte distroType = (byte) (DdsAdvisorySituationData.IP | sendToRsu);
 
-    String outputXml = null;
-    try {
-      if (null != snmp) {
-        asd = new DdsAdvisorySituationData()
-            .setAsdmDetails(snmp.getDeliverystart(), snmp.getDeliverystop(), distroType, null)
-            .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
-            .setTimeToLive(sdw.getTtl())
-            .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
-      } else {
-        asd = new DdsAdvisorySituationData()
-            .setAsdmDetails(sdw.getDeliverystart(), sdw.getDeliverystop(), distroType, null)
-            .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
-            .setTimeToLive(sdw.getTtl())
-            .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
-      }
+    asd = new DdsAdvisorySituationData()
+        .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
+        .setTimeToLive(sdw.getTtl())
+        .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
 
-      ObjectNode dataBodyObj = JsonUtils.newNode();
-      ObjectNode asdObj = JsonUtils.toObjectNode(asd.toJson());
-      ObjectNode admDetailsObj = (ObjectNode) asdObj.findValue("asdmDetails");
-      admDetailsObj.remove("advisoryMessage");
-      admDetailsObj.put("advisoryMessage", signedMsg);
-
-      dataBodyObj.set(ADVISORY_SITUATION_DATA_STRING, asdObj);
-
-      OdeMsgPayload payload = new OdeAsdPayload(asd);
-
-      ObjectNode payloadObj = JsonUtils.toObjectNode(payload.toJson());
-      payloadObj.set(AppContext.DATA_STRING, dataBodyObj);
-
-      OdeMsgMetadata metadata = new OdeMsgMetadata(payload);
-      ObjectNode metaObject = JsonUtils.toObjectNode(metadata.toJson());
-
-      ObjectNode requestObj = JsonUtils.toObjectNode(JsonUtils.toJson(request, false));
-
-      requestObj.remove("tim");
-
-      metaObject.set("request", requestObj);
-
-      ArrayNode encodings = buildEncodings();
-      ObjectNode enc =
-          XmlUtils.createEmbeddedJsonArrayForXmlConversion(AppContext.ENCODINGS_STRING,
-              encodings);
-      metaObject.set(AppContext.ENCODINGS_STRING, enc);
-
-      ObjectNode message = JsonUtils.newNode();
-      message.set(AppContext.METADATA_STRING, metaObject);
-      message.set(AppContext.PAYLOAD_STRING, payloadObj);
-
-      ObjectNode root = JsonUtils.newNode();
-      root.set(AppContext.ODE_ASN1_DATA, message);
-
-      outputXml = XmlUtils.toXmlStatic(root);
-
-      // remove the surrounding <ObjectNode></ObjectNode>
-      outputXml = outputXml.replace("<ObjectNode>", "");
-      outputXml = outputXml.replace("</ObjectNode>", "");
-
-    } catch (ParseException | JsonUtilsException | XmlUtilsException e) {
-      log.error("Parsing exception thrown while populating ASD structure: ", e);
+    if (null != snmp) {
+      asd.setAsdmDetails(snmp.getDeliverystart(), snmp.getDeliverystop(), distroType, null);
+    } else {
+      asd.setAsdmDetails(sdw.getDeliverystart(), sdw.getDeliverystop(), distroType, null);
     }
 
-    log.debug("Fully crafted ASD to be encoded: {}", outputXml);
 
+    var asdJson = (ObjectNode) mapper.readTree(asd.toJson());
+
+    var admDetailsObj = (ObjectNode) asdJson.findValue("asdmDetails");
+    admDetailsObj.remove("advisoryMessage");
+    admDetailsObj.put("advisoryMessage", signedMsg);
+
+    asdJson.set("asdmDetails", admDetailsObj);
+
+    ObjectNode advisorySituationDataNode = mapper.createObjectNode();
+    advisorySituationDataNode.set(ADVISORY_SITUATION_DATA_STRING, asdJson);
+
+    OdeMsgPayload payload = new OdeAsdPayload(asd);
+
+    var payloadNode = (ObjectNode) mapper.readTree(payload.toJson());
+    payloadNode.set(AppContext.DATA_STRING, advisorySituationDataNode);
+
+    OdeMsgMetadata metadata = new OdeMsgMetadata(payload);
+    var metadataNode = (ObjectNode) mapper.readTree(metadata.toJson());
+
+    metadataNode.set("request", mapper.readTree(request.toJson()));
+
+    ArrayNode encodings = buildEncodings();
+    var embeddedEncodings = xmlMapper.createObjectNode();
+    embeddedEncodings.set(AppContext.ENCODINGS_STRING, encodings);
+
+    metadataNode.set(AppContext.ENCODINGS_STRING, embeddedEncodings);
+
+    ObjectNode message = mapper.createObjectNode();
+    message.set(AppContext.METADATA_STRING, metadataNode);
+    message.set(AppContext.PAYLOAD_STRING, payloadNode);
+
+    ObjectNode root = mapper.createObjectNode();
+    root.set(AppContext.ODE_ASN1_DATA, message);
+
+    var outputXml = xmlMapper.writeValueAsString(root)
+        .replace("<ObjectNode>", "")
+        .replace("</ObjectNode>", "");
+    log.debug("Fully crafted ASD to be encoded: {}", outputXml);
     return outputXml;
   }
 
@@ -386,6 +367,11 @@ public class Asn1EncodedDataRouter {
   }
 
   private void sendToRsus(ServiceRequest request, String encodedMsg) {
+    if (null == request.getSnmp() || null == request.getRsus()) {
+      log.debug("No RSUs or SNMP provided. Skipping sending to RSUs.");
+      return;
+    }
+    log.info("Sending message to RSUs...");
     rsuDepositor.deposit(request, encodedMsg);
   }
 
@@ -450,6 +436,21 @@ public class Asn1EncodedDataRouter {
       kafkaTemplate.send(jsonTopics.getTimTmcFiltered(), timJSON.toString());
     } else {
       log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
+    }
+  }
+
+  private void publishForSecondEncoding(ServiceRequest request, String encodedTimWithoutHeaders) {
+    if (request.getSdw() == null) {
+      log.debug("SDW not present. No second encoding required.");
+      return;
+    }
+
+    try {
+      log.debug("Publishing message for round 2 encoding");
+      String asdPackagedTim = packageSignedTimIntoAsd(request, encodedTimWithoutHeaders);
+      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), asdPackagedTim);
+    } catch (Exception e) {
+      log.error("Error packaging ASD for round 2 encoding", e);
     }
   }
 }
