@@ -149,7 +149,7 @@ public class UdpHexDecoder {
    * @return a JSON string representing the TIM message
    * @throws InvalidPayloadException if the payload extraction fails
    */
-  public static String buildJsonTimFromPacket(DatagramPacket packet)
+  public static OdeAsn1Data buildJsonTimFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
     int senderPort = packet.getPort();
@@ -166,7 +166,7 @@ public class UdpHexDecoder {
     timMetadata.setRecordType(RecordType.timMsg);
     timMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
     timMetadata.setSecurityResultCode(SecurityResultCode.success);
-    return JsonUtils.toJson(new OdeAsn1Data(timMetadata, timPayload), false);
+    return new OdeAsn1Data(timMetadata, timPayload);
   }
 
   /**

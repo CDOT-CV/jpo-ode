@@ -1,5 +1,7 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
@@ -68,7 +70,8 @@ public class Asn1DecodedDataRouter {
       id = "Asn1DecodedDataRouter",
       topics = "${ode.kafka.topics.asn1.decoder-output}"
   )
-  public void listen(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException {
+  public void listen(ConsumerRecord<String, String> consumerRecord)
+      throws XmlUtilsException, JsonProcessingException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
@@ -80,16 +83,22 @@ public class Asn1DecodedDataRouter {
             .getInt("messageId")
     );
 
+    var metadataJson = XmlUtils.toJSONObject(consumerRecord.value())
+        .getJSONObject(OdeAsn1Data.class.getSimpleName())
+        .getJSONObject(AppContext.METADATA_STRING);
     OdeLogMetadata.RecordType recordType = OdeLogMetadata.RecordType
-        .valueOf(XmlUtils.toJSONObject(consumerRecord.value())
-            .getJSONObject(OdeAsn1Data.class.getSimpleName())
-            .getJSONObject(AppContext.METADATA_STRING)
-            .getString("recordType")
-        );
+        .valueOf(metadataJson.getString("recordType"));
+
+    String serialId;
+    if (!Strings.isNullOrEmpty(consumerRecord.key()) && !"null".equalsIgnoreCase(consumerRecord.key())) {
+      serialId = consumerRecord.key();
+    } else {
+      serialId = metadataJson.getJSONObject("serialId").getString("streamId");
+    }
 
     switch (messageId) {
       case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
-      case TravelerInformation -> routeTIM(consumerRecord, recordType);
+      case TravelerInformation -> routeTIM(consumerRecord, serialId, recordType);
       case SPATMessage -> routeSPAT(consumerRecord, recordType);
       case MAPMessage -> routeMAP(consumerRecord, recordType);
       case SSMMessage -> routeSSM(consumerRecord, recordType);
@@ -156,7 +165,7 @@ public class Asn1DecodedDataRouter {
     kafkaTemplate.send(jsonTopics.getMap(), odeMapData);
   }
 
-  private void routeTIM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
+  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String serialId, RecordType recordType)
       throws XmlUtilsException {
     String odeTimData =
         OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
@@ -166,7 +175,7 @@ public class Asn1DecodedDataRouter {
       default -> log.trace("Consumed TIM data with record type: {}", recordType);
     }
     // Send all TIMs also to OdeTimJson
-    kafkaTemplate.send(jsonTopics.getTim(), consumerRecord.key(), odeTimData);
+    kafkaTemplate.send(jsonTopics.getTim(), serialId, odeTimData);
   }
 
   private void routeBSM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
