@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*=============================================================================
  * Copyright 2020 572682
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -33,18 +33,18 @@ import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 @EnableConfigurationProperties(value = {RsuProperties.class, SecurityServicesProperties.class})
 class RsuDepositorTest {
 
-    @Autowired
-    RsuProperties rsuProperties;
+  @Autowired
+  RsuProperties rsuProperties;
 
-    @Autowired
-    SecurityServicesProperties securityServicesProperties;
+  @Autowired
+  SecurityServicesProperties securityServicesProperties;
 
-    @Test
-    void testDeposit() {
-        RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.getIsRsuSigningEnabled());
-        OdeTravelerInputData mockOdeTravelerInputData = new OdeTravelerInputData();
+  @Test
+  void testDeposit() {
+    RsuDepositor testRsuDepositor = new RsuDepositor(rsuProperties, securityServicesProperties.getIsRsuSigningEnabled());
+    OdeTravelerInputData mockOdeTravelerInputData = new OdeTravelerInputData();
 
-        testRsuDepositor.deposit(mockOdeTravelerInputData.getRequest(), "message");
-        assertEquals(1, testRsuDepositor.getDepositorEntries().size());
-    }
+    testRsuDepositor.deposit(mockOdeTravelerInputData.getRequest(), "message");
+    assertEquals(1, testRsuDepositor.getDepositorEntries().size());
+  }
 }
