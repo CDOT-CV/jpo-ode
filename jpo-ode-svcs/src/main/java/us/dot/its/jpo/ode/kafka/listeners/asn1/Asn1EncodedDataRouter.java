@@ -23,14 +23,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
@@ -157,17 +155,15 @@ public class Asn1EncodedDataRouter {
 
     ServiceRequest request = getServicerequest(consumedObj);
 
-    JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
-    JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+    JSONObject payloadData = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
+    JSONObject metadataJson = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
-    if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
-      log.debug("Unsigned message received with key {}", consumerRecord.key());
-      processUnsignedMessage(request, consumedObj, dataObj, metadataObj);
+    if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
+      processUnsignedMessage(request, metadataJson, payloadData);
     } else if (dataSigningEnabledSDW && request.getSdw() != null) {
-      // We have encoded ASD. It could be either UNSECURED or secured.
-      processSignedMessage(request, dataObj);
+      processSignedMessage(request, payloadData);
     } else {
-      processEncodedTimUnsecured(request, consumedObj);
+      processEncodedTimUnsigned(request, metadataJson, payloadData);
     }
   }
 
@@ -186,8 +182,8 @@ public class Asn1EncodedDataRouter {
     return mapper.readValue(serviceRequestJson, ServiceRequest.class);
   }
 
-  private void processSignedMessage(@NonNull ServiceRequest request, @NonNull JSONObject dataObj) {
-    log.debug("Signed message received. Depositing it to SDW.");
+  private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
+
     // Case 3: We have an ASD with signed MessageFrame
     JSONObject asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
 
@@ -198,100 +194,61 @@ public class Asn1EncodedDataRouter {
   }
 
   private void processUnsignedMessage(ServiceRequest request,
-                                      JSONObject consumedObj,
-                                      JSONObject dataObj,
-                                      JSONObject metadataObj) {
-    JSONObject mfObj = dataObj.getJSONObject(MESSAGE_FRAME);
-    var hexEncodedTimBytes = mfObj.getString(BYTES);
+                                      JSONObject metadataJson,
+                                      JSONObject payloadJson) {
+    log.info("Processing unsigned message.");
+    JSONObject messageFrameJson = payloadJson.getJSONObject(MESSAGE_FRAME);
+    var hexEncodedTimBytes = messageFrameJson.getString(BYTES);
+
     // Case 1: SNMP-deposit
     if (dataSigningEnabledRSU && (request.getSdw() != null || request.getRsus() != null)) {
-      var signedTimWithExpiration = signTimWithExpiration(hexEncodedTimBytes, consumedObj);
+      var signedTimWithExpiration = signTimWithExpiration(hexEncodedTimBytes, metadataJson);
       kafkaTemplate.send(jsonTopics.getTimCertExpiration(), signedTimWithExpiration);
     }
 
     log.debug("Encoded message - phase 1: {}", hexEncodedTimBytes);
-    var encodedTimWithoutHeaders = stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, hexEncodedTimBytes);
+    var encodedTimWithoutHeaders = stripHeader(hexEncodedTimBytes);
 
-    if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTimBytes) {
+    if (null != request.getSnmp() && null != request.getRsus()) {
       log.info("Sending message to RSUs...");
       sendToRsus(request, encodedTimWithoutHeaders);
     }
 
-    depositToFilteredTopic(metadataObj, encodedTimWithoutHeaders);
+    depositToFilteredTopic(metadataJson, encodedTimWithoutHeaders);
     if (request.getSdw() != null) {
-      log.debug("Publishing message for round 2 encoding!");
+      log.debug("Publishing message for round 2 encoding");
       String asdPackagedTim = packageSignedTimIntoAsd(request, encodedTimWithoutHeaders);
 
       kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), asdPackagedTim);
     }
   }
 
-  private String stripHeaderFromUnsignedMessage(JSONObject consumedObj, JSONObject dataObj,
-                                                JSONObject mfObj, String hexEncodedTim) {
-    if (isHeaderPresent(hexEncodedTim)) {
-      String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
-      log.debug("Stripping header from unsigned message: {}", header);
-      hexEncodedTim = stripHeader(hexEncodedTim);
-      mfObj.remove(BYTES);
-      mfObj.put(BYTES, hexEncodedTim);
-      dataObj.remove(MESSAGE_FRAME);
-      dataObj.put(MESSAGE_FRAME, mfObj);
-      consumedObj.remove(AppContext.PAYLOAD_STRING);
-      consumedObj.put(AppContext.PAYLOAD_STRING, dataObj);
-    }
-    return hexEncodedTim;
-  }
-
-  /**
-   * Process the unsigned encoded TIM message.
-   *
-   * @param request     The service request
-   * @param consumedObj The consumed JSON object
-   */
-  private void processEncodedTimUnsecured(ServiceRequest request, JSONObject consumedObj) {
+  private void processEncodedTimUnsigned(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
     log.debug("Unsigned ASD received. Depositing it to SDW.");
-    // We have ASD with UNSECURED MessageFrame
-    // Send TIMs and record results
-    HashMap<String, String> responseList = new HashMap<>();
-    JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
-
-    JSONObject dataObj = consumedObj
-        .getJSONObject(AppContext.PAYLOAD_STRING)
-        .getJSONObject(AppContext.DATA_STRING);
 
     if (null != request.getSdw()) {
-      JSONObject asdObj = null;
-      if (dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
-        asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
-      } else {
-        log.error("ASD structure present in metadata but not in JSONObject!");
-      }
-
+      var asdObj = payloadJson.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
       if (null != asdObj) {
         depositToSdx(request, asdObj.getString(BYTES));
       } else {
-        log.error("ASN.1 Encoder did not return ASD encoding {}", consumedObj);
+        log.error("ASN.1 Encoder did not return ASD encoding {}", payloadJson);
       }
     }
 
-    if (dataObj.has(MESSAGE_FRAME)) {
-      JSONObject mfObj = dataObj.getJSONObject(MESSAGE_FRAME);
+    if (payloadJson.has(MESSAGE_FRAME)) {
+      JSONObject mfObj = payloadJson.getJSONObject(MESSAGE_FRAME);
       String encodedTim = mfObj.getString(BYTES);
 
-      depositToFilteredTopic(metadataObj, encodedTim);
+      depositToFilteredTopic(metadataJson, encodedTim);
 
-      var encodedTimWithoutHeader =
-          stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, encodedTim);
+      var encodedTimWithoutHeader = stripHeader(encodedTim);
       log.debug("Encoded message - phase 2: {}", encodedTimWithoutHeader);
 
       // only send message to rsu if snmp, rsus, and message frame fields are present
       if (null != request.getSnmp() && null != request.getRsus()) {
-        log.debug("Encoded message phase 3: {}", encodedTimWithoutHeader);
         sendToRsus(request, encodedTimWithoutHeader);
       }
     }
-
-    log.info("TIM deposit response {}", responseList);
   }
 
   private void depositToSdx(ServiceRequest request, String asdBytes) {
@@ -306,25 +263,18 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-  /**
-   * Sign the encoded TIM message, add expiration times, and return the JSON string.
-   *
-   * @param encodedTIM  The encoded TIM message to be signed
-   * @param consumedObj The JSON object to be consumed
-   */
-  private String signTimWithExpiration(String encodedTIM, JSONObject consumedObj) {
+  private String signTimWithExpiration(String encodedTIM, JSONObject metadataJson) {
     log.debug("Signing encoded TIM message...");
     String base64EncodedTim = CodecUtils.toBase64(
         CodecUtils.fromHex(encodedTIM));
 
-    JSONObject metadataObjs = consumedObj.getJSONObject(AppContext.METADATA_STRING);
     // get max duration time and convert from minutes to milliseconds (unsigned
     // integer valid 0 to 2^32-1 in units of
     // milliseconds.) from metadata
-    int maxDurationTime = Integer.parseInt(metadataObjs.get("maxDurationTime").toString())
+    int maxDurationTime = Integer.parseInt(metadataJson.get("maxDurationTime").toString())
         * 60 * 1000;
-    String packetId = metadataObjs.getString("odePacketID");
-    String timStartDateTime = metadataObjs.getString("odeTimStartDateTime");
+    String packetId = metadataJson.getString("odePacketID");
+    String timStartDateTime = metadataJson.getString("odeTimStartDateTime");
     log.debug("SENDING: {}", base64EncodedTim);
     String signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
 
@@ -451,7 +401,8 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-  private static void setExpiryDate(String signedResponse, JSONObject timWithExpiration,
+  private static void setExpiryDate(String signedResponse,
+                                    JSONObject timWithExpiration,
                                     SimpleDateFormat dateFormat) {
     try {
       JSONObject jsonResult = JsonUtils.toJSONObject(signedResponse).getJSONObject("result");
@@ -462,13 +413,6 @@ public class Asn1EncodedDataRouter {
       log.error("Unable to get expiration date from signed messages response ", e);
       timWithExpiration.put("expirationDate", "null");
     }
-  }
-
-  /**
-   * Checks if header is present in encoded message.
-   */
-  private boolean isHeaderPresent(String encodedTim) {
-    return encodedTim.contains("001F");
   }
 
   /**
