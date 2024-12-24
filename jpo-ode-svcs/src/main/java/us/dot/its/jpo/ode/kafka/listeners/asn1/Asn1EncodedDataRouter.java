@@ -16,6 +16,8 @@
 
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.text.ParseException;
@@ -84,6 +86,7 @@ public class Asn1EncodedDataRouter {
   private final JsonTopics jsonTopics;
   private final String sdxDepositTopic;
   private final ISecurityServicesClient securityServicesClient;
+  private final ObjectMapper mapper;
 
   private final OdeTimJsonTopology odeTimJsonTopology;
   private final RsuDepositor rsuDepositor;
@@ -97,15 +100,17 @@ public class Asn1EncodedDataRouter {
    * @param asn1CoderTopics            The specified ASN1 Coder topics
    * @param jsonTopics                 The specified JSON topics to write to
    * @param securityServicesProperties The security services properties to use
+   * @param mapper                     The ObjectMapper used for serialization/deserialization
    **/
   public Asn1EncodedDataRouter(Asn1CoderTopics asn1CoderTopics,
-      JsonTopics jsonTopics,
-      SecurityServicesProperties securityServicesProperties,
-      OdeTimJsonTopology odeTimJsonTopology,
-      RsuDepositor rsuDepositor,
-      ISecurityServicesClient securityServicesClient,
-      KafkaTemplate<String, String> kafkaTemplate,
-      @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic) {
+                               JsonTopics jsonTopics,
+                               SecurityServicesProperties securityServicesProperties,
+                               OdeTimJsonTopology odeTimJsonTopology,
+                               RsuDepositor rsuDepositor,
+                               ISecurityServicesClient securityServicesClient,
+                               KafkaTemplate<String, String> kafkaTemplate,
+                               @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic,
+                               ObjectMapper mapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
@@ -120,6 +125,7 @@ public class Asn1EncodedDataRouter {
     this.dataSigningEnabledRSU = securityServicesProperties.getIsRsuSigningEnabled();
 
     this.odeTimJsonTopology = odeTimJsonTopology;
+    this.mapper = mapper;
   }
 
   /**
@@ -137,38 +143,31 @@ public class Asn1EncodedDataRouter {
    *                       message.
    */
   @KafkaListener(id = "Asn1EncodedDataRouter", topics = "${ode.kafka.topics.asn1.encoder-output}")
-  public void listen(ConsumerRecord<String, String> consumerRecord) {
-    try {
-      log.debug("Consumed: {}", consumerRecord.value());
-      JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
-          .getJSONObject(OdeAsn1Data.class.getSimpleName());
+  public void listen(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException, JsonProcessingException {
+    log.debug("Consumed: {}", consumerRecord.value());
+    JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
+        .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
-      JSONObject metadata = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+    JSONObject metadata = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
-      if (metadata.has(TimTransmogrifier.REQUEST_STRING)) {
-        ServiceRequest request = getServicerequest(consumedObj);
+    if (!metadata.has(TimTransmogrifier.REQUEST_STRING)) {
+      log.error("Invalid or missing '{}' object in the encoder response", TimTransmogrifier.REQUEST_STRING);
+      return;
+    }
 
-        JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(
-            AppContext.DATA_STRING);
-        JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+    ServiceRequest request = getServicerequest(consumedObj);
 
-        if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
-          processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
-        } else {
-          // We have encoded ASD. It could be either UNSECURED or secured.
-          if (dataSigningEnabledSDW && request.getSdw() != null) {
-            processSignedMessage(request, dataObj);
-          } else {
-            processEncodedTimUnsecured(request, consumedObj);
-          }
-        }
-      } else {
-        throw new Asn1EncodedDataRouterException("Invalid or missing '"
-            + TimTransmogrifier.REQUEST_STRING + "' object in the encoder response");
-      }
-    } catch (Exception e) {
-      log.error("Error processing received message with key {} from ASN.1 Encoder module",
-          consumerRecord.key(), e);
+    JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(
+        AppContext.DATA_STRING);
+    JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+
+    if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
+      processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
+    } else if (dataSigningEnabledSDW && request.getSdw() != null) {
+      // We have encoded ASD. It could be either UNSECURED or secured.
+      processSignedMessage(request, dataObj);
+    } else {
+      processEncodedTimUnsecured(request, consumedObj);
     }
   }
 
@@ -177,21 +176,14 @@ public class Asn1EncodedDataRouter {
    * Gets the service request based on the consumed JSONObject.
    *
    * @param consumedObj The object to retrieve the service request for
+   *
    * @return The service request
    */
-  private ServiceRequest getServicerequest(JSONObject consumedObj) {
-    String sr = consumedObj.getJSONObject(AppContext.METADATA_STRING).getJSONObject(
-        TimTransmogrifier.REQUEST_STRING).toString();
-    log.debug("ServiceRequest: {}", sr);
-
-    ServiceRequest serviceRequest = null;
-    try {
-      serviceRequest = (ServiceRequest) JsonUtils.fromJson(sr, ServiceRequest.class);
-    } catch (Exception e) {
-      log.error("Unable to convert JSON to ServiceRequest", e);
-    }
-
-    return serviceRequest;
+  private ServiceRequest getServicerequest(JSONObject consumedObj) throws JsonProcessingException {
+    String serviceRequestJson = consumedObj.getJSONObject(AppContext.METADATA_STRING)
+        .getJSONObject(TimTransmogrifier.REQUEST_STRING).toString();
+    log.debug("ServiceRequest: {}", serviceRequestJson);
+    return mapper.readValue(serviceRequestJson, ServiceRequest.class);
   }
 
   private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
@@ -211,8 +203,8 @@ public class Asn1EncodedDataRouter {
   }
 
   private void processSNMPDepositOnly(ServiceRequest request, JSONObject consumedObj,
-      JSONObject dataObj,
-      JSONObject metadataObj) {
+                                      JSONObject dataObj,
+                                      JSONObject metadataObj) {
     log.debug("Unsigned message received");
     // We don't have ASD, therefore it must be just a MessageFrame that needs to be
     // signed
@@ -262,7 +254,7 @@ public class Asn1EncodedDataRouter {
   }
 
   private String stripHeaderFromUnsignedMessage(JSONObject consumedObj, JSONObject dataObj,
-      JSONObject mfObj, String hexEncodedTim) {
+                                                JSONObject mfObj, String hexEncodedTim) {
     if (isHeaderPresent(hexEncodedTim)) {
       String header = hexEncodedTim.substring(0, hexEncodedTim.indexOf("001F") + 4);
       log.debug("Stripping header from unsigned message: {}", header);
@@ -381,8 +373,9 @@ public class Asn1EncodedDataRouter {
    * @param request   the service request object containing meta information, service region,
    *                  delivery time, and other necessary data for ASD creation.
    * @param signedMsg the signed Traveler Information Message (TIM) to be included in the ASD.
+   *
    * @return a String containing the fully crafted ASD message in XML format. Returns null if the
-   *         message could not be constructed due to exceptions.
+   *     message could not be constructed due to exceptions.
    */
   private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
 
@@ -473,7 +466,7 @@ public class Asn1EncodedDataRouter {
   }
 
   private static void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
-      int maxDurationTime, JSONObject timWithExpiration) {
+                                            int maxDurationTime, JSONObject timWithExpiration) {
     try {
       Date timTimestamp = dateFormat.parse(timStartDateTime);
       Date requiredExpirationDate = new Date();
@@ -486,7 +479,7 @@ public class Asn1EncodedDataRouter {
   }
 
   private static void setExpiryDate(String signedResponse, JSONObject timWithExpiration,
-      SimpleDateFormat dateFormat) {
+                                    SimpleDateFormat dateFormat) {
     try {
       JSONObject jsonResult = JsonUtils.toJSONObject(signedResponse).getJSONObject("result");
       // messageExpiry uses unit of seconds

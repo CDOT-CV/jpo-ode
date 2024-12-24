@@ -19,6 +19,7 @@ package us.dot.its.jpo.ode.kafka.listeners.asn1;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -101,6 +102,8 @@ class Asn1EncodedDataRouterTest {
   RsuDepositor mockRsuDepositor;
   @Autowired
   OdeTimJsonTopology odeTimJsonTopology;
+  @Autowired
+  ObjectMapper objectMapper;
 
   private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
@@ -130,8 +133,8 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         mockRsuDepositor,
         mockSecServClient,
-        kafkaTemplate, sdxDepositorTopic
-    );
+        kafkaTemplate, sdxDepositorTopic,
+        objectMapper);
 
     final var container = setupListenerContainer(encoderRouter,
         "processSignedMessage_depositsToSdxTopicAndTimTmcFiltered"
@@ -184,8 +187,8 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         mockRsuDepositor,
         mockSecServClient,
-        kafkaTemplate, sdxDepositorTopic
-    );
+        kafkaTemplate, sdxDepositorTopic,
+        objectMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processSNMPDepositOnly");
 
@@ -278,8 +281,8 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         mockRsuDepositor,
         mockSecServClient,
-        kafkaTemplate, sdxDepositorTopic
-    );
+        kafkaTemplate, sdxDepositorTopic,
+        objectMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processEncodedTimUnsecured");
     var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
@@ -333,7 +336,13 @@ class Asn1EncodedDataRouterTest {
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
         .createContainer(asn1CoderTopics.getEncoderOutput());
     container.setupMessageListener(
-        (MessageListener<String, String>) encoderRouter::listen
+        (MessageListener<String, String>) consumerRecord -> {
+          try {
+            encoderRouter.listen(consumerRecord);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        }
     );
     container.setBeanName(containerName);
     container.start();
