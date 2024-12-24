@@ -26,11 +26,11 @@ import java.util.Date;
 import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
@@ -74,9 +74,6 @@ public class Asn1EncodedDataRouter {
    * Exception for Asn1EncodedDataRouter specific failures.
    */
   public static class Asn1EncodedDataRouterException extends Exception {
-
-    private static final long serialVersionUID = 1L;
-
     public Asn1EncodedDataRouterException(String string) {
       super(string);
     }
@@ -143,26 +140,29 @@ public class Asn1EncodedDataRouter {
    *                       message.
    */
   @KafkaListener(id = "Asn1EncodedDataRouter", topics = "${ode.kafka.topics.asn1.encoder-output}")
-  public void listen(ConsumerRecord<String, String> consumerRecord) throws XmlUtilsException, JsonProcessingException {
-    log.debug("Consumed: {}", consumerRecord.value());
+  public void listen(ConsumerRecord<String, String> consumerRecord)
+      throws XmlUtilsException, JsonProcessingException, Asn1EncodedDataRouterException {
     JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
     JSONObject metadata = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
     if (!metadata.has(TimTransmogrifier.REQUEST_STRING)) {
-      log.error("Invalid or missing '{}' object in the encoder response", TimTransmogrifier.REQUEST_STRING);
-      return;
+      throw new Asn1EncodedDataRouterException(
+          String.format("Invalid or missing '%s' object in the encoder response. Unable to process record with key '%s'",
+              TimTransmogrifier.REQUEST_STRING,
+              consumerRecord.key())
+      );
     }
 
     ServiceRequest request = getServicerequest(consumedObj);
 
-    JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(
-        AppContext.DATA_STRING);
+    JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
     JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
     if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
-      processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
+      log.debug("Unsigned message received with key {}", consumerRecord.key());
+      processUnsignedMessage(request, consumedObj, dataObj, metadataObj);
     } else if (dataSigningEnabledSDW && request.getSdw() != null) {
       // We have encoded ASD. It could be either UNSECURED or secured.
       processSignedMessage(request, dataObj);
@@ -186,68 +186,41 @@ public class Asn1EncodedDataRouter {
     return mapper.readValue(serviceRequestJson, ServiceRequest.class);
   }
 
-  private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
+  private void processSignedMessage(@NonNull ServiceRequest request, @NonNull JSONObject dataObj) {
     log.debug("Signed message received. Depositing it to SDW.");
-    // We have an ASD with signed MessageFrame
-    // Case 3
-    JSONObject asdObj = dataObj.getJSONObject(
-        ADVISORY_SITUATION_DATA_STRING);
-    try {
-      JSONObject deposit = new JSONObject();
-      deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
-      deposit.put("encodedMsg", asdObj.getString(BYTES));
-      kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
-    } catch (JSONException e) {
-      log.error(ERROR_ON_SDX_DEPOSIT, e);
-    }
+    // Case 3: We have an ASD with signed MessageFrame
+    JSONObject asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
+
+    JSONObject deposit = new JSONObject();
+    deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
+    deposit.put("encodedMsg", asdObj.getString(BYTES));
+    kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
   }
 
-  private void processSNMPDepositOnly(ServiceRequest request, JSONObject consumedObj,
+  private void processUnsignedMessage(ServiceRequest request,
+                                      JSONObject consumedObj,
                                       JSONObject dataObj,
                                       JSONObject metadataObj) {
-    log.debug("Unsigned message received");
-    // We don't have ASD, therefore it must be just a MessageFrame that needs to be
-    // signed
-    // No support for unsecured MessageFrame only payload.
-    // Cases 1 & 2
-    // Sign and send to RSUs
-
     JSONObject mfObj = dataObj.getJSONObject(MESSAGE_FRAME);
-
-    String hexEncodedTim = mfObj.getString(BYTES);
-    log.debug("Encoded message - phase 1: {}", hexEncodedTim);
-    // use ASN.1 library to decode the encoded tim returned from ASN.1; another
-    // class two blockers: decode the tim and decode the message-sign
-
+    var hexEncodedTimBytes = mfObj.getString(BYTES);
     // Case 1: SNMP-deposit
-    if (dataSigningEnabledRSU && request.getRsus() != null) {
-      hexEncodedTim = signTimWithExpiration(hexEncodedTim, consumedObj);
-      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), hexEncodedTim);
-    } else {
-      // if header is present, strip it
-      hexEncodedTim = stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, hexEncodedTim);
-    }
-
-    if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTim) {
-      log.info("Sending message to RSUs...");
-      sendToRsus(request, hexEncodedTim);
-    }
-
-    hexEncodedTim = mfObj.getString(BYTES);
-
-    // Case 2: SDX-deposit
-    if (dataSigningEnabledSDW && request.getSdw() != null) {
-      var signedTimWithExpiration = signTimWithExpiration(hexEncodedTim, consumedObj);
+    if (dataSigningEnabledRSU && (request.getSdw() != null || request.getRsus() != null)) {
+      var signedTimWithExpiration = signTimWithExpiration(hexEncodedTimBytes, consumedObj);
       kafkaTemplate.send(jsonTopics.getTimCertExpiration(), signedTimWithExpiration);
     }
 
-    // Deposit encoded & signed TIM to TMC-filtered topic if TMC-generated
-    depositToFilteredTopic(metadataObj, hexEncodedTim);
-    if (request.getSdw() != null) {
-      // Case 2 only
+    log.debug("Encoded message - phase 1: {}", hexEncodedTimBytes);
+    var encodedTimWithoutHeaders = stripHeaderFromUnsignedMessage(consumedObj, dataObj, mfObj, hexEncodedTimBytes);
 
+    if (null != request.getSnmp() && null != request.getRsus() && null != hexEncodedTimBytes) {
+      log.info("Sending message to RSUs...");
+      sendToRsus(request, encodedTimWithoutHeaders);
+    }
+
+    depositToFilteredTopic(metadataObj, encodedTimWithoutHeaders);
+    if (request.getSdw() != null) {
       log.debug("Publishing message for round 2 encoding!");
-      String asdPackagedTim = packageSignedTimIntoAsd(request, hexEncodedTim);
+      String asdPackagedTim = packageSignedTimIntoAsd(request, encodedTimWithoutHeaders);
 
       kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), asdPackagedTim);
     }
@@ -513,32 +486,25 @@ public class Asn1EncodedDataRouter {
   }
 
   private void depositToFilteredTopic(JSONObject metadataObj, String hexEncodedTim) {
-    try {
-      String generatedBy = metadataObj.getString("recordGeneratedBy");
-      String streamId = metadataObj.getJSONObject("serialId").getString("streamId");
-      if (!generatedBy.equalsIgnoreCase("TMC")) {
-        log.debug("Not a TMC-generated TIM. Skipping deposit to TMC-filtered topic.");
-        return;
-      }
+    String generatedBy = metadataObj.getString("recordGeneratedBy");
+    String streamId = metadataObj.getJSONObject("serialId").getString("streamId");
+    if (!generatedBy.equalsIgnoreCase("TMC")) {
+      log.debug("Not a TMC-generated TIM. Skipping deposit to TMC-filtered topic.");
+      return;
+    }
 
-      String timString = odeTimJsonTopology.query(streamId);
-      if (timString != null) {
-        // Set ASN1 data in TIM metadata
-        JSONObject timJSON = new JSONObject(timString);
-        JSONObject metadataJSON = timJSON.getJSONObject("metadata");
-        metadataJSON.put("asn1", hexEncodedTim);
-        timJSON.put("metadata", metadataJSON);
+    String timString = odeTimJsonTopology.query(streamId);
+    if (timString != null) {
+      // Set ASN1 data in TIM metadata
+      JSONObject timJSON = new JSONObject(timString);
+      JSONObject metadataJSON = timJSON.getJSONObject("metadata");
+      metadataJSON.put("asn1", hexEncodedTim);
+      timJSON.put("metadata", metadataJSON);
 
-        // Send the message w/ asn1 data to the TMC-filtered topic
-        kafkaTemplate.send(jsonTopics.getTimTmcFiltered(), timJSON.toString());
-      } else {
-        log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
-      }
-
-    } catch (JSONException e) {
-      log.error("Error while fetching recordGeneratedBy field: {}", e.getMessage());
-    } catch (Exception e) {
-      log.error("Error while updating TIM: {}", e.getMessage());
+      // Send the message w/ asn1 data to the TMC-filtered topic
+      kafkaTemplate.send(jsonTopics.getTimTmcFiltered(), timJSON.toString());
+    } else {
+      log.debug("TIM not found in k-table. Skipping deposit to TMC-filtered topic.");
     }
   }
 }

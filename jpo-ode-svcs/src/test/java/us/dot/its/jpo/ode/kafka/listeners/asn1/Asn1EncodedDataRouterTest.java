@@ -170,7 +170,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processSNMPDepositOnly() throws IOException {
+  void processUnsignedMessage() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimCertExpiration(),
@@ -190,7 +190,7 @@ class Asn1EncodedDataRouterTest {
         kafkaTemplate, sdxDepositorTopic,
         objectMapper);
 
-    final var container = setupListenerContainer(encoderRouter, "processSNMPDepositOnly");
+    final var container = setupListenerContainer(encoderRouter, "processUnsignedMessage");
 
     var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
     // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
@@ -206,12 +206,12 @@ class Asn1EncodedDataRouterTest {
     Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "processSNMPDepositOnly", "false", embeddedKafka);
+        "processUnsignedMessage", "false", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
 
     var timCertConsumer =
-        consumerFactory.createConsumer("timCertExpiration", "processSNMPDepositOnly");
+        consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessage");
     embeddedKafka.consumeFromAnEmbeddedTopic(timCertConsumer, jsonTopics.getTimCertExpiration());
     var expectedTimCertExpiry = loadResourceString("expected-tim-cert-expired.json");
     var timCertExpirationRecord =
@@ -219,7 +219,7 @@ class Asn1EncodedDataRouterTest {
     assertEquals(expectedTimCertExpiry, timCertExpirationRecord.value());
 
     var timTmcFilteredConsumer =
-        consumerFactory.createConsumer("timTmcFiltered", "processSNMPDepositOnly");
+        consumerFactory.createConsumer("timTmcFiltered", "processUnsignedMessage");
     embeddedKafka.consumeFromAnEmbeddedTopic(timTmcFilteredConsumer,
         jsonTopics.getTimTmcFiltered());
     var expectedTimTmcFiltered = loadResourceString("expected-tim-tmc-filtered.json");
@@ -236,7 +236,7 @@ class Asn1EncodedDataRouterTest {
     assertTrue(foundValidRecord);
 
     var encoderInputConsumer =
-        consumerFactory.createConsumer("encoderInput", "processSNMPDepositOnly");
+        consumerFactory.createConsumer("encoderInput", "processUnsignedMessage");
     embeddedKafka.consumeFromAnEmbeddedTopic(encoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     var expectedEncoderInput = loadResourceString("expected-asn1-encoded-router-snmp-deposit.xml");
@@ -253,7 +253,7 @@ class Asn1EncodedDataRouterTest {
     assertTrue(foundValidRecordInEncoderInput);
 
     container.stop();
-    log.debug("processSNMPDepositOnly container stopped");
+    log.debug("processUnsignedMessage container stopped");
   }
 
   private static String stripGeneratedFields(String expectedEncoderInput) {
