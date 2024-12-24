@@ -127,8 +127,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         mockRsuDepositor,
         mockSecServClient,
-        sdxDepositorTopic,
-        kafkaTemplate
+        kafkaTemplate, sdxDepositorTopic
     );
 
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
@@ -202,8 +201,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         mockRsuDepositor,
         mockSecServClient,
-        sdxDepositorTopic,
-        kafkaTemplate
+        kafkaTemplate, sdxDepositorTopic
     );
 
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
@@ -319,8 +317,7 @@ class Asn1EncodedDataRouterTest {
         odeTimJsonTopology,
         mockRsuDepositor,
         mockSecServClient,
-        sdxDepositorTopic,
-        kafkaTemplate
+        kafkaTemplate, sdxDepositorTopic
     );
 
     var container = kafkaConsumerConfig.kafkaListenerContainerFactory()

@@ -104,8 +104,8 @@ public class Asn1EncodedDataRouter {
       OdeTimJsonTopology odeTimJsonTopology,
       RsuDepositor rsuDepositor,
       ISecurityServicesClient securityServicesClient,
-      @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic,
-      KafkaTemplate<String, String> kafkaTemplate) {
+      KafkaTemplate<String, String> kafkaTemplate,
+      @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
