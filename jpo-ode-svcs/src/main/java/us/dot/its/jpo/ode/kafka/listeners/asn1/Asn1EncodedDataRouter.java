@@ -136,7 +136,7 @@ public class Asn1EncodedDataRouter {
    * @param consumerRecord The Kafka consumer record containing the key and value of the consumed
    *                       message.
    */
-  @KafkaListener(topics = "${ode.kafka.topics.asn1.encoder-output}")
+  @KafkaListener(id = "Asn1EncodedDataRouter", topics = "${ode.kafka.topics.asn1.encoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord) {
     try {
       log.debug("Consumed: {}", consumerRecord.value());
