@@ -89,17 +89,17 @@ public class Asn1DecodedDataRouter {
     OdeLogMetadata.RecordType recordType = OdeLogMetadata.RecordType
         .valueOf(metadataJson.getString("recordType"));
 
-    String serialId;
-    if (!Strings.isNullOrEmpty(consumerRecord.key())
-        && !"null".equalsIgnoreCase(consumerRecord.key())) {
-      serialId = consumerRecord.key();
+    String streamId;
+    if (Strings.isNullOrEmpty(consumerRecord.key())
+        || "null".equalsIgnoreCase(consumerRecord.key())) {
+      streamId = metadataJson.getJSONObject("serialId").getString("streamId");
     } else {
-      serialId = metadataJson.getJSONObject("serialId").getString("streamId");
+      streamId = consumerRecord.key();
     }
 
     switch (messageId) {
       case BasicSafetyMessage -> routeBSM(consumerRecord, recordType);
-      case TravelerInformation -> routeTIM(consumerRecord, serialId, recordType);
+      case TravelerInformation -> routeTIM(consumerRecord, streamId, recordType);
       case SPATMessage -> routeSPAT(consumerRecord, recordType);
       case MAPMessage -> routeMAP(consumerRecord, recordType);
       case SSMMessage -> routeSSM(consumerRecord, recordType);
@@ -166,18 +166,18 @@ public class Asn1DecodedDataRouter {
     kafkaTemplate.send(jsonTopics.getMap(), odeMapData);
   }
 
-  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String serialId,
-      RecordType recordType)
-      throws XmlUtilsException {
+  private void routeTIM(ConsumerRecord<String, String> consumerRecord,
+      String streamId,
+      RecordType type) throws XmlUtilsException {
     String odeTimData =
         OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
-    switch (recordType) {
+    switch (type) {
       case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
       case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
-      default -> log.trace("Consumed TIM data with record type: {}", recordType);
+      default -> log.trace("Consumed TIM data with record type: {}", type);
     }
     // Send all TIMs also to OdeTimJson
-    kafkaTemplate.send(jsonTopics.getTim(), serialId, odeTimData);
+    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
   }
 
   private void routeBSM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
