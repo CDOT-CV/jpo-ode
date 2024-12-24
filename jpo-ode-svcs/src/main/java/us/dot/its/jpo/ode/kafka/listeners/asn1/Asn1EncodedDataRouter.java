@@ -136,7 +136,7 @@ public class Asn1EncodedDataRouter {
    * @param consumerRecord The Kafka consumer record containing the key and value of the consumed
    *                       message.
    */
-  @KafkaListener(topics = "${ode.kafka.topics.asn1EncoderOutput}")
+  @KafkaListener(topics = "${ode.kafka.topics.asn1.encoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord) {
     try {
       log.debug("Consumed: {}", consumerRecord.value());
@@ -502,7 +502,7 @@ public class Asn1EncodedDataRouter {
    * Checks if header is present in encoded message.
    */
   private boolean isHeaderPresent(String encodedTim) {
-    return encodedTim.indexOf("001F") > 0;
+    return encodedTim.contains("001F");
   }
 
   /**
