@@ -48,6 +48,7 @@ import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
+import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
@@ -396,7 +397,7 @@ public class Asn1EncodedDataRouter {
       requiredExpirationDate.setTime(timTimestamp.getTime() + maxDurationTime);
       timWithExpiration.put("requiredExpirationDate", dateFormat.format(requiredExpirationDate));
     } catch (Exception e) {
-      log.error("Unable to parse requiredExpirationDate ", e);
+      log.error("Unable to parse requiredExpirationDate. Setting requiredExpirationDate to 'null'", e);
       timWithExpiration.put("requiredExpirationDate", "null");
     }
   }
@@ -410,7 +411,7 @@ public class Asn1EncodedDataRouter {
       long messageExpiry = Long.parseLong(jsonResult.getString("message-expiry"));
       timWithExpiration.put("expirationDate", dateFormat.format(new Date(messageExpiry * 1000)));
     } catch (Exception e) {
-      log.error("Unable to get expiration date from signed messages response ", e);
+      log.error("Unable to get expiration date from signed messages response. Setting expirationData to 'null'", e);
       timWithExpiration.put("expirationDate", "null");
     }
   }
@@ -420,7 +421,7 @@ public class Asn1EncodedDataRouter {
    */
   private String stripHeader(String encodedUnsignedTim) {
     // find 001F hex value
-    int index = encodedUnsignedTim.indexOf("001F");
+    int index = encodedUnsignedTim.indexOf(SupportedMessageType.TIM.getStartFlag());
     if (index == -1) {
       log.warn("No '001F' hex value found in encoded message");
       return encodedUnsignedTim;
