@@ -1,6 +1,5 @@
 package us.dot.its.jpo.ode;
 
-import java.time.Duration;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -50,16 +49,6 @@ public class OdeTimJsonTopology {
         log.info("Transitioning from {} to {}", oldState, newState)
     );
     streams.start();
-  }
-
-  /**
-   * Stops the Ode Tim Json Topology by gracefully shutting down streams.
-   */
-  public void stop() {
-    log.info("Stopping Ode Tim Json Topology");
-    streams.close(Duration.ofMillis(250));
-    streams.cleanUp();
-    log.info("Stopped Ode Tim Json Topology");
   }
 
   public boolean isRunning() {
