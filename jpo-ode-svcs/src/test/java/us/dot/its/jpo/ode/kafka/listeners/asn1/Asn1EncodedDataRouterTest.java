@@ -42,6 +42,7 @@ import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
+import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestKafkaStreamsConfig;
@@ -68,6 +69,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
     classes = {
         OdeKafkaProperties.class,
         KafkaProducerConfig.class,
+        SerializationConfig.class,
         KafkaProperties.class,
         KafkaConsumerConfig.class,
         TestKafkaStreamsConfig.class,
