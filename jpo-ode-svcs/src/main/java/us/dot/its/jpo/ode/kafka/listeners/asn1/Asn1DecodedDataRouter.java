@@ -32,8 +32,8 @@ import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
  * processing and forwarding it to different topics based on specific criteria.
  *
  * <p>This listener is specifically designed to handle decoded data produced by the asn1_codec.
- * Upon receiving a payload, it transforms the payload and then determines the appropriate
- * Kafka topic to forward the processed data.</p>
+ * Upon receiving a payload, it transforms the payload and then determines the appropriate Kafka
+ * topic to forward the processed data.</p>
  *
  * <p>The class utilizes Spring Kafka's annotation-driven listener configuration,
  * allowing it to automatically consume messages from a configured Kafka topic.</p>
@@ -90,7 +90,8 @@ public class Asn1DecodedDataRouter {
         .valueOf(metadataJson.getString("recordType"));
 
     String serialId;
-    if (!Strings.isNullOrEmpty(consumerRecord.key()) && !"null".equalsIgnoreCase(consumerRecord.key())) {
+    if (!Strings.isNullOrEmpty(consumerRecord.key())
+        && !"null".equalsIgnoreCase(consumerRecord.key())) {
       serialId = consumerRecord.key();
     } else {
       serialId = metadataJson.getJSONObject("serialId").getString("streamId");
@@ -165,7 +166,8 @@ public class Asn1DecodedDataRouter {
     kafkaTemplate.send(jsonTopics.getMap(), odeMapData);
   }
 
-  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String serialId, RecordType recordType)
+  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String serialId,
+      RecordType recordType)
       throws XmlUtilsException {
     String odeTimData =
         OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();

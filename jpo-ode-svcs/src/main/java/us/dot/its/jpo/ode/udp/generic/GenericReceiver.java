@@ -108,7 +108,8 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         if (timJson != null) {
           // We need to include the serialID as the key when publishing TIMs. Otherwise, the
           // OdeTimJsonTopology won't work as intended.
-          publisher.send(rawEncodedJsonTopics.getTim(), tim.getMetadata().getSerialId().toString(), timJson);
+          publisher.send(rawEncodedJsonTopics.getTim(), tim.getMetadata().getSerialId().toString(),
+              timJson);
         }
       }
       case "BSM" -> {
