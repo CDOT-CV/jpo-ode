@@ -113,14 +113,6 @@ class Asn1EncodedDataRouterTest {
     return json.toString();
   };
 
-  private static String loadResourceString(String name)
-      throws IOException {
-    InputStream inputStream;
-    inputStream = Asn1EncodedDataRouterTest.class.getClassLoader().getResourceAsStream(name);
-    assert inputStream != null;
-    return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-  }
-
   @Test
   void processSignedMessage_depositsToSdxTopicAndTimTmcFiltered() throws IOException {
     String[] topicsForConsumption = {
@@ -145,15 +137,13 @@ class Asn1EncodedDataRouterTest {
         "processSignedMessage_depositsToSdxTopicAndTimTmcFiltered"
     );
 
-    var odeJsonTim = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-tim-json.json");
+    var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
 
     // send to tim topic so that the OdeTimJsonTopology k-table has the correct record to return
     var streamId = "266e6742-40fb-4c9e-a6b0-72ed2dddddfe";
     kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
 
-    var input = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim.xml");
+    var input = loadResourceString("asn1-encoder-output-unsigned-tim.xml");
     var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
     Awaitility.await().until(completableFuture::isDone);
 
@@ -161,8 +151,7 @@ class Asn1EncodedDataRouterTest {
         createTestConsumer("processSignedMessage_depositsToSdxTopicAndTimTmcFiltered");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
-    var expected = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-sdx-deposit.json");
+    var expected = loadResourceString("expected-asn1-encoded-router-sdx-deposit.json");
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records.records(sdxDepositorTopic);
@@ -200,16 +189,14 @@ class Asn1EncodedDataRouterTest {
 
     final var container = setupListenerContainer(encoderRouter, "processSNMPDepositOnly");
 
-    var odeJsonTim = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-tim-json.json");
+    var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
     // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
     var streamId = UUID.randomUUID().toString();
     odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     var topologySendFuture = kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
     Awaitility.await().until(topologySendFuture::isDone);
 
-    var input = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim-no-advisory-data.xml");
+    var input = loadResourceString("asn1-encoder-output-unsigned-tim-no-advisory-data.xml");
     input = replaceStreamId(input, streamId);
 
     var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
@@ -223,8 +210,7 @@ class Asn1EncodedDataRouterTest {
     var timCertConsumer =
         consumerFactory.createConsumer("timCertExpiration", "processSNMPDepositOnly");
     embeddedKafka.consumeFromAnEmbeddedTopic(timCertConsumer, jsonTopics.getTimCertExpiration());
-    var expectedTimCertExpiry = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-tim-cert-expired.json");
+    var expectedTimCertExpiry = loadResourceString("expected-tim-cert-expired.json");
     var timCertExpirationRecord =
         KafkaTestUtils.getSingleRecord(timCertConsumer, jsonTopics.getTimCertExpiration());
     assertEquals(expectedTimCertExpiry, timCertExpirationRecord.value());
@@ -233,8 +219,7 @@ class Asn1EncodedDataRouterTest {
         consumerFactory.createConsumer("timTmcFiltered", "processSNMPDepositOnly");
     embeddedKafka.consumeFromAnEmbeddedTopic(timTmcFilteredConsumer,
         jsonTopics.getTimTmcFiltered());
-    var expectedTimTmcFiltered = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-tim-tmc-filtered.json");
+    var expectedTimTmcFiltered = loadResourceString("expected-tim-tmc-filtered.json");
     var records = KafkaTestUtils.getRecords(timTmcFilteredConsumer);
     expectedTimTmcFiltered =
         expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
@@ -251,8 +236,7 @@ class Asn1EncodedDataRouterTest {
         consumerFactory.createConsumer("encoderInput", "processSNMPDepositOnly");
     embeddedKafka.consumeFromAnEmbeddedTopic(encoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    var expectedEncoderInput = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-snmp-deposit.xml");
+    var expectedEncoderInput = loadResourceString("expected-asn1-encoded-router-snmp-deposit.xml");
     var expectedEncoderInputWithStableFieldsOnly = stripGeneratedFields(expectedEncoderInput);
     var foundValidRecordInEncoderInput = false;
     var encoderInputRecords = KafkaTestUtils.getRecords(encoderInputConsumer);
@@ -298,24 +282,21 @@ class Asn1EncodedDataRouterTest {
     );
 
     final var container = setupListenerContainer(encoderRouter, "processEncodedTimUnsecured");
-    var odeJsonTim = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-tim-json.json");
+    var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
 
     // send to tim topic so that the OdeTimJsonTopology ktable has the correct record to return
     var streamId = UUID.randomUUID().toString();
     odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
 
-    var input = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/asn1-encoder-output-unsigned-tim.xml");
+    var input = loadResourceString("asn1-encoder-output-unsigned-tim.xml");
     input = replaceStreamId(input, streamId);
     kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
 
     var testConsumer = createTestConsumer("processEncodedTimUnsecured");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
-    var expected = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-asn1-encoded-router-sdx-deposit.json");
+    var expected = loadResourceString("expected-asn1-encoded-router-sdx-deposit.json");
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records
@@ -326,8 +307,7 @@ class Asn1EncodedDataRouterTest {
       }
     }
 
-    var expectedTimTmcFiltered = loadResourceString(
-        "us/dot/its/jpo/ode/services/asn1/expected-tim-tmc-filtered.json");
+    var expectedTimTmcFiltered = loadResourceString("expected-tim-tmc-filtered.json");
     expectedTimTmcFiltered =
         expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
 
@@ -368,5 +348,15 @@ class Asn1EncodedDataRouterTest {
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     return consumerFactory.createConsumer();
+  }
+
+  private static String loadResourceString(String name)
+      throws IOException {
+    String resourcePackagePath = "us/dot/its/jpo/ode/kafka/listeners/asn1/";
+    InputStream inputStream;
+    inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
+        .getResourceAsStream(resourcePackagePath + name);
+    assert inputStream != null;
+    return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
   }
 }
