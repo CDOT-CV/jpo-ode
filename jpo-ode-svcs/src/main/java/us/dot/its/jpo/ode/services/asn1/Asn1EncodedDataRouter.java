@@ -140,20 +140,34 @@ public class Asn1EncodedDataRouter {
   public void listen(ConsumerRecord<String, String> consumerRecord) {
     try {
       log.debug("Consumed: {}", consumerRecord.value());
-      JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value()).getJSONObject(
-          OdeAsn1Data.class.getSimpleName());
+      JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
+          .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
       JSONObject metadata = consumedObj.getJSONObject(AppContext.METADATA_STRING);
 
       if (metadata.has(TimTransmogrifier.REQUEST_STRING)) {
-        ServiceRequest servicerequest = getServicerequest(consumedObj);
-        processEncodedTim(servicerequest, consumedObj);
+        ServiceRequest request = getServicerequest(consumedObj);
+
+        JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(
+            AppContext.DATA_STRING);
+        JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+
+        if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
+          processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
+        } else {
+          // We have encoded ASD. It could be either UNSECURED or secured.
+          if (dataSigningEnabledSDW && request.getSdw() != null) {
+            processSignedMessage(request, dataObj);
+          } else {
+            processEncodedTimUnsecured(request, consumedObj);
+          }
+        }
       } else {
         throw new Asn1EncodedDataRouterException("Invalid or missing '"
             + TimTransmogrifier.REQUEST_STRING + "' object in the encoder response");
       }
     } catch (Exception e) {
-      log.error("Error in processing received message with key {} from ASN.1 Encoder module",
+      log.error("Error processing received message with key {} from ASN.1 Encoder module",
           consumerRecord.key(), e);
     }
   }
@@ -165,7 +179,7 @@ public class Asn1EncodedDataRouter {
    * @param consumedObj The object to retrieve the service request for
    * @return The service request
    */
-  public ServiceRequest getServicerequest(JSONObject consumedObj) {
+  private ServiceRequest getServicerequest(JSONObject consumedObj) {
     String sr = consumedObj.getJSONObject(AppContext.METADATA_STRING).getJSONObject(
         TimTransmogrifier.REQUEST_STRING).toString();
     log.debug("ServiceRequest: {}", sr);
@@ -178,30 +192,6 @@ public class Asn1EncodedDataRouter {
     }
 
     return serviceRequest;
-  }
-
-  /**
-   * Process the signed encoded TIM message.
-   *
-   * @param request     The service request
-   * @param consumedObj The consumed JSON object
-   */
-  public void processEncodedTim(ServiceRequest request, JSONObject consumedObj) {
-
-    JSONObject dataObj = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(
-        AppContext.DATA_STRING);
-    JSONObject metadataObj = consumedObj.getJSONObject(AppContext.METADATA_STRING);
-
-    if (!dataObj.has(ADVISORY_SITUATION_DATA_STRING)) {
-      processSNMPDepositOnly(request, consumedObj, dataObj, metadataObj);
-    } else {
-      // We have encoded ASD. It could be either UNSECURED or secured.
-      if (dataSigningEnabledSDW && request.getSdw() != null) {
-        processSignedMessage(request, dataObj);
-      } else {
-        processEncodedTimUnsecured(request, consumedObj);
-      }
-    }
   }
 
   private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
@@ -293,7 +283,7 @@ public class Asn1EncodedDataRouter {
    * @param request     The service request
    * @param consumedObj The consumed JSON object
    */
-  public void processEncodedTimUnsecured(ServiceRequest request, JSONObject consumedObj) {
+  private void processEncodedTimUnsecured(ServiceRequest request, JSONObject consumedObj) {
     log.debug("Unsigned ASD received. Depositing it to SDW.");
     // We have ASD with UNSECURED MessageFrame
     // Send TIMs and record results
@@ -394,7 +384,7 @@ public class Asn1EncodedDataRouter {
    * @return a String containing the fully crafted ASD message in XML format. Returns null if the
    *         message could not be constructed due to exceptions.
    */
-  public String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
+  private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) {
 
     SDW sdw = request.getSdw();
     SNMP snmp = request.getSnmp();
