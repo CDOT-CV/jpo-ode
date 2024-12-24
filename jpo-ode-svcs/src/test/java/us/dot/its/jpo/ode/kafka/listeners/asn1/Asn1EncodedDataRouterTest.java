@@ -14,7 +14,7 @@
  * the License.
  ******************************************************************************/
 
-package us.dot.its.jpo.ode.services.asn1;
+package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
