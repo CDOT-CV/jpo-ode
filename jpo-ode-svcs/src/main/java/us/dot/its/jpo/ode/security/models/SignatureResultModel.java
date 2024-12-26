@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.security;
+package us.dot.its.jpo.ode.security.models;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
