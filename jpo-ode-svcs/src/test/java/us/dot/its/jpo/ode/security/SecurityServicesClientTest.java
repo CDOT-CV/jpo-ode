@@ -22,7 +22,6 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.http.WebClientConfig;
-import us.dot.its.jpo.ode.security.configuration.SecurityServicesProperties;
 import us.dot.its.jpo.ode.security.models.SignatureRequestModel;
 import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 
@@ -72,76 +71,4 @@ class SecurityServicesClientTest {
     SignatureResultModel result = securityServicesClient.signMessage(message, expiryTimeInSeconds);
     assertEquals(expectedResult, result);
   }
-//
-//  @Test
-//  void testSignMessage_EmptyMessage() {
-//    // Arrange
-//    RestTemplate mockRestTemplate = Mockito.mock(RestTemplate.class);
-//    String signatureUri = "http://example.com/signature";
-//    String message = "";
-//    int sigValidityOverride = 10;
-//    String mockResponse = "{\"result\":\"mockedResponseEmptyMessage\"}";
-//
-//    SecurityServicesClient client = new SecurityServicesClient(restTemplate, signatureUri);
-//    SignatureResultModel expectedResult = new SignatureResultModel();
-//
-//    ResponseEntity<String> responseEntity = ResponseEntity.ok(mockResponse);
-//
-//    when(mockRestTemplate.postForEntity(eq(signatureUri), any(HttpEntity.class), eq(String.class)))
-//        .thenReturn(responseEntity);
-//    when(mapper.convertValue(mockResponse, SignatureResultModel.class))
-//        .thenReturn(expectedResult);
-//
-//    // Act
-//    SignatureResultModel result = client.signMessage(message, sigValidityOverride);
-//
-//    // Assert
-//    assertNotNull(result);
-//    assertEquals(expectedResult, result);
-//  }
-//
-//  @Test
-//  void testSignMessage_InvalidSignatureUri() {
-//    // Arrange
-//    RestTemplate mockRestTemplate = Mockito.mock(RestTemplate.class);
-//    String signatureUri = "http://invaliduri/signature";
-//    String message = "TestMessage";
-//    int sigValidityOverride = 10;
-//
-//    SecurityServicesClient client = new SecurityServicesClient(restTemplate, signatureUri);
-//
-//    when(mockRestTemplate.postForEntity(eq(signatureUri), any(HttpEntity.class), eq(String.class)))
-//        .thenThrow(new RuntimeException("Invalid URI"));
-//
-//    // Act & Assert
-//    try {
-//      client.signMessage(message, sigValidityOverride);
-//    } catch (RuntimeException e) {
-//      assertEquals("Invalid URI", e.getMessage());
-//    }
-//  }
-//
-//  @Test
-//  void testSignMessage_NullResponseBody() {
-//    // Arrange
-//    RestTemplate mockRestTemplate = Mockito.mock(RestTemplate.class);
-//    String signatureUri = "http://example.com/signature";
-//    String message = "TestMessage";
-//    int sigValidityOverride = 10;
-//
-//    SecurityServicesClient client = new SecurityServicesClient(restTemplate, signatureUri);
-//
-//    ResponseEntity<String> responseEntity = ResponseEntity.ok(null);
-//
-//    when(mockRestTemplate.postForEntity(eq(signatureUri), any(HttpEntity.class), eq(String.class)))
-//        .thenReturn(responseEntity);
-//
-//    // Act & Assert
-//    try {
-//      client.signMessage(message, sigValidityOverride);
-//    } catch (NullPointerException e) {
-//      assertNotNull(e.getMessage());
-//    }
-//  }
-
 }

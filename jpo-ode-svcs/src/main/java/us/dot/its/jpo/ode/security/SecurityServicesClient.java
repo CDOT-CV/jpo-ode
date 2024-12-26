@@ -7,7 +7,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import us.dot.its.jpo.ode.security.configuration.SecurityServicesProperties;
 import us.dot.its.jpo.ode.security.models.SignatureRequestModel;
 import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 
