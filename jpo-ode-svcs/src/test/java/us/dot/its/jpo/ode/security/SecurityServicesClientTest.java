@@ -42,6 +42,8 @@ class SecurityServicesClientTest {
   private RestTemplate restTemplate;
   @Autowired
   private SecurityServicesClient securityServicesClient;
+  @Autowired
+  private SecurityServicesProperties securityServicesProperties;
 
   private MockRestServiceServer mockServer;
   private final Clock clock = Clock.fixed(Instant.parse("2024-12-26T23:53:21.120Z"), ZoneId.of("UTC"));
@@ -66,7 +68,7 @@ class SecurityServicesClientTest {
     var expiryTimeInSeconds = (int) clock.instant().plusSeconds(3600).getEpochSecond();
     signatureRequestModel.setSigValidityOverride(expiryTimeInSeconds);
 
-    mockServer.expect(ExpectedCount.once(), requestTo("http://localhost:8090/sign"))
+    mockServer.expect(ExpectedCount.once(), requestTo(securityServicesProperties.getSignatureEndpoint()))
         .andRespond(withSuccess(objectMapper.writeValueAsString(expectedResult), MediaType.APPLICATION_JSON));
 
     SignatureResultModel result = securityServicesClient.signMessage(message, expiryTimeInSeconds);
@@ -79,7 +81,7 @@ class SecurityServicesClientTest {
     String message = "NullResponseTest";
     var expiryTimeInSeconds = (int) clock.instant().plusSeconds(3600).getEpochSecond();
 
-    mockServer.expect(ExpectedCount.once(), requestTo("http://localhost:8090/sign"))
+    mockServer.expect(ExpectedCount.once(), requestTo(securityServicesProperties.getSignatureEndpoint()))
         .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
 
     // Act
