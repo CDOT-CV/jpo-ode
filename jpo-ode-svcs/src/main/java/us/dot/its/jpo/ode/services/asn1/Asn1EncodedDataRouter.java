@@ -131,14 +131,6 @@ public class Asn1EncodedDataRouter {
   /**
    * Listens for messages from the specified Kafka topic and processes them.
    *
-   * <p>Cases:
-   * - CASE 1: no SDW in metadata (SNMP deposit only) - sign MF - send to RSU - CASE 2: SDW in
-   * metadata but no ASD in body (send back for another encoding) - sign MF - send to RSU - craft
-   * ASD object - publish back to encoder stream - CASE 3: If SDW in metadata and ASD in body
-   * (double encoding complete) - send to SDX
-   *
-   * </p>
-   *
    * @param consumerRecord The Kafka consumer record containing the key and value of the consumed
    *                       message.
    */
@@ -171,20 +163,13 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-
-  /**
-   * Gets the service request based on the consumed JSONObject.
-   *
-   * @param metadataJson The metadata JSON object to retrieve the service request for
-   *
-   * @return The service request
-   */
   private ServiceRequest getServiceRequest(JSONObject metadataJson) throws JsonProcessingException {
     String serviceRequestJson = metadataJson.getJSONObject(TimTransmogrifier.REQUEST_STRING).toString();
     log.debug("ServiceRequest: {}", serviceRequestJson);
     return mapper.readValue(serviceRequestJson, ServiceRequest.class);
   }
 
+  // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
   private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
 
     // Case 3: We have an ASD with signed MessageFrame
@@ -196,6 +181,7 @@ public class Asn1EncodedDataRouter {
     kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
   }
 
+  // no SDW in metadata (SNMP deposit only) -> sign MF -> send to RSU
   private void processUnsignedMessage(ServiceRequest request,
                                       JSONObject metadataJson,
                                       JSONObject payloadJson) {
@@ -217,6 +203,8 @@ public class Asn1EncodedDataRouter {
     publishForSecondEncoding(request, encodedTimWithoutHeaders);
   }
 
+  // SDW in metadata but no ASD in body (send back for another encoding) -> sign MessageFrame
+  // -> send to RSU -> craft ASD object -> publish back to encoder stream
   private void processEncodedTimUnsigned(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
     log.debug("Unsigned ASD received. Depositing it to SDW.");
 
