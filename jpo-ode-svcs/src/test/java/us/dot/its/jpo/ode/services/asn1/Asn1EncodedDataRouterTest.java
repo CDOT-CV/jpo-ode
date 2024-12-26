@@ -56,7 +56,7 @@ import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
-import us.dot.its.jpo.ode.security.SignatureResultModel;
+import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
 @Slf4j
