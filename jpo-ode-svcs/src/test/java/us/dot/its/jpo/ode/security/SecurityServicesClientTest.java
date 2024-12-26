@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
@@ -70,5 +71,21 @@ class SecurityServicesClientTest {
 
     SignatureResultModel result = securityServicesClient.signMessage(message, expiryTimeInSeconds);
     assertEquals(expectedResult, result);
+  }
+
+  @Test
+  void testSignMessage_WithNullResponse() {
+    // Arrange
+    String message = "NullResponseTest";
+    var expiryTimeInSeconds = (int) clock.instant().plusSeconds(3600).getEpochSecond();
+
+    mockServer.expect(ExpectedCount.once(), requestTo("http://localhost:8090/sign"))
+        .andRespond(withSuccess("", MediaType.APPLICATION_JSON));
+
+    // Act
+    SignatureResultModel result = securityServicesClient.signMessage(message, expiryTimeInSeconds);
+
+    // Assert
+    assertNull(result);
   }
 }

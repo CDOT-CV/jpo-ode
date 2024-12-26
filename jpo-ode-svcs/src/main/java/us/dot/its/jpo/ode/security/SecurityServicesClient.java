@@ -6,6 +6,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.security.models.SignatureRequestModel;
 import us.dot.its.jpo.ode.security.models.SignatureResultModel;
@@ -27,7 +28,7 @@ public class SecurityServicesClient implements ISecurityServicesClient {
   }
 
   @Override
-  public SignatureResultModel signMessage(String message, int sigValidityOverride) {
+  public SignatureResultModel signMessage(String message, int sigValidityOverride) throws RestClientException {
     log.info("Sending data to security services module at {} with validity override {} to be signed", signatureUri, sigValidityOverride);
 
     HttpHeaders headers = new HttpHeaders();
