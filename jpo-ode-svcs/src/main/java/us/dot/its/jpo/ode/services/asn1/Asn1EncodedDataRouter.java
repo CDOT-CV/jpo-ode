@@ -172,7 +172,6 @@ public class Asn1EncodedDataRouter {
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
   private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
 
-    // Case 3: We have an ASD with signed MessageFrame
     JSONObject asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
 
     JSONObject deposit = new JSONObject();
@@ -189,7 +188,6 @@ public class Asn1EncodedDataRouter {
     JSONObject messageFrameJson = payloadJson.getJSONObject(MESSAGE_FRAME);
     var hexEncodedTimBytes = messageFrameJson.getString(BYTES);
 
-    // Case 1: SNMP-deposit
     if (dataSigningEnabledRSU && (request.getSdw() != null || request.getRsus() != null)) {
       var signedTimWithExpiration = signTimWithExpiration(hexEncodedTimBytes, metadataJson);
       kafkaTemplate.send(jsonTopics.getTimCertExpiration(), signedTimWithExpiration);
