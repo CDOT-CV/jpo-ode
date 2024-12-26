@@ -158,10 +158,9 @@ public class Asn1EncodedDataRouter {
       );
     }
 
-    ServiceRequest request = getServicerequest(consumedObj);
-
     JSONObject payloadData = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
     JSONObject metadataJson = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+    ServiceRequest request = getServiceRequest(metadataJson);
 
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
@@ -176,13 +175,12 @@ public class Asn1EncodedDataRouter {
   /**
    * Gets the service request based on the consumed JSONObject.
    *
-   * @param consumedObj The object to retrieve the service request for
+   * @param metadataJson The metadata JSON object to retrieve the service request for
    *
    * @return The service request
    */
-  private ServiceRequest getServicerequest(JSONObject consumedObj) throws JsonProcessingException {
-    String serviceRequestJson = consumedObj.getJSONObject(AppContext.METADATA_STRING)
-        .getJSONObject(TimTransmogrifier.REQUEST_STRING).toString();
+  private ServiceRequest getServiceRequest(JSONObject metadataJson) throws JsonProcessingException {
+    String serviceRequestJson = metadataJson.getJSONObject(TimTransmogrifier.REQUEST_STRING).toString();
     log.debug("ServiceRequest: {}", serviceRequestJson);
     return mapper.readValue(serviceRequestJson, ServiceRequest.class);
   }
