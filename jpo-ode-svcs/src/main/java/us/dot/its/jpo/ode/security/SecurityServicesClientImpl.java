@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.security;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +19,15 @@ import org.springframework.web.client.RestTemplate;
 public class SecurityServicesClientImpl implements ISecurityServicesClient {
 
   private final String signatureUri;
+  private final ObjectMapper mapper;
 
-  public SecurityServicesClientImpl(String signatureUri) {
+  public SecurityServicesClientImpl(ObjectMapper mapper, String signatureUri) {
+    this.mapper = mapper;
     this.signatureUri = signatureUri;
   }
 
   @Override
-  public String signMessage(String message, int sigValidityOverride) {
+  public SignatureResultModel signMessage(String message, int sigValidityOverride) {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     Map<String, String> map = new HashMap<>();
@@ -42,6 +45,6 @@ public class SecurityServicesClientImpl implements ISecurityServicesClient {
 
     log.debug("Security services module response: {}", respEntity);
 
-    return respEntity.getBody();
+    return mapper.convertValue(respEntity.getBody(), SignatureResultModel.class);
   }
 }

@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +56,7 @@ import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
+import us.dot.its.jpo.ode.security.SignatureResultModel;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
 @Slf4j
@@ -111,12 +111,10 @@ class Asn1EncodedDataRouterTest {
   private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   private final ISecurityServicesClient mockSecServClient = (message, sigValidityOverride) -> {
-    JSONObject json = new JSONObject();
-    JSONObject result = new JSONObject();
-    result.put("message-signed", "<%s>".formatted(message));
-    result.put("message-expiry", "123124124124124141");
-    json.put("result", result);
-    return json.toString();
+    var signatureResponse = new SignatureResultModel();
+    signatureResponse.getResult().setMessageSigned("<%s>".formatted(message));
+    signatureResponse.getResult().setMessageExpiry(123124124124124141L);
+    return signatureResponse;
   };
 
   @Test

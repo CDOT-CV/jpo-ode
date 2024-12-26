@@ -6,5 +6,5 @@ package us.dot.its.jpo.ode.security;
  */
 public interface ISecurityServicesClient {
 
-  public String signMessage(String message, int sigValidityOverride);
+  public SignatureResultModel signMessage(String message, int sigValidityOverride);
 }

@@ -48,10 +48,10 @@ import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.ISecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
+import us.dot.its.jpo.ode.security.SignatureResultModel;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.util.CodecUtils;
-import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
@@ -108,7 +108,8 @@ public class Asn1EncodedDataRouter {
                                ISecurityServicesClient securityServicesClient,
                                KafkaTemplate<String, String> kafkaTemplate,
                                @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic,
-                               ObjectMapper mapper, XmlMapper xmlMapper) {
+                               ObjectMapper mapper,
+                               XmlMapper xmlMapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
@@ -271,7 +272,7 @@ public class Asn1EncodedDataRouter {
     String packetId = metadataJson.getString("odePacketID");
     String timStartDateTime = metadataJson.getString("odeTimStartDateTime");
     log.debug("SENDING: {}", base64EncodedTim);
-    String signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
+    var signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
 
     JSONObject timWithExpiration = new JSONObject();
     timWithExpiration.put("packetID", packetId);
@@ -359,7 +360,7 @@ public class Asn1EncodedDataRouter {
   }
 
   private ArrayNode buildEncodings() throws JsonUtilsException {
-    ArrayNode encodings = JsonUtils.newArrayNode();
+    ArrayNode encodings = mapper.createArrayNode();
     encodings.add(TimTransmogrifier.buildEncodingNode(ADVISORY_SITUATION_DATA_STRING,
         ADVISORY_SITUATION_DATA_STRING,
         EncodingRule.UPER));
@@ -375,8 +376,8 @@ public class Asn1EncodedDataRouter {
     rsuDepositor.deposit(request, encodedMsg);
   }
 
-  private static void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
-                                            int maxDurationTime, JSONObject timWithExpiration) {
+  private void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
+                                     int maxDurationTime, JSONObject timWithExpiration) {
     try {
       Date timTimestamp = dateFormat.parse(timStartDateTime);
       Date requiredExpirationDate = new Date();
@@ -388,14 +389,13 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-  private static void setExpiryDate(String signedResponse,
-                                    JSONObject timWithExpiration,
-                                    SimpleDateFormat dateFormat) {
+  private void setExpiryDate(SignatureResultModel signedResponse,
+                             JSONObject timWithExpiration,
+                             SimpleDateFormat dateFormat) {
     try {
-      JSONObject jsonResult = JsonUtils.toJSONObject(signedResponse).getJSONObject("result");
-      // messageExpiry uses unit of seconds
-      long messageExpiry = Long.parseLong(jsonResult.getString("message-expiry"));
-      timWithExpiration.put("expirationDate", dateFormat.format(new Date(messageExpiry * 1000)));
+      timWithExpiration.put("expirationDate",
+          dateFormat.format(new Date(signedResponse.getResult().getMessageExpiry() * 1000))
+      );
     } catch (Exception e) {
       log.error("Unable to get expiration date from signed messages response. Setting expirationData to 'null'", e);
       timWithExpiration.put("expirationDate", "null");
