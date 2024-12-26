@@ -46,7 +46,7 @@ import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
-import us.dot.its.jpo.ode.security.ISecurityServicesClient;
+import us.dot.its.jpo.ode.security.SecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
@@ -83,7 +83,7 @@ public class Asn1EncodedDataRouter {
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
   private final String sdxDepositTopic;
-  private final ISecurityServicesClient securityServicesClient;
+  private final SecurityServicesClient securityServicesClient;
   private final ObjectMapper mapper;
 
   private final OdeTimJsonTopology odeTimJsonTopology;
@@ -105,7 +105,7 @@ public class Asn1EncodedDataRouter {
                                SecurityServicesProperties securityServicesProperties,
                                OdeTimJsonTopology odeTimJsonTopology,
                                RsuDepositor rsuDepositor,
-                               ISecurityServicesClient securityServicesClient,
+                               SecurityServicesClient securityServicesClient,
                                KafkaTemplate<String, String> kafkaTemplate,
                                @Value("${ode.kafka.topics.sdx-depositor.input}") String sdxDepositTopic,
                                ObjectMapper mapper,

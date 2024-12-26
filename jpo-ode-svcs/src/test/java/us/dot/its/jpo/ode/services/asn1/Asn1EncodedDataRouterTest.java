@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
@@ -43,9 +44,14 @@ import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.stereotype.Service;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.http.WebClientConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestKafkaStreamsConfig;
@@ -54,7 +60,7 @@ import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
-import us.dot.its.jpo.ode.security.ISecurityServicesClient;
+import us.dot.its.jpo.ode.security.SecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
@@ -80,11 +86,14 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
         Asn1CoderTopics.class,
         JsonTopics.class,
         SecurityServicesProperties.class,
-        RsuProperties.class
+        RsuProperties.class,
+        Asn1EncodedDataRouterTest.MockSecurityServicesClient.class,
+        WebClientConfig.class
     }
 )
 @EnableConfigurationProperties
 @DirtiesContext
+@ActiveProfiles("test")
 class Asn1EncodedDataRouterTest {
 
   @Autowired
@@ -93,29 +102,26 @@ class Asn1EncodedDataRouterTest {
   JsonTopics jsonTopics;
   @Autowired
   SecurityServicesProperties securityServicesProperties;
-  @Value("${ode.kafka.topics.sdx-depositor.input}")
-  String sdxDepositorTopic;
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
   @Autowired
   KafkaConsumerConfig kafkaConsumerConfig;
-  @Mock
-  RsuDepositor mockRsuDepositor;
   @Autowired
   OdeTimJsonTopology odeTimJsonTopology;
   @Autowired
   ObjectMapper objectMapper;
   @Autowired
   private XmlMapper xmlMapper;
+  @Autowired
+  MockSecurityServicesClient secServicesClient;
+
+  @Value("${ode.kafka.topics.sdx-depositor.input}")
+  String sdxDepositorTopic;
+
+  @Mock
+  RsuDepositor mockRsuDepositor;
 
   private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-
-  private final ISecurityServicesClient mockSecServClient = (message, sigValidityOverride) -> {
-    var signatureResponse = new SignatureResultModel();
-    signatureResponse.getResult().setMessageSigned("<%s>".formatted(message));
-    signatureResponse.getResult().setMessageExpiry(123124124124124141L);
-    return signatureResponse;
-  };
 
   @Test
   void processSignedMessage() throws IOException {
@@ -133,7 +139,7 @@ class Asn1EncodedDataRouterTest {
         securityServicesProperties,
         odeTimJsonTopology,
         mockRsuDepositor,
-        mockSecServClient,
+        secServicesClient,
         kafkaTemplate, sdxDepositorTopic,
         objectMapper,
         xmlMapper);
@@ -188,7 +194,7 @@ class Asn1EncodedDataRouterTest {
         securityServicesProperties,
         odeTimJsonTopology,
         mockRsuDepositor,
-        mockSecServClient,
+        secServicesClient,
         kafkaTemplate, sdxDepositorTopic,
         objectMapper,
         xmlMapper);
@@ -283,8 +289,9 @@ class Asn1EncodedDataRouterTest {
         securityServicesProperties,
         odeTimJsonTopology,
         mockRsuDepositor,
-        mockSecServClient,
-        kafkaTemplate, sdxDepositorTopic,
+        secServicesClient,
+        kafkaTemplate,
+        sdxDepositorTopic,
         objectMapper,
         xmlMapper);
 
@@ -371,5 +378,21 @@ class Asn1EncodedDataRouterTest {
         .getResourceAsStream(resourcePackagePath + name);
     assert inputStream != null;
     return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+  }
+
+  @Service
+  @Profile("test")
+  static class MockSecurityServicesClient extends SecurityServicesClient {
+    public MockSecurityServicesClient(RestTemplate restTemplate, SecurityServicesProperties securityServicesProperties) {
+      super(restTemplate, securityServicesProperties);
+    }
+
+    @Override
+    public SignatureResultModel signMessage(String message, int sigValidityOverride) throws RestClientException {
+      var signatureResponse = new SignatureResultModel();
+      signatureResponse.getResult().setMessageSigned("<%s>".formatted(message));
+      signatureResponse.getResult().setMessageExpiry(123124124124124141L);
+      return signatureResponse;
+    }
   }
 }
