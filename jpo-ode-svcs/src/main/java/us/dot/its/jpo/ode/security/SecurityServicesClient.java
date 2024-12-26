@@ -16,12 +16,12 @@ import org.springframework.web.client.RestTemplate;
  *
  */
 @Slf4j
-public class SecurityServicesClientImpl implements ISecurityServicesClient {
+public class SecurityServicesClient implements ISecurityServicesClient {
 
   private final String signatureUri;
   private final ObjectMapper mapper;
 
-  public SecurityServicesClientImpl(ObjectMapper mapper, String signatureUri) {
+  public SecurityServicesClient(ObjectMapper mapper, String signatureUri) {
     this.mapper = mapper;
     this.signatureUri = signatureUri;
   }

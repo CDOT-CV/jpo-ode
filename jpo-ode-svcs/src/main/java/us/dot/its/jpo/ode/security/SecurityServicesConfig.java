@@ -16,6 +16,6 @@ import org.springframework.context.annotation.Configuration;
 public class SecurityServicesConfig {
   @Bean
   public ISecurityServicesClient securityServicesClient(SecurityServicesProperties securityServicesProperties, ObjectMapper mapper) {
-    return new SecurityServicesClientImpl(mapper, securityServicesProperties.getSignatureEndpoint());
+    return new SecurityServicesClient(mapper, securityServicesProperties.getSignatureEndpoint());
   }
 }
