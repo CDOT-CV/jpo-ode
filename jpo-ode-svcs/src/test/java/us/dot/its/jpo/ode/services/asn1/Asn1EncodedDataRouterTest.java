@@ -367,7 +367,7 @@ class Asn1EncodedDataRouterTest {
 
   private static String loadResourceString(String name)
       throws IOException {
-    String resourcePackagePath = "us/dot/its/jpo/ode/kafka/listeners/asn1/";
+    String resourcePackagePath = "us/dot/its/jpo/ode/services/asn1/";
     InputStream inputStream;
     inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
         .getResourceAsStream(resourcePackagePath + name);
