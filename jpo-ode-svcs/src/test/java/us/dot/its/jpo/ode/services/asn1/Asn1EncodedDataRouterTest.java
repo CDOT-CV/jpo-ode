@@ -39,7 +39,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Profile;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.kafka.listener.MessageListener;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
@@ -52,7 +53,6 @@ import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.http.WebClientConfig;
-import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestKafkaStreamsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
@@ -81,7 +81,6 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
         KafkaProducerConfig.class,
         SerializationConfig.class,
         KafkaProperties.class,
-        KafkaConsumerConfig.class,
         TestKafkaStreamsConfig.class,
         Asn1CoderTopics.class,
         JsonTopics.class,
@@ -104,8 +103,6 @@ class Asn1EncodedDataRouterTest {
   SecurityServicesProperties securityServicesProperties;
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
-  @Autowired
-  KafkaConsumerConfig kafkaConsumerConfig;
   @Autowired
   OdeTimJsonTopology odeTimJsonTopology;
   @Autowired
@@ -341,11 +338,14 @@ class Asn1EncodedDataRouterTest {
     return input.replaceAll("<streamId>.*?</streamId>", "<streamId>" + streamId + "</streamId>");
   }
 
-  private ConcurrentMessageListenerContainer<String, String> setupListenerContainer(
+  private KafkaMessageListenerContainer<String, String> setupListenerContainer(
       Asn1EncodedDataRouter encoderRouter,
       String containerName) {
-    var container = kafkaConsumerConfig.kafkaListenerContainerFactory()
-        .createContainer(asn1CoderTopics.getEncoderOutput());
+    var consumerProps = KafkaTestUtils.consumerProps(containerName, "false", embeddedKafka);
+    DefaultKafkaConsumerFactory<String, String> consumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer());
+    ContainerProperties containerProperties = new ContainerProperties(asn1CoderTopics.getEncoderOutput());
+    KafkaMessageListenerContainer<String, String> container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
     container.setupMessageListener(
         (MessageListener<String, String>) consumerRecord -> {
           try {
