@@ -35,6 +35,7 @@ import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.model.Asn1Encoding;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsdPayload;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -52,7 +53,6 @@ import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.util.CodecUtils;
-import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
@@ -276,8 +276,7 @@ public class Asn1EncodedDataRouter {
    * @return a String containing the fully crafted ASD message in XML format. Returns null if the
    *     message could not be constructed due to exceptions.
    */
-  private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) throws JsonProcessingException, ParseException,
-      JsonUtilsException {
+  private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) throws JsonProcessingException, ParseException {
     SDW sdw = request.getSdw();
     SNMP snmp = request.getSnmp();
     DdsAdvisorySituationData asd;
@@ -339,11 +338,10 @@ public class Asn1EncodedDataRouter {
     return outputXml;
   }
 
-  private ArrayNode buildEncodings() throws JsonUtilsException {
+  private ArrayNode buildEncodings() throws JsonProcessingException {
     ArrayNode encodings = mapper.createArrayNode();
-    encodings.add(TimTransmogrifier.buildEncodingNode(ADVISORY_SITUATION_DATA_STRING,
-        ADVISORY_SITUATION_DATA_STRING,
-        EncodingRule.UPER));
+    var encoding = new Asn1Encoding(ADVISORY_SITUATION_DATA_STRING, ADVISORY_SITUATION_DATA_STRING, EncodingRule.UPER);
+    encodings.add(mapper.readTree(mapper.writeValueAsString(encoding)));
     return encodings;
   }
 
