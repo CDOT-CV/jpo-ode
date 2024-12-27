@@ -22,9 +22,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
@@ -259,7 +261,7 @@ public class Asn1EncodedDataRouter {
     timWithExpiration.put("packetID", packetId);
     timWithExpiration.put("startDateTime", timStartDateTime);
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    var dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     setExpiryDate(signedResponse, timWithExpiration, dateFormat);
     setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
     return timWithExpiration.toString();
@@ -355,13 +357,12 @@ public class Asn1EncodedDataRouter {
     rsuDepositor.deposit(request, encodedMsg);
   }
 
-  private void setRequiredExpiryDate(SimpleDateFormat dateFormat, String timStartDateTime,
+  private void setRequiredExpiryDate(DateTimeFormatter dateFormat, String timStartDateTime,
                                      int maxDurationTime, JSONObject timWithExpiration) {
     try {
-      Date timTimestamp = dateFormat.parse(timStartDateTime);
-      Date requiredExpirationDate = new Date();
-      requiredExpirationDate.setTime(timTimestamp.getTime() + maxDurationTime);
-      timWithExpiration.put("requiredExpirationDate", dateFormat.format(requiredExpirationDate));
+      var timStartLocalDate = LocalDateTime.ofInstant(Instant.parse(timStartDateTime), ZoneId.of("UTC"));
+      var expiryDate = timStartLocalDate.plus(maxDurationTime, ChronoUnit.MILLIS);
+      timWithExpiration.put("requiredExpirationDate", expiryDate.format(dateFormat));
     } catch (Exception e) {
       log.error("Unable to parse requiredExpirationDate. Setting requiredExpirationDate to 'null'", e);
       timWithExpiration.put("requiredExpirationDate", "null");
@@ -370,11 +371,11 @@ public class Asn1EncodedDataRouter {
 
   private void setExpiryDate(SignatureResultModel signedResponse,
                              JSONObject timWithExpiration,
-                             SimpleDateFormat dateFormat) {
+                             DateTimeFormatter dateFormat) {
     try {
       var messageExpiryMillis = signedResponse.getResult().getMessageExpiry() * 1000;
-      var expiryDate = Date.from(Instant.ofEpochMilli(messageExpiryMillis));
-      timWithExpiration.put("expirationDate", dateFormat.format(expiryDate));
+      var expiryDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(messageExpiryMillis), ZoneId.of("UTC"));
+      timWithExpiration.put("expirationDate", expiryDate.format(dateFormat));
     } catch (Exception e) {
       log.error("Unable to get expiration date from signed messages response. Setting expirationData to 'null'", e);
       timWithExpiration.put("expirationDate", "null");
