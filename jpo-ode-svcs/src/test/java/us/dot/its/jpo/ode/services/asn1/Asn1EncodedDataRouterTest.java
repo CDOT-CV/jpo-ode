@@ -98,6 +98,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 @ActiveProfiles("test")
 class Asn1EncodedDataRouterTest {
 
+  private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
   @Autowired
@@ -111,8 +112,6 @@ class Asn1EncodedDataRouterTest {
   @Autowired
   ObjectMapper objectMapper;
   @Autowired
-  private XmlMapper xmlMapper;
-  @Autowired
   MockSecurityServicesClient secServicesClient;
 
   @Value("${ode.kafka.topics.sdx-depositor.input}")
@@ -120,8 +119,30 @@ class Asn1EncodedDataRouterTest {
 
   @Mock
   RsuDepositor mockRsuDepositor;
+  @Autowired
+  private XmlMapper xmlMapper;
 
-  private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  private static String stripGeneratedFields(String expectedEncoderInput) {
+    return expectedEncoderInput
+        .replaceAll("<streamId>.*?</streamId>", "")
+        .replaceAll("<requestID>.*?</requestID>", "")
+        .replaceAll("<odeReceivedAt>.*?</odeReceivedAt>", "")
+        .replaceAll("<asdmID>.*?</asdmID>", "");
+  }
+
+  private static String replaceStreamId(String input, String streamId) {
+    return input.replaceAll("<streamId>.*?</streamId>", "<streamId>" + streamId + "</streamId>");
+  }
+
+  private static String loadResourceString(String name)
+      throws IOException {
+    String resourcePackagePath = "us/dot/its/jpo/ode/services/asn1/";
+    InputStream inputStream;
+    inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
+        .getResourceAsStream(resourcePackagePath + name);
+    assert inputStream != null;
+    return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+  }
 
   @Test
   void processSignedMessage() throws IOException {
@@ -265,14 +286,6 @@ class Asn1EncodedDataRouterTest {
     log.debug("processUnsignedMessage container stopped");
   }
 
-  private static String stripGeneratedFields(String expectedEncoderInput) {
-    return expectedEncoderInput
-        .replaceAll("<streamId>.*?</streamId>", "")
-        .replaceAll("<requestID>.*?</requestID>", "")
-        .replaceAll("<odeReceivedAt>.*?</odeReceivedAt>", "")
-        .replaceAll("<asdmID>.*?</asdmID>", "");
-  }
-
   @Test
   void processEncodedTimUnsigned() throws IOException {
     String[] topicsForConsumption = {
@@ -337,10 +350,6 @@ class Asn1EncodedDataRouterTest {
     log.debug("processEncodedTimUnsigned container stopped");
   }
 
-  private static String replaceStreamId(String input, String streamId) {
-    return input.replaceAll("<streamId>.*?</streamId>", "<streamId>" + streamId + "</streamId>");
-  }
-
   private KafkaMessageListenerContainer<String, String> setupListenerContainer(
       Asn1EncodedDataRouter encoderRouter,
       String containerName) {
@@ -371,16 +380,6 @@ class Asn1EncodedDataRouterTest {
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     return consumerFactory.createConsumer();
-  }
-
-  private static String loadResourceString(String name)
-      throws IOException {
-    String resourcePackagePath = "us/dot/its/jpo/ode/services/asn1/";
-    InputStream inputStream;
-    inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
-        .getResourceAsStream(resourcePackagePath + name);
-    assert inputStream != null;
-    return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
   }
 
   @Service
