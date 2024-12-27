@@ -142,14 +142,14 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a TIM
-   * message. It extracts metadata and payload, then structures them into a JSON format.
+   * Converts the data from the given {@link DatagramPacket} into a TIM
+   * message. It extracts metadata and payload, then structures them into an {@link OdeAsn1Data} object
    *
    * @param packet the DatagramPacket containing the TIM data
-   * @return a JSON string representing the TIM message
+   * @return an {@link OdeAsn1Data} object representing the TIM message
    * @throws InvalidPayloadException if the payload extraction fails
    */
-  public static OdeAsn1Data buildJsonTimFromPacket(DatagramPacket packet)
+  public static OdeAsn1Data buildTimFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     String senderIp = packet.getAddress().getHostAddress();
     int senderPort = packet.getPort();

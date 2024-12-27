@@ -103,7 +103,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         }
       }
       case "TIM" -> {
-        var tim = UdpHexDecoder.buildJsonTimFromPacket(packet);
+        var tim = UdpHexDecoder.buildTimFromPacket(packet);
         var timJson = JsonUtils.toJson(tim, false);
         if (timJson != null) {
           // We need to include the serialID as the key when publishing TIMs. Otherwise, the
