@@ -66,7 +66,6 @@ public class Asn1EncodedDataRouter {
 
   private static final String BYTES = "bytes";
   private static final String MESSAGE_FRAME = "MessageFrame";
-  private static final String ERROR_ON_SDX_DEPOSIT = "Error on SDX deposit.";
   private static final String ADVISORY_SITUATION_DATA_STRING = "AdvisorySituationData";
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final XmlMapper xmlMapper;
@@ -236,7 +235,7 @@ public class Asn1EncodedDataRouter {
       kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
       log.info("SDX deposit successful.");
     } catch (Exception e) {
-      log.error(ERROR_ON_SDX_DEPOSIT, e);
+      log.error("Failed to deposit to SDX", e);
     }
   }
 
