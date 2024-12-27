@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -371,9 +372,9 @@ public class Asn1EncodedDataRouter {
                              JSONObject timWithExpiration,
                              SimpleDateFormat dateFormat) {
     try {
-      timWithExpiration.put("expirationDate",
-          dateFormat.format(new Date(signedResponse.getResult().getMessageExpiry() * 1000))
-      );
+      var messageExpiryMillis = signedResponse.getResult().getMessageExpiry() * 1000;
+      var expiryDate = Date.from(Instant.ofEpochMilli(messageExpiryMillis));
+      timWithExpiration.put("expirationDate", dateFormat.format(expiryDate));
     } catch (Exception e) {
       log.error("Unable to get expiration date from signed messages response. Setting expirationData to 'null'", e);
       timWithExpiration.put("expirationDate", "null");

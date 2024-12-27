@@ -30,6 +30,7 @@ public class SignatureResultModel {
   @NoArgsConstructor
   public static class Result {
     private String messageSigned;
+    // messageExpiry is in seconds
     private Long messageExpiry;
   }
 }

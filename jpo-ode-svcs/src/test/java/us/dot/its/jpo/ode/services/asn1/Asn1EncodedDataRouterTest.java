@@ -24,6 +24,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
@@ -383,6 +386,8 @@ class Asn1EncodedDataRouterTest {
   @Service
   @Profile("test")
   static class MockSecurityServicesClient extends SecurityServicesClient {
+    private static final Clock clock = Clock.fixed(Instant.parse("2024-03-08T16:37:05.414Z"), ZoneId.of("UTC"));
+
     public MockSecurityServicesClient(RestTemplate restTemplate, SecurityServicesProperties securityServicesProperties) {
       super(restTemplate, securityServicesProperties);
     }
@@ -391,7 +396,7 @@ class Asn1EncodedDataRouterTest {
     public SignatureResultModel signMessage(String message, int sigValidityOverride) throws RestClientException {
       var signatureResponse = new SignatureResultModel();
       signatureResponse.getResult().setMessageSigned("<%s>".formatted(message));
-      signatureResponse.getResult().setMessageExpiry(123124124124124141L);
+      signatureResponse.getResult().setMessageExpiry(clock.instant().getEpochSecond() + 1000);
       return signatureResponse;
     }
   }
