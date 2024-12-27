@@ -224,10 +224,7 @@ public class Asn1EncodedDataRouter {
       var encodedTimWithoutHeader = stripHeader(encodedTim);
       log.debug("Encoded message - phase 2: {}", encodedTimWithoutHeader);
 
-      // only send message to rsu if snmp, rsus, and message frame fields are present
-      if (null != request.getSnmp() && null != request.getRsus()) {
-        sendToRsus(request, encodedTimWithoutHeader);
-      }
+      sendToRsus(request, encodedTimWithoutHeader);
     }
   }
 
@@ -353,7 +350,7 @@ public class Asn1EncodedDataRouter {
 
   private void sendToRsus(ServiceRequest request, String encodedMsg) {
     if (null == request.getSnmp() || null == request.getRsus()) {
-      log.debug("No RSUs or SNMP provided. Skipping sending to RSUs.");
+      log.debug("No RSUs or SNMP provided. Not sending to RSUs.");
       return;
     }
     log.info("Sending message to RSUs...");
