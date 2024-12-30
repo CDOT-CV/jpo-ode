@@ -403,9 +403,9 @@ public class Asn1EncodedDataRouter {
    */
   private String stripHeader(String encodedUnsignedTim) {
     // find 001F hex value
-    int index = encodedUnsignedTim.indexOf(SupportedMessageType.TIM.getStartFlag());
+    int index = encodedUnsignedTim.indexOf(SupportedMessageType.TIM.getStartFlag().toUpperCase());
     if (index == -1) {
-      log.warn("No '001F' hex value found in encoded message");
+      log.warn("No {} hex value found in encoded message", SupportedMessageType.TIM.getStartFlag());
       return encodedUnsignedTim;
     }
     // strip everything before 001F
