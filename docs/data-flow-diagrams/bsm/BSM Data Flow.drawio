@@ -40,7 +40,7 @@
         <mxCell id="gxxZRGfVhdAJ79STQYsQ-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="gxxZRGfVhdAJ79STQYsQ-3" target="gxxZRGfVhdAJ79STQYsQ-9" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="gxxZRGfVhdAJ79STQYsQ-3" value="OdeRawEncodedBSMJson" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="gxxZRGfVhdAJ79STQYsQ-3" value="RawEncodedBSMJsonRouter" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="-525" y="-730" width="170" height="80" as="geometry" />
         </mxCell>
         <mxCell id="gxxZRGfVhdAJ79STQYsQ-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="gxxZRGfVhdAJ79STQYsQ-5" target="gxxZRGfVhdAJ79STQYsQ-19" edge="1">
