@@ -154,7 +154,7 @@ The purpose of these diagrams is to show:
 1. The RawEncodedSSMJsonRouter class pushes the SSM to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
 1. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the SSM, and pushes it to the Asn1DecoderOutput topic.
 1. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
-   pushes the SSM to the OdeSsmTxPojo and OdeSsmJson topics.
+   pushes the SSM to the OdeSsmPojo and OdeSsmJson topics.
 
 ### PSM Data Flow
 1. The PSM comes in through the PsmReceiver class and is pushed to the OdeRawEncodedPSMJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
