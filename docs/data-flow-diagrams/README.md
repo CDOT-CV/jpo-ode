@@ -101,7 +101,6 @@ The purpose of these diagrams is to show:
 1. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the SPAT, and pushes it to the Asn1DecoderOutput topic.
 1. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and 
    pushes the SPAT to the OdeSpatPojo, OdeSpatRxPojo, OdeDNMsgJson, OdeSpatRxJson, OdeSpatTxPojo and OdeSpatJson topics.
-1. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the OdeSpatJson topic, filters the SPAT, and pushes it to the FilteredOdeSpatJson topic.
 1. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the OdeSpatJson topic, converts the SPAT and pushes it to the ProcessedOdeSpatJson topic.
 1. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeSpatJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
@@ -114,7 +113,6 @@ The purpose of these diagrams is to show:
 1. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the SPAT, and pushes it to the Asn1DecoderOutput topic.
 1. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
    pushes the SPAT to the OdeSpatPojo, OdeSpatRxPojo, OdeDNMsgJson, OdeSpatRxJson, OdeSpatTxPojo and OdeSpatJson topics.
-1. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the OdeSpatJson topic, filters the SPAT, and pushes it to the FilteredOdeSpatJson topic.
 1. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the OdeSpatJson topic, converts the SPAT and pushes it to the ProcessedOdeSpatJson topic.
 1. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeSpatJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
