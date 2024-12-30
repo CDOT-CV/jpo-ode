@@ -29,7 +29,7 @@ The purpose of these diagrams is to show:
 1. The classes under [jpo/ode/kafka/listeners/asn1](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1) process these raw encoded messages
 1. These classes push the message to the Asn1DecoderInput topic.
 1. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from that topic and pushes decoded messages to the Asn1DecoderOutput topic.
-1. The Asn1DecodeDataRouter class pulls from the Asn1DecodeOutput topic and deposits messages into the Pojo Messages group of topics and the Json Messages group of topics.
+1. The Asn1DecodedDataRouter class pulls from the Asn1DecoderOutput topic and deposits messages into the Pojo Messages group of topics and the Json Messages group of topics.
 1. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the Json Messages group of topics and pushes filtered messages to the Filtered Json Messages group of topics.
 1. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the Json Messages group of topics, converts the messages and pushes them to the Processed Spat/Map group of topics.
 1. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the Processed Map/Spat group of topics and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
@@ -42,7 +42,7 @@ The purpose of these diagrams is to show:
 1. If the message is a BSM, SPAT, TIM or MAP, the relevant router under [kafka/listeners/asn1](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1) 
    pulls from the OdeRawEncoded JSON topics and processes the data. This class then writes to the Asn1DecoderInput topic.
 1. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from that topic and pushes decoded messages to the Asn1DecoderOutput topic.
-1. The Asn1DecodeDataRouter class pulls from the Asn1DecodeOutput topic and deposits messages into the Pojo Messages group of topics and the Json Messages group of topics.
+1. The Asn1DecodedDataRouter class pulls from the Asn1DecoderOutput topic and deposits messages into the Pojo Messages group of topics and the Json Messages group of topics.
 1. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the Json Messages group of topics and pushes filtered messages to the Filtered Json Messages group of topics.
 1. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the Json Messages group of topics, converts the messages and pushes them to the Processed Spat/Map group of topics.
 1. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the Processed Map/Spat group of topics and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
