@@ -242,10 +242,12 @@ public class TimDepositController {
     }
 
     OdeTimData odeTimData = new OdeTimData(timMetadata, timDataPayload);
-    timDataKafkaTemplate.send(pojoTopics.getTimBroadcast(), serialIdJ2735.getStreamId(), odeTimData);
+    // TODO: identify what to pass as key
+    timDataKafkaTemplate.send(pojoTopics.getTimBroadcast(), null, odeTimData);
 
     String obfuscatedTimData = TimTransmogrifier.obfuscateRsuPassword(odeTimData.toJson());
-    kafkaTemplate.send(jsonTopics.getTimBroadcast(), serialIdJ2735.getStreamId(), obfuscatedTimData);
+    // TODO: identify what to pass as key
+    kafkaTemplate.send(jsonTopics.getTimBroadcast(), null, obfuscatedTimData);
 
     // Now that the message has been published to OdeBroadcastTim topic, it should
     // be
@@ -306,13 +308,15 @@ public class TimDepositController {
 
         String obfuscatedJ2735Tim = TimTransmogrifier.obfuscateRsuPassword(j2735Tim);
         // publish Broadcast TIM to a J2735 compliant topic.
-        kafkaTemplate.send(jsonTopics.getJ2735TimBroadcast(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
+        // TODO: identify what to pass as key
+        kafkaTemplate.send(jsonTopics.getJ2735TimBroadcast(), null, obfuscatedJ2735Tim);
         // publish J2735 TIM also to general un-filtered TIM topic with streamID as key
         kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
         // Write XML to the encoder input topic at the end to ensure the correct order
         // of operations to pair
         // each message to an OdeTimJson streamId key
-        kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), serialIdJ2735.getStreamId(), xmlMsg);
+        // TODO: identify what to pass as key
+        kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), null, xmlMsg);
       }
 
       serialIdOde.increment();
