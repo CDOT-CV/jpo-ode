@@ -27,12 +27,11 @@ import mockit.Tested;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
-import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.model.SerialId;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
@@ -40,12 +39,16 @@ import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
+import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
 
 class TimDepositControllerTest {
 
   @Tested
   TimDepositController testTimDepositController;
+
+  @Injectable
+  OdeKafkaProperties injectableOdeKafkaProperties;
 
   @Injectable
   Asn1CoderTopics injectableAsn1CoderTopics;
@@ -62,11 +65,8 @@ class TimDepositControllerTest {
   @Injectable
   SecurityServicesProperties injectableSecurityServicesProperties;
 
-  @Injectable
-  KafkaTemplate<String, String> injectableKafkaTemplate;
-
-  @Injectable
-  KafkaTemplate<String, OdeObject> injectableTimDataKafkaTemplate;
+  @Capturing
+  MessageProducer<?, ?> capturingMessageProducer;
 
   @Test
   void nullRequestShouldReturnEmptyError() {

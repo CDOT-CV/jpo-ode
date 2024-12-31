@@ -27,13 +27,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
@@ -57,6 +57,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
+import us.dot.its.jpo.ode.wrapper.MessageProducer;
+import us.dot.its.jpo.ode.wrapper.serdes.OdeTimSerializer;
 
 /**
  * The REST controller for handling TIM creation requests.
@@ -78,8 +80,8 @@ public class TimDepositController {
   private final SerialId serialIdJ2735;
   private final SerialId serialIdOde;
 
-  private final KafkaTemplate<String, String> kafkaTemplate;
-  private final KafkaTemplate<String, OdeObject> timDataKafkaTemplate;
+  private final MessageProducer<String, String> stringMsgProducer;
+  private final MessageProducer<String, OdeObject> timProducer;
 
   private final boolean dataSigningEnabledSDW;
 
@@ -100,13 +102,12 @@ public class TimDepositController {
    * Spring Autowired constructor for the REST controller to properly initialize.
    */
   @Autowired
-  public TimDepositController(Asn1CoderTopics asn1CoderTopics,
+  public TimDepositController(OdeKafkaProperties odeKafkaProperties,
+                              Asn1CoderTopics asn1CoderTopics,
                               PojoTopics pojoTopics,
                               JsonTopics jsonTopics,
                               TimIngestTrackerProperties ingestTrackerProperties,
-                              SecurityServicesProperties securityServicesProperties,
-                              KafkaTemplate<String, String> kafkaTemplate,
-                              KafkaTemplate<String, OdeObject> timDataKafkaTemplate) {
+                              SecurityServicesProperties securityServicesProperties) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
@@ -115,8 +116,12 @@ public class TimDepositController {
     this.serialIdJ2735 = new SerialId();
     this.serialIdOde = new SerialId();
 
-    this.kafkaTemplate = kafkaTemplate;
-    this.timDataKafkaTemplate = timDataKafkaTemplate;
+    this.stringMsgProducer =
+        MessageProducer.defaultStringMessageProducer(odeKafkaProperties.getBrokers(),
+            odeKafkaProperties.getKafkaType(), odeKafkaProperties.getDisabledTopics());
+    this.timProducer = new MessageProducer<>(odeKafkaProperties.getBrokers(),
+        odeKafkaProperties.getKafkaType(), null,
+        OdeTimSerializer.class.getName(), odeKafkaProperties.getDisabledTopics());
 
     this.dataSigningEnabledSDW = securityServicesProperties.getIsSdwSigningEnabled();
 
@@ -242,12 +247,10 @@ public class TimDepositController {
     }
 
     OdeTimData odeTimData = new OdeTimData(timMetadata, timDataPayload);
-    // TODO: identify what to pass as key
-    timDataKafkaTemplate.send(pojoTopics.getTimBroadcast(), null, odeTimData);
+    timProducer.send(pojoTopics.getTimBroadcast(), null, odeTimData);
 
     String obfuscatedTimData = TimTransmogrifier.obfuscateRsuPassword(odeTimData.toJson());
-    // TODO: identify what to pass as key
-    kafkaTemplate.send(jsonTopics.getTimBroadcast(), null, obfuscatedTimData);
+    stringMsgProducer.send(jsonTopics.getTimBroadcast(), null, obfuscatedTimData);
 
     // Now that the message has been published to OdeBroadcastTim topic, it should
     // be
@@ -308,15 +311,13 @@ public class TimDepositController {
 
         String obfuscatedJ2735Tim = TimTransmogrifier.obfuscateRsuPassword(j2735Tim);
         // publish Broadcast TIM to a J2735 compliant topic.
-        // TODO: identify what to pass as key
-        kafkaTemplate.send(jsonTopics.getJ2735TimBroadcast(), null, obfuscatedJ2735Tim);
+        stringMsgProducer.send(jsonTopics.getJ2735TimBroadcast(), null, obfuscatedJ2735Tim);
         // publish J2735 TIM also to general un-filtered TIM topic with streamID as key
-        kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
-        // Write XML to the encoder input topic at the end to ensure the correct order
+        stringMsgProducer.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(),
+            obfuscatedJ2735Tim); // Write XML to the encoder input topic at the end to ensure the correct order
         // of operations to pair
         // each message to an OdeTimJson streamId key
-        // TODO: identify what to pass as key
-        kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), null, xmlMsg);
+        stringMsgProducer.send(asn1CoderTopics.getEncoderInput(), null, xmlMsg);
       }
 
       serialIdOde.increment();
