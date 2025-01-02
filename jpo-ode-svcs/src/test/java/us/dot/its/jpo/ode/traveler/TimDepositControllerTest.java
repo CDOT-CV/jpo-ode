@@ -169,7 +169,7 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord);
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(singleRecord);
+    Assertions.assertNotNull(singleRecord); // TODO: verify message contents instead of just existence
   }
 
   @Test
@@ -220,7 +220,7 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord);
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(singleRecord);
+    Assertions.assertNotNull(singleRecord); // TODO: verify message contents instead of just existence
   }
 
   @Test
