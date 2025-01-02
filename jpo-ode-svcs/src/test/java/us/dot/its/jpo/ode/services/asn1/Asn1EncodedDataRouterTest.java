@@ -271,26 +271,11 @@ class Asn1EncodedDataRouterTest {
         asn1CoderTopics.getEncoderInput());
     var expectedEncoderInput = loadResourceString("expected-asn1-encoded-router-snmp-deposit.xml");
     var expectedEncoderInputWithStableFieldsOnly = stripGeneratedFields(expectedEncoderInput);
-    var foundValidRecordInEncoderInput = false;
     var encoderInputRecords = KafkaTestUtils.getRecords(encoderInputConsumer);
     for (var consumerRecord : encoderInputRecords.records(asn1CoderTopics.getEncoderInput())) {
       var encoderInputWithStableFieldsOnly = stripGeneratedFields(consumerRecord.value());
-      if (expectedEncoderInputWithStableFieldsOnly.equals(encoderInputWithStableFieldsOnly)) {
-        foundValidRecordInEncoderInput = true;
-        break;
-      }
+      assertEquals(expectedEncoderInputWithStableFieldsOnly, encoderInputWithStableFieldsOnly);
     }
-    var foundRecordString = "";
-    if (!foundValidRecordInEncoderInput) {
-      StringBuilder stringBuilder = new StringBuilder();
-      for (var consumerRecord : encoderInputRecords.records(asn1CoderTopics.getEncoderInput())) {
-        stringBuilder.append(consumerRecord.value()).append("\n");
-      }
-      foundRecordString = stringBuilder.toString();
-    }
-    assertTrue(foundValidRecordInEncoderInput,
-        "found records not containing expected value: %s".formatted(foundRecordString));
-
     container.stop();
     log.debug("processUnsignedMessage container stopped");
   }
