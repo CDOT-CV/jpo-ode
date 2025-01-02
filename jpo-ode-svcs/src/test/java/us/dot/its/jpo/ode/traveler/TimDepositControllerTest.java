@@ -205,13 +205,16 @@ class TimDepositControllerTest {
                                                              TravelerMessageFromHumanToAsnConverter capturingTravelerMessageFromHumanToAsnConverter)
       throws JsonUtilsException,
       TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException {
-
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties,
             asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties,
             securityServicesProperties);
-
     new Expectations() {
 
       {
@@ -220,11 +223,33 @@ class TimDepositControllerTest {
         result = new JsonUtilsException("testException123", null);
       }
     };
+    String requestBody = "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
-    Assertions.assertEquals("{\"error\":\"Error converting to encodable TravelerInputData.\"}",
-        actualResponse.getBody());
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+
+    // verify
+    String expectedResponseBody =
+        "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "TimDepositControllerTest", "true", embeddedKafka);
+    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    Consumer<Integer, String> stringConsumer =
+        stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
+    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    Consumer<Integer, OdeObject> pojoConsumer =
+        pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    var singlePojoRecord =
+        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(singlePojoRecord);
+    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(singleRecord);
   }
 
   @Test
