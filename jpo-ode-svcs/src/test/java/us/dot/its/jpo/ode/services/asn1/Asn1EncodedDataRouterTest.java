@@ -280,8 +280,16 @@ class Asn1EncodedDataRouterTest {
         break;
       }
     }
+    var foundRecordString = "";
+    if (!foundValidRecordInEncoderInput) {
+      StringBuilder stringBuilder = new StringBuilder();
+      for (var consumerRecord : encoderInputRecords.records(asn1CoderTopics.getEncoderInput())) {
+        stringBuilder.append(consumerRecord.value()).append("\n");
+      }
+      foundRecordString = stringBuilder.toString();
+    }
     assertTrue(foundValidRecordInEncoderInput,
-        "found records not containing expected value: %s".formatted(encoderInputRecords.records(asn1CoderTopics.getEncoderInput()).toString()));
+        "found records not containing expected value: %s".formatted(foundRecordString));
 
     container.stop();
     log.debug("processUnsignedMessage container stopped");
