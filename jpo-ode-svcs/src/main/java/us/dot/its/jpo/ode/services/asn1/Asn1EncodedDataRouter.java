@@ -192,7 +192,16 @@ public class Asn1EncodedDataRouter {
     var hexEncodedTimBytes = messageFrameJson.getString(BYTES);
 
     if (dataSigningEnabledRSU && (request.getSdw() != null || request.getRsus() != null)) {
-      depositToTimCertExpirationTopic(metadataJson, hexEncodedTimBytes);
+      log.debug("Signing encoded TIM message...");
+      String base64EncodedTim = CodecUtils.toBase64(CodecUtils.fromHex(hexEncodedTimBytes));
+
+      // get max duration time and convert from minutes to milliseconds
+      // (unsigned integer valid 0 to 2^32-1 in units of milliseconds) from metadata
+      int maxDurationTime = Integer.parseInt(metadataJson.get("maxDurationTime").toString())
+          * 60 * 1000;
+      var signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
+      depositToTimCertExpirationTopic(metadataJson, signedResponse, maxDurationTime);
+      hexEncodedTimBytes = signedResponse.getResult().getHexEncodedMessageSigned();
     }
 
     log.debug("Encoded message - phase 1: {}", hexEncodedTimBytes);
@@ -203,10 +212,19 @@ public class Asn1EncodedDataRouter {
     publishForSecondEncoding(request, encodedTimWithoutHeaders);
   }
 
-  private void depositToTimCertExpirationTopic(JSONObject metadataJson, String hexEncodedTimBytes) {
+  private void depositToTimCertExpirationTopic(JSONObject metadataJson, SignatureResultModel signedResponse, int maxDurationTime) {
     try {
-      var signedTimWithExpiration = signTimWithExpiration(hexEncodedTimBytes, metadataJson);
-      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), signedTimWithExpiration);
+      String packetId = metadataJson.getString("odePacketID");
+      String timStartDateTime = metadataJson.getString("odeTimStartDateTime");
+      JSONObject timWithExpiration = new JSONObject();
+      timWithExpiration.put("packetID", packetId);
+      timWithExpiration.put("startDateTime", timStartDateTime);
+
+      var dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+      setExpiryDate(signedResponse, timWithExpiration, dateFormat);
+      setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
+
+      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
     } catch (HttpClientErrorException.NotFound e) {
       // The jpo-security-svcs module returns a 404 Not Found response when it can't reach out to its external signing service.
       // the body of the response contains the unmodified value of `message` in the `result`. It may be possible to recover
@@ -256,31 +274,6 @@ public class Asn1EncodedDataRouter {
     } catch (Exception e) {
       log.error("Failed to deposit to SDX", e);
     }
-  }
-
-  private String signTimWithExpiration(String encodedTIM, JSONObject metadataJson) {
-    log.debug("Signing encoded TIM message...");
-    String base64EncodedTim = CodecUtils.toBase64(
-        CodecUtils.fromHex(encodedTIM));
-
-    // get max duration time and convert from minutes to milliseconds (unsigned
-    // integer valid 0 to 2^32-1 in units of
-    // milliseconds.) from metadata
-    int maxDurationTime = Integer.parseInt(metadataJson.get("maxDurationTime").toString())
-        * 60 * 1000;
-    String packetId = metadataJson.getString("odePacketID");
-    String timStartDateTime = metadataJson.getString("odeTimStartDateTime");
-    log.debug("SENDING: {}", base64EncodedTim);
-    var signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
-
-    JSONObject timWithExpiration = new JSONObject();
-    timWithExpiration.put("packetID", packetId);
-    timWithExpiration.put("startDateTime", timStartDateTime);
-
-    var dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-    setExpiryDate(signedResponse, timWithExpiration, dateFormat);
-    setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
-    return timWithExpiration.toString();
   }
 
   /**

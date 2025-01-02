@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.security.models;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import us.dot.its.jpo.ode.util.CodecUtils;
 
 /**
  * Represents the result of a message signing operation provided by a security
@@ -32,5 +33,10 @@ public class SignatureResultModel {
     private String messageSigned;
     // messageExpiry is in seconds
     private Long messageExpiry;
+
+    public String getHexEncodedMessageSigned() {
+      return CodecUtils.toHex(
+          CodecUtils.fromBase64(messageSigned));
+    }
   }
 }
