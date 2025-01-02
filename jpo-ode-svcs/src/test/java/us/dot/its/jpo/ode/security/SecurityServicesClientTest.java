@@ -2,7 +2,9 @@ package us.dot.its.jpo.ode.security;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.http.WebClientConfig;
@@ -89,5 +92,16 @@ class SecurityServicesClientTest {
 
     // Assert
     assertNull(result);
+  }
+
+  @Test
+  void testSignMessage_WithErrorResponse() {
+    String message = "ErrorResponseTest";
+    var expiryTimeInSeconds = (int) clock.instant().plusSeconds(3600).getEpochSecond();
+
+    mockServer.expect(ExpectedCount.once(), requestTo(securityServicesProperties.getSignatureEndpoint()))
+        .andRespond(withServerError());
+
+    assertThrows(RestClientException.class, () -> securityServicesClient.signMessage(message, expiryTimeInSeconds));
   }
 }
