@@ -155,6 +155,7 @@ public class Asn1EncodedDataRouter {
     JSONObject payloadData = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
     JSONObject metadataJson = consumedObj.getJSONObject(AppContext.METADATA_STRING);
     ServiceRequest request = getServiceRequest(metadataJson);
+    log.debug("Mapped to object ServiceRequest: {}", request);
 
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
@@ -189,8 +190,8 @@ public class Asn1EncodedDataRouter {
     log.info("Processing unsigned message.");
     JSONObject messageFrameJson = payloadJson.getJSONObject(MESSAGE_FRAME);
     var hexEncodedTimBytes = messageFrameJson.getString(BYTES);
-
-    if (dataSigningEnabledRSU && (request.getSdw() != null || request.getRsus() != null)) {
+    String bytesToSend;
+    if ((dataSigningEnabledRSU || dataSigningEnabledSDW) && (request.getSdw() != null || request.getRsus() != null)) {
       log.debug("Signing encoded TIM message...");
       String base64EncodedTim = CodecUtils.toBase64(CodecUtils.fromHex(hexEncodedTimBytes));
 
@@ -200,11 +201,14 @@ public class Asn1EncodedDataRouter {
           * 60 * 1000;
       var signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
       depositToTimCertExpirationTopic(metadataJson, signedResponse, maxDurationTime);
-      hexEncodedTimBytes = signedResponse.getResult().getHexEncodedMessageSigned();
+      bytesToSend = signedResponse.getResult().getHexEncodedMessageSigned();
+    } else {
+      log.debug("Signing not enabled or no SDW or RSU data detected. Sending encoded TIM message without signing...");
+      bytesToSend = hexEncodedTimBytes;
     }
 
-    log.debug("Encoded message - phase 1: {}", hexEncodedTimBytes);
-    var encodedTimWithoutHeaders = stripHeader(hexEncodedTimBytes);
+    log.debug("Encoded message - phase 1: {}", bytesToSend);
+    var encodedTimWithoutHeaders = stripHeader(bytesToSend);
 
     sendToRsus(request, encodedTimWithoutHeaders);
     depositToFilteredTopic(metadataJson, encodedTimWithoutHeaders);

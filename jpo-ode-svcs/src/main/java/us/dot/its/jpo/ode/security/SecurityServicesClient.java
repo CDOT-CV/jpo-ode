@@ -51,9 +51,14 @@ public class SecurityServicesClient {
     HttpEntity<SignatureRequestModel> entity = new HttpEntity<>(requestBody, headers);
 
     log.debug("Data to be signed: {}", entity);
-    ResponseEntity<SignatureResultModel> respEntity = restTemplate.postForEntity(signatureUri, entity, SignatureResultModel.class);
-    log.debug("Security services module response: {}", respEntity);
+    try {
+      ResponseEntity<SignatureResultModel> respEntity = restTemplate.postForEntity(signatureUri, entity, SignatureResultModel.class);
+      log.debug("Security services module response: {}", respEntity);
 
-    return respEntity.getBody();
+      return respEntity.getBody();
+    } catch (RestClientException e) {
+      log.error("Error sending data to security services module: {}", e.getMessage());
+      throw e;
+    }
   }
 }
