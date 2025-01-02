@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
@@ -213,28 +212,17 @@ public class Asn1EncodedDataRouter {
   }
 
   private void depositToTimCertExpirationTopic(JSONObject metadataJson, SignatureResultModel signedResponse, int maxDurationTime) {
-    try {
-      String packetId = metadataJson.getString("odePacketID");
-      String timStartDateTime = metadataJson.getString("odeTimStartDateTime");
-      JSONObject timWithExpiration = new JSONObject();
-      timWithExpiration.put("packetID", packetId);
-      timWithExpiration.put("startDateTime", timStartDateTime);
+    String packetId = metadataJson.getString("odePacketID");
+    String timStartDateTime = metadataJson.getString("odeTimStartDateTime");
+    JSONObject timWithExpiration = new JSONObject();
+    timWithExpiration.put("packetID", packetId);
+    timWithExpiration.put("startDateTime", timStartDateTime);
 
-      var dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-      setExpiryDate(signedResponse, timWithExpiration, dateFormat);
-      setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
+    var dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    setExpiryDate(signedResponse, timWithExpiration, dateFormat);
+    setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
 
-      kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
-    } catch (HttpClientErrorException.NotFound e) {
-      // The jpo-security-svcs module returns a 404 Not Found response when it can't reach out to its external signing service.
-      // the body of the response contains the unmodified value of `message` in the `result`. It may be possible to recover
-      // from this specific exception, but at this time we are not certain what downstream effects would be if we published an unsigned tim
-      // to the TimCertExpiration topic.
-      log.error("Unable to sign message. The jpo-security-svcs application may not be properly configured. See error message for more detail {}",
-          e.getMessage());
-    } catch (Exception e) {
-      log.error("Unable to sign message. Error: {}", e.getMessage(), e);
-    }
+    kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
   }
 
   // SDW in metadata but no ASD in body (send back for another encoding) -> sign MessageFrame
