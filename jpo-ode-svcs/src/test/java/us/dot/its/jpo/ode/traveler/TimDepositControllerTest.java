@@ -41,9 +41,7 @@ import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnCon
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
-import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
-import us.dot.its.jpo.ode.wrapper.MessageProducer;
 
 
 @EnableConfigurationProperties
@@ -89,45 +87,50 @@ class TimDepositControllerTest {
   @Autowired
   SecurityServicesProperties injectableSecurityServicesProperties;
 
-  @Capturing
-  MessageProducer<?, ?> capturingMessageProducer;
-
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   @Test
   void nullRequestShouldReturnEmptyError() {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(null);
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
 
   @Test
   void emptyRequestShouldReturnEmptyError() {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim("");
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim("" );
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
 
   @Test
   void invalidJsonSyntaxShouldReturnJsonSyntaxError() {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}");
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}" );
     Assertions.assertEquals("{\"error\":\"Malformed or non-compliant JSON syntax.\"}",
         actualResponse.getBody());
   }
 
   @Test
   void missingRequestElementShouldReturnMissingRequestError() {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}");
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}" );
     Assertions.assertEquals(
         "{\"error\":\"Missing or invalid argument: Request element is required as of version 3.\"}",
         actualResponse.getBody());
@@ -135,11 +138,13 @@ class TimDepositControllerTest {
 
   @Test
   void invalidTimestampShouldReturnInvalidTimestampError() {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{},\"tim\":{\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{},\"tim\":{\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals(
         "{\"error\":\"Invalid timestamp in tim record: 201-03-13T01:07:11-05:00\"}",
         actualResponse.getBody());
@@ -147,11 +152,13 @@ class TimDepositControllerTest {
 
   @Test
   void messageWithNoRSUsOrSDWShouldReturnWarning() {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{},\"tim\":{\"timeStamp\":\"2018-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{},\"tim\":{\"timeStamp\":\"2018-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals(
         "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields. Message only published to broadcast streams.\"}",
         actualResponse.getBody());
@@ -163,9 +170,11 @@ class TimDepositControllerTest {
       throws JsonUtilsException,
       TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     new Expectations() {
 
@@ -177,7 +186,7 @@ class TimDepositControllerTest {
     };
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals("{\"error\":\"Error converting to encodable TravelerInputData.\"}",
         actualResponse.getBody());
   }
@@ -187,9 +196,11 @@ class TimDepositControllerTest {
       @Capturing TimTransmogrifier capturingTimTransmogrifier)
       throws XmlUtilsException, JsonUtilsException {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     new Expectations() {
       {
@@ -200,7 +211,7 @@ class TimDepositControllerTest {
     };
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals(
         "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}",
         actualResponse.getBody());
@@ -208,67 +219,69 @@ class TimDepositControllerTest {
   }
 
   @Test
-  void testSuccessfulMessageReturnsSuccessMessagePost(
-      @Capturing TimTransmogrifier capturingTimTransmogrifier,
-      @Capturing XmlUtils capturingXmlUtils) {
+  void testSuccessfulMessageReturnsSuccessMessagePost() {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
   }
 
   @Test
   void testSuccessfullSdwRequestMessageReturnsSuccessMessagePost() throws Exception {
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
     String file = "/sdwRequest.json";
     String json =
-        IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
+        IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8" );
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(json);
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
   }
 
   @Test
-  void testSuccessfulMessageReturnsSuccessMessagePostWithOde(
-      @Capturing TimTransmogrifier capturingTimTransmogrifier,
-      @Capturing XmlUtils capturingXmlUtils) {
+  void testSuccessfulMessageReturnsSuccessMessagePostWithOde() {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
   }
 
   @Test
-  void testSuccessfulMessageReturnsSuccessMessagePut(
-      @Capturing TimTransmogrifier capturingTimTransmogrifier,
-      @Capturing XmlUtils capturingXmlUtils) {
+  void testSuccessfulMessageReturnsSuccessMessagePut() {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     ResponseEntity<String> actualResponse = testTimDepositController.putTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
   }
 
   @Test
-  void testDepositingTimWithExtraProperties(
-      @Capturing TimTransmogrifier capturingTimTransmogrifier,
-      @Capturing XmlUtils capturingXmlUtils) {
+  void testDepositingTimWithExtraProperties() {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     String timToSubmit =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
@@ -277,13 +290,13 @@ class TimDepositControllerTest {
   }
 
   @Test
-  void testSuccessfulTimIngestIsTracked(
-      @Capturing TimTransmogrifier capturingTimTransmogrifier,
-      @Capturing XmlUtils capturingXmlUtils) {
+  void testSuccessfulTimIngestIsTracked() {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     String timToSubmit =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
@@ -299,9 +312,11 @@ class TimDepositControllerTest {
   void testSuccessfulRsuMessageReturnsSuccessMessagePost(
   ) {
 
-    TimDepositController testTimDepositController = new TimDepositController(injectableOdeKafkaProperties,
-        injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics, injectableTimIngestTrackerProperties,
-        injectableSecurityServicesProperties);
+    TimDepositController testTimDepositController =
+        new TimDepositController(injectableOdeKafkaProperties,
+            injectableAsn1CoderTopics, injectablePojoTopics, injectableJsonTopics,
+            injectableTimIngestTrackerProperties,
+            injectableSecurityServicesProperties);
 
     String timToSubmit =
         "{\"request\": {\"rsus\": [{\"latitude\": 30.123456, \"longitude\": -100.12345, \"rsuId\": 123, \"route\": \"myroute\", \"milepost\": 10, \"rsuTarget\": \"172.0.0.1\", \"rsuRetries\": 3, \"rsuTimeout\": 5000, \"rsuIndex\": 7, \"rsuUsername\": \"myusername\", \"rsuPassword\": \"mypassword\"}], \"snmp\": {\"rsuid\": \"83\", \"msgid\": 31, \"mode\": 1, \"channel\": 183, \"interval\": 2000, \"deliverystart\": \"2024-05-13T14:30:00Z\", \"deliverystop\": \"2024-05-13T22:30:00Z\", \"enable\": 1, \"status\": 4}}, \"tim\": {\"msgCnt\": \"1\", \"timeStamp\": \"2024-05-10T19:01:22Z\", \"packetID\": \"123451234512345123\", \"urlB\": \"null\", \"dataframes\": [{\"startDateTime\": \"2024-05-13T20:30:05.014Z\", \"durationTime\": \"30\", \"doNotUse1\": 0, \"frameType\": \"advisory\", \"msgId\": {\"roadSignID\": {\"mutcdCode\": \"warning\", \"viewAngle\": \"1111111111111111\", \"position\": {\"latitude\": 30.123456, \"longitude\": -100.12345}}}, \"priority\": \"5\", \"doNotUse2\": 0, \"regions\": [{\"name\": \"I_myroute_RSU_172.0.0.1\", \"anchorPosition\": {\"latitude\": 30.123456, \"longitude\": -100.12345}, \"laneWidth\": \"50\", \"directionality\": \"3\", \"closedPath\": \"false\", \"description\": \"path\", \"path\": {\"scale\": 0, \"nodes\": [{\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}, {\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}], \"type\": \"ll\"}, \"direction\": \"0000000000010000\"}], \"doNotUse4\": 0, \"doNotUse3\": 0, \"content\": \"workZone\", \"items\": [\"771\"], \"url\": \"null\"}]}}";
