@@ -169,7 +169,8 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord);
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(singleRecord); // TODO: verify message contents instead of just existence
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
   }
 
   @Test
@@ -220,14 +221,19 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord);
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(singleRecord); // TODO: verify message contents instead of just existence
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
   }
 
   @Test
   void failedXmlConversionShouldReturnConversionError(
       @Capturing TimTransmogrifier capturingTimTransmogrifier)
       throws XmlUtilsException, JsonUtilsException {
-
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties, securityServicesProperties);
@@ -239,12 +245,35 @@ class TimDepositControllerTest {
         result = new XmlUtilsException("testException123", null);
       }
     };
+    String requestBody =
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
-    Assertions.assertEquals(
-        "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}",
-        actualResponse.getBody());
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+
+    // verify
+    String expectedResponseBody =
+        "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+
+    var consumerProps =
+        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
+    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    Consumer<Integer, String> stringConsumer =
+        stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
+    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    Consumer<Integer, OdeObject> pojoConsumer =
+        pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    var singlePojoRecord =
+        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(singlePojoRecord);
+    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
   }
 
   @Test
