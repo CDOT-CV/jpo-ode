@@ -116,7 +116,7 @@ class TimDepositControllerTest {
             asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties,
             securityServicesProperties);
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim("" );
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim("");
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
 
@@ -127,7 +127,7 @@ class TimDepositControllerTest {
             asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties,
             securityServicesProperties);
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}" );
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}");
     Assertions.assertEquals("{\"error\":\"Malformed or non-compliant JSON syntax.\"}",
         actualResponse.getBody());
   }
@@ -139,7 +139,7 @@ class TimDepositControllerTest {
             asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties,
             securityServicesProperties);
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}" );
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}");
     Assertions.assertEquals(
         "{\"error\":\"Missing or invalid argument: Request element is required as of version 3.\"}",
         actualResponse.getBody());
@@ -153,7 +153,7 @@ class TimDepositControllerTest {
             timIngestTrackerProperties,
             securityServicesProperties);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{},\"tim\":{\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}" );
+        "{\"request\":{},\"tim\":{\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals(
         "{\"error\":\"Invalid timestamp in tim record: 201-03-13T01:07:11-05:00\"}",
         actualResponse.getBody());
@@ -165,7 +165,7 @@ class TimDepositControllerTest {
     odeKafkaProperties.setDisabledTopics(Set.of());
     EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
     DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z" ), ZoneId.of("UTC" )));
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties,
             asn1CoderTopics, pojoTopics, jsonTopics,
@@ -185,13 +185,16 @@ class TimDepositControllerTest {
         "TimDepositControllerTest", "true", embeddedKafka);
     DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
         new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> stringConsumer = stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
+    Consumer<Integer, String> stringConsumer =
+        stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
     DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
         new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, OdeObject> pojoConsumer = pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
+    Consumer<Integer, OdeObject> pojoConsumer =
+        pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-    var singlePojoRecord = KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
+    var singlePojoRecord =
+        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord);
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(singleRecord);
@@ -219,7 +222,7 @@ class TimDepositControllerTest {
     };
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals("{\"error\":\"Error converting to encodable TravelerInputData.\"}",
         actualResponse.getBody());
   }
@@ -244,7 +247,7 @@ class TimDepositControllerTest {
     };
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals(
         "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}",
         actualResponse.getBody());
@@ -260,7 +263,7 @@ class TimDepositControllerTest {
             securityServicesProperties);
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
 
     // TODO: verify message is published to Kafka topics
@@ -275,7 +278,7 @@ class TimDepositControllerTest {
             securityServicesProperties);
     String file = "/sdwRequest.json";
     String json =
-        IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8" );
+        IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(json);
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
 
@@ -292,7 +295,7 @@ class TimDepositControllerTest {
             securityServicesProperties);
 
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
+        "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
 
     // TODO: verify message is published to Kafka topics
@@ -308,7 +311,7 @@ class TimDepositControllerTest {
             securityServicesProperties);
 
     ResponseEntity<String> actualResponse = testTimDepositController.putTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}" );
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
 
     // TODO: verify message is published to Kafka topics
