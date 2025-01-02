@@ -281,7 +281,7 @@ class Asn1EncodedDataRouterTest {
       }
     }
     assertTrue(foundValidRecordInEncoderInput,
-        "found records not containing expected value: %s".formatted(encoderInputRecords.records(asn1CoderTopics.getEncoderInput())));
+        "found records not containing expected value: %s".formatted(encoderInputRecords.records(asn1CoderTopics.getEncoderInput()).toString()));
 
     container.stop();
     log.debug("processUnsignedMessage container stopped");
