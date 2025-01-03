@@ -576,7 +576,7 @@ class TimDepositControllerTest {
   }
 
   @Test
-  void testDepositingTimWithExtraProperties() {
+  void testDepositingTimWithExtraProperties() throws IOException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     pojoTopics.setTimBroadcast("test.depositingTimWithExtraProperties.timBroadcast.pojo");
@@ -622,19 +622,19 @@ class TimDepositControllerTest {
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(
-        jsonTimBroadcastRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsJson("depositingTimWithExtraProperties_timBroadcast_expected.json",
+        jsonTimBroadcastRecord.value());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    Assertions.assertNotNull(
-        jsonJ2735TimBroadcastRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsJson("depositingTimWithExtraProperties_j2735TimBroadcast_expected.json",
+        jsonJ2735TimBroadcastRecord.value());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    Assertions.assertNotNull(
-        jsonTimRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsJson("depositingTimWithExtraProperties_tim_expected.json",
+        jsonTimRecord.value());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    Assertions.assertNotNull(
-        asn1CoderEncoderInputRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsXml("depositingTimWithExtraProperties_encoderInput_expected.xml",
+        asn1CoderEncoderInputRecord.value());
 
     // cleanup
     pojoTimBroadcastConsumer.close();
