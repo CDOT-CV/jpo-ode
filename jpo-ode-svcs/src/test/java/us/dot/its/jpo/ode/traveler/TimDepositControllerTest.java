@@ -255,6 +255,7 @@ class TimDepositControllerTest {
         TimTransmogrifier.obfuscateRsuPassword((String) any);
         result = "timWithObfuscatedPassword";
       }
+
       {
         TimTransmogrifier.convertToXml((DdsAdvisorySituationData) any, (ObjectNode) any,
             (OdeMsgMetadata) any, (SerialId) any);
