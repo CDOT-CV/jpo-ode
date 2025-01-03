@@ -635,20 +635,74 @@ class TimDepositControllerTest {
 
   @Test
   void testSuccessfulTimIngestIsTracked() {
-
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast("test.successfulTimIngestIsTracked.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast("test.successfulTimIngestIsTracked.timBroadcast.json");
+    jsonTopics.setJ2735TimBroadcast("test.successfulTimIngestIsTracked.j2735TimBroadcast.json");
+    jsonTopics.setTim("test.successfulTimIngestIsTracked.tim.json");
+    asn1CoderTopics.setEncoderInput("test.successfulTimIngestIsTracked.encoderInput");
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast(),
+        jsonTopics.getJ2735TimBroadcast(), jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties, securityServicesProperties);
-
-    String timToSubmit =
+    String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
     long priorIngestCount = TimIngestTracker.getInstance().getTotalMessagesReceived();
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim(timToSubmit);
-    Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
+
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+
+    // verify
+    String expectedResponseBody = "{\"success\":\"true\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
     Assertions.assertEquals(priorIngestCount + 1,
         TimIngestTracker.getInstance().getTotalMessagesReceived());
 
-    // TODO: verify message is published to Kafka topics
+    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
+    var jsonTimConsumer = createStr2StrConsumer();
+    var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
+
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
+        pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+
+    var pojoTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(pojoTimBroadcastRecord);
+    var jsonTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(
+        jsonTimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
+    Assertions.assertNotNull(
+        jsonJ2735TimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
+    Assertions.assertNotNull(
+        jsonTimRecord); // TODO: verify message contents instead of just existence
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    Assertions.assertNotNull(
+        asn1CoderEncoderInputRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    pojoTimBroadcastConsumer.close();
+    jsonTimBroadcastConsumer.close();
+    jsonJ2735TimBroadcastConsumer.close();
+    jsonTimConsumer.close();
+    asn1CoderEncoderInputConsumer.close();
   }
 
   // This serves as an integration test without mocking the TimTransmogrifier and XmlUtils
