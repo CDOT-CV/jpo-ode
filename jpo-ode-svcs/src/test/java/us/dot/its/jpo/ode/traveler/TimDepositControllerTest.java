@@ -139,6 +139,8 @@ class TimDepositControllerTest {
   void messageWithNoRSUsOrSDWShouldReturnWarning() {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast("test.messageWithNoRSUsOrSDWShouldReturnWarning.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast("test.messageWithNoRSUsOrSDWShouldReturnWarning.timBroadcast.json");
     EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
@@ -178,6 +180,8 @@ class TimDepositControllerTest {
       TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast("test.failedObjectNodeConversionShouldReturnConvertingError.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast("test.failedObjectNodeConversionShouldReturnConvertingError.timBroadcast.json");
     EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
@@ -225,6 +229,8 @@ class TimDepositControllerTest {
       throws XmlUtilsException, JsonUtilsException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast("test.failedXmlConversionShouldReturnConversionError.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast("test.failedXmlConversionShouldReturnConversionError.timBroadcast.json");
     EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
