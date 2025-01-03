@@ -892,10 +892,12 @@ class TimDepositControllerTest {
   private void verifyContentsAreEquivalentXml(String expectedXmlTimContents,
                                               String actualXmlTimContents) {
     // verify stream id is different using string manipulation
-    String actualStreamId = actualXmlTimContents.substring(actualXmlTimContents.indexOf("<streamId>"),
-        actualXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
-    String expectedStreamId = expectedXmlTimContents.substring(expectedXmlTimContents.indexOf("<streamId>"),
-        expectedXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
+    String actualStreamId =
+        actualXmlTimContents.substring(actualXmlTimContents.indexOf("<streamId>"),
+            actualXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
+    String expectedStreamId =
+        expectedXmlTimContents.substring(expectedXmlTimContents.indexOf("<streamId>"),
+            expectedXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
     Assertions.assertNotEquals(expectedStreamId, actualStreamId);
     // remove stream id for comparison
     expectedXmlTimContents = expectedXmlTimContents.replace(expectedStreamId, "");
