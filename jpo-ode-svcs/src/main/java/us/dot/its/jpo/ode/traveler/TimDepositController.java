@@ -242,7 +242,7 @@ public class TimDepositController {
     }
 
     OdeTimData odeTimData = new OdeTimData(timMetadata, timDataPayload);
-    timDataKafkaTemplate.send(pojoTopics.getTimBroadcast(), serialIdJ2735.getStreamId(), odeTimData);
+    timDataKafkaTemplate.send(pojoTopics.getTimBroadcast(), null, odeTimData);
 
     String obfuscatedTimData = TimTransmogrifier.obfuscateRsuPassword(odeTimData.toJson());
     kafkaTemplate.send(jsonTopics.getTimBroadcast(), serialIdJ2735.getStreamId(), obfuscatedTimData);

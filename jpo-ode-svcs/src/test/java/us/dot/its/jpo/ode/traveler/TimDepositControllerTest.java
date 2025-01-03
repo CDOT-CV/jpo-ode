@@ -18,6 +18,7 @@ package us.dot.its.jpo.ode.traveler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,15 +36,19 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
@@ -60,11 +65,15 @@ import us.dot.its.jpo.ode.util.XmlUtils;
 
 
 @EnableConfigurationProperties
-@SpringBootTest(classes = {OdeKafkaProperties.class, Asn1CoderTopics.class, PojoTopics.class,
-    JsonTopics.class, TimIngestTrackerProperties.class,
-    SecurityServicesProperties.class}, properties = {"ode.kafka.brokers=localhost:4242"})
-@ContextConfiguration(classes = {OdeKafkaProperties.class, Asn1CoderTopics.class, PojoTopics.class,
-    JsonTopics.class, TimIngestTrackerProperties.class, SecurityServicesProperties.class})
+@SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
+    OdeKafkaProperties.class, Asn1CoderTopics.class, PojoTopics.class, JsonTopics.class,
+    SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
+    XmlMapper.class}, properties = {
+
+    "ode.kafka.brokers=localhost:4242"})
+@ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
+    PojoTopics.class, JsonTopics.class, TimIngestTrackerProperties.class,
+    SecurityServicesProperties.class, OdeKafkaProperties.class})
 @DirtiesContext
 class TimDepositControllerTest {
 
@@ -86,6 +95,12 @@ class TimDepositControllerTest {
   @Autowired
   SecurityServicesProperties securityServicesProperties;
 
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
+
+  @Autowired
+  KafkaTemplate<String, OdeObject> timDataKafkaTemplate;
+
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
   int consumerCount = 0;
@@ -93,8 +108,9 @@ class TimDepositControllerTest {
   @Test
   void nullRequestShouldReturnEmptyError() {
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(null);
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
@@ -102,8 +118,9 @@ class TimDepositControllerTest {
   @Test
   void emptyRequestShouldReturnEmptyError() {
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim("");
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
@@ -111,8 +128,9 @@ class TimDepositControllerTest {
   @Test
   void invalidJsonSyntaxShouldReturnJsonSyntaxError() {
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}");
     Assertions.assertEquals("{\"error\":\"Malformed or non-compliant JSON syntax.\"}",
         actualResponse.getBody());
@@ -121,8 +139,9 @@ class TimDepositControllerTest {
   @Test
   void missingRequestElementShouldReturnMissingRequestError() {
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}");
     Assertions.assertEquals(
         "{\"error\":\"Missing or invalid argument: Request element is required as of version 3.\"}",
@@ -132,8 +151,9 @@ class TimDepositControllerTest {
   @Test
   void invalidTimestampShouldReturnInvalidTimestampError() {
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
         "{\"request\":{},\"tim\":{\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}");
     Assertions.assertEquals(
@@ -151,8 +171,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody = "{\"request\":{},\"tim\":{\"timeStamp\":\"2018-03-13T01:07:11-05:00\"}}";
 
     // execute
@@ -163,7 +184,7 @@ class TimDepositControllerTest {
         "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields. Message only published to broadcast streams.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createInt2StrConsumer();
+    var stringConsumer = createStr2StrConsumer();
     var pojoConsumer = createInt2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
@@ -195,8 +216,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     new Expectations() {
 
       {
@@ -216,7 +238,7 @@ class TimDepositControllerTest {
         "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createInt2StrConsumer();
+    var stringConsumer = createStr2StrConsumer();
     var pojoConsumer = createInt2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
@@ -247,8 +269,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
 
     new Expectations() {
       {
@@ -273,7 +296,7 @@ class TimDepositControllerTest {
         "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createInt2StrConsumer();
+    var stringConsumer = createStr2StrConsumer();
     var pojoConsumer = createInt2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
@@ -303,8 +326,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
@@ -316,7 +340,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -378,8 +402,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String file = "/sdwRequest.json";
     String requestBody =
         IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
@@ -392,7 +417,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -456,8 +481,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody =
         "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
@@ -469,7 +495,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -529,8 +555,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
@@ -542,7 +569,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -600,8 +627,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
 
@@ -613,7 +641,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -669,8 +697,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
     long priorIngestCount = TimIngestTracker.getInstance().getTotalMessagesReceived();
@@ -685,7 +714,7 @@ class TimDepositControllerTest {
         TimIngestTracker.getInstance().getTotalMessagesReceived());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -746,8 +775,9 @@ class TimDepositControllerTest {
     DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties);
+        new TimDepositController(asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            timDataKafkaTemplate);
     String requestBody =
         "{\"request\": {\"rsus\": [{\"latitude\": 30.123456, \"longitude\": -100.12345, \"rsuId\": 123, \"route\": \"myroute\", \"milepost\": 10, \"rsuTarget\": \"172.0.0.1\", \"rsuRetries\": 3, \"rsuTimeout\": 5000, \"rsuIndex\": 7, \"rsuUsername\": \"myusername\", \"rsuPassword\": \"mypassword\"}], \"snmp\": {\"rsuid\": \"83\", \"msgid\": 31, \"mode\": 1, \"channel\": 183, \"interval\": 2000, \"deliverystart\": \"2024-05-13T14:30:00Z\", \"deliverystop\": \"2024-05-13T22:30:00Z\", \"enable\": 1, \"status\": 4}}, \"tim\": {\"msgCnt\": \"1\", \"timeStamp\": \"2024-05-10T19:01:22Z\", \"packetID\": \"123451234512345123\", \"urlB\": \"null\", \"dataframes\": [{\"startDateTime\": \"2024-05-13T20:30:05.014Z\", \"durationTime\": \"30\", \"doNotUse1\": 0, \"frameType\": \"advisory\", \"msgId\": {\"roadSignID\": {\"mutcdCode\": \"warning\", \"viewAngle\": \"1111111111111111\", \"position\": {\"latitude\": 30.123456, \"longitude\": -100.12345}}}, \"priority\": \"5\", \"doNotUse2\": 0, \"regions\": [{\"name\": \"I_myroute_RSU_172.0.0.1\", \"anchorPosition\": {\"latitude\": 30.123456, \"longitude\": -100.12345}, \"laneWidth\": \"50\", \"directionality\": \"3\", \"closedPath\": \"false\", \"description\": \"path\", \"path\": {\"scale\": 0, \"nodes\": [{\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}, {\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}], \"type\": \"ll\"}, \"direction\": \"0000000000010000\"}], \"doNotUse4\": 0, \"doNotUse3\": 0, \"content\": \"workZone\", \"items\": [\"771\"], \"url\": \"null\"}]}}";
 
@@ -759,7 +789,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
-    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
@@ -802,21 +832,6 @@ class TimDepositControllerTest {
     jsonJ2735TimBroadcastConsumer.close();
     jsonTimConsumer.close();
     asn1CoderEncoderInputConsumer.close();
-  }
-
-  /**
-   * Helper method to create a consumer for String messages with Integer keys.
-   *
-   * @return a consumer for String messages
-   */
-  private Consumer<Integer, String> createInt2StrConsumer() {
-    consumerCount++;
-    var consumerProps =
-        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
-        String.format("clientidsuffix%d", consumerCount));
   }
 
   /**
