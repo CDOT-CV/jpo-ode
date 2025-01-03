@@ -166,7 +166,8 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord.value());
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContents("messageWithNoRSUsOrSDWShouldReturnWarning_timBroadcast_expected.json",
+    verifyMessageContentsJson(
+        "messageWithNoRSUsOrSDWShouldReturnWarning_timBroadcast_expected.json",
         singleRecord.value());
 
     // cleanup
@@ -218,7 +219,7 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord.value());
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContents(
+    verifyMessageContentsJson(
         "failedObjectNodeConversionShouldReturnConvertingError_timBroadcast_expected.json",
         singleRecord.value());
 
@@ -279,7 +280,7 @@ class TimDepositControllerTest {
 //  }
 
   @Test
-  void testSuccessfulMessageReturnsSuccessMessagePost() {
+  void testSuccessfulMessageReturnsSuccessMessagePost() throws IOException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     pojoTopics.setTimBroadcast("test.successfulMessageReturnsSuccessMessagePost.timBroadcast.pojo");
@@ -326,19 +327,21 @@ class TimDepositControllerTest {
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(
-        jsonTimBroadcastRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsJson(
+        "successfulMessageReturnsSuccessMessagePost_timBroadcast_expected.json",
+        jsonTimBroadcastRecord.value());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    Assertions.assertNotNull(
-        jsonJ2735TimBroadcastRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsJson(
+        "successfulMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json",
+        jsonJ2735TimBroadcastRecord.value());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    Assertions.assertNotNull(
-        jsonTimRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsJson("successfulMessageReturnsSuccessMessagePost_tim_expected.json",
+        jsonTimRecord.value());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    Assertions.assertNotNull(
-        asn1CoderEncoderInputRecord.value()); // TODO: verify message contents instead of just existence
+    verifyMessageContentsXml("successfulMessageReturnsSuccessMessagePost_encoderInput_expected.xml",
+        asn1CoderEncoderInputRecord.value());
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -829,23 +832,23 @@ class TimDepositControllerTest {
    * contents are equivalent to the expected JSON contents.
    *
    * @param expectedJsonContentsFilename the name of the file containing the expected JSON contents
-   * @param actualJsonContents the actual JSON contents
+   * @param actualJsonContents           the actual JSON contents
    * @throws IOException if an I/O error occurs
    */
-  private void verifyMessageContents(String expectedJsonContentsFilename, String actualJsonContents)
-      throws IOException {
+  private void verifyMessageContentsJson(String expectedJsonContentsFilename,
+                                         String actualJsonContents) throws IOException {
     String baseDirectory = "src/test/resources/us/dot/its/jpo/ode/traveler/";
     String expectedJsonContents =
         new String(Files.readAllBytes(Paths.get(baseDirectory + expectedJsonContentsFilename)));
-    verifyContentsAreEquivalent(expectedJsonContents, actualJsonContents);
+    verifyContentsAreEquivalentJson(expectedJsonContents, actualJsonContents);
   }
 
   /**
    * Helper method to verify that the contents of the actual JSON TIM message are equivalent to the
    * expected JSON TIM message, except for the stream id.
    */
-  private void verifyContentsAreEquivalent(String expectedJsonTimContents,
-                                           String actualJsonTimContents) {
+  private void verifyContentsAreEquivalentJson(String expectedJsonTimContents,
+                                               String actualJsonTimContents) {
     // verify stream id is different
     JSONObject expectedJsonTimBroadcastContentsJson = new JSONObject(expectedJsonTimContents);
     JSONObject actualJsonTimBroadcastContentsJson = new JSONObject(actualJsonTimContents);
@@ -863,5 +866,40 @@ class TimDepositControllerTest {
         .remove("streamId");
     JSONAssert.assertEquals(expectedJsonTimBroadcastContentsJson.toString(),
         actualJsonTimBroadcastContentsJson.toString(), false);
+  }
+
+
+  /**
+   * Helper method to retrieve the expected XML contents from a file and verify that the actual XML
+   * contents are equivalent to the expected XML contents.
+   *
+   * @param expectedXmlContentsFilename the name of the file containing the expected XML contents
+   * @param actualXmlContents           the actual XML contents
+   * @throws IOException if an I/O error occurs
+   */
+  private void verifyMessageContentsXml(String expectedXmlContentsFilename,
+                                        String actualXmlContents) throws IOException {
+    String baseDirectory = "src/test/resources/us/dot/its/jpo/ode/traveler/";
+    String expectedXmlContents =
+        new String(Files.readAllBytes(Paths.get(baseDirectory + expectedXmlContentsFilename)));
+    verifyContentsAreEquivalentXml(expectedXmlContents, actualXmlContents);
+  }
+
+  /**
+   * Helper method to verify that the contents of the actual XML TIM message are equivalent to the
+   * expected XML TIM message, except for the stream id.
+   */
+  private void verifyContentsAreEquivalentXml(String expectedXmlTimContents,
+                                              String actualXmlTimContents) {
+    // verify stream id is different using string manipulation
+    String actualStreamId = actualXmlTimContents.substring(actualXmlTimContents.indexOf("<streamId>"),
+        actualXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
+    String expectedStreamId = expectedXmlTimContents.substring(expectedXmlTimContents.indexOf("<streamId>"),
+        expectedXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    // remove stream id for comparison
+    expectedXmlTimContents = expectedXmlTimContents.replace(expectedStreamId, "");
+    actualXmlTimContents = actualXmlTimContents.replace(actualStreamId, "");
+    Assertions.assertEquals(expectedXmlTimContents, actualXmlTimContents);
   }
 }
