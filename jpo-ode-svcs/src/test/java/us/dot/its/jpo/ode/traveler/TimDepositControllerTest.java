@@ -18,6 +18,9 @@ package us.dot.its.jpo.ode.traveler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -27,8 +30,10 @@ import mockit.Expectations;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -137,7 +142,7 @@ class TimDepositControllerTest {
   }
 
   @Test
-  void messageWithNoRSUsOrSDWShouldReturnWarning() {
+  void messageWithNoRSUsOrSDWShouldReturnWarning() throws IOException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     pojoTopics.setTimBroadcast("test.messageWithNoRSUsOrSDWShouldReturnWarning.timBroadcast.pojo");
@@ -166,8 +171,12 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(singlePojoRecord);
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertNotNull(
-        singleRecord); // TODO: verify message contents instead of just existence
+    String expectedJsonTimBroadcastContentsFilename =
+        "src/test/resources/us/dot/its/jpo/ode/traveler/messageWithNoRSUsOrSDWShouldReturnWarning_timBroadcast_expected.json";
+    String expectedJsonTimBroadcastContents =
+        new String(Files.readAllBytes(Paths.get(expectedJsonTimBroadcastContentsFilename)));
+    String actualJsonTimBroadcastContents = singleRecord.value();
+    verifyContentsAreEquivalent(expectedJsonTimBroadcastContents, actualJsonTimBroadcastContents);
 
     // cleanup
     stringConsumer.close();
@@ -821,5 +830,31 @@ class TimDepositControllerTest {
             new StringDeserializer());
     return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
         String.format("clientidsuffix%d", consumerCount));
+  }
+
+  /**
+   * Helper method to verify that the contents of the actual JSON TIM message are equivalent to the
+   * expected JSON TIM message, except for the stream id.
+   */
+  private void verifyContentsAreEquivalent(String expectedJsonTimContents,
+                                           String actualJsonTimContents) {
+    // verify stream id is different
+    JSONObject expectedJsonTimBroadcastContentsJson = new JSONObject(
+        expectedJsonTimContents);
+    JSONObject actualJsonTimBroadcastContentsJson = new JSONObject(actualJsonTimContents);
+    String actualStreamId =
+        actualJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
+            .getString("streamId");
+    String expectedStreamId =
+        expectedJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
+            .getString("streamId");
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    // remove stream id for comparison
+    expectedJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
+        .remove("streamId");
+    actualJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
+        .remove("streamId");
+    JSONAssert.assertEquals(expectedJsonTimBroadcastContentsJson.toString(),
+        actualJsonTimBroadcastContentsJson.toString(), false);
   }
 }
