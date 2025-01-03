@@ -373,6 +373,7 @@ class TimDepositControllerTest {
 
   /**
    * Helper method to create a consumer for String messages
+   *
    * @return a consumer for String messages
    */
   private Consumer<Integer, String> createStringConsumer() {
@@ -387,6 +388,7 @@ class TimDepositControllerTest {
 
   /**
    * Helper method to create a consumer for OdeObject messages
+   *
    * @return a consumer for OdeObject messages
    */
   private Consumer<Integer, OdeObject> createPojoConsumer() {
