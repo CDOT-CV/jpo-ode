@@ -68,9 +68,7 @@ import us.dot.its.jpo.ode.util.XmlUtils;
 @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
     OdeKafkaProperties.class, Asn1CoderTopics.class, PojoTopics.class, JsonTopics.class,
     SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
-    XmlMapper.class}, properties = {
-
-    "ode.kafka.brokers=localhost:4242"})
+    XmlMapper.class}, properties = {"ode.kafka.brokers=localhost:4242"})
 @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
     PojoTopics.class, JsonTopics.class, TimIngestTrackerProperties.class,
     SecurityServicesProperties.class, OdeKafkaProperties.class})
