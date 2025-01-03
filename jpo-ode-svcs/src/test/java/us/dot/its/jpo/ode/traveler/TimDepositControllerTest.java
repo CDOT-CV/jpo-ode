@@ -310,11 +310,15 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
-    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer, jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
+        pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
 
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
@@ -323,15 +327,15 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(
         jsonTimBroadcastRecord); // TODO: verify message contents instead of just existence
-    var jsonJ2735TimBroadcastRecord =
-        KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer, jsonTopics.getJ2735TimBroadcast());
+    var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     Assertions.assertNotNull(
         jsonJ2735TimBroadcastRecord); // TODO: verify message contents instead of just existence
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
     Assertions.assertNotNull(
         jsonTimRecord); // TODO: verify message contents instead of just existence
-    var asn1CoderEncoderInputRecord =
-        KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     Assertions.assertNotNull(
         asn1CoderEncoderInputRecord); // TODO: verify message contents instead of just existence
 
@@ -347,12 +351,15 @@ class TimDepositControllerTest {
   void testSuccessfulSdwRequestMessageReturnsSuccessMessagePost() throws Exception {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
-    pojoTopics.setTimBroadcast("test.successfulSdwRequestMessageReturnsSuccessMessagePost.timBroadcast.pojo");
-    jsonTopics.setTimBroadcast("test.successfulSdwRequestMessageReturnsSuccessMessagePost.timBroadcast.json");
+    pojoTopics.setTimBroadcast(
+        "test.successfulSdwRequestMessageReturnsSuccessMessagePost.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast(
+        "test.successfulSdwRequestMessageReturnsSuccessMessagePost.timBroadcast.json");
     jsonTopics.setJ2735TimBroadcast(
         "test.successfulSdwRequestMessageReturnsSuccessMessagePost.j2735TimBroadcast.json");
     jsonTopics.setTim("test.successfulSdwRequestMessageReturnsSuccessMessagePost.tim.json");
-    asn1CoderTopics.setEncoderInput("test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
+    asn1CoderTopics.setEncoderInput(
+        "test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
     EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast(),
         jsonTopics.getJ2735TimBroadcast(), jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
     DateTimeUtils.setClock(
@@ -377,11 +384,15 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
-    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer, jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
+        pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
 
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
@@ -390,15 +401,15 @@ class TimDepositControllerTest {
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(
         jsonTimBroadcastRecord); // TODO: verify message contents instead of just existence
-    var jsonJ2735TimBroadcastRecord =
-        KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer, jsonTopics.getJ2735TimBroadcast());
+    var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     Assertions.assertNotNull(
         jsonJ2735TimBroadcastRecord); // TODO: verify message contents instead of just existence
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
     Assertions.assertNotNull(
         jsonTimRecord); // TODO: verify message contents instead of just existence
-    var asn1CoderEncoderInputRecord =
-        KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     Assertions.assertNotNull(
         asn1CoderEncoderInputRecord); // TODO: verify message contents instead of just existence
 
@@ -412,16 +423,75 @@ class TimDepositControllerTest {
 
   @Test
   void testSuccessfulMessageReturnsSuccessMessagePostWithOde() {
-
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast(
+        "test.successfulMessageReturnsSuccessMessagePostWithOde.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast(
+        "test.successfulMessageReturnsSuccessMessagePostWithOde.timBroadcast.json");
+    jsonTopics.setJ2735TimBroadcast(
+        "test.successfulMessageReturnsSuccessMessagePostWithOde.j2735TimBroadcast.json");
+    jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePostWithOde.tim.json");
+    asn1CoderTopics.setEncoderInput(
+        "test.successfulMessageReturnsSuccessMessagePostWithOde.encoderInput");
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast(),
+        jsonTopics.getJ2735TimBroadcast(), jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties, securityServicesProperties);
+    String requestBody =
+        "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
-    Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
 
-    // TODO: verify message is published to Kafka topics
+    // verify
+    String expectedResponseBody = "{\"success\":\"true\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+
+    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
+    var jsonTimConsumer = createStr2StrConsumer();
+    var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
+
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
+        pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+
+    var pojoTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(pojoTimBroadcastRecord);
+    var jsonTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(
+        jsonTimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
+    Assertions.assertNotNull(
+        jsonJ2735TimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
+    Assertions.assertNotNull(
+        jsonTimRecord); // TODO: verify message contents instead of just existence
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    Assertions.assertNotNull(
+        asn1CoderEncoderInputRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    pojoTimBroadcastConsumer.close();
+    jsonTimBroadcastConsumer.close();
+    jsonJ2735TimBroadcastConsumer.close();
+    jsonTimConsumer.close();
+    asn1CoderEncoderInputConsumer.close();
   }
 
   @Test
