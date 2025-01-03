@@ -17,6 +17,7 @@
 package us.dot.its.jpo.ode.traveler;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -46,12 +47,16 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
+import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeObject;
+import us.dot.its.jpo.ode.model.SerialId;
+import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
+import us.dot.its.jpo.ode.util.XmlUtils;
 
 
 @EnableConfigurationProperties
@@ -228,56 +233,59 @@ class TimDepositControllerTest {
     pojoConsumer.close();
   }
 
-//  @Test
-//  void failedXmlConversionShouldReturnConversionError(
-//      @Capturing TimTransmogrifier capturingTimTransmogrifier)
-//      throws XmlUtilsException, JsonUtilsException {
-//    // prepare
-//    odeKafkaProperties.setDisabledTopics(Set.of());
-//    pojoTopics.setTimBroadcast(
-//        "test.failedXmlConversionShouldReturnConversionError.timBroadcast.pojo");
-//    jsonTopics.setTimBroadcast(
-//        "test.failedXmlConversionShouldReturnConversionError.timBroadcast.json");
-//    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
-//    DateTimeUtils.setClock(
-//        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
-//    TimDepositController testTimDepositController =
-//        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
-//            timIngestTrackerProperties, securityServicesProperties);
-//
-//    new Expectations() {
-//      {
-//        TimTransmogrifier.convertToXml((DdsAdvisorySituationData) any, (ObjectNode) any,
-//            (OdeMsgMetadata) any, (SerialId) any);
-//        result = new XmlUtilsException("testException123", null);
-//      }
-//    };
-//    String requestBody =
-//        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
-//
-//    // execute
-//    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
-//
-//    // verify
-//    String expectedResponseBody =
-//        "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
-//    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
-//
-//    var stringConsumer = createInt2StrConsumer();
-//    var pojoConsumer = createInt2OdeObjConsumer();
-//    embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
-//    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-//    var singlePojoRecord =
-//        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
-//    Assertions.assertNotNull(singlePojoRecord.value());
-//    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-//    Assertions.assertNotNull( // TODO: fix assertion failure
-//        singleRecord.value()); // TODO: verify message contents instead of just existence
-//
-//    // cleanup
-//    stringConsumer.close();
-//    pojoConsumer.close();
-//  }
+  @Test
+  void failedXmlConversionShouldReturnConversionError(
+      @Capturing TimTransmogrifier capturingTimTransmogrifier)
+      throws XmlUtils.XmlUtilsException, JsonUtilsException {
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast(
+        "test.failedXmlConversionShouldReturnConversionError.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast(
+        "test.failedXmlConversionShouldReturnConversionError.timBroadcast.json");
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    TimDepositController testTimDepositController =
+        new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties);
+
+    new Expectations() {
+      {
+        TimTransmogrifier.obfuscateRsuPassword((String) any);
+        result = "timWithObfuscatedPassword";
+      }
+      {
+        TimTransmogrifier.convertToXml((DdsAdvisorySituationData) any, (ObjectNode) any,
+            (OdeMsgMetadata) any, (SerialId) any);
+        result = new XmlUtils.XmlUtilsException("testException123", null);
+      }
+    };
+    String requestBody =
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
+
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+
+    // verify
+    String expectedResponseBody =
+        "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+
+    var stringConsumer = createInt2StrConsumer();
+    var pojoConsumer = createInt2OdeObjConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    var singlePojoRecord =
+        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(singlePojoRecord.value());
+    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertEquals("timWithObfuscatedPassword", singleRecord.value());
+
+    // cleanup
+    stringConsumer.close();
+    pojoConsumer.close();
+  }
 
   @Test
   void testSuccessfulMessageReturnsSuccessMessagePost() throws IOException {
