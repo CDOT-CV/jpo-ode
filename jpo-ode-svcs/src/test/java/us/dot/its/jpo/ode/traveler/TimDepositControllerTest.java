@@ -26,6 +26,7 @@ import mockit.Capturing;
 import mockit.Expectations;
 import org.apache.commons.io.IOUtils;
 import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -157,8 +158,8 @@ class TimDepositControllerTest {
         "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields. Message only published to broadcast streams.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createStringConsumer();
-    var pojoConsumer = createPojoConsumer();
+    var stringConsumer = createInt2StrConsumer();
+    var pojoConsumer = createInt2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -209,8 +210,8 @@ class TimDepositControllerTest {
         "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createStringConsumer();
-    var pojoConsumer = createPojoConsumer();
+    var stringConsumer = createInt2StrConsumer();
+    var pojoConsumer = createInt2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -260,8 +261,8 @@ class TimDepositControllerTest {
         "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createStringConsumer();
-    var pojoConsumer = createPojoConsumer();
+    var stringConsumer = createInt2StrConsumer();
+    var pojoConsumer = createInt2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -303,38 +304,43 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createStringConsumer();
-    var pojoConsumer = createPojoConsumer();
-    var stringConsumerStringKey = createStringConsumerStringKey();
+    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
+    var jsonTimConsumer = createStr2StrConsumer();
+    var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
-    embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumerStringKey, jsonTopics.getTim()); // TODO: fix RecordDeserializationException occurring here
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, asn1CoderTopics.getEncoderInput());
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer, jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
 
-    var singlePojoRecord =
-        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
-    Assertions.assertNotNull(singlePojoRecord);
-    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    var pojoTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(pojoTimBroadcastRecord);
+    var jsonTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(
-        singleRecord); // TODO: verify message contents instead of just existence
-    singleRecord =
-        KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getJ2735TimBroadcast());
+        jsonTimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonJ2735TimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer, jsonTopics.getJ2735TimBroadcast());
     Assertions.assertNotNull(
-        singleRecord); // TODO: verify message contents instead of just existence
-    singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTim());
+        jsonJ2735TimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
     Assertions.assertNotNull(
-        singleRecord); // TODO: verify message contents instead of just existence
-    singleRecord =
-        KafkaTestUtils.getSingleRecord(stringConsumer, asn1CoderTopics.getEncoderInput());
+        jsonTimRecord); // TODO: verify message contents instead of just existence
+    var asn1CoderEncoderInputRecord =
+        KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
     Assertions.assertNotNull(
-        singleRecord); // TODO: verify message contents instead of just existence
+        asn1CoderEncoderInputRecord); // TODO: verify message contents instead of just existence
 
     // cleanup
-    stringConsumer.close();
-    pojoConsumer.close();
-    stringConsumerStringKey.close();
+    pojoTimBroadcastConsumer.close();
+    jsonTimBroadcastConsumer.close();
+    jsonJ2735TimBroadcastConsumer.close();
+    jsonTimConsumer.close();
+    asn1CoderEncoderInputConsumer.close();
   }
 
   @Test
@@ -433,7 +439,7 @@ class TimDepositControllerTest {
    *
    * @return a consumer for String messages
    */
-  private Consumer<Integer, String> createStringConsumer() {
+  private Consumer<Integer, String> createInt2StrConsumer() {
     consumerCount++;
     var consumerProps =
         KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
@@ -448,7 +454,7 @@ class TimDepositControllerTest {
    *
    * @return a consumer for OdeObject messages
    */
-  private Consumer<Integer, OdeObject> createPojoConsumer() {
+  private Consumer<Integer, OdeObject> createInt2OdeObjConsumer() {
     consumerCount++;
     var consumerProps =
         KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
@@ -461,12 +467,13 @@ class TimDepositControllerTest {
   /**
    * Helper method to create a consumer for String messages with String keys.
    */
-  private Consumer<String, String> createStringConsumerStringKey() {
+  private Consumer<String, String> createStr2StrConsumer() {
     consumerCount++;
     var consumerProps =
         KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
     DefaultKafkaConsumerFactory<String, String> stringConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
+        new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+            new StringDeserializer());
     return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
         String.format("clientidsuffix%d", consumerCount));
   }
