@@ -708,17 +708,75 @@ class TimDepositControllerTest {
   // This serves as an integration test without mocking the TimTransmogrifier and XmlUtils
   @Test
   void testSuccessfulRsuMessageReturnsSuccessMessagePost() {
-
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast(
+        "test.successfulRsuMessageReturnsSuccessMessagePost.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast(
+        "test.successfulRsuMessageReturnsSuccessMessagePost.timBroadcast.json");
+    jsonTopics.setJ2735TimBroadcast(
+        "test.successfulRsuMessageReturnsSuccessMessagePost.j2735TimBroadcast.json");
+    jsonTopics.setTim("test.successfulRsuMessageReturnsSuccessMessagePost.tim.json");
+    asn1CoderTopics.setEncoderInput(
+        "test.successfulRsuMessageReturnsSuccessMessagePost.encoderInput");
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast(),
+        jsonTopics.getJ2735TimBroadcast(), jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties, securityServicesProperties);
-
-    String timToSubmit =
+    String requestBody =
         "{\"request\": {\"rsus\": [{\"latitude\": 30.123456, \"longitude\": -100.12345, \"rsuId\": 123, \"route\": \"myroute\", \"milepost\": 10, \"rsuTarget\": \"172.0.0.1\", \"rsuRetries\": 3, \"rsuTimeout\": 5000, \"rsuIndex\": 7, \"rsuUsername\": \"myusername\", \"rsuPassword\": \"mypassword\"}], \"snmp\": {\"rsuid\": \"83\", \"msgid\": 31, \"mode\": 1, \"channel\": 183, \"interval\": 2000, \"deliverystart\": \"2024-05-13T14:30:00Z\", \"deliverystop\": \"2024-05-13T22:30:00Z\", \"enable\": 1, \"status\": 4}}, \"tim\": {\"msgCnt\": \"1\", \"timeStamp\": \"2024-05-10T19:01:22Z\", \"packetID\": \"123451234512345123\", \"urlB\": \"null\", \"dataframes\": [{\"startDateTime\": \"2024-05-13T20:30:05.014Z\", \"durationTime\": \"30\", \"doNotUse1\": 0, \"frameType\": \"advisory\", \"msgId\": {\"roadSignID\": {\"mutcdCode\": \"warning\", \"viewAngle\": \"1111111111111111\", \"position\": {\"latitude\": 30.123456, \"longitude\": -100.12345}}}, \"priority\": \"5\", \"doNotUse2\": 0, \"regions\": [{\"name\": \"I_myroute_RSU_172.0.0.1\", \"anchorPosition\": {\"latitude\": 30.123456, \"longitude\": -100.12345}, \"laneWidth\": \"50\", \"directionality\": \"3\", \"closedPath\": \"false\", \"description\": \"path\", \"path\": {\"scale\": 0, \"nodes\": [{\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}, {\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}], \"type\": \"ll\"}, \"direction\": \"0000000000010000\"}], \"doNotUse4\": 0, \"doNotUse3\": 0, \"content\": \"workZone\", \"items\": [\"771\"], \"url\": \"null\"}]}}";
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim(timToSubmit);
-    Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
 
-    // TODO: verify message is published to Kafka topics
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+
+    // verify
+    String expectedResponseBody = "{\"success\":\"true\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+
+    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var jsonTimBroadcastConsumer = createInt2StrConsumer();
+    var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
+    var jsonTimConsumer = createStr2StrConsumer();
+    var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
+
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
+        pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+
+    var pojoTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(pojoTimBroadcastRecord);
+    var jsonTimBroadcastRecord =
+        KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(
+        jsonTimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
+    Assertions.assertNotNull(
+        jsonJ2735TimBroadcastRecord); // TODO: verify message contents instead of just existence
+    var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
+    Assertions.assertNotNull(
+        jsonTimRecord); // TODO: verify message contents instead of just existence
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    Assertions.assertNotNull(
+        asn1CoderEncoderInputRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    pojoTimBroadcastConsumer.close();
+    jsonTimBroadcastConsumer.close();
+    jsonJ2735TimBroadcastConsumer.close();
+    jsonTimConsumer.close();
+    asn1CoderEncoderInputConsumer.close();
   }
 
   /**
