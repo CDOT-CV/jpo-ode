@@ -82,6 +82,8 @@ class TimDepositControllerTest {
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
+  int consumerCount = 0;
+
   @Test
   void nullRequestShouldReturnEmptyError() {
     TimDepositController testTimDepositController =
@@ -153,16 +155,8 @@ class TimDepositControllerTest {
         "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields. Message only published to broadcast streams.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var consumerProps =
-        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> stringConsumer =
-        stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
-    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, OdeObject> pojoConsumer =
-        pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
+    var stringConsumer = createStringConsumer();
+    var pojoConsumer = createPojoConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -171,6 +165,10 @@ class TimDepositControllerTest {
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(
         singleRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    stringConsumer.close();
+    pojoConsumer.close();
   }
 
   @Test
@@ -205,16 +203,8 @@ class TimDepositControllerTest {
         "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var consumerProps =
-        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> stringConsumer =
-        stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
-    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, OdeObject> pojoConsumer =
-        pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
+    var stringConsumer = createStringConsumer();
+    var pojoConsumer = createPojoConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -223,6 +213,10 @@ class TimDepositControllerTest {
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(
         singleRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    stringConsumer.close();
+    pojoConsumer.close();
   }
 
   @Test
@@ -256,16 +250,8 @@ class TimDepositControllerTest {
         "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var consumerProps =
-        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> stringConsumer =
-        stringConsumerFactory.createConsumer("stringgroupid", "stringclientidsuffix");
-    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, OdeObject> pojoConsumer =
-        pojoConsumerFactory.createConsumer("pojogroupid", "pojoclientidsuffix");
+    var stringConsumer = createStringConsumer();
+    var pojoConsumer = createPojoConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -274,6 +260,10 @@ class TimDepositControllerTest {
     var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
     Assertions.assertNotNull(
         singleRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    stringConsumer.close();
+    pojoConsumer.close();
   }
 
   @Test
@@ -379,6 +369,34 @@ class TimDepositControllerTest {
     Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
 
     // TODO: verify message is published to Kafka topics
+  }
+
+  /**
+   * Helper method to create a consumer for String messages
+   * @return a consumer for String messages
+   */
+  private Consumer<Integer, String> createStringConsumer() {
+    consumerCount++;
+    var consumerProps =
+        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
+    DefaultKafkaConsumerFactory<Integer, String> stringConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
+        String.format("clientidsuffix%d", consumerCount));
+  }
+
+  /**
+   * Helper method to create a consumer for OdeObject messages
+   * @return a consumer for OdeObject messages
+   */
+  private Consumer<Integer, OdeObject> createPojoConsumer() {
+    consumerCount++;
+    var consumerProps =
+        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
+    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    return pojoConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
+        String.format("clientidsuffix%d", consumerCount));
   }
 
 }
