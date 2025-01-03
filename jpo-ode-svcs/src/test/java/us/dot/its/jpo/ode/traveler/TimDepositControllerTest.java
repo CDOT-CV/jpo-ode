@@ -278,16 +278,63 @@ class TimDepositControllerTest {
 
   @Test
   void testSuccessfulMessageReturnsSuccessMessagePost() {
-
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    pojoTopics.setTimBroadcast("test.successfulMessageReturnsSuccessMessagePost.timBroadcast.pojo");
+    jsonTopics.setTimBroadcast("test.successfulMessageReturnsSuccessMessagePost.timBroadcast.json");
+    jsonTopics.setJ2735TimBroadcast(
+        "test.successfulMessageReturnsSuccessMessagePost.j2735TimBroadcast.json");
+    jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePost.tim.json");
+    asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePost.encoderInput");
+    EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast(),
+        jsonTopics.getJ2735TimBroadcast(), jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
         new TimDepositController(odeKafkaProperties, asn1CoderTopics, pojoTopics, jsonTopics,
             timIngestTrackerProperties, securityServicesProperties);
+    String requestBody =
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-    ResponseEntity<String> actualResponse = testTimDepositController.postTim(
-        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}");
-    Assertions.assertEquals("{\"success\":\"true\"}", actualResponse.getBody());
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
 
-    // TODO: verify message is published to Kafka topics
+    // verify
+    String expectedResponseBody = "{\"success\":\"true\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+
+    var stringConsumer = createStringConsumer();
+    var pojoConsumer = createPojoConsumer();
+    var stringConsumerStringKey = createStringConsumerStringKey();
+
+    embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getJ2735TimBroadcast());
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumerStringKey, jsonTopics.getTim()); // TODO: fix RecordDeserializationException occurring here
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, asn1CoderTopics.getEncoderInput());
+
+    var singlePojoRecord =
+        KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
+    Assertions.assertNotNull(singlePojoRecord);
+    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
+    singleRecord =
+        KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getJ2735TimBroadcast());
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
+    singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTim());
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
+    singleRecord =
+        KafkaTestUtils.getSingleRecord(stringConsumer, asn1CoderTopics.getEncoderInput());
+    Assertions.assertNotNull(
+        singleRecord); // TODO: verify message contents instead of just existence
+
+    // cleanup
+    stringConsumer.close();
+    pojoConsumer.close();
+    stringConsumerStringKey.close();
   }
 
   @Test
@@ -382,7 +429,7 @@ class TimDepositControllerTest {
   }
 
   /**
-   * Helper method to create a consumer for String messages
+   * Helper method to create a consumer for String messages with Integer keys.
    *
    * @return a consumer for String messages
    */
@@ -397,7 +444,7 @@ class TimDepositControllerTest {
   }
 
   /**
-   * Helper method to create a consumer for OdeObject messages
+   * Helper method to create a consumer for OdeObject messages with Integer keys.
    *
    * @return a consumer for OdeObject messages
    */
@@ -411,4 +458,16 @@ class TimDepositControllerTest {
         String.format("clientidsuffix%d", consumerCount));
   }
 
+  /**
+   * Helper method to create a consumer for String messages with String keys.
+   */
+  private Consumer<String, String> createStringConsumerStringKey() {
+    consumerCount++;
+    var consumerProps =
+        KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
+    DefaultKafkaConsumerFactory<String, String> stringConsumerFactory =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
+        String.format("clientidsuffix%d", consumerCount));
+  }
 }
