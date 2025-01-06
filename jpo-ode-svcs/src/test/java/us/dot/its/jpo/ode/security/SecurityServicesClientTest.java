@@ -63,8 +63,8 @@ class SecurityServicesClientTest {
     // Arrange
     String message = "TestMessage";
     SignatureResultModel expectedResult = new SignatureResultModel();
-    expectedResult.getResult().setMessageSigned("signed message<%s>".formatted(message));
-    expectedResult.getResult().setMessageExpiry(clock.instant().getEpochSecond());
+    expectedResult.setMessageSigned("signed message<%s>".formatted(message));
+    expectedResult.setMessageExpiry(clock.instant().getEpochSecond());
 
     SignatureRequestModel signatureRequestModel = new SignatureRequestModel();
     signatureRequestModel.setMessage(message);

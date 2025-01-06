@@ -388,8 +388,8 @@ class Asn1EncodedDataRouterTest {
     @Override
     public SignatureResultModel signMessage(String message, int sigValidityOverride) throws RestClientException {
       var signatureResponse = new SignatureResultModel();
-      signatureResponse.getResult().setMessageSigned("<%s>".formatted(message));
-      signatureResponse.getResult().setMessageExpiry(clock.instant().getEpochSecond() + 1000);
+      signatureResponse.setMessageSigned("<%s>".formatted(message));
+      signatureResponse.setMessageExpiry(clock.instant().getEpochSecond() + 1000);
       return signatureResponse;
     }
   }

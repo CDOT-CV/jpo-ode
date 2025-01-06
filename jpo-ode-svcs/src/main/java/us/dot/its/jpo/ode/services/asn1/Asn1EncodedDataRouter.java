@@ -157,15 +157,14 @@ public class Asn1EncodedDataRouter {
     ServiceRequest request = getServiceRequest(metadataJson);
     log.debug("Mapped to object ServiceRequest: {}", request);
 
-    // {
-    //  "code" : "INVALID_DATA_TYPE_ERROR",
-    //  "message" : "failed ASN.1 decoding of XML element MessageFrame: bad data. Successfully decoded 200 bytes."
-    //}
     if (payloadData.has("code") && payloadData.has("message")) {
       // The ASN.1 decoding has failed. We cannot proceed
-      log.error("ASN.1 decoding failed with code {} and message {}.", payloadData.get("code"), payloadData.get("message"));
+      var code = payloadData.get("code");
+      var message = payloadData.get("message");
+
+      log.error("ASN.1 decoding failed with code {} and message {}.", code, message);
       throw new Asn1EncodedDataRouterException(
-          "ASN.1 decoding failed with code %s and message %s.".formatted(payloadData.get("code"), payloadData.get("message")));
+          "ASN.1 decoding failed with code %s and message %s.".formatted(code, message));
     }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
@@ -211,7 +210,7 @@ public class Asn1EncodedDataRouter {
           * 60 * 1000;
       var signedResponse = securityServicesClient.signMessage(base64EncodedTim, maxDurationTime);
       depositToTimCertExpirationTopic(metadataJson, signedResponse, maxDurationTime);
-      bytesToSend = signedResponse.getResult().getHexEncodedMessageSigned();
+      bytesToSend = signedResponse.getHexEncodedMessageSigned();
     } else {
       log.debug("Signing not enabled or no SDW or RSU data detected. Sending encoded TIM message without signing...");
       bytesToSend = hexEncodedTimBytes;
@@ -384,7 +383,7 @@ public class Asn1EncodedDataRouter {
                              JSONObject timWithExpiration,
                              DateTimeFormatter dateFormat) {
     try {
-      var messageExpiryMillis = signedResponse.getResult().getMessageExpiry() * 1000;
+      var messageExpiryMillis = signedResponse.getMessageExpiry() * 1000;
       var expiryDate = LocalDateTime.ofInstant(Instant.ofEpochMilli(messageExpiryMillis), ZoneId.of("UTC"));
       timWithExpiration.put("expirationDate", expiryDate.format(dateFormat));
     } catch (Exception e) {
