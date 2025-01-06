@@ -157,6 +157,16 @@ public class Asn1EncodedDataRouter {
     ServiceRequest request = getServiceRequest(metadataJson);
     log.debug("Mapped to object ServiceRequest: {}", request);
 
+    // {
+    //  "code" : "INVALID_DATA_TYPE_ERROR",
+    //  "message" : "failed ASN.1 decoding of XML element MessageFrame: bad data. Successfully decoded 200 bytes."
+    //}
+    if (payloadData.has("code") && payloadData.has("message")) {
+      // The ASN.1 decoding has failed. We cannot proceed
+      log.error("ASN.1 decoding failed with code {} and message {}.", payloadData.get("code"), payloadData.get("message"));
+      throw new Asn1EncodedDataRouterException(
+          "ASN.1 decoding failed with code %s and message %s.".formatted(payloadData.get("code"), payloadData.get("message")));
+    }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
     } else if (dataSigningEnabledSDW && request.getSdw() != null) {
