@@ -9,7 +9,7 @@
       "serialNumber" : 0
     },
     "odeReceivedAt" : "2018-03-13T01:07:11.120Z",
-    "schemaVersion" : 7,
+    "schemaVersion" : 8,
     "maxDurationTime" : 1440,
     "recordGeneratedAt" : "2020-04-30T14:24:11.581Z",
     "recordGeneratedBy" : "TMC",
