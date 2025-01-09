@@ -183,7 +183,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var stringConsumer = createStr2StrConsumer();
-    var pojoConsumer = createInt2OdeObjConsumer();
+    var pojoConsumer = createStr2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -237,7 +237,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var stringConsumer = createStr2StrConsumer();
-    var pojoConsumer = createInt2OdeObjConsumer();
+    var pojoConsumer = createStr2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -295,7 +295,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
     var stringConsumer = createStr2StrConsumer();
-    var pojoConsumer = createInt2OdeObjConsumer();
+    var pojoConsumer = createStr2OdeObjConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
     embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
     var singlePojoRecord =
@@ -337,7 +337,7 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -414,7 +414,7 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -492,7 +492,7 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -566,7 +566,7 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -638,7 +638,7 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -711,7 +711,7 @@ class TimDepositControllerTest {
     Assertions.assertEquals(priorIngestCount + 1,
         TimIngestTracker.getInstance().getTotalMessagesReceived());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -786,7 +786,7 @@ class TimDepositControllerTest {
     String expectedResponseBody = "{\"success\":\"true\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var pojoTimBroadcastConsumer = createInt2OdeObjConsumer();
+    var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
     var jsonTimBroadcastConsumer = createStr2StrConsumer();
     var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
     var jsonTimConsumer = createStr2StrConsumer();
@@ -833,16 +833,17 @@ class TimDepositControllerTest {
   }
 
   /**
-   * Helper method to create a consumer for OdeObject messages with Integer keys.
+   * Helper method to create a consumer for OdeObject messages with String keys.
    *
    * @return a consumer for OdeObject messages
    */
-  private Consumer<Integer, OdeObject> createInt2OdeObjConsumer() {
+  private Consumer<String, OdeObject> createStr2OdeObjConsumer() {
     consumerCount++;
     var consumerProps =
         KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, OdeObject> pojoConsumerFactory =
+    DefaultKafkaConsumerFactory<String, OdeObject> pojoConsumerFactory =
         new DefaultKafkaConsumerFactory<>(consumerProps);
+    pojoConsumerFactory.setKeyDeserializer(new StringDeserializer());
     return pojoConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
         String.format("clientidsuffix%d", consumerCount));
   }
