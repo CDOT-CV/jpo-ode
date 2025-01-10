@@ -18,8 +18,8 @@ package us.dot.its.jpo.ode.services.json;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.wrapper.MessageConsumer;
 import us.dot.its.jpo.ode.wrapper.serdes.OdeBsmDeserializer;
@@ -29,12 +29,12 @@ import us.dot.its.jpo.ode.wrapper.serdes.OdeBsmDeserializer;
  */
 @Controller
 @Slf4j
-public class ToJsonServiceController {
+public class BSMPojoToJSONListener {
    
    private final String brokers;
 
    @Autowired
-   public ToJsonServiceController(OdeKafkaProperties odeKafkaProperties, JsonTopics jsonTopics, PojoTopics pojoTopics) {
+   public BSMPojoToJSONListener(OdeKafkaProperties odeKafkaProperties, JsonTopics jsonTopics, PojoTopics pojoTopics) {
       super();
 
       this.brokers = odeKafkaProperties.getBrokers();

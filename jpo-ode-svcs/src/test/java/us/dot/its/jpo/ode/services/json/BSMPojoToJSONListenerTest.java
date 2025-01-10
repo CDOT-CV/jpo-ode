@@ -44,7 +44,7 @@ import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
 @SpringBootTest(classes = {
-    ToJsonServiceController.class,
+    BSMPojoToJSONListener.class,
     OdeKafkaProperties.class,
     KafkaProducerConfig.class,
     KafkaProperties.class,
@@ -54,7 +54,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
     "ode.kafka.topics.json.bsm=topic.BSMJson-${random.int}"
 })
 @EnableConfigurationProperties({KafkaProperties.class, OdeKafkaProperties.class, JsonTopics.class, PojoTopics.class})
-class ToJsonServiceControllerTest {
+class BSMPojoToJSONListenerTest {
 
   @Autowired
   JsonTopics jsonTopics;
