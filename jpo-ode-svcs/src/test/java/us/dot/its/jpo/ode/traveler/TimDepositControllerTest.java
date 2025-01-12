@@ -422,8 +422,15 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml("successfulMessageReturnsSuccessMessagePost_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml =
+        loadTestResource("successfulMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -525,9 +532,15 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml(
-        "successfulSdwRequestMessageReturnsSuccessMessagePost_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml = loadTestResource(
+        "successfulSdwRequestMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -628,9 +641,15 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml(
-        "successfulMessageReturnsSuccessMessagePostWithOde_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml = loadTestResource(
+        "successfulMessageReturnsSuccessMessagePostWithOde_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -728,8 +747,15 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml("successfulMessageReturnsSuccessMessagePut_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml =
+        loadTestResource("successfulMessageReturnsSuccessMessagePut_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -827,8 +853,15 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml("depositingTimWithExtraProperties_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml =
+        loadTestResource("depositingTimWithExtraProperties_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -928,8 +961,14 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml("successfulTimIngestIsTracked_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml = loadTestResource("successfulTimIngestIsTracked_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -1031,9 +1070,15 @@ class TimDepositControllerTest {
         asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
-    verifyMessageContentsXml(
-        "successfulRsuMessageReturnsSuccessMessagePost_encoderInput_expected.xml",
-        asn1CoderEncoderInputRecord.value());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml =
+        loadTestResource("successfulRsuMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup
     pojoTimBroadcastConsumer.close();
@@ -1073,43 +1118,6 @@ class TimDepositControllerTest {
         String.format("clientidsuffix%d", consumerCount));
   }
 
-
-  /**
-   * Helper method to retrieve the expected XML contents from a file and verify that the actual XML
-   * contents are equivalent to the expected XML contents.
-   *
-   * @param expectedXmlContentsFilename the name of the file containing the expected XML contents
-   * @param actualXmlContents           the actual XML contents
-   * @throws IOException if an I/O error occurs
-   */
-  private void verifyMessageContentsXml(String expectedXmlContentsFilename,
-                                        String actualXmlContents) throws IOException {
-    String baseDirectory = "src/test/resources/us/dot/its/jpo/ode/traveler/";
-    String expectedXmlContents =
-        new String(Files.readAllBytes(Paths.get(baseDirectory + expectedXmlContentsFilename)));
-    verifyContentsAreEquivalentXml(expectedXmlContents, actualXmlContents);
-  }
-
-  /**
-   * Helper method to verify that the contents of the actual XML TIM message are equivalent to the
-   * expected XML TIM message, except for the stream id.
-   */
-  private void verifyContentsAreEquivalentXml(String expectedXmlTimContents,
-                                              String actualXmlTimContents) {
-    // verify stream id is different using string manipulation
-    String actualStreamId =
-        actualXmlTimContents.substring(actualXmlTimContents.indexOf("<streamId>"),
-            actualXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
-    String expectedStreamId =
-        expectedXmlTimContents.substring(expectedXmlTimContents.indexOf("<streamId>"),
-            expectedXmlTimContents.indexOf("</streamId>") + "</streamId>".length());
-    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-    // remove stream id for comparison
-    expectedXmlTimContents = expectedXmlTimContents.replace(expectedStreamId, "");
-    actualXmlTimContents = actualXmlTimContents.replace(actualStreamId, "");
-    Assertions.assertEquals(expectedXmlTimContents, actualXmlTimContents);
-  }
-
   /**
    * Helper method to load the contents of a test resource file as a string.
    *
@@ -1133,12 +1141,33 @@ class TimDepositControllerTest {
   }
 
   /**
+   * Helper method to retrieve the stream id from an XML string.
+   *
+   * @param xmlString the XML string
+   * @return the stream id
+   */
+  private static String getStreamId(String xmlString) {
+    return xmlString.substring(xmlString.indexOf("<streamId>"),
+        xmlString.indexOf("</streamId>") + "</streamId>".length());
+  }
+
+  /**
    * Helper method to remove the stream id from a JSON object.
    *
    * @param jsonObject the JSON object
    */
   private static void removeStreamId(JSONObject jsonObject) {
     jsonObject.getJSONObject("metadata").getJSONObject("serialId").remove("streamId");
+  }
+
+  /**
+   * Helper method to remove the stream id from an XML string.
+   *
+   * @param xmlString the XML string
+   * @return the XML string with the stream id removed
+   */
+  private static String removeStreamId(String xmlString, String streamId) {
+    return xmlString.replace(streamId, "");
   }
 
 }
