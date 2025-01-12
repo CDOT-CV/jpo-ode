@@ -34,7 +34,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -182,17 +181,26 @@ class TimDepositControllerTest {
         "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields. Message only published to broadcast streams.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createStr2StrConsumer();
     var pojoConsumer = createStr2OdeObjConsumer();
+    var stringConsumer = createStr2StrConsumer();
+
+    // verify POJO TimBroadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-    var singlePojoRecord =
+    var singlePojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
-    Assertions.assertNotNull(singlePojoRecord.value());
-    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "messageWithNoRSUsOrSDWShouldReturnWarning_timBroadcast_expected.json",
-        singleRecord.value());
+    Assertions.assertNotNull(singlePojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    var singleJsonTimBroadcastRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    var actualJson = new JSONObject(singleJsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("messageWithNoRSUsOrSDWShouldReturnWarning_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
 
     // cleanup
     stringConsumer.close();
@@ -236,17 +244,27 @@ class TimDepositControllerTest {
         "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-    var stringConsumer = createStr2StrConsumer();
     var pojoConsumer = createStr2OdeObjConsumer();
+    var stringConsumer = createStr2StrConsumer();
+
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-    var singlePojoRecord =
+    var singlePojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
-    Assertions.assertNotNull(singlePojoRecord.value());
-    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "failedObjectNodeConversionShouldReturnConvertingError_timBroadcast_expected.json",
-        singleRecord.value());
+    Assertions.assertNotNull(singlePojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    var singleJsonTimBroadcastRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertNotNull(singleJsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(singleJsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("failedObjectNodeConversionShouldReturnConvertingError_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
 
     // cleanup
     stringConsumer.close();
@@ -296,13 +314,17 @@ class TimDepositControllerTest {
 
     var stringConsumer = createStr2StrConsumer();
     var pojoConsumer = createStr2OdeObjConsumer();
+
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-    var singlePojoRecord =
+    var singlePojoTimBroadcastMessage =
         KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
-    Assertions.assertNotNull(singlePojoRecord.value());
-    var singleRecord = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-    Assertions.assertEquals("timWithObfuscatedPassword", singleRecord.value());
+    Assertions.assertNotNull(singlePojoTimBroadcastMessage.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
+    var singleJsonTimBroadcastMessage = KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
+    Assertions.assertEquals("timWithObfuscatedPassword", singleJsonTimBroadcastMessage.value());
 
     // cleanup
     stringConsumer.close();
@@ -343,32 +365,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "successfulMessageReturnsSuccessMessagePost_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePost_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson(
-        "successfulMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson("successfulMessageReturnsSuccessMessagePost_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePost_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml("successfulMessageReturnsSuccessMessagePost_encoderInput_expected.xml",
@@ -420,33 +466,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "successfulSdwRequestMessageReturnsSuccessMessagePost_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("successfulSdwRequestMessageReturnsSuccessMessagePost_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson(
-        "successfulSdwRequestMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("successfulSdwRequestMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson(
-        "successfulSdwRequestMessageReturnsSuccessMessagePost_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("successfulSdwRequestMessageReturnsSuccessMessagePost_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml(
@@ -498,32 +567,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "successfulMessageReturnsSuccessMessagePostWithOde_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePostWithOde_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson(
-        "successfulMessageReturnsSuccessMessagePostWithOde_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePostWithOde_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson("successfulMessageReturnsSuccessMessagePostWithOde_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePostWithOde_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml(
@@ -572,32 +665,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "successfulMessageReturnsSuccessMessagePut_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePut_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson(
-        "successfulMessageReturnsSuccessMessagePut_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePut_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson("successfulMessageReturnsSuccessMessagePut_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("successfulMessageReturnsSuccessMessagePut_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml("successfulMessageReturnsSuccessMessagePut_encoderInput_expected.xml",
@@ -644,30 +761,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson("depositingTimWithExtraProperties_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("depositingTimWithExtraProperties_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson("depositingTimWithExtraProperties_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("depositingTimWithExtraProperties_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson("depositingTimWithExtraProperties_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("depositingTimWithExtraProperties_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml("depositingTimWithExtraProperties_encoderInput_expected.xml",
@@ -717,30 +860,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson("successfulTimIngestIsTracked_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("successfulTimIngestIsTracked_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson("successfulTimIngestIsTracked_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("successfulTimIngestIsTracked_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson("successfulTimIngestIsTracked_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("successfulTimIngestIsTracked_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml("successfulTimIngestIsTracked_encoderInput_expected.xml",
@@ -792,32 +961,56 @@ class TimDepositControllerTest {
     var jsonTimConsumer = createStr2StrConsumer();
     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
 
+    // verify POJO tim broadcast message
     embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
         pojoTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-        jsonTopics.getTimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-        jsonTopics.getJ2735TimBroadcast());
-    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-        asn1CoderTopics.getEncoderInput());
-
     var pojoTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
     Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+
+    // verify JSON tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
+        jsonTopics.getTimBroadcast());
     var jsonTimBroadcastRecord =
         KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-    verifyMessageContentsJson(
-        "successfulRsuMessageReturnsSuccessMessagePost_timBroadcast_expected.json",
-        jsonTimBroadcastRecord.value());
+    var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
+    var expectedJson = new JSONObject(loadTestResource("successfulRsuMessageReturnsSuccessMessagePost_timBroadcast_expected.json"));
+    String actualStreamId = getStreamId(actualJson);
+    String expectedStreamId = getStreamId(expectedJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJson);
+    removeStreamId(expectedJson);
+    Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+
+    // verify JSON J2735 tim broadcast message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
+        jsonTopics.getJ2735TimBroadcast());
     var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
         jsonTopics.getJ2735TimBroadcast());
-    verifyMessageContentsJson(
-        "successfulRsuMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json",
-        jsonJ2735TimBroadcastRecord.value());
+    var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
+    var expectedJ2735Json = new JSONObject(loadTestResource("successfulRsuMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json"));
+    actualStreamId = getStreamId(actualJ2735Json);
+    expectedStreamId = getStreamId(expectedJ2735Json);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualJ2735Json);
+    removeStreamId(expectedJ2735Json);
+    Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+
+    // verify JSON tim message
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
     var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-    verifyMessageContentsJson("successfulRsuMessageReturnsSuccessMessagePost_tim_expected.json",
-        jsonTimRecord.value());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(loadTestResource("successfulRsuMessageReturnsSuccessMessagePost_tim_expected.json"));
+    actualStreamId = getStreamId(actualTimJson);
+    expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+
+    // verify ASN.1 coder encoder input message
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     verifyMessageContentsXml(
@@ -862,47 +1055,6 @@ class TimDepositControllerTest {
         String.format("clientidsuffix%d", consumerCount));
   }
 
-  /**
-   * Helper method to retrieve the expected JSON contents from a file and verify that the actual JSON
-   * contents are equivalent to the expected JSON contents.
-   *
-   * @param expectedJsonContentsFilename the name of the file containing the expected JSON contents
-   * @param actualJsonContents           the actual JSON contents
-   * @throws IOException if an I/O error occurs
-   */
-  private void verifyMessageContentsJson(String expectedJsonContentsFilename,
-                                         String actualJsonContents) throws IOException {
-    String baseDirectory = "src/test/resources/us/dot/its/jpo/ode/traveler/";
-    String expectedJsonContents =
-        new String(Files.readAllBytes(Paths.get(baseDirectory + expectedJsonContentsFilename)));
-    verifyContentsAreEquivalentJson(expectedJsonContents, actualJsonContents);
-  }
-
-  /**
-   * Helper method to verify that the contents of the actual JSON TIM message are equivalent to the
-   * expected JSON TIM message, except for the stream id.
-   */
-  private void verifyContentsAreEquivalentJson(String expectedJsonTimContents,
-                                               String actualJsonTimContents) {
-    // verify stream id is different
-    JSONObject expectedJsonTimBroadcastContentsJson = new JSONObject(expectedJsonTimContents);
-    JSONObject actualJsonTimBroadcastContentsJson = new JSONObject(actualJsonTimContents);
-    String actualStreamId =
-        actualJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
-            .getString("streamId");
-    String expectedStreamId =
-        expectedJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
-            .getString("streamId");
-    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-    // remove stream id for comparison
-    expectedJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
-        .remove("streamId");
-    actualJsonTimBroadcastContentsJson.getJSONObject("metadata").getJSONObject("serialId")
-        .remove("streamId");
-    JSONAssert.assertEquals(expectedJsonTimBroadcastContentsJson.toString(),
-        actualJsonTimBroadcastContentsJson.toString(), false);
-  }
-
 
   /**
    * Helper method to retrieve the expected XML contents from a file and verify that the actual XML
@@ -939,4 +1091,35 @@ class TimDepositControllerTest {
     actualXmlTimContents = actualXmlTimContents.replace(actualStreamId, "");
     Assertions.assertEquals(expectedXmlTimContents, actualXmlTimContents);
   }
+
+  /**
+   * Helper method to load the contents of a test resource file as a string.
+   * @param resourceName the name of the test resource file
+   * @return the contents of the test resource file as a string
+   * @throws IOException if an I/O error occurs
+   */
+  private String loadTestResource(String resourceName) throws IOException {
+    String baseDirectory = "src/test/resources/us/dot/its/jpo/ode/traveler/";
+    return new String(Files.readAllBytes(Paths.get(baseDirectory + resourceName)));
+  }
+
+  /**
+   * Helper method to retrieve the stream id from a JSON object.
+   * @param jsonObject the JSON object
+   * @return the stream id
+   */
+  private static String getStreamId(JSONObject jsonObject) {
+    return jsonObject.getJSONObject("metadata").getJSONObject("serialId")
+        .getString("streamId");
+  }
+
+  /**
+   * Helper method to remove the stream id from a JSON object.
+   * @param jsonObject the JSON object
+   */
+  private static void removeStreamId(JSONObject jsonObject) {
+    jsonObject.getJSONObject("metadata").getJSONObject("serialId")
+        .remove("streamId");
+  }
+
 }
