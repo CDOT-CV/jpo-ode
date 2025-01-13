@@ -16,6 +16,8 @@
 
 package us.dot.its.jpo.ode.services.json;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +36,21 @@ public class BSMPojoToJSONListener {
 
   private final String produceTopic;
   private final KafkaTemplate<String, String> kafkaTemplate;
+  private final ObjectMapper mapper;
 
   @Autowired
-  public BSMPojoToJSONListener(KafkaTemplate<String, String> kafkaTemplate, @Value("${ode.kafka.topics.json.bsm}") String produceTopic) {
+  public BSMPojoToJSONListener(KafkaTemplate<String, String> kafkaTemplate,
+                               @Value("${ode.kafka.topics.json.bsm}") String produceTopic,
+                               ObjectMapper mapper) {
     super();
     this.kafkaTemplate = kafkaTemplate;
     this.produceTopic = produceTopic;
+    this.mapper = mapper;
   }
 
   @KafkaListener(id = "BSMPojoToJSONListener", topics = "${ode.kafka.topics.pojo.bsm}", containerFactory = "odeBsmDataConsumerListenerContainerFactory")
-  public void listen(ConsumerRecord<String, OdeBsmData> consumerRecord) {
-    log.debug("Received record on topic: {} with key: {} and value: {}", consumerRecord.topic(), consumerRecord.key(), consumerRecord.value());
-    var data = consumerRecord.value();
-    kafkaTemplate.send(produceTopic, consumerRecord.key(), data.toJson());
+  public void listen(ConsumerRecord<String, OdeBsmData> consumerRecord) throws JsonProcessingException {
+    log.debug("Received record on topic: {} with key: {}", consumerRecord.topic(), consumerRecord.key());
+    kafkaTemplate.send(produceTopic, consumerRecord.key(), mapper.writeValueAsString(consumerRecord.value()));
   }
 }
