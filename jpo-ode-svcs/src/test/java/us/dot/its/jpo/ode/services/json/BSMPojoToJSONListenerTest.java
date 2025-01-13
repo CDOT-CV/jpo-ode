@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -86,7 +85,7 @@ class BSMPojoToJSONListenerTest {
     var bsmPojo = loadFromResource("us/dot/its/jpo/ode/services/json/to-json-converter-bsm-input.json");
     var bsmData = objectMapper.readValue(bsmPojo, OdeBsmData.class);
     var send = bsmDataKafkaTemplate.send(pojoTopics.getBsm(), bsmData);
-    Awaitility.await().until(send::isDone);
+    //Awaitility.await().until(send::isDone);
 
     var actualBsmJson = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getBsm());
     var expectedBsmJson = loadFromResource("us/dot/its/jpo/ode/services/json/to-json-converter-bsm-output.json");

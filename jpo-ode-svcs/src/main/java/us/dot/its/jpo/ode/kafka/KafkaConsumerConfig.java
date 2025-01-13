@@ -124,7 +124,7 @@ public class KafkaConsumerConfig {
     return new DefaultKafkaConsumerFactory<>(
         getKafkaConsumerProperties(),
         new StringDeserializer(),
-        new MessagingDeserializer<OdeBsmData>()
+        new MessagingDeserializer<>()
     );
   }
 
