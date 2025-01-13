@@ -36,6 +36,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -47,11 +48,12 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
     BSMPojoToJSONListener.class,
     OdeKafkaProperties.class,
     KafkaProducerConfig.class,
+    KafkaConsumerConfig.class,
     KafkaProperties.class,
     SerializationConfig.class,
 }, properties = {
-    "ode.kafka.topics.pojo.bsm=topic.BSMPojo-${random.int}",
-    "ode.kafka.topics.json.bsm=topic.BSMJson-${random.int}"
+    "ode.kafka.topics.pojo.bsm=topic.BSMPojo",
+    "ode.kafka.topics.json.bsm=topic.BSMJson"
 })
 @EnableConfigurationProperties({KafkaProperties.class, OdeKafkaProperties.class, JsonTopics.class, PojoTopics.class})
 class BSMPojoToJSONListenerTest {
