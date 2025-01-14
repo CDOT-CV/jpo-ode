@@ -33,8 +33,7 @@ import us.dot.its.jpo.ode.util.SerializationUtils;
  *
  * @param <T> the type of data to be serialized
  */
-public sealed class MessagingSerializer<T> implements Serializer<T>
-    permits OdeBsmSerializer, OdeTimSerializer {
+public sealed class MessagingSerializer<T> implements Serializer<T> permits OdeTimSerializer {
 
   SerializationUtils<T> serializer = new SerializationUtils<>();
 

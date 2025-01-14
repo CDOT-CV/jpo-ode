@@ -32,8 +32,7 @@ import us.dot.its.jpo.ode.util.SerializationUtils;
  *
  * @param <T> the type of data to be deserialized
  */
-public sealed class MessagingDeserializer<T> implements Deserializer<T>
-    permits OdeBsmDeserializer {
+public final class MessagingDeserializer<T> implements Deserializer<T> {
 
   SerializationUtils<T> deserializer = new SerializationUtils<>();
 
