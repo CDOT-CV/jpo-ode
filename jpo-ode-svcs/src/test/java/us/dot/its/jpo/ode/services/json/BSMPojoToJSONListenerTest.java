@@ -81,7 +81,6 @@ class BSMPojoToJSONListenerTest {
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafkaBroker.consumeFromAnEmbeddedTopic(testConsumer, jsonTopics.getBsm());
 
-    // read string value from src/test/resources/us/dot/its/jpo/ode/services/json/to-json-converter-bsm-input.json
     var bsmPojo = loadFromResource("us/dot/its/jpo/ode/services/json/to-json-converter-bsm-input.json");
     var bsmData = objectMapper.readValue(bsmPojo, OdeBsmData.class);
     bsmDataKafkaTemplate.send(pojoTopics.getBsm(), bsmData);
