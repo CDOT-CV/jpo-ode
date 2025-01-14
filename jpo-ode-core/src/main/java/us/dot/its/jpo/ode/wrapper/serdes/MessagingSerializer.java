@@ -35,7 +35,7 @@ import org.apache.kafka.common.serialization.Serializer;
  * @param <T> the type of data to be serialized
  */
 @Slf4j
-public sealed class MessagingSerializer<T> implements Serializer<T> permits OdeTimSerializer {
+public final class MessagingSerializer<T> implements Serializer<T> {
 
   private final Kryo kryo = new Kryo();
 
