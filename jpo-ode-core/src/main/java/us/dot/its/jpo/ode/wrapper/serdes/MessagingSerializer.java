@@ -16,16 +16,17 @@
 
 package us.dot.its.jpo.ode.wrapper.serdes;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Output;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serializer;
-import us.dot.its.jpo.ode.util.SerializationUtils;
 
 /**
  * MessagingSerializer is a generic base class implementing the Kafka Serializer interface to
  * provide serialization of objects for use in Kafka messages.
  *
  * <p>This class uses a generic type parameter, allowing it to handle serialization of various types.
- * Internal serialization is performed using an instance of the SerializationUtils class, which
- * leverages Kryo for efficient object serialization.</p>
+ * Internal serialization is performed using an instance of the {@link Kryo} class for efficient object serialization.</p>
  *
  * <p>The class is declared as sealed, restricting which other classes can directly extend it. The
  * class is declared as sealed, restricting which other classes can directly extend it. It will soon
@@ -33,13 +34,24 @@ import us.dot.its.jpo.ode.util.SerializationUtils;
  *
  * @param <T> the type of data to be serialized
  */
+@Slf4j
 public sealed class MessagingSerializer<T> implements Serializer<T> permits OdeTimSerializer {
 
-  SerializationUtils<T> serializer = new SerializationUtils<>();
+  private final Kryo kryo = new Kryo();
 
   @Override
   public byte[] serialize(String topic, T data) {
-    return serializer.serialize(data);
+    if (data == null) {
+      log.debug("Null data passed to serializer for topic {}. Returning empty byte array.", topic);
+      return new byte[0];
+    }
+
+    Output output = new Output(1024, -1);
+    kryo.writeClassAndObject(output, data);
+    byte[] bytes = output.getBuffer();
+    output.close();
+    log.debug("Serialized data of type {} to {} bytes.", data.getClass().getName(), bytes.length);
+    return bytes;
   }
 
 }
