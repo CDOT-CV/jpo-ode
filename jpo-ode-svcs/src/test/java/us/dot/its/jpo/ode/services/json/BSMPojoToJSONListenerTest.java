@@ -84,14 +84,14 @@ class BSMPojoToJSONListenerTest {
     // read string value from src/test/resources/us/dot/its/jpo/ode/services/json/to-json-converter-bsm-input.json
     var bsmPojo = loadFromResource("us/dot/its/jpo/ode/services/json/to-json-converter-bsm-input.json");
     var bsmData = objectMapper.readValue(bsmPojo, OdeBsmData.class);
-    var send = bsmDataKafkaTemplate.send(pojoTopics.getBsm(), bsmData);
-    //Awaitility.await().until(send::isDone);
+    bsmDataKafkaTemplate.send(pojoTopics.getBsm(), bsmData);
 
     var actualBsmJson = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getBsm());
     var expectedBsmJson = loadFromResource("us/dot/its/jpo/ode/services/json/to-json-converter-bsm-output.json");
     var expectedBsm = objectMapper.readValue(expectedBsmJson, OdeBsmData.class);
     var actualBsm = objectMapper.readValue(actualBsmJson.value(), OdeBsmData.class);
     assertEquals(expectedBsm, actualBsm);
+    testConsumer.close();
   }
 
 
