@@ -110,7 +110,7 @@ public class KafkaConsumerConfig {
   /**
    * Creates a Kafka {@link ConsumerFactory} for consuming messages with keys of type {@link String}
    * and values of type {@link OdeMapData}. This method utilizes a {@link StringDeserializer} for
-   * deserializing the key and a {@link JsonDeserializer} for deserializing values of type
+   * deserializing the key and a {@link MessagingDeserializer} for deserializing values of type
    * {@link OdeMapData}.
    *
    * <p>The consumer factory is configured using Kafka properties, which are retrieved from the

@@ -28,10 +28,6 @@ import org.apache.kafka.common.serialization.Serializer;
  * <p>This class uses a generic type parameter, allowing it to handle serialization of various types.
  * Internal serialization is performed using an instance of the {@link Kryo} class for efficient object serialization.</p>
  *
- * <p>The class is declared as sealed, restricting which other classes can directly extend it. The
- * class is declared as sealed, restricting which other classes can directly extend it. It will soon
- * be marked as final to prevent incorrect usage through unnecessary subtyping</p>
- *
  * @param <T> the type of data to be serialized
  */
 @Slf4j
