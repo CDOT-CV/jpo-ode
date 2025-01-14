@@ -27,9 +27,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 
-/**
- * Launches ToJsonConverter service
- */
+
 @Component
 @Slf4j
 public class BSMPojoToJSONListener {
