@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*=============================================================================
  * Copyright 2018 572682
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -13,6 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
+
 package us.dot.its.jpo.ode.upload;
 
 import java.util.concurrent.ExecutorService;
@@ -35,51 +36,76 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
 
+/**
+ * Controller responsible for handling file uploads and triggering processes
+ * for file import and storage.
+ */
 @Slf4j
 @RestController
 public class FileUploadController {
-    private final StorageService storageService;
+  private final StorageService storageService;
 
-    @Autowired
-    public FileUploadController(
-            StorageService storageService,
-            FileImporterProperties fileImporterProps,
-            JsonTopics jsonTopics,
-            RawEncodedJsonTopics rawEncodedJsonTopics,
-            OdeKafkaProperties odeKafkaProperties) {
-        super();
-        this.storageService = storageService;
+  /**
+   * Constructs an instance of FileUploadController, initializes the storage service,
+   * and sets up a directory watcher for monitoring file events.
+   *
+   * @param storageService       the storage service used to handle file storage operations
+   * @param fileImporterProps    the properties related to file importing configurations
+   * @param jsonTopics           the Kafka topics for JSON-formatted data
+   * @param rawEncodedJsonTopics the Kafka topics for raw encoded JSON data
+   * @param odeKafkaProperties   the Kafka properties for message broker configuration
+   */
+  @Autowired
+  public FileUploadController(
+      StorageService storageService,
+      FileImporterProperties fileImporterProps,
+      JsonTopics jsonTopics,
+      RawEncodedJsonTopics rawEncodedJsonTopics,
+      OdeKafkaProperties odeKafkaProperties) {
+    super();
+    this.storageService = storageService;
 
-        ExecutorService threadPool = Executors.newCachedThreadPool();
+    ExecutorService threadPool = Executors.newCachedThreadPool();
 
-        // Create the importers that watch folders for new/modified files
-        threadPool.submit(
-                new ImporterDirectoryWatcher(fileImporterProps,
-                        odeKafkaProperties,
-                        jsonTopics,
-                        ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
-                        rawEncodedJsonTopics)
-        );
+    // Create the importers that watch folders for new/modified files
+    threadPool.submit(
+        new ImporterDirectoryWatcher(fileImporterProps,
+            odeKafkaProperties,
+            jsonTopics,
+            ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
+            rawEncodedJsonTopics)
+    );
+  }
+
+  /**
+   * Handles file uploads and stores the file based on the specified type.
+   * Returns a success or error response based on the outcome of the file
+   * storage operation.
+   *
+   * @param file the file to be uploaded, represented as a MultipartFile object
+   * @param type the type category for the uploaded file, provided as a path variable
+   *
+   * @return a ResponseEntity containing a success message with HTTP 200 status
+   *     or an error message with HTTP 400 status in case of storage failure
+   */
+  @PostMapping("/upload/{type}")
+  public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file, @PathVariable("type") String type) {
+
+    log.debug("File received at endpoint: /upload/{}, name={}", type, file.getOriginalFilename());
+    try {
+      storageService.store(file, type);
+    } catch (Exception e) {
+      log.error("File storage error", e);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"Error\": \"File storage error.\"}");
+      // do not return exception, XSS vulnerable
     }
 
-    @PostMapping("/upload/{type}")
-    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file, @PathVariable("type") String type) {
+    return ResponseEntity.status(HttpStatus.OK).body("{\"Success\": \"True\"}");
+  }
 
-        log.debug("File received at endpoint: /upload/{}, name={}", type, file.getOriginalFilename());
-        try {
-            storageService.store(file, type);
-        } catch (Exception e) {
-            log.error("File storage error", e);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"Error\": \"File storage error.\"}");
-            // do not return exception, XSS vulnerable
-        }
-
-        return ResponseEntity.status(HttpStatus.OK).body("{\"Success\": \"True\"}");
-    }
-
-    @ExceptionHandler(StorageFileNotFoundException.class)
-    public ResponseEntity<Void> handleStorageFileNotFound(StorageFileNotFoundException exc) {
-        return ResponseEntity.notFound().build();
-    }
-
+  @ExceptionHandler(StorageFileNotFoundException.class)
+  public ResponseEntity<Void> handleStorageFileNotFound(StorageFileNotFoundException exc) {
+    log.warn("File not found: {}", exc.getMessage());
+    return ResponseEntity.notFound().build();
+  }
 }
