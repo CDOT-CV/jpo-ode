@@ -21,7 +21,8 @@ public class RsuDepositorConfig {
    * @param rsuProperties the configuration properties for RSU, including such values
    *                      as username, password, and the number of "store and repeat" message slots.
    * @param securityServicesProps the configuration properties for security services,
-   *                               used to determine if RSU signing is enabled.
+   *                              used to determine whether the ODE should send the message to be signed
+   *                              prior to sending it to the RSU
    * @return an initialized and running instance of {@link RsuDepositor}.
    */
   @Bean
