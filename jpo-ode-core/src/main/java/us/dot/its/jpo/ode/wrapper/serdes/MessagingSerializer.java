@@ -38,13 +38,13 @@ public final class MessagingSerializer<T> implements Serializer<T> {
   @Override
   public byte[] serialize(String topic, T data) {
     if (data == null) {
-      log.debug("Null data passed to serializer for topic {}. Returning empty byte array.", topic);
+      log.debug("null data passed to serializer for topic {}. Returning empty byte array.", topic);
       return new byte[0];
     }
 
     Output output = new Output(1024, -1);
     kryo.writeClassAndObject(output, data);
-    byte[] bytes = output.getBuffer();
+    byte[] bytes = output.toBytes();
     output.close();
     log.debug("Serialized data of type {} to {} bytes.", data.getClass().getName(), bytes.length);
     return bytes;
