@@ -234,7 +234,7 @@ services:
       - all
       - ode_full
       - sec
-    build: ./jpo-security-svcs/security-svc
+    build: ./jpo-security-svcs/jpo-security-svcs
     image: jpoode_sec:latest
     restart: ${RESTART_POLICY}
     deploy:
@@ -253,7 +253,7 @@ services:
         max-size: "10m"  
         max-file: "5"
   mock-signing-svc:
-    build: ./jpo-security-svcs/ext-signature-svc-mock/
+    build: ./jpo-security-svcs/mock-signing-svc
     profiles:
       - all
       - ode_full
