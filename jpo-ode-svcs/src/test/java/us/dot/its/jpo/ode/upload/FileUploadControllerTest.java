@@ -15,6 +15,10 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.upload;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import mockit.Capturing;
 import mockit.Expectations;
 import mockit.Injectable;
@@ -26,17 +30,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.FileTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import static org.junit.Assert.assertEquals;
 
 class FileUploadControllerTest {
 
@@ -86,7 +85,7 @@ class FileUploadControllerTest {
         };
 
         testFileUploadController = new FileUploadController(mockStorageService,
-                injectableSimpMessagingTemplate, fileImporterProps, fileTopics, jsonTopics, rawEncodedJsonTopics, injectableOdeKafkaProperties);
+            fileImporterProps, jsonTopics, rawEncodedJsonTopics, injectableOdeKafkaProperties);
     }
 
     @Test

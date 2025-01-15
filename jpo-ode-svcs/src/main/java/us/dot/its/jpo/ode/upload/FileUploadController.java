@@ -15,25 +15,25 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.upload;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.exporter.StompStringExporter;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
-import us.dot.its.jpo.ode.kafka.topics.FileTopics;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Slf4j
 @RestController
@@ -43,9 +43,7 @@ public class FileUploadController {
     @Autowired
     public FileUploadController(
             StorageService storageService,
-            SimpMessagingTemplate template,
             FileImporterProperties fileImporterProps,
-            FileTopics fileTopics,
             JsonTopics jsonTopics,
             RawEncodedJsonTopics rawEncodedJsonTopics,
             OdeKafkaProperties odeKafkaProperties) {
@@ -62,20 +60,6 @@ public class FileUploadController {
                         ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
                         rawEncodedJsonTopics)
         );
-
-        // Create unfiltered exporters
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getBsm(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getTim(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getSpat(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getMap(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getSsm(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getSrm(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getDriverAlert(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getUnfilteredOutput(), template, jsonTopics.getTimBroadcast(), odeKafkaProperties.getBrokers()));
-
-        // Create filtered exporters
-        threadPool.submit(new StompStringExporter(fileTopics.getFilteredOutput(), template, jsonTopics.getBsmFiltered(), odeKafkaProperties.getBrokers()));
-        threadPool.submit(new StompStringExporter(fileTopics.getFilteredOutput(), template, jsonTopics.getTimFiltered(), odeKafkaProperties.getBrokers()));
     }
 
     @PostMapping("/upload/{type}")
