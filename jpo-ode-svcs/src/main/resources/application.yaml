@@ -140,3 +140,5 @@ ode:
   tim-ingest-monitoring:
     tracking-enabled: ${ODE_TIM_INGEST_MONITORING_ENABLED}
     interval: ${ODE_TIM_INGEST_MONITORING_INTERVAL}
+  stomp-exporter:
+    enabled: ${ODE_STOMP_EXPORTER_ENABLED}

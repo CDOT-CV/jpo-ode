@@ -19,6 +19,7 @@ package us.dot.its.jpo.ode.exporter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
@@ -30,9 +31,13 @@ import us.dot.its.jpo.ode.stomp.StompContent;
  *
  * <p>The component leverages Spring's {@link KafkaListener} for message consumption and {@link SimpMessagingTemplate}
  * for publishing WebSocket messages.</p>
+ *
+ * <p>This component is exclusively used to support the Demo Console.
+ * It can be disabled to reduce resource usage when running the application in production</p>
  */
 @Slf4j
 @Component
+@ConditionalOnExpression("${ode.stomp-exporter.enabled:true}")
 public class StompStringExporter {
 
   private final SimpMessagingTemplate template;
