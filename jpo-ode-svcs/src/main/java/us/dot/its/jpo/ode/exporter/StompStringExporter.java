@@ -55,8 +55,8 @@ public class StompStringExporter {
    */
   public StompStringExporter(
       SimpMessagingTemplate template,
-      @Value("${ode.kafka.topics.file.filtered-output}") String filteredTopic,
-      @Value("${ode.kafka.topics.file.unfiltered-output}") String unfilteredTopic
+      @Value("${ode.stomp-exporter.channels.filtered-output}") String filteredTopic,
+      @Value("${ode.stomp-exporter.channels.unfiltered-output}") String unfilteredTopic
   ) {
     this.template = template;
     this.filteredTopic = filteredTopic;
