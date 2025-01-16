@@ -17,13 +17,13 @@ package us.dot.its.jpo.ode.coder.stream;
 
 import java.io.BufferedInputStream;
 import java.util.List;
-
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 import us.dot.its.jpo.ode.model.OdeData;
 
 public interface Asn1CodecPublisher {
    
-  public List<OdeData> publish(BufferedInputStream bis, String fileName, ImporterFileType fileType) 
-      throws LogFileToAsn1CodecPublisherException;
+  public List<OdeData> publish(BufferedInputStream bis, String fileName, ImporterFileType fileType)
+      throws LogFileToAsn1CodecPublisherException, LogFileParserFactory.LogFileParserFactoryException;
 }

@@ -18,15 +18,18 @@ package us.dot.its.jpo.ode.importer.parser;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
+
 public class DriverAlertFileParser extends LogFileParser {
 
    private String alert;
 
-   public DriverAlertFileParser() {
+   public DriverAlertFileParser(OdeLogMetadata.RecordType recordType) {
       super();
       setLocationParser(new LocationParser());
       setTimeParser(new TimeParser());
       setPayloadParser(new PayloadParser());
+      setRecordType(recordType);
    }
 
    @Override

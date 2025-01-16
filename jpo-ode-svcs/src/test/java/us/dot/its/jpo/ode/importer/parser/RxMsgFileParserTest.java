@@ -22,17 +22,16 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import org.apache.tomcat.util.buf.HexUtils;
-import org.junit.jupiter.api.Test;
-
 import mockit.Injectable;
 import mockit.Tested;
+import org.apache.tomcat.util.buf.HexUtils;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.SecurityResultCode;
-import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.util.CodecUtils;
 
 public class RxMsgFileParserTest {
 
@@ -137,7 +136,7 @@ public class RxMsgFileParserTest {
 
    @Test
    public void testSetRxSource() {
-     RxMsgFileParser parser = new RxMsgFileParser();
+     RxMsgFileParser parser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg);
      
      parser.setRxSource(0);
      assertEquals(RxSource.RSU, parser.getRxSource());

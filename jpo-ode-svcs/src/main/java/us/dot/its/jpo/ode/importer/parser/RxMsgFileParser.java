@@ -18,10 +18,9 @@ package us.dot.its.jpo.ode.importer.parser;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.RxSource;
 
 public class RxMsgFileParser extends LogFileParser {
@@ -32,12 +31,13 @@ public class RxMsgFileParser extends LogFileParser {
 
    private RxSource rxSource;
 
-   public RxMsgFileParser() {
+   public RxMsgFileParser(OdeLogMetadata.RecordType msgType) {
       super();
       setLocationParser(new LocationParser());
       setTimeParser(new TimeParser());
       setSecResCodeParser(new SecurityResultCodeParser());
       setPayloadParser(new PayloadParser());
+      setRecordType(msgType);
    }
 
    @Override

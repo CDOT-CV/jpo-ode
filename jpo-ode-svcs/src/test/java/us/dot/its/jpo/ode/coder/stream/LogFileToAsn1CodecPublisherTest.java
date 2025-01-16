@@ -34,6 +34,7 @@ import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher.LogFileToAsn1
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
 import us.dot.its.jpo.ode.importer.parser.LogFileParser;
+import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeData;
@@ -61,7 +62,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishInit(@Mocked LogFileParser mockLogFileParser) throws Exception {
     new Expectations() {
       {
-        LogFileParser.factory(anyString);
+        LogFileParserFactory.factory(anyString);
         result = mockLogFileParser;
 
         mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
@@ -80,7 +81,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishEOF(@Mocked LogFileParser mockLogFileParser) throws Exception {
     new Expectations() {
       {
-        LogFileParser.factory(anyString);
+        LogFileParserFactory.factory(anyString);
         result = mockLogFileParser;
 
         mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
@@ -113,7 +114,7 @@ class LogFileToAsn1CodecPublisherTest {
     assertThrows(LogFileToAsn1CodecPublisherException.class, () -> {
       new Expectations() {
         {
-          LogFileParser.factory(anyString);
+          LogFileParserFactory.factory(anyString);
           result = mockLogFileParser;
 
           /*
@@ -138,7 +139,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishDecodeFailure(@Mocked LogFileParser mockLogFileParser) throws Exception {
     new Expectations() {
       {
-        LogFileParser.factory(anyString);
+        LogFileParserFactory.factory(anyString);
         result = mockLogFileParser;
 
         mockLogFileParser.parseFile((BufferedInputStream) any, anyString);

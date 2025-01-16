@@ -16,15 +16,17 @@
 package us.dot.its.jpo.ode.importer.parser;
 
 import java.io.BufferedInputStream;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 
 public class DistressMsgFileParser extends LogFileParser {
 
-   public DistressMsgFileParser() {
+   public DistressMsgFileParser(OdeLogMetadata.RecordType recordType) {
       super();
       setLocationParser(new LocationParser());
       setTimeParser(new TimeParser());
       setSecResCodeParser(new SecurityResultCodeParser());
       setPayloadParser(new PayloadParser());
+      setRecordType(recordType);
    }
 
    @Override

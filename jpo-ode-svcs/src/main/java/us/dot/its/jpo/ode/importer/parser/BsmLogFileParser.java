@@ -18,11 +18,10 @@ package us.dot.its.jpo.ode.importer.parser;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 
 public class BsmLogFileParser extends LogFileParser {
    private static final Logger logger = LoggerFactory.getLogger(BsmLogFileParser.class);
@@ -31,12 +30,13 @@ public class BsmLogFileParser extends LogFileParser {
 
    private BsmSource bsmSource; // 0 for EV(Tx), 1 for RV(Rx)
 
-   public BsmLogFileParser() {
+   public BsmLogFileParser(OdeLogMetadata.RecordType recordType) {
       super();
       setLocationParser(new LocationParser());
       setTimeParser(new TimeParser());
       setSecResCodeParser(new SecurityResultCodeParser());
       setPayloadParser(new PayloadParser());
+      setRecordType(recordType);
    }
 
    @Override

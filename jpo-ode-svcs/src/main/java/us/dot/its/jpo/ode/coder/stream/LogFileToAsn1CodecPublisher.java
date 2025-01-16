@@ -15,21 +15,35 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.coder.stream;
 
-import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.StringPublisher;
-import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
-import us.dot.its.jpo.ode.importer.parser.*;
-import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.model.*;
-import us.dot.its.jpo.ode.uper.UperUtil;
-import us.dot.its.jpo.ode.util.JsonUtils;
-
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import us.dot.its.jpo.ode.coder.StringPublisher;
+import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.importer.parser.BsmLogFileParser;
+import us.dot.its.jpo.ode.importer.parser.DriverAlertFileParser;
+import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.importer.parser.LogFileParser;
+import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
+import us.dot.its.jpo.ode.importer.parser.RxMsgFileParser;
+import us.dot.its.jpo.ode.importer.parser.SpatLogFileParser;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
+import us.dot.its.jpo.ode.model.OdeAsn1Data;
+import us.dot.its.jpo.ode.model.OdeAsn1Payload;
+import us.dot.its.jpo.ode.model.OdeBsmMetadata;
+import us.dot.its.jpo.ode.model.OdeData;
+import us.dot.its.jpo.ode.model.OdeDriverAlertData;
+import us.dot.its.jpo.ode.model.OdeDriverAlertPayload;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
+import us.dot.its.jpo.ode.model.OdeMsgPayload;
+import us.dot.its.jpo.ode.model.OdeSpatMetadata;
+import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.model.SerialId;
+import us.dot.its.jpo.ode.uper.UperUtil;
+import us.dot.its.jpo.ode.util.JsonUtils;
 
 @Slf4j
 public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
@@ -58,12 +72,12 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
     }
 
     public List<OdeData> publish(BufferedInputStream inputStream, String fileName, ImporterFileType fileType)
-            throws LogFileToAsn1CodecPublisherException {
+        throws LogFileToAsn1CodecPublisherException, LogFileParserFactory.LogFileParserFactoryException {
         ParserStatus status;
 
         List<OdeData> dataList = new ArrayList<>();
         if (fileType == ImporterFileType.LOG_FILE) {
-            fileParser = LogFileParser.factory(fileName);
+            fileParser = LogFileParserFactory.factory(fileName);
 
             do {
                 try {
