@@ -28,11 +28,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
 
@@ -50,31 +46,18 @@ public class FileUploadController {
    * and sets up a directory watcher for monitoring file events.
    *
    * @param storageService       the storage service used to handle file storage operations
-   * @param fileImporterProps    the properties related to file importing configurations
-   * @param jsonTopics           the Kafka topics for JSON-formatted data
-   * @param rawEncodedJsonTopics the Kafka topics for raw encoded JSON data
-   * @param odeKafkaProperties   the Kafka properties for message broker configuration
    */
   @Autowired
   public FileUploadController(
       StorageService storageService,
-      FileImporterProperties fileImporterProps,
-      JsonTopics jsonTopics,
-      RawEncodedJsonTopics rawEncodedJsonTopics,
-      OdeKafkaProperties odeKafkaProperties) {
+      ImporterDirectoryWatcher importerDirectoryWatcher) {
     super();
     this.storageService = storageService;
 
     ExecutorService threadPool = Executors.newCachedThreadPool();
 
     // Create the importers that watch folders for new/modified files
-    threadPool.submit(
-        new ImporterDirectoryWatcher(fileImporterProps,
-            odeKafkaProperties,
-            jsonTopics,
-            ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
-            rawEncodedJsonTopics)
-    );
+    threadPool.submit(importerDirectoryWatcher);
   }
 
   /**
