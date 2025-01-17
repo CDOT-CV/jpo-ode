@@ -66,5 +66,5 @@ public interface FileParser {
 
   ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException;
 
-  void writeTo(OutputStream os) throws IOException;
+  public void writeTo(OutputStream os) throws IOException;
 }
