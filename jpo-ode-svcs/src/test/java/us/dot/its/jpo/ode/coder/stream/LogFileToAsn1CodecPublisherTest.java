@@ -62,7 +62,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishInit(@Mocked LogFileParser mockLogFileParser) throws Exception {
     new Expectations() {
       {
-        LogFileParserFactory.factory(anyString);
+        LogFileParserFactory.getLogFileParser(anyString);
         result = mockLogFileParser;
 
         mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
@@ -81,7 +81,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishEOF(@Mocked LogFileParser mockLogFileParser) throws Exception {
     new Expectations() {
       {
-        LogFileParserFactory.factory(anyString);
+        LogFileParserFactory.getLogFileParser(anyString);
         result = mockLogFileParser;
 
         mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
@@ -114,7 +114,7 @@ class LogFileToAsn1CodecPublisherTest {
     assertThrows(LogFileToAsn1CodecPublisherException.class, () -> {
       new Expectations() {
         {
-          LogFileParserFactory.factory(anyString);
+          LogFileParserFactory.getLogFileParser(anyString);
           result = mockLogFileParser;
 
           /*
@@ -139,7 +139,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishDecodeFailure(@Mocked LogFileParser mockLogFileParser) throws Exception {
     new Expectations() {
       {
-        LogFileParserFactory.factory(anyString);
+        LogFileParserFactory.getLogFileParser(anyString);
         result = mockLogFileParser;
 
         mockLogFileParser.parseFile((BufferedInputStream) any, anyString);

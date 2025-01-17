@@ -77,7 +77,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
         List<OdeData> dataList = new ArrayList<>();
         if (fileType == ImporterFileType.LOG_FILE) {
-            fileParser = LogFileParserFactory.factory(fileName);
+            fileParser = LogFileParserFactory.getLogFileParser(fileName);
 
             do {
                 try {
