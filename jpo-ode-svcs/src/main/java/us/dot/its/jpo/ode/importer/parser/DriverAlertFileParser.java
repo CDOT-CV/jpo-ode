@@ -88,7 +88,7 @@ public class DriverAlertFileParser extends LogFileParser {
     return status;
   }
 
-  protected String getAlert() {
+  public String getAlert() {
     return alert;
   }
 
