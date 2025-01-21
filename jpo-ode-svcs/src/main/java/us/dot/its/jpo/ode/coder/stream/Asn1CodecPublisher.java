@@ -20,6 +20,7 @@ import java.io.BufferedInputStream;
 import java.util.List;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.importer.parser.LogFileParser;
 import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 import us.dot.its.jpo.ode.model.OdeData;
 
@@ -29,6 +30,6 @@ import us.dot.its.jpo.ode.model.OdeData;
  */
 public interface Asn1CodecPublisher {
 
-  List<OdeData> publish(BufferedInputStream bis, String fileName, ImporterFileType fileType)
+  List<OdeData> publish(BufferedInputStream bis, String fileName, ImporterFileType fileType, LogFileParser fileParser)
       throws LogFileToAsn1CodecPublisherException, LogFileParserFactory.LogFileParserFactoryException;
 }

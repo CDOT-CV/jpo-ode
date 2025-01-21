@@ -82,7 +82,6 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
   private final RawEncodedJsonTopics rawEncodedJsonTopics;
   private final JsonTopics jsonTopics;
   protected StringPublisher publisher;
-  protected LogFileParser fileParser;
   protected SerialId serialId;
 
   /**
@@ -116,20 +115,19 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
    * @throws LogFileToAsn1CodecPublisherException               if an error occurs while parsing or publishing the data
    * @throws LogFileParserFactory.LogFileParserFactoryException if an error occurs while creating the file parser
    */
-  public List<OdeData> publish(BufferedInputStream inputStream, String fileName, ImporterFileType fileType)
+  public List<OdeData> publish(BufferedInputStream inputStream, String fileName, ImporterFileType fileType, LogFileParser fileParser)
       throws LogFileToAsn1CodecPublisherException, LogFileParserFactory.LogFileParserFactoryException {
     ParserStatus status;
 
     List<OdeData> dataList = new ArrayList<>();
     if (fileType == ImporterFileType.LOG_FILE) {
-      fileParser = LogFileParserFactory.getLogFileParser(fileName);
 
       do {
         try {
           status = fileParser.parseFile(inputStream, fileName);
           switch (status) {
-            case ParserStatus.COMPLETE -> addDataToList(dataList);
-            case ParserStatus.EOF -> publishList(dataList);
+            case ParserStatus.COMPLETE -> addDataToList(dataList, fileParser);
+            case ParserStatus.EOF -> publishList(dataList, fileParser);
             case ParserStatus.INIT -> log.error("Failed to parse the header bytes.");
             default -> log.error("Failed to decode ASN.1 data");
           }
@@ -143,21 +141,21 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
     return dataList;
   }
 
-  private void addDataToList(List<OdeData> dataList) {
+  private void addDataToList(List<OdeData> dataList, LogFileParser fileParser) {
 
     OdeData odeData;
 
     OdeMsgPayload payload;
     OdeLogMetadata metadata;
-    if (isDriverAlertRecord()) {
+    if (isDriverAlertRecord(fileParser)) {
       payload = new OdeDriverAlertPayload(((DriverAlertFileParser) fileParser).getAlert());
       metadata = new OdeLogMetadata(payload);
       odeData = new OdeDriverAlertData(metadata, payload);
-    } else if (isBsmRecord()) {
+    } else if (isBsmRecord(fileParser)) {
       payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
       metadata = new OdeBsmMetadata(payload);
       odeData = new OdeAsn1Data(metadata, payload);
-    } else if (isSpatRecord()) {
+    } else if (isSpatRecord(fileParser)) {
       payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
       metadata = new OdeSpatMetadata(payload);
       odeData = new OdeAsn1Data(metadata, payload);
@@ -171,20 +169,20 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
     dataList.add(odeData);
   }
 
-  public boolean isDriverAlertRecord() {
+  public boolean isDriverAlertRecord(LogFileParser fileParser) {
     return fileParser instanceof DriverAlertFileParser;
   }
 
-  public boolean isBsmRecord() {
+  public boolean isBsmRecord(LogFileParser fileParser) {
     return fileParser instanceof BsmLogFileParser || (fileParser instanceof RxMsgFileParser
         && ((RxMsgFileParser) fileParser).getRxSource() == RxSource.RV);
   }
 
-  public boolean isSpatRecord() {
+  public boolean isSpatRecord(LogFileParser fileParser) {
     return fileParser instanceof SpatLogFileParser;
   }
 
-  private void publishList(List<OdeData> dataList) {
+  private void publishList(List<OdeData> dataList, LogFileParser fileParser) {
     serialId.setBundleSize(dataList.size());
 
     for (OdeData odeData : dataList) {
@@ -192,11 +190,11 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
       OdeMsgPayload msgPayload = odeData.getPayload();
       msgMetadata.setSerialId(serialId);
 
-      if (isDriverAlertRecord()) {
+      if (isDriverAlertRecord(fileParser)) {
         publisher.publish(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false));
-      } else if (isBsmRecord()) {
+      } else if (isBsmRecord(fileParser)) {
         publisher.publish(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
-      } else if (isSpatRecord()) {
+      } else if (isSpatRecord(fileParser)) {
         publisher.publish(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
       } else {
         String messageType = UperUtil.determineMessageType(msgPayload);

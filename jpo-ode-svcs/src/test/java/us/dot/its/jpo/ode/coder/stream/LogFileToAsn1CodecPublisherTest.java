@@ -62,9 +62,10 @@ class LogFileToAsn1CodecPublisherTest {
 
   @Test
   void testPublishInit() throws Exception {
+    var fileName = bsmTx.name() + "thisIsAFile.txt";
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-        bsmTx.name() + "thisIsAFile.txt", ImporterFileType.LOG_FILE);
+        fileName, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(fileName));
 
     assertTrue(dataList.isEmpty());
   }
@@ -72,23 +73,12 @@ class LogFileToAsn1CodecPublisherTest {
   @Test
   void testPublishEOF() throws Exception {
 
+    var fileName = rxMsg.name() + "fileName";
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-        rxMsg.name() + "fileName", ImporterFileType.LOG_FILE);
+        fileName, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(fileName));
 
     assertTrue(dataList.isEmpty());
-  }
-
-  @Test
-  void testPublishThrowsIllegalArgumentException() {
-    // If the filename does not follow expected filename pattern,
-    // IllegalArgumentException should be thrown
-    assertThrows(LogFileParserFactory.LogFileParserFactoryException.class, () -> {
-      // If the filename does not follow expected filename pattern,
-      // IllegalArgumentException should be thrown
-      testLogFileToAsn1CodecPublisher.publish(new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-          "fileName", ImporterFileType.LOG_FILE);
-    });
   }
 
   @Test
@@ -112,7 +102,7 @@ class LogFileToAsn1CodecPublisherTest {
       };
 
       testLogFileToAsn1CodecPublisher.publish(new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-          "fileName", ImporterFileType.LOG_FILE);
+          "fileName", ImporterFileType.LOG_FILE, mockLogFileParser);
       fail("Expected an LogFileToAsn1CodecPublisherException to be thrown");
     });
   }
@@ -131,7 +121,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-        "fileName", ImporterFileType.LOG_FILE);
+        "fileName", ImporterFileType.LOG_FILE, mockLogFileParser);
 
     assertTrue(dataList.isEmpty());
   }
@@ -158,7 +148,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -194,7 +184,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -228,7 +218,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -264,7 +254,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -301,7 +291,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -331,7 +321,7 @@ class LogFileToAsn1CodecPublisherTest {
      * currently we dont' support JSON input records. We may in the future.
      */
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.JSON_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.JSON_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     assertTrue(dataList.isEmpty());
   }
@@ -359,7 +349,7 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE);
+    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),

@@ -15,15 +15,15 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.coder;
 
+import java.io.BufferedInputStream;
+import java.nio.file.Path;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-
-import java.io.BufferedInputStream;
-import java.nio.file.Path;
 
 @Slf4j
 public class FileAsn1CodecPublisher {
@@ -56,7 +56,7 @@ public class FileAsn1CodecPublisher {
       
       try {
          log.info("Publishing data from {} to asn1_codec.", filePath);
-         codecPublisher.publish(fileInputStream, fileName, fileType);
+         codecPublisher.publish(fileInputStream, fileName, fileType, LogFileParserFactory.getLogFileParser(fileName));
       } catch (Exception e) {
          throw new FileAsn1CodecPublisherException("Failed to publish file.", e);
       }
