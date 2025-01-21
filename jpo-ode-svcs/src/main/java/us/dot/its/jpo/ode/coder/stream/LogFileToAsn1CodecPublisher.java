@@ -81,8 +81,8 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   private final RawEncodedJsonTopics rawEncodedJsonTopics;
   private final JsonTopics jsonTopics;
-  protected StringPublisher publisher;
-  protected SerialId serialId;
+  private final StringPublisher publisher;
+  private final SerialId serialId;
 
   /**
    * Constructs a LogFileToAsn1CodecPublisher instance used for converting log files

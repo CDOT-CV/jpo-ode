@@ -299,7 +299,7 @@ class LogFileToAsn1CodecPublisherTest {
     /*
      * This call to publish method does not actually try to parse the data. It
      * short-circuits the parsing because
-     * currently we dont' support JSON input records. We may in the future.
+     * currently we don't support JSON input records. We may in the future.
      */
 
     List<OdeData> dataList =
