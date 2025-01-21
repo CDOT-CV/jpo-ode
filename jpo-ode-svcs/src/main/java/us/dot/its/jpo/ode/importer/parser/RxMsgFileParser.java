@@ -47,14 +47,14 @@ public class RxMsgFileParser extends LogFileParser {
    * and sets the record type for the parser.
    *
    * @param recordType the type of record being parsed, which specifies the applicable parsing logic.
-   * @param fileName   the name of the file to be parsed
+   * @param filename   the name of the file to be parsed
    */
-  public RxMsgFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
-    super(recordType, fileName);
-    setLocationParser(new LocationParser(this.recordType, filename));
+  public RxMsgFileParser(OdeLogMetadata.RecordType recordType, String filename) {
+    super(recordType, filename);
+    setLocationParser(new LocationParser(recordType, filename));
     setTimeParser(new TimeParser(recordType, filename));
-    setSecResCodeParser(new SecurityResultCodeParser(this.recordType, filename));
-    setPayloadParser(new PayloadParser(this.recordType, fileName));
+    setSecResCodeParser(new SecurityResultCodeParser(recordType, filename));
+    setPayloadParser(new PayloadParser(recordType, filename));
   }
 
   @Override

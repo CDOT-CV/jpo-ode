@@ -41,12 +41,12 @@ public class SpatLogFileParser extends LogFileParser {
    * Constructs a SpatLogFileParser object, which is responsible for parsing SPaT
    * (Signal Phase and Timing) log files.
    */
-  public SpatLogFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
-    super(recordType, fileName);
+  public SpatLogFileParser(OdeLogMetadata.RecordType recordType, String filename) {
+    super(recordType, filename);
     setIntersectionParser(new IntersectionParser(recordType, filename));
     setTimeParser(new TimeParser(recordType, filename));
     setSecResCodeParser(new SecurityResultCodeParser(recordType, filename));
-    setPayloadParser(new PayloadParser(recordType, fileName));
+    setPayloadParser(new PayloadParser(recordType, filename));
   }
 
   @Override

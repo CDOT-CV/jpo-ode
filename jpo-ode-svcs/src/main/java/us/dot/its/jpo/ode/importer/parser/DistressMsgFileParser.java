@@ -34,14 +34,14 @@ public class DistressMsgFileParser extends LogFileParser {
    * @param recordType the {@link OdeLogMetadata.RecordType} representing the type of
    *                   record to be parsed. This helps the parser determine message context
    *                   and apply proper parsing logic.
-   * @param fileName   the name of the file to be parsed
+   * @param filename   the name of the file to be parsed
    */
-  public DistressMsgFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
-    super(recordType, fileName);
+  public DistressMsgFileParser(OdeLogMetadata.RecordType recordType, String filename) {
+    super(recordType, filename);
     setLocationParser(new LocationParser(recordType, filename));
     setTimeParser(new TimeParser(recordType, filename));
     setSecResCodeParser(new SecurityResultCodeParser(recordType, filename));
-    setPayloadParser(new PayloadParser(recordType, fileName));
+    setPayloadParser(new PayloadParser(recordType, filename));
   }
 
   @Override

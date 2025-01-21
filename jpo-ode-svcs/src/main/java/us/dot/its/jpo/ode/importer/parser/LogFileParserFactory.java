@@ -31,7 +31,7 @@ public class LogFileParserFactory {
    * Determines the file type by matching the prefix of the file name with predefined record types and
    * creates an instance of the corresponding parser for that type.
    *
-   * @param fileName the name of the log file, including its prefix, which will be used to
+   * @param filename the name of the log file, including its prefix, which will be used to
    *                 identify the appropriate parser type
    *
    * @return an instance of a subclass of {@link LogFileParser} that matches the file type
@@ -39,22 +39,22 @@ public class LogFileParserFactory {
    * @throws LogFileParserFactoryException if the file name prefix does not match any supported
    *                                       record type
    */
-  public static LogFileParser getLogFileParser(String fileName) throws LogFileParserFactoryException {
+  public static LogFileParser getLogFileParser(String filename) throws LogFileParserFactoryException {
     LogFileParser fileParser;
-    if (fileName.startsWith(OdeLogMetadata.RecordType.bsmTx.name())) {
-      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmTx, fileName);
-    } else if (fileName.startsWith(OdeLogMetadata.RecordType.bsmLogDuringEvent.name())) {
-      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmLogDuringEvent, fileName);
-    } else if (fileName.startsWith(OdeLogMetadata.RecordType.rxMsg.name())) {
-      fileParser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg, fileName);
-    } else if (fileName.startsWith(OdeLogMetadata.RecordType.dnMsg.name())) {
-      fileParser = new DistressMsgFileParser(OdeLogMetadata.RecordType.dnMsg, fileName);
-    } else if (fileName.startsWith(OdeLogMetadata.RecordType.driverAlert.name())) {
-      fileParser = new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert, fileName);
-    } else if (fileName.startsWith(OdeLogMetadata.RecordType.spatTx.name())) {
-      fileParser = new SpatLogFileParser(OdeLogMetadata.RecordType.spatTx, fileName);
+    if (filename.startsWith(OdeLogMetadata.RecordType.bsmTx.name())) {
+      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmTx, filename);
+    } else if (filename.startsWith(OdeLogMetadata.RecordType.bsmLogDuringEvent.name())) {
+      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmLogDuringEvent, filename);
+    } else if (filename.startsWith(OdeLogMetadata.RecordType.rxMsg.name())) {
+      fileParser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg, filename);
+    } else if (filename.startsWith(OdeLogMetadata.RecordType.dnMsg.name())) {
+      fileParser = new DistressMsgFileParser(OdeLogMetadata.RecordType.dnMsg, filename);
+    } else if (filename.startsWith(OdeLogMetadata.RecordType.driverAlert.name())) {
+      fileParser = new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert, filename);
+    } else if (filename.startsWith(OdeLogMetadata.RecordType.spatTx.name())) {
+      fileParser = new SpatLogFileParser(OdeLogMetadata.RecordType.spatTx, filename);
     } else {
-      throw new LogFileParserFactoryException("Unknown log file prefix: " + fileName);
+      throw new LogFileParserFactoryException("Unknown log file prefix: " + filename);
     }
     log.debug("Returning parser for file type: {}", fileParser.getRecordType());
     return fileParser;

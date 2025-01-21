@@ -37,13 +37,13 @@ public class DriverAlertFileParser extends LogFileParser {
    *
    * @param recordType the type of records expected in the log file. It is used to
    *                   specify the type of driver alert data being parsed.
-   * @param fileName   The name of the file to be parsed
+   * @param filename   The name of the file to be parsed
    */
-  public DriverAlertFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
-    super(recordType, fileName);
+  public DriverAlertFileParser(OdeLogMetadata.RecordType recordType, String filename) {
+    super(recordType, filename);
     setLocationParser(new LocationParser(recordType, filename));
     setTimeParser(new TimeParser(recordType, filename));
-    setPayloadParser(new PayloadParser(recordType, fileName));
+    setPayloadParser(new PayloadParser(recordType, filename));
   }
 
   @Override
