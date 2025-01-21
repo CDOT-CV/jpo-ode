@@ -76,7 +76,7 @@ public abstract class LogFileParser implements FileParser {
    */
   public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
 
-    ParserStatus status = ParserStatus.INIT;
+    ParserStatus status;
     if (getStep() == 0) {
       setFilename(fileName);
       setStep(getStep() + 1);
