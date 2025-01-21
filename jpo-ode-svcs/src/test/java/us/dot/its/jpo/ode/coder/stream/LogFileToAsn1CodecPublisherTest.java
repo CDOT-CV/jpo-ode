@@ -29,6 +29,10 @@ import static us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType.rxMsg;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.coder.StringPublisher;
@@ -51,7 +55,6 @@ class LogFileToAsn1CodecPublisherTest {
   LogFileToAsn1CodecPublisher testLogFileToAsn1CodecPublisher;
 
   public LogFileToAsn1CodecPublisherTest() {
-    // StringPublisher stringPublisher, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics
     var mockStringPublisher = mock(StringPublisher.class);
     var mockJsonTopics = mock(JsonTopics.class);
     var mockRawEncodedJsonTopics = mock(RawEncodedJsonTopics.class);
@@ -128,15 +131,14 @@ class LogFileToAsn1CodecPublisherTest {
     List<OdeData> dataList =
         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
+    var expectedStringToFormat = loadResourceAsString("src/test/resources/us.dot.its.jpo.ode.coder/expectedBsmTxLogFileToPublish.json");
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(
-          "{\"metadata\":{\"bsmSource\":\"EV\",\"logFileName\":\"bsmTx.gz\",\"recordType\":\"bsmTx\",\"securityResultCode\":\"success\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"42.4506735\",\"longitude\":\"-83.2790108\",\"elevation\":\"163.9\",\"speed\":\"0.08\",\"heading\":\"124.9125\"},\"rxSource\":\"NA\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"c7bbb42e-1e39-442d-98ac-62740ca50f92\",\"bundleSize\":1,\"bundleId\":1,\"recordId\":0,\"serialNumber\":1},\"odeReceivedAt\":\"2019-03-05T20:31:17.579Z\",\"schemaVersion\":%s,\"maxDurationTime\":0,\"recordGeneratedAt\":\"2018-04-26T19:46:49.399Z\",\"recordGeneratedBy\":\"OBU\",\"sanitized\":false,\"asn1\":\"%s\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"%s\"}}}",
-          schemaVersion, asn1String, asn1String);
+      var expected = String.format(expectedStringToFormat, schemaVersion, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }
@@ -165,14 +167,14 @@ class LogFileToAsn1CodecPublisherTest {
     List<OdeData> dataList =
         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
+    var expectedStringToFormat =
+        loadResourceAsString("src/test/resources/us.dot.its.jpo.ode.coder/expectedDistressNotificationLogFileToPublish.json");
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
-      var expected = String.format(
-          "{\"metadata\":{\"logFileName\":\"dnMsg.gz\",\"recordType\":\"dnMsg\",\"securityResultCode\":\"success\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"42.4506735\",\"longitude\":\"-83.2790108\",\"elevation\":\"163.9\",\"speed\":\"0.08\",\"heading\":\"124.9125\"},\"rxSource\":\"NA\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"c7bbb42e-1e39-442d-98ac-62740ca50f92\",\"bundleSize\":1,\"bundleId\":1,\"recordId\":0,\"serialNumber\":1},\"odeReceivedAt\":\"2019-03-05T20:31:17.579Z\",\"schemaVersion\":%s,\"maxDurationTime\":0,\"recordGeneratedAt\":\"2018-04-26T19:46:49.399Z\",\"recordGeneratedBy\":\"OBU\",\"sanitized\":false,\"asn1\":\"038100400380\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"038100400380\"}}}",
-          schemaVersion);
+      var expected = String.format(expectedStringToFormat, schemaVersion);
       assertEquals(expected, data.toJson());
     }
   }
@@ -201,14 +203,13 @@ class LogFileToAsn1CodecPublisherTest {
     List<OdeData> dataList =
         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
+    var expectedStringToFormat = loadResourceAsString("src/test/resources/us.dot.its.jpo.ode.coder/expectedDriverAlertLogFileToPublish.json");
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
-      var expected = String.format(
-          "{\"metadata\":{\"logFileName\":\"driverAlert.gz\",\"recordType\":\"driverAlert\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"42.4506735\",\"longitude\":\"-83.2790108\",\"elevation\":\"163.9\",\"speed\":\"0.08\",\"heading\":\"124.9125\"},\"rxSource\":\"NA\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeDriverAlertPayload\",\"serialId\":{\"streamId\":\"c7bbb42e-1e39-442d-98ac-62740ca50f92\",\"bundleSize\":1,\"bundleId\":1,\"recordId\":0,\"serialNumber\":1},\"odeReceivedAt\":\"2019-03-05T20:31:17.579Z\",\"schemaVersion\":%s,\"maxDurationTime\":0,\"recordGeneratedAt\":\"2018-04-26T19:46:49.399Z\",\"recordGeneratedBy\":\"OBU\",\"sanitized\":false},\"payload\":{\"alert\":\"Test Driver Alert\"}}",
-          schemaVersion);
+      var expected = String.format(expectedStringToFormat, schemaVersion);
       assertEquals(expected, data.toJson());
     }
   }
@@ -238,15 +239,14 @@ class LogFileToAsn1CodecPublisherTest {
     List<OdeData> dataList =
         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
+    var expectedStringToFormat = loadResourceAsString("src/test/resources/us.dot.its.jpo.ode.coder/expectedRxMsgTIMLogFileToPublish.json");
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(
-          "{\"metadata\":{\"logFileName\":\"rxMsg.gz\",\"recordType\":\"rxMsg\",\"securityResultCode\":\"success\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"42.4506735\",\"longitude\":\"-83.2790108\",\"elevation\":\"163.9\",\"speed\":\"0.08\",\"heading\":\"124.9125\"},\"rxSource\":\"SAT\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"c7bbb42e-1e39-442d-98ac-62740ca50f92\",\"bundleSize\":1,\"bundleId\":1,\"recordId\":0,\"serialNumber\":1},\"odeReceivedAt\":\"2019-03-05T20:31:17.579Z\",\"schemaVersion\":%s,\"maxDurationTime\":0,\"recordGeneratedAt\":\"2018-04-26T19:46:49.399Z\",\"recordGeneratedBy\":\"TMC_VIA_SAT\",\"sanitized\":false,\"asn1\":\"%s\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"%s\"}}}",
-          schemaVersion, asn1String, asn1String);
+      var expected = String.format(expectedStringToFormat, schemaVersion, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }
@@ -276,15 +276,14 @@ class LogFileToAsn1CodecPublisherTest {
     List<OdeData> dataList =
         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
+    var expectedStringToFormat = loadResourceAsString("src/test/resources/us.dot.its.jpo.ode.coder/expectedRxMsgBSMLogFileToPublish.json");
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(
-          "{\"metadata\":{\"bsmSource\":\"RV\",\"logFileName\":\"rxMsg.gz\",\"recordType\":\"rxMsg\",\"securityResultCode\":\"success\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"42.4506735\",\"longitude\":\"-83.2790108\",\"elevation\":\"163.9\",\"speed\":\"0.08\",\"heading\":\"124.9125\"},\"rxSource\":\"RV\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"c7bbb42e-1e39-442d-98ac-62740ca50f92\",\"bundleSize\":1,\"bundleId\":1,\"recordId\":0,\"serialNumber\":1},\"odeReceivedAt\":\"2019-03-05T20:31:17.579Z\",\"schemaVersion\":%s,\"maxDurationTime\":0,\"recordGeneratedAt\":\"2018-04-26T19:46:49.399Z\",\"recordGeneratedBy\":\"OBU\",\"sanitized\":false,\"asn1\":\"%s\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"%s\"}}}",
-          schemaVersion, asn1String, asn1String);
+      var expected = String.format(expectedStringToFormat, schemaVersion, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }
@@ -335,17 +334,21 @@ class LogFileToAsn1CodecPublisherTest {
 
     List<OdeData> dataList =
         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
-
+    var expectedStringToFormat = loadResourceAsString("src/test/resources/us.dot.its.jpo.ode.coder/expectedRxMsgBSMNewLine.json");
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(
-          "{\"metadata\":{\"bsmSource\":\"RV\",\"logFileName\":\"rxMsg.gz\",\"recordType\":\"rxMsg\",\"securityResultCode\":\"success\",\"receivedMessageDetails\":{\"locationData\":{\"latitude\":\"42.4506735\",\"longitude\":\"-83.2790108\",\"elevation\":\"163.9\",\"speed\":\"0.08\",\"heading\":\"124.9125\"},\"rxSource\":\"RV\"},\"payloadType\":\"us.dot.its.jpo.ode.model.OdeAsn1Payload\",\"serialId\":{\"streamId\":\"c7bbb42e-1e39-442d-98ac-62740ca50f92\",\"bundleSize\":1,\"bundleId\":1,\"recordId\":0,\"serialNumber\":1},\"odeReceivedAt\":\"2019-03-05T20:31:17.579Z\",\"schemaVersion\":%s,\"maxDurationTime\":0,\"recordGeneratedAt\":\"2018-04-26T19:46:49.399Z\",\"recordGeneratedBy\":\"OBU\",\"sanitized\":false,\"asn1\":\"%s\"},\"payload\":{\"dataType\":\"us.dot.its.jpo.ode.model.OdeHexByteArray\",\"data\":{\"bytes\":\"%s\"}}}",
-          schemaVersion, asn1String, asn1String);
+      var expected = String.format(expectedStringToFormat, schemaVersion, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
+  }
+
+  private static String loadResourceAsString(String resourceName) throws IOException {
+    File xmlFile = new File(resourceName);
+    byte[] data = Files.readAllBytes(xmlFile.toPath());
+    return new String(data, StandardCharsets.UTF_8);
   }
 }
