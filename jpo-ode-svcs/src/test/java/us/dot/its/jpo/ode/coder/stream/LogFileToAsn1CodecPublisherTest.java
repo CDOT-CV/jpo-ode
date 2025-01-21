@@ -346,8 +346,8 @@ class LogFileToAsn1CodecPublisherTest {
   }
 
   private static String loadResourceAsString(String resourceName) throws IOException {
-    File xmlFile = new File(resourceName);
-    byte[] data = Files.readAllBytes(xmlFile.toPath());
+    File file = new File(resourceName);
+    byte[] data = Files.readAllBytes(file.toPath());
     return new String(data, StandardCharsets.UTF_8);
   }
 }
