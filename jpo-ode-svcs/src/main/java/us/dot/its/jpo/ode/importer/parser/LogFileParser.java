@@ -22,6 +22,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.model.OdeBsmMetadata;
 import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
@@ -44,6 +45,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  * different types of log files and update the corresponding metadata. Implementing
  * classes should provide specific parsing logic based on the log file format.
  */
+@Slf4j
 @Setter
 @Getter
 public abstract class LogFileParser implements FileParser {
@@ -100,17 +102,15 @@ public abstract class LogFileParser implements FileParser {
         return ParserStatus.EOF;
       } else if (numBytes < length) {
         if (bis.markSupported()) {
-          try {
-            bis.reset();
-          } catch (IOException ioe) {
-            throw new FileParserException("Error resetting Input Stream to marked position", ioe);
-          }
+          bis.reset();
         }
         return ParserStatus.PARTIAL;
       } else {
         step++;
         return ParserStatus.COMPLETE;
       }
+    } catch (IOException ioe) {
+      throw new FileParserException("Error resetting Input Stream to marked position", ioe);
     } catch (Exception e) {
       throw new FileParserException("Error parsing step " + step, e);
     }
@@ -152,26 +152,20 @@ public abstract class LogFileParser implements FileParser {
 
     metadata.setReceivedMessageDetails(buildReceivedMessageDetails(this));
 
-    if (metadata instanceof OdeBsmMetadata) {
-      OdeBsmMetadata odeBsmMetadata = (OdeBsmMetadata) metadata;
+    if (metadata instanceof OdeBsmMetadata odeBsmMetadata) {
       BsmSource bsmSource = BsmSource.unknown;
-      if (this instanceof BsmLogFileParser) {
-        BsmLogFileParser bsmLogFileParser = (BsmLogFileParser) this;
+      if (this instanceof BsmLogFileParser bsmLogFileParser) {
         bsmSource = bsmLogFileParser.getBsmSource();
-      } else if (this instanceof RxMsgFileParser) {
-        RxMsgFileParser rxMsgFileParser = (RxMsgFileParser) this;
-        if (rxMsgFileParser.getRxSource() == RxSource.RV) {
-          bsmSource = BsmSource.RV;
-        }
+      } else if (this instanceof RxMsgFileParser rxMsgFileParser && rxMsgFileParser.getRxSource() == RxSource.RV) {
+        bsmSource = BsmSource.RV;
       }
+
       odeBsmMetadata.setBsmSource(bsmSource);
     }
-    if (metadata instanceof OdeSpatMetadata) {
-      OdeSpatMetadata odeSpatMetadata = (OdeSpatMetadata) metadata;
+    if (metadata instanceof OdeSpatMetadata odeSpatMetadata) {
       SpatSource spatSource = SpatSource.unknown;
       boolean isCertPresent = true; /*ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)*/
-      if (this instanceof SpatLogFileParser) {
-        SpatLogFileParser spatLogFileParser = (SpatLogFileParser) this;
+      if (this instanceof SpatLogFileParser spatLogFileParser) {
         spatSource = spatLogFileParser.getSpatSource();
         isCertPresent = spatLogFileParser.isCertPresent(); //update
       }
@@ -184,30 +178,32 @@ public abstract class LogFileParser implements FileParser {
 
   private static ReceivedMessageDetails buildReceivedMessageDetails(LogFileParser parser) {
     LocationParser locationParser = parser.getLocationParser();
-    ReceivedMessageDetails rxMsgDetails = null;
-    if (locationParser != null) {
-      LogLocation locationDetails = locationParser.getLocation();
-      BigDecimal genericLatitude = LatitudeBuilder.genericLatitude(locationDetails.getLatitude());
-      BigDecimal genericLongitude = LongitudeBuilder.genericLongitude(locationDetails.getLongitude());
-      BigDecimal genericElevation = ElevationBuilder.genericElevation(locationDetails.getElevation());
-      BigDecimal genericSpeedOrVelocity = SpeedOrVelocityBuilder
-          .genericSpeedOrVelocity(locationDetails.getSpeed());
-      BigDecimal genericHeading = HeadingBuilder.genericHeading(locationDetails.getHeading());
-      rxMsgDetails = new ReceivedMessageDetails(new OdeLogMsgMetadataLocation(
-          genericLatitude == null ? null : genericLatitude.stripTrailingZeros().toPlainString(),
-          genericLongitude == null ? null : genericLongitude.stripTrailingZeros().toPlainString(),
-          genericElevation == null ? null : genericElevation.stripTrailingZeros().toPlainString(),
-          genericSpeedOrVelocity == null ? null : genericSpeedOrVelocity.stripTrailingZeros().toPlainString(),
-          genericHeading == null ? null : genericHeading.stripTrailingZeros().toPlainString()), null);
+
+    if (locationParser == null) {
+      log.debug("No locationParser available - returning null");
+      return null;
     }
 
-    if (rxMsgDetails != null) {
-      if (parser instanceof RxMsgFileParser) {
-        RxMsgFileParser rxMsgFileParser = (RxMsgFileParser) parser;
-        rxMsgDetails.setRxSource(rxMsgFileParser.getRxSource());
-      } else {
-        rxMsgDetails.setRxSource(RxSource.NA);
-      }
+    LogLocation locationDetails = locationParser.getLocation();
+    BigDecimal genericLatitude = LatitudeBuilder.genericLatitude(locationDetails.getLatitude());
+    BigDecimal genericLongitude = LongitudeBuilder.genericLongitude(locationDetails.getLongitude());
+    BigDecimal genericElevation = ElevationBuilder.genericElevation(locationDetails.getElevation());
+    BigDecimal genericSpeedOrVelocity = SpeedOrVelocityBuilder
+        .genericSpeedOrVelocity(locationDetails.getSpeed());
+    BigDecimal genericHeading = HeadingBuilder.genericHeading(locationDetails.getHeading());
+
+    var locationMetadata = new OdeLogMsgMetadataLocation(
+        genericLatitude == null ? null : genericLatitude.stripTrailingZeros().toPlainString(),
+        genericLongitude == null ? null : genericLongitude.stripTrailingZeros().toPlainString(),
+        genericElevation == null ? null : genericElevation.stripTrailingZeros().toPlainString(),
+        genericSpeedOrVelocity == null ? null : genericSpeedOrVelocity.stripTrailingZeros().toPlainString(),
+        genericHeading == null ? null : genericHeading.stripTrailingZeros().toPlainString());
+    var rxMsgDetails = new ReceivedMessageDetails(locationMetadata, null);
+
+    if (parser instanceof RxMsgFileParser rxMsgFileParser) {
+      rxMsgDetails.setRxSource(rxMsgFileParser.getRxSource());
+    } else {
+      rxMsgDetails.setRxSource(RxSource.NA);
     }
 
     return rxMsgDetails;
@@ -220,6 +216,7 @@ public abstract class LogFileParser implements FileParser {
    * portions of data to the output stream.
    *
    * @param os the output stream to which the parsed data will be written.
+   *
    * @throws IOException if an I/O error occurs during the writing process.
    */
   public void writeTo(OutputStream os) throws IOException {
