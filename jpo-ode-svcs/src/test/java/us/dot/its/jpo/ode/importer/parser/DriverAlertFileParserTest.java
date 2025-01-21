@@ -91,7 +91,7 @@ class DriverAlertFileParserTest {
       assertEquals(4, testDriverAlertFileParser.getLocationParser().getLocation().getSpeed());
       assertEquals(9993, testDriverAlertFileParser.getLocationParser().getLocation().getHeading());
       assertEquals(1524772009, testDriverAlertFileParser.getTimeParser().getUtcTimeInSec());
-      assertEquals(399, testDriverAlertFileParser.getTimeParser().getmSec());
+      assertEquals(399, testDriverAlertFileParser.getTimeParser().getMilliSec());
       assertEquals(17, testDriverAlertFileParser.getPayloadParser().getPayloadLength());
       assertEquals(expectedPayload, testDriverAlertFileParser.getAlert());
       assertEquals(expectedStep, testDriverAlertFileParser.getStep());

@@ -95,7 +95,7 @@ class RxMsgFileParserTest {
       assertEquals(4, testRxMsgFileParser.getLocationParser().getLocation().getSpeed());
       assertEquals(9993, testRxMsgFileParser.getLocationParser().getLocation().getHeading());
       assertEquals(1524772009, testRxMsgFileParser.getTimeParser().getUtcTimeInSec());
-      assertEquals(399, testRxMsgFileParser.getTimeParser().getmSec());
+      assertEquals(399, testRxMsgFileParser.getTimeParser().getMilliSec());
       assertEquals(SecurityResultCode.success, testRxMsgFileParser.getSecResCodeParser().getSecurityResultCode());
       assertEquals(6, testRxMsgFileParser.getPayloadParser().getPayloadLength());
       assertEquals(HexUtils.toHexString(expectedPayload), HexUtils.toHexString(testRxMsgFileParser.getPayloadParser().getPayload()));

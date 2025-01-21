@@ -93,7 +93,7 @@ class BsmFileParserTest {
       assertEquals(4, bsmFileParser.getLocationParser().getLocation().getSpeed());
       assertEquals(9993, bsmFileParser.getLocationParser().getLocation().getHeading());
       assertEquals(1524772009, bsmFileParser.getTimeParser().getUtcTimeInSec());
-      assertEquals(399, bsmFileParser.getTimeParser().getmSec());
+      assertEquals(399, bsmFileParser.getTimeParser().getMilliSec());
       assertEquals(SecurityResultCode.success, bsmFileParser.getSecResCodeParser().getSecurityResultCode());
       assertEquals(6, bsmFileParser.getPayloadParser().getPayloadLength());
 

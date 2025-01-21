@@ -96,7 +96,7 @@ class DistressMsgFileParserTest {
       assertEquals(4, testDistressMsgFileParser.getLocationParser().getLocation().getSpeed());
       assertEquals(9993, testDistressMsgFileParser.getLocationParser().getLocation().getHeading());
       assertEquals(1524772009, testDistressMsgFileParser.getTimeParser().getUtcTimeInSec());
-      assertEquals(399, testDistressMsgFileParser.getTimeParser().getmSec());
+      assertEquals(399, testDistressMsgFileParser.getTimeParser().getMilliSec());
       assertEquals(SecurityResultCode.success, testDistressMsgFileParser.getSecResCodeParser().getSecurityResultCode());
       assertEquals(6, testDistressMsgFileParser.getPayloadParser().getPayloadLength());
       assertEquals(HexUtils.toHexString(expectedPayload), HexUtils.toHexString(testDistressMsgFileParser.getPayloadParser().getPayload()));

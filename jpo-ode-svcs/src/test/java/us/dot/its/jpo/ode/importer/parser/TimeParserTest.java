@@ -55,7 +55,7 @@ class TimeParserTest {
     try {
       assertEquals(expectedStatus, timeParser.parseFile(testInputStream));
       assertEquals(1524772009, timeParser.getUtcTimeInSec());
-      assertEquals(399, timeParser.getmSec());
+      assertEquals(399, timeParser.getMilliSec());
       assertEquals(expectedStep, timeParser.getStep());
 
       ByteArrayOutputStream os = new ByteArrayOutputStream();
