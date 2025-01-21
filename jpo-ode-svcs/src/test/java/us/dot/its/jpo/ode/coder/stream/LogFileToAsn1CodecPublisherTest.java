@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType.bsmTx;
+import static us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType.rxMsg;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -59,39 +61,20 @@ class LogFileToAsn1CodecPublisherTest {
   RawEncodedJsonTopics injectableRawEncodedJsonTopics;
 
   @Test
-  void testPublishInit(@Mocked LogFileParser mockLogFileParser) throws Exception {
-    new Expectations() {
-      {
-        LogFileParserFactory.getLogFileParser(anyString);
-        result = mockLogFileParser;
-
-        mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
-        result = ParserStatus.INIT;
-      }
-    };
-
+  void testPublishInit() throws Exception {
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-        "fileName", ImporterFileType.LOG_FILE);
+        bsmTx.name() + "thisIsAFile.txt", ImporterFileType.LOG_FILE);
 
     assertTrue(dataList.isEmpty());
   }
 
   @Test
-  void testPublishEOF(@Mocked LogFileParser mockLogFileParser) throws Exception {
-    new Expectations() {
-      {
-        LogFileParserFactory.getLogFileParser(anyString);
-        result = mockLogFileParser;
-
-        mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
-        result = ParserStatus.EOF;
-      }
-    };
+  void testPublishEOF() throws Exception {
 
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
-        "fileName", ImporterFileType.LOG_FILE);
+        rxMsg.name() + "fileName", ImporterFileType.LOG_FILE);
 
     assertTrue(dataList.isEmpty());
   }
@@ -100,12 +83,11 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishThrowsIllegalArgumentException() {
     // If the filename does not follow expected filename pattern,
     // IllegalArgumentException should be thrown
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(LogFileParserFactory.LogFileParserFactoryException.class, () -> {
       // If the filename does not follow expected filename pattern,
       // IllegalArgumentException should be thrown
       testLogFileToAsn1CodecPublisher.publish(new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
           "fileName", ImporterFileType.LOG_FILE);
-      fail("Expected an IllegalArgumentException to be thrown");
     });
   }
 
@@ -172,7 +154,7 @@ class LogFileToAsn1CodecPublisherTest {
         (byte) 0x03, (byte) 0x81, (byte) 0x00, (byte) 0x14, (byte) 0x03, (byte) 0x80
     };
 
-    String filename = RecordType.bsmTx.name() + GZ;
+    String filename = bsmTx.name() + GZ;
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
@@ -278,7 +260,7 @@ class LogFileToAsn1CodecPublisherTest {
         (byte) 0x03, (byte) 0x81, (byte) 0x00, (byte) 0x14, (byte) 0x03, (byte) 0x80
     };
 
-    String filename = RecordType.rxMsg.name() + GZ;
+    String filename = rxMsg.name() + GZ;
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
@@ -315,7 +297,7 @@ class LogFileToAsn1CodecPublisherTest {
         (byte) 0x11, (byte) 0x81, (byte) 0x00, (byte) 0x14, (byte) 0x03, (byte) 0x80
     };
 
-    String filename = RecordType.rxMsg.name() + GZ;
+    String filename = rxMsg.name() + GZ;
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
@@ -337,7 +319,7 @@ class LogFileToAsn1CodecPublisherTest {
   @Test
   void testPublishNonLearLogFile() throws Exception {
 
-    String filename = RecordType.rxMsg.name() + GZ;
+    String filename = rxMsg.name() + GZ;
 
     String jsonData = "{\"fakeJsonKey\":\"fakeJsonValue\"";
     byte[] buf = jsonData.getBytes();
@@ -373,7 +355,7 @@ class LogFileToAsn1CodecPublisherTest {
         (byte) 0x0a
     };
 
-    String filename = RecordType.rxMsg.name() + GZ;
+    String filename = rxMsg.name() + GZ;
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
