@@ -140,7 +140,7 @@ public class SpatLogFileParser extends LogFileParser {
 
   private void setCertPresent(byte[] code) {
     try {
-      setCertPresent(code[0] == 0 ? false : true);
+      setCertPresent(code[0] != 0);
     } catch (Exception e) {
       logger.error("Invalid Certificate Presence indicator: {}. Valid values are {}-{} inclusive", code, 0, SpatSource.values());
       setSpatSource(SpatSource.unknown);
