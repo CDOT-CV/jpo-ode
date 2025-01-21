@@ -23,19 +23,19 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import mockit.Injectable;
-import mockit.Tested;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 class TimeParserTest {
 
-  @Tested
   TimeParser timeParser;
-  @Injectable
-  long bundleId;
+
+  TimeParserTest() {
+    timeParser = new TimeParser(OdeLogMetadata.RecordType.dnMsg, OdeLogMetadata.RecordType.dnMsg.name());
+  }
 
   /**
    * Should extract all time fields and return ParserStatus.COMPLETE.

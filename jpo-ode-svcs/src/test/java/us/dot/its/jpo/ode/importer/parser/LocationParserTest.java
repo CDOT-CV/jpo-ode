@@ -23,19 +23,19 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import mockit.Injectable;
-import mockit.Tested;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 class LocationParserTest {
 
-  @Tested
   LocationParser locationParser;
-  @Injectable
-  long bundleId;
+
+  LocationParserTest() {
+    locationParser = new LocationParser(OdeLogMetadata.RecordType.driverAlert, OdeLogMetadata.RecordType.driverAlert.name());
+  }
 
   /**
    * Step 1 test. Should extract the "location->latitude" value, length 4
