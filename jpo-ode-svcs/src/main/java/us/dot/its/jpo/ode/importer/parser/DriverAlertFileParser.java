@@ -37,41 +37,41 @@ public class DriverAlertFileParser extends LogFileParser {
    *
    * @param recordType the type of records expected in the log file. It is used to
    *                   specify the type of driver alert data being parsed.
+   * @param fileName   The name of the file to be parsed
    */
-  public DriverAlertFileParser(OdeLogMetadata.RecordType recordType) {
-    super();
-    setLocationParser(new LocationParser());
-    setTimeParser(new TimeParser());
-    setPayloadParser(new PayloadParser());
-    setRecordType(recordType);
+  public DriverAlertFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
+    super(recordType, fileName);
+    setLocationParser(new LocationParser(recordType, filename));
+    setTimeParser(new TimeParser(recordType, filename));
+    setPayloadParser(new PayloadParser(recordType, fileName));
   }
 
   @Override
-  public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+  public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
     ParserStatus status;
     try {
-      status = super.parseFile(bis, fileName);
+      status = super.parseFile(bis);
       if (status != ParserStatus.COMPLETE) {
         return status;
       }
 
       if (getStep() == 1) {
-        status = nextStep(bis, fileName, locationParser);
+        status = nextStep(bis, locationParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 2) {
-        status = nextStep(bis, fileName, timeParser);
+        status = nextStep(bis, timeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 3) {
-        status = nextStep(bis, fileName, payloadParser);
+        status = nextStep(bis, payloadParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
@@ -82,7 +82,7 @@ public class DriverAlertFileParser extends LogFileParser {
       status = ParserStatus.COMPLETE;
 
     } catch (Exception e) {
-      throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+      throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
     }
 
     return status;

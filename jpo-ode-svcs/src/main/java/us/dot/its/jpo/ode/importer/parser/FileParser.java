@@ -64,7 +64,7 @@ public interface FileParser {
     UNKNOWN, INIT, NA, PARTIAL, COMPLETE, EOF, ERROR
   }
 
-  ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException;
+  ParserStatus parseFile(BufferedInputStream bis) throws FileParserException;
 
   public void writeTo(OutputStream os) throws IOException;
 }

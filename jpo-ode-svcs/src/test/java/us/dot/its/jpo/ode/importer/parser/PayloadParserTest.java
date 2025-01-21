@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 class PayloadParserTest {
@@ -36,7 +37,7 @@ class PayloadParserTest {
 
   @BeforeEach
   void setUp() {
-    payloadParser = new PayloadParser();
+    payloadParser = new PayloadParser(OdeLogMetadata.RecordType.driverAlert, OdeLogMetadata.RecordType.driverAlert.name() + ".bin");
   }
 
   /**
@@ -57,7 +58,7 @@ class PayloadParserTest {
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
     try {
-      assertEquals(expectedStatus, payloadParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, payloadParser.parseFile(testInputStream));
       assertEquals(6, payloadParser.getPayloadLength());
       assertEquals(HexUtils.toHexString(expectedPayload), HexUtils.toHexString(payloadParser.getPayload()));
       assertEquals(expectedStep, payloadParser.getStep());
@@ -87,7 +88,7 @@ class PayloadParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, payloadParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, payloadParser.parseFile(testInputStream));
       assertEquals(expectedStep, payloadParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -111,7 +112,7 @@ class PayloadParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, payloadParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, payloadParser.parseFile(testInputStream));
       assertEquals(expectedStep, payloadParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);

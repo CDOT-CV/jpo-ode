@@ -101,7 +101,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.bsmLogDuringEvent;
     String filename = recordType.name() + GZ;
     BsmLogFileParser parser = (BsmLogFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeBsmMetadata metadata = new OdeBsmMetadata();
     parser.updateMetadata(metadata);
@@ -133,7 +133,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.bsmTx;
     String filename = recordType.name() + GZ;
     BsmLogFileParser parser = (BsmLogFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeBsmMetadata metadata = new OdeBsmMetadata();
     parser.updateMetadata(metadata);
@@ -165,7 +165,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.dnMsg;
     String filename = recordType.name() + GZ;
     DistressMsgFileParser parser = (DistressMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -195,7 +195,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.driverAlert;
     String filename = recordType.name() + GZ;
     DriverAlertFileParser parser = (DriverAlertFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -227,7 +227,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeBsmMetadata metadata = new OdeBsmMetadata();
     parser.updateMetadata(metadata);
@@ -260,7 +260,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -292,7 +292,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -324,7 +324,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -356,7 +356,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -388,7 +388,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
 
     OdeLogMetadata metadata = new OdeLogMetadata();
     parser.updateMetadata(metadata);
@@ -425,7 +425,7 @@ class LogFileParserTest {
     RecordType recordType = RecordType.rxMsg;
     String filename = recordType.name() + GZ;
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
-    ParserStatus status = parser.parseFile(bis, filename);
+    ParserStatus status = parser.parseFile(bis);
     parser.setLocationParser(null);
 
     OdeLogMetadata metadata = new OdeLogMetadata();

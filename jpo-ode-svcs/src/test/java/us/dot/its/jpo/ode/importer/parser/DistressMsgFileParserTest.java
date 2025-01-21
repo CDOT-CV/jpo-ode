@@ -34,11 +34,12 @@ import us.dot.its.jpo.ode.util.CodecUtils;
 
 class DistressMsgFileParserTest {
 
+  String testFileName = "testLogFile.bin";
   DistressMsgFileParser testDistressMsgFileParser;
 
   @BeforeEach
   void setUp() {
-    testDistressMsgFileParser = new DistressMsgFileParser(OdeLogMetadata.RecordType.dnMsg);
+    testDistressMsgFileParser = new DistressMsgFileParser(OdeLogMetadata.RecordType.dnMsg, testFileName);
   }
 
   /**
@@ -47,15 +48,13 @@ class DistressMsgFileParserTest {
    */
   @Test
   void testStep0() {
-
-    String testFileName = "testLogFile.bin";
     ParserStatus expectedStatus = ParserStatus.EOF;
     int expectedStep = 1;
 
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(new byte[0]));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(testFileName, testDistressMsgFileParser.getFilename());
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
@@ -90,7 +89,7 @@ class DistressMsgFileParserTest {
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(424506735L, testDistressMsgFileParser.getLocationParser().getLocation().getLatitude());
       assertEquals(-832790108L, testDistressMsgFileParser.getLocationParser().getLocation().getLongitude());
       assertEquals(1639L, testDistressMsgFileParser.getLocationParser().getLocation().getElevation());
@@ -136,7 +135,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -168,7 +167,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -200,7 +199,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -232,7 +231,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -264,7 +263,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -296,7 +295,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -328,7 +327,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
@@ -361,7 +360,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(SecurityResultCode.unknown, testDistressMsgFileParser.getSecResCodeParser().getSecurityResultCode());
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
@@ -395,7 +394,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(SecurityResultCode.inconsistentInputParameters, testDistressMsgFileParser.getSecResCodeParser().getSecurityResultCode());
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
@@ -428,7 +427,7 @@ class DistressMsgFileParserTest {
         }));
 
     try {
-      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDistressMsgFileParser.parseFile(testInputStream));
       assertEquals(expectedStep, testDistressMsgFileParser.getStep());
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);

@@ -124,7 +124,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
       do {
         try {
-          status = fileParser.parseFile(inputStream, fileName);
+          status = fileParser.parseFile(inputStream);
           switch (status) {
             case ParserStatus.COMPLETE -> addDataToList(dataList, fileParser);
             case ParserStatus.EOF -> publishList(dataList, fileParser);

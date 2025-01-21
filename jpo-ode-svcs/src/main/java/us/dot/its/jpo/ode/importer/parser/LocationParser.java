@@ -19,7 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
-
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 public class LocationParser extends LogFileParser {
@@ -32,12 +32,12 @@ public class LocationParser extends LogFileParser {
 
    protected LogLocation location;
 
-   public LocationParser() {
-      super();
+   public LocationParser(OdeLogMetadata.RecordType recordType, String filename) {
+      super(recordType, filename);
    }
 
    @Override
-   public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+   public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
       ParserStatus status = ParserStatus.INIT;
 
@@ -87,7 +87,7 @@ public class LocationParser extends LogFileParser {
          resetStep();
          status = ParserStatus.COMPLETE;
       } catch (Exception e) {
-         throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+         throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
       }
 
 

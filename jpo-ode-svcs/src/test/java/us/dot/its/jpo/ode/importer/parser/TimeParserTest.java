@@ -22,11 +22,9 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import org.junit.jupiter.api.Test;
-
 import mockit.Injectable;
 import mockit.Tested;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
 import us.dot.its.jpo.ode.util.CodecUtils;
@@ -53,7 +51,7 @@ public class TimeParserTest {
       BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
       try {
-         assertEquals(expectedStatus, timeParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, timeParser.parseFile(testInputStream));
          assertEquals(1524772009, timeParser.getUtcTimeInSec());
          assertEquals(399, timeParser.getmSec());
          assertEquals(expectedStep, timeParser.getStep());
@@ -82,7 +80,7 @@ public class TimeParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, timeParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, timeParser.parseFile(testInputStream));
          assertEquals(expectedStep, timeParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);
@@ -105,7 +103,7 @@ public class TimeParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, timeParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, timeParser.parseFile(testInputStream));
          assertEquals(expectedStep, timeParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);

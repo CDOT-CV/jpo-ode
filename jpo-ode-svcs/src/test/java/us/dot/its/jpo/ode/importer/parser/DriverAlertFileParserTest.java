@@ -32,11 +32,13 @@ import us.dot.its.jpo.ode.util.CodecUtils;
 
 class DriverAlertFileParserTest {
 
+  String testFileName = "testLogFile.bin";
   DriverAlertFileParser testDriverAlertFileParser;
 
   @BeforeEach
   public void setUp() {
-    testDriverAlertFileParser = new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert);
+    testDriverAlertFileParser =
+        new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert, testFileName);
   }
 
 
@@ -46,15 +48,13 @@ class DriverAlertFileParserTest {
    */
   @Test
   void testStep0() {
-
-    String testFileName = "testLogFile.bin";
     ParserStatus expectedStatus = ParserStatus.EOF;
     int expectedStep = 1;
 
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(new byte[0]));
 
     try {
-      assertEquals(expectedStatus, testDriverAlertFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDriverAlertFileParser.parseFile(testInputStream));
       assertEquals(testFileName, testDriverAlertFileParser.getFilename());
       assertEquals(expectedStep, testDriverAlertFileParser.getStep());
     } catch (FileParserException e) {
@@ -84,7 +84,7 @@ class DriverAlertFileParserTest {
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
     try {
-      assertEquals(expectedStatus, testDriverAlertFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testDriverAlertFileParser.parseFile(testInputStream));
       assertEquals(424506735L, testDriverAlertFileParser.getLocationParser().getLocation().getLatitude());
       assertEquals(-832790108L, testDriverAlertFileParser.getLocationParser().getLocation().getLongitude());
       assertEquals(1639L, testDriverAlertFileParser.getLocationParser().getLocation().getElevation());

@@ -4,10 +4,9 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 public class IntersectionParser extends LogFileParser {
@@ -17,12 +16,12 @@ public class IntersectionParser extends LogFileParser {
 
 	protected LogIntersection intersection;
 
-	public IntersectionParser() {
-		super();
+	public IntersectionParser(OdeLogMetadata.RecordType recordType, String filename) {
+		super(recordType, filename);
 	}
 
 	@Override
-	public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+	public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
 		ParserStatus status = ParserStatus.INIT;
 
@@ -49,7 +48,7 @@ public class IntersectionParser extends LogFileParser {
 			resetStep();
 			status = ParserStatus.COMPLETE;
 		} catch (Exception e) {
-			throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+			throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
 		}
 
 		return status;

@@ -18,10 +18,9 @@ package us.dot.its.jpo.ode.importer.parser;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.SecurityResultCode;
 
 public class SecurityResultCodeParser extends LogFileParser {
@@ -32,12 +31,12 @@ public class SecurityResultCodeParser extends LogFileParser {
 
    protected SecurityResultCode securityResultCode;
 
-   public SecurityResultCodeParser() {
-      super();
+   public SecurityResultCodeParser(OdeLogMetadata.RecordType recordType, String filename) {
+      super(recordType, filename);
    }
 
    @Override
-   public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+   public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
       ParserStatus status = ParserStatus.INIT;
       try {
@@ -53,7 +52,7 @@ public class SecurityResultCodeParser extends LogFileParser {
          status = ParserStatus.COMPLETE;
 
       } catch (Exception e) {
-         throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+         throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
       }
 
       return status;

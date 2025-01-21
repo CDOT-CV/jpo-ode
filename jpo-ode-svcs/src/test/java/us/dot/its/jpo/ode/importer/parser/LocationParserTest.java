@@ -22,11 +22,9 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import org.junit.jupiter.api.Test;
-
 import mockit.Injectable;
 import mockit.Tested;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
 import us.dot.its.jpo.ode.util.CodecUtils;
@@ -57,7 +55,7 @@ public class LocationParserTest {
       BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
       try {
-         assertEquals(expectedStatus, locationParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, locationParser.parseFile(testInputStream));
          assertEquals(424506735L, locationParser.getLocation().getLatitude());
          assertEquals(-832790108L, locationParser.getLocation().getLongitude());
          assertEquals(1639L, locationParser.getLocation().getElevation());
@@ -92,7 +90,7 @@ public class LocationParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, locationParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, locationParser.parseFile(testInputStream));
          assertEquals(expectedStep, locationParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);
@@ -118,7 +116,7 @@ public class LocationParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, locationParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, locationParser.parseFile(testInputStream));
          assertEquals(expectedStep, locationParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);
@@ -144,7 +142,7 @@ public class LocationParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, locationParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, locationParser.parseFile(testInputStream));
          assertEquals(expectedStep, locationParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);
@@ -170,7 +168,7 @@ public class LocationParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, locationParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, locationParser.parseFile(testInputStream));
          assertEquals(expectedStep, locationParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);
@@ -196,7 +194,7 @@ public class LocationParserTest {
                }));
 
       try {
-         assertEquals(expectedStatus, locationParser.parseFile(testInputStream, "testLogFile.bin"));
+         assertEquals(expectedStatus, locationParser.parseFile(testInputStream));
          assertEquals(expectedStep, locationParser.getStep());
       } catch (FileParserException e) {
          fail("Unexpected exception: " + e);

@@ -11,25 +11,25 @@ import us.dot.its.jpo.ode.model.OdeSpatMetadata.SpatSource;
 public class SpatLogFileParser extends LogFileParser {
 	private static final Logger logger = LoggerFactory.getLogger(SpatLogFileParser.class.getName());
 	private static final int RX_FROM_LENGTH = 1;
-	private static final int IS_CERT_PRESENT_LENGTH= 1; ; /*ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)*/
+	/*ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)*/
+	private static final int IS_CERT_PRESENT_LENGTH= 1;
 
 	private SpatSource spatSource;
 	private boolean isCertPresent;
 
-	public SpatLogFileParser(OdeLogMetadata.RecordType recordType) {
-		super();
-		setIntersectionParser(new IntersectionParser());
-		setTimeParser(new TimeParser());
-		setSecResCodeParser(new SecurityResultCodeParser());
-		setPayloadParser(new PayloadParser());
-		setRecordType(recordType);
+	public SpatLogFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
+		super(recordType, fileName);
+		setIntersectionParser(new IntersectionParser(recordType, filename));
+		setTimeParser(new TimeParser(recordType, filename));
+		setSecResCodeParser(new SecurityResultCodeParser(recordType, filename));
+		setPayloadParser(new PayloadParser(recordType, fileName));
 	}
 	
 	@Override
-	public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+	public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 		ParserStatus status;
 		try {
-			status = super.parseFile(bis, fileName);
+			status = super.parseFile(bis);
 			if (status != ParserStatus.COMPLETE)
 				return status;
 
@@ -41,19 +41,19 @@ public class SpatLogFileParser extends LogFileParser {
 			}
 
 			if (getStep() == 2) {
-				status = nextStep(bis, fileName, intersectionParser);
+				status = nextStep(bis, intersectionParser);
 				if (status != ParserStatus.COMPLETE)
 					return status;
 			}
 
 			if (getStep() == 3) {
-				status = nextStep(bis, fileName, timeParser);
+				status = nextStep(bis, timeParser);
 				if (status != ParserStatus.COMPLETE)
 					return status;
 			}
 
 			if (getStep() == 4) {
-				status = nextStep(bis, fileName, secResCodeParser);
+				status = nextStep(bis, secResCodeParser);
 				if (status != ParserStatus.COMPLETE)
 					return status;
 			}
@@ -66,7 +66,7 @@ public class SpatLogFileParser extends LogFileParser {
 			}
 
 			if (getStep() == 6) {
-				status = nextStep(bis, fileName, payloadParser);
+				status = nextStep(bis, payloadParser);
 				if (status != ParserStatus.COMPLETE)
 					return status;
 			}
@@ -75,7 +75,7 @@ public class SpatLogFileParser extends LogFileParser {
 			status = ParserStatus.COMPLETE;
 
 		} catch (Exception e) {
-			throw new FileParserException("Error parsing " + fileName, e);
+			throw new FileParserException("Error parsing " + getFilename(), e);
 		}
 
 		return status;

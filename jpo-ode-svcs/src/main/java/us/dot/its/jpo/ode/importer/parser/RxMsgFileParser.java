@@ -46,23 +46,23 @@ public class RxMsgFileParser extends LogFileParser {
    * Initializes the location, time, security result code, and payload parsers
    * and sets the record type for the parser.
    *
-   * @param msgType the type of record being parsed, which specifies the applicable parsing logic.
+   * @param recordType the type of record being parsed, which specifies the applicable parsing logic.
+   * @param fileName   the name of the file to be parsed
    */
-  public RxMsgFileParser(OdeLogMetadata.RecordType msgType) {
-    super();
-    setLocationParser(new LocationParser());
-    setTimeParser(new TimeParser());
-    setSecResCodeParser(new SecurityResultCodeParser());
-    setPayloadParser(new PayloadParser());
-    setRecordType(msgType);
+  public RxMsgFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
+    super(recordType, fileName);
+    setLocationParser(new LocationParser(this.recordType, filename));
+    setTimeParser(new TimeParser(recordType, filename));
+    setSecResCodeParser(new SecurityResultCodeParser(this.recordType, filename));
+    setPayloadParser(new PayloadParser(this.recordType, fileName));
   }
 
   @Override
-  public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+  public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
     ParserStatus status;
     try {
-      status = super.parseFile(bis, fileName);
+      status = super.parseFile(bis);
       if (status != ParserStatus.COMPLETE) {
         return status;
       }
@@ -81,28 +81,28 @@ public class RxMsgFileParser extends LogFileParser {
       }
 
       if (getStep() == 2) {
-        status = nextStep(bis, fileName, locationParser);
+        status = nextStep(bis, locationParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 3) {
-        status = nextStep(bis, fileName, timeParser);
+        status = nextStep(bis, timeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 4) {
-        status = nextStep(bis, fileName, secResCodeParser);
+        status = nextStep(bis, secResCodeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 5) {
-        status = nextStep(bis, fileName, payloadParser);
+        status = nextStep(bis, payloadParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
@@ -112,7 +112,7 @@ public class RxMsgFileParser extends LogFileParser {
       status = ParserStatus.COMPLETE;
 
     } catch (Exception e) {
-      throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+      throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
     }
 
     return status;

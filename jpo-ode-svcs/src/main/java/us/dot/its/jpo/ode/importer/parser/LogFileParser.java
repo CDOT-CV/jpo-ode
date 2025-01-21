@@ -55,8 +55,8 @@ public abstract class LogFileParser implements FileParser {
   protected byte[] readBuffer = new byte[BUFFER_SIZE];
   protected int step = 0;
 
-  protected String filename;
-  protected RecordType recordType;
+  protected final String filename;
+  protected final RecordType recordType;
 
   protected IntersectionParser intersectionParser;
   protected LocationParser locationParser;
@@ -64,22 +64,25 @@ public abstract class LogFileParser implements FileParser {
   protected SecurityResultCodeParser secResCodeParser;
   protected PayloadParser payloadParser;
 
+  protected LogFileParser(RecordType recordType, String filename) {
+    this.recordType = recordType;
+    this.filename = filename;
+  }
+
   /**
    * Parses a file provided as a BufferedInputStream and updates the parser's state accordingly.
    *
-   * @param bis      the input stream containing the file data to parse
-   * @param fileName the name of the file being parsed
+   * @param bis the input stream containing the file data to parse
    *
    * @return the status of the parsing operation, represented as a {@link ParserStatus} enum
    *
    * @throws FileParserException if an error occurs during the parsing process
    */
-  public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+  public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
     ParserStatus status;
     if (getStep() == 0) {
-      setFilename(fileName);
-      setStep(getStep() + 1);
+      setStep(1);
     }
     status = ParserStatus.COMPLETE;
 
@@ -121,10 +124,10 @@ public abstract class LogFileParser implements FileParser {
     return getStep();
   }
 
-  protected ParserStatus nextStep(BufferedInputStream bis, String fileName, LogFileParser parser)
+  protected ParserStatus nextStep(BufferedInputStream bis, LogFileParser parser)
       throws FileParserException {
 
-    ParserStatus status = parser.parseFile(bis, fileName);
+    ParserStatus status = parser.parseFile(bis);
     if (status == ParserStatus.COMPLETE) {
       step++;
     }

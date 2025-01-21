@@ -35,11 +35,12 @@ import us.dot.its.jpo.ode.util.CodecUtils;
 
 class BsmFileParserTest {
 
+  String testFileName = "testLogFile.bin";
   BsmLogFileParser bsmFileParser;
 
   @BeforeEach
   void setUp() {
-    bsmFileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmTx);
+    bsmFileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmTx, testFileName);
   }
 
   @Test
@@ -51,7 +52,7 @@ class BsmFileParserTest {
 
     try {
       bsmFileParser.setStep(7);
-      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream));
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
     }
@@ -84,7 +85,7 @@ class BsmFileParserTest {
       };
       BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream));
       assertEquals(BsmSource.EV, bsmFileParser.getBsmSource());
       assertEquals(424506735L, bsmFileParser.getLocationParser().getLocation().getLatitude());
       assertEquals(-832790108L, bsmFileParser.getLocationParser().getLocation().getLongitude());
@@ -115,15 +116,13 @@ class BsmFileParserTest {
    */
   @Test
   void testStep0() {
-
-    String testFileName = "testLogFile.bin";
     ParserStatus expectedStatus = ParserStatus.EOF;
     int expectedStep = 1;
 
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(new byte[0]));
 
     try {
-      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream));
       assertEquals(testFileName, bsmFileParser.getFilename());
       assertEquals(expectedStep, bsmFileParser.getStep());
     } catch (FileParserException e) {
@@ -146,7 +145,7 @@ class BsmFileParserTest {
         new ByteArrayInputStream(new byte[] {(byte) testDirection}));
 
     try {
-      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream));
       assertEquals(expectedDirection, bsmFileParser.getBsmSource());
       assertEquals(expectedStep, bsmFileParser.getStep());
     } catch (FileParserException e) {
@@ -169,7 +168,7 @@ class BsmFileParserTest {
         new ByteArrayInputStream(new byte[] {(byte) testDirection}));
 
     try {
-      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream));
       assertEquals(expectedDirection, bsmFileParser.getBsmSource());
       assertEquals(expectedStep, bsmFileParser.getStep());
     } catch (FileParserException e) {
@@ -192,7 +191,7 @@ class BsmFileParserTest {
         new ByteArrayInputStream(new byte[] {(byte) testDirection}));
 
     try {
-      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, bsmFileParser.parseFile(testInputStream));
       assertEquals(expectedDirection, bsmFileParser.getBsmSource());
       assertEquals(expectedStep, bsmFileParser.getStep());
     } catch (FileParserException e) {

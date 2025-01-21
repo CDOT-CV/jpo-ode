@@ -42,17 +42,17 @@ public class LogFileParserFactory {
   public static LogFileParser getLogFileParser(String fileName) throws LogFileParserFactoryException {
     LogFileParser fileParser;
     if (fileName.startsWith(OdeLogMetadata.RecordType.bsmTx.name())) {
-      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmTx);
+      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmTx, fileName);
     } else if (fileName.startsWith(OdeLogMetadata.RecordType.bsmLogDuringEvent.name())) {
-      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmLogDuringEvent);
+      fileParser = new BsmLogFileParser(OdeLogMetadata.RecordType.bsmLogDuringEvent, fileName);
     } else if (fileName.startsWith(OdeLogMetadata.RecordType.rxMsg.name())) {
-      fileParser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg);
+      fileParser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg, fileName);
     } else if (fileName.startsWith(OdeLogMetadata.RecordType.dnMsg.name())) {
-      fileParser = new DistressMsgFileParser(OdeLogMetadata.RecordType.dnMsg);
+      fileParser = new DistressMsgFileParser(OdeLogMetadata.RecordType.dnMsg, fileName);
     } else if (fileName.startsWith(OdeLogMetadata.RecordType.driverAlert.name())) {
-      fileParser = new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert);
+      fileParser = new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert, fileName);
     } else if (fileName.startsWith(OdeLogMetadata.RecordType.spatTx.name())) {
-      fileParser = new SpatLogFileParser(OdeLogMetadata.RecordType.spatTx);
+      fileParser = new SpatLogFileParser(OdeLogMetadata.RecordType.spatTx, fileName);
     } else {
       throw new LogFileParserFactoryException("Unknown log file prefix: " + fileName);
     }

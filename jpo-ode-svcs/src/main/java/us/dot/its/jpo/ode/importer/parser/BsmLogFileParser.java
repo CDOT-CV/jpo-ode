@@ -41,23 +41,23 @@ public class BsmLogFileParser extends LogFileParser {
    * Initializes specific parsers for location, time, security result code, and payload,
    * and sets the record type for the parser.
    *
-   * @param recordType The type of record to be parsed, as specified by the {@link OdeLogMetadata.RecordType} enumeration.
+   * @param recordType the type of record to be parsed, as specified by the {@link OdeLogMetadata.RecordType} enumeration.
+   * @param filename   the name of the file to be parsed
    */
-  public BsmLogFileParser(OdeLogMetadata.RecordType recordType) {
-    super();
-    setLocationParser(new LocationParser());
-    setTimeParser(new TimeParser());
-    setSecResCodeParser(new SecurityResultCodeParser());
-    setPayloadParser(new PayloadParser());
-    setRecordType(recordType);
+  public BsmLogFileParser(OdeLogMetadata.RecordType recordType, String filename) {
+    super(recordType, filename);
+    setLocationParser(new LocationParser(recordType, filename));
+    setTimeParser(new TimeParser(recordType, filename));
+    setSecResCodeParser(new SecurityResultCodeParser(recordType, filename));
+    setPayloadParser(new PayloadParser(recordType, filename));
   }
 
   @Override
-  public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+  public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
     ParserStatus status;
     try {
-      status = super.parseFile(bis, fileName);
+      status = super.parseFile(bis);
       if (status != ParserStatus.COMPLETE) {
         return status;
       }
@@ -71,28 +71,28 @@ public class BsmLogFileParser extends LogFileParser {
       }
 
       if (getStep() == 2) {
-        status = nextStep(bis, fileName, locationParser);
+        status = nextStep(bis, locationParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 3) {
-        status = nextStep(bis, fileName, timeParser);
+        status = nextStep(bis, timeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 4) {
-        status = nextStep(bis, fileName, secResCodeParser);
+        status = nextStep(bis, secResCodeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 5) {
-        status = nextStep(bis, fileName, payloadParser);
+        status = nextStep(bis, payloadParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
@@ -102,7 +102,7 @@ public class BsmLogFileParser extends LogFileParser {
       status = ParserStatus.COMPLETE;
 
     } catch (Exception e) {
-      throw new FileParserException("Error parsing " + fileName, e);
+      throw new FileParserException("Error parsing " + getFilename(), e);
     }
 
     return status;

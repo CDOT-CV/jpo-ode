@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.time.ZonedDateTime;
-
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
@@ -32,12 +32,12 @@ public class TimeParser extends LogFileParser {
    protected int utcTimeInSec;
    protected short mSec;
 
-   public TimeParser() {
-      super();
+   public TimeParser(OdeLogMetadata.RecordType recordType, String filename) {
+      super(recordType, filename);
    }
 
    @Override
-   public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+   public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
       ParserStatus status = ParserStatus.INIT;
       try {
@@ -61,7 +61,7 @@ public class TimeParser extends LogFileParser {
          status = ParserStatus.COMPLETE;
 
       } catch (Exception e) {
-         throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+         throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
       }
 
       return status;

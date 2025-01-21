@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType.bsmTx;
@@ -86,7 +85,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishThrowsLogFileToAsn1CodecPublisherException() {
     assertThrows(LogFileToAsn1CodecPublisherException.class, () -> {
       var mockLogFileParser = mock(LogFileParser.class);
-      when(mockLogFileParser.parseFile(any(), anyString())).thenThrow(new FileParser.FileParserException("exception msg", null));
+      when(mockLogFileParser.parseFile(any())).thenThrow(new FileParser.FileParserException("exception msg", null));
 
       testLogFileToAsn1CodecPublisher.publish(new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
           "fileName", ImporterFileType.LOG_FILE, mockLogFileParser);
@@ -98,7 +97,7 @@ class LogFileToAsn1CodecPublisherTest {
   void testPublishDecodeFailure() throws Exception {
     var mockLogFileParser = mock(LogFileParser.class);
 
-    when(mockLogFileParser.parseFile(any(), anyString())).thenReturn(FileParser.ParserStatus.ERROR);
+    when(mockLogFileParser.parseFile(any())).thenReturn(FileParser.ParserStatus.ERROR);
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
         "fileName", ImporterFileType.LOG_FILE, mockLogFileParser);

@@ -31,52 +31,52 @@ public class DistressMsgFileParser extends LogFileParser {
    * to parse distress messages from log files while breaking down components such as
    * location, time, security result codes, and payload data.
    *
-   * @param recordType The {@link OdeLogMetadata.RecordType} representing the type of
+   * @param recordType the {@link OdeLogMetadata.RecordType} representing the type of
    *                   record to be parsed. This helps the parser determine message context
    *                   and apply proper parsing logic.
+   * @param fileName   the name of the file to be parsed
    */
-  public DistressMsgFileParser(OdeLogMetadata.RecordType recordType) {
-    super();
-    setLocationParser(new LocationParser());
-    setTimeParser(new TimeParser());
-    setSecResCodeParser(new SecurityResultCodeParser());
-    setPayloadParser(new PayloadParser());
-    setRecordType(recordType);
+  public DistressMsgFileParser(OdeLogMetadata.RecordType recordType, String fileName) {
+    super(recordType, fileName);
+    setLocationParser(new LocationParser(recordType, filename));
+    setTimeParser(new TimeParser(recordType, filename));
+    setSecResCodeParser(new SecurityResultCodeParser(recordType, filename));
+    setPayloadParser(new PayloadParser(recordType, fileName));
   }
 
   @Override
-  public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+  public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
     ParserStatus status;
     try {
-      status = super.parseFile(bis, fileName);
+      status = super.parseFile(bis);
       if (status != ParserStatus.COMPLETE) {
         return status;
       }
 
       if (getStep() == 1) {
-        status = nextStep(bis, fileName, locationParser);
+        status = nextStep(bis, locationParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 2) {
-        status = nextStep(bis, fileName, timeParser);
+        status = nextStep(bis, timeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 3) {
-        status = nextStep(bis, fileName, secResCodeParser);
+        status = nextStep(bis, secResCodeParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
       }
 
       if (getStep() == 4) {
-        status = nextStep(bis, fileName, payloadParser);
+        status = nextStep(bis, payloadParser);
         if (status != ParserStatus.COMPLETE) {
           return status;
         }
@@ -86,7 +86,7 @@ public class DistressMsgFileParser extends LogFileParser {
       status = ParserStatus.COMPLETE;
 
     } catch (Exception e) {
-      throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+      throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
     }
 
     return status;

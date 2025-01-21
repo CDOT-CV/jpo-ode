@@ -21,9 +21,8 @@ import java.io.OutputStream;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 import java.util.HashMap;
-
+import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.uper.UperUtil;
-
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 public class PayloadParser extends LogFileParser {
@@ -36,15 +35,15 @@ public class PayloadParser extends LogFileParser {
    protected byte[] payload;
    protected String payloadType;
 
-   public PayloadParser() {
-      super();
+   public PayloadParser(OdeLogMetadata.RecordType recordType, String fileName) {
+      super(recordType, fileName);
       msgStartFlags.put("BSM", "0014");
       msgStartFlags.put("TIM", "001f");
       msgStartFlags.put("MAP", "0012");
    }
 
    @Override
-   public ParserStatus parseFile(BufferedInputStream bis, String fileName) throws FileParserException {
+   public ParserStatus parseFile(BufferedInputStream bis) throws FileParserException {
 
       ParserStatus status = ParserStatus.INIT;
       try {
@@ -69,7 +68,7 @@ public class PayloadParser extends LogFileParser {
          status = ParserStatus.COMPLETE;
 
       } catch (Exception e) {
-         throw new FileParserException(String.format("Error parsing %s on step %d", fileName, getStep()), e);
+         throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
       }
 
       return status;

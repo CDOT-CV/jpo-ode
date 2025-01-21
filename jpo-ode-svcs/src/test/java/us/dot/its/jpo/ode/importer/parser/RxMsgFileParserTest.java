@@ -35,13 +35,14 @@ import us.dot.its.jpo.ode.util.CodecUtils;
 
 class RxMsgFileParserTest {
 
+  String testFileName = "testLogFile.bin";
   RxMsgFileParser testRxMsgFileParser;
 
   @BeforeEach
   void setup() {
-    testRxMsgFileParser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg);
+    testRxMsgFileParser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg, testFileName);
   }
-  
+
   @Test
   void testStepsAlreadyDone() {
 
@@ -51,7 +52,7 @@ class RxMsgFileParserTest {
 
     try {
       testRxMsgFileParser.setStep(6);
-      assertEquals(expectedStatus, testRxMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testRxMsgFileParser.parseFile(testInputStream));
     } catch (FileParserException e) {
       fail("Unexpected exception: " + e);
     }
@@ -86,7 +87,7 @@ class RxMsgFileParserTest {
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(buf));
 
     try {
-      assertEquals(expectedStatus, testRxMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testRxMsgFileParser.parseFile(testInputStream));
       assertEquals(RxSource.RV, testRxMsgFileParser.getRxSource());
       assertEquals(424506735L, testRxMsgFileParser.getLocationParser().getLocation().getLatitude());
       assertEquals(-832790108L, testRxMsgFileParser.getLocationParser().getLocation().getLongitude());
@@ -114,15 +115,13 @@ class RxMsgFileParserTest {
    */
   @Test
   void testStep0() {
-
-    String testFileName = "testLogFile.bin";
     ParserStatus expectedStatus = ParserStatus.EOF;
     int expectedStep = 1;
 
     BufferedInputStream testInputStream = new BufferedInputStream(new ByteArrayInputStream(new byte[0]));
 
     try {
-      assertEquals(expectedStatus, testRxMsgFileParser.parseFile(testInputStream, "testLogFile.bin"));
+      assertEquals(expectedStatus, testRxMsgFileParser.parseFile(testInputStream));
       assertEquals(testFileName, testRxMsgFileParser.getFilename());
       assertEquals(expectedStep, testRxMsgFileParser.getStep());
     } catch (FileParserException e) {
@@ -132,7 +131,7 @@ class RxMsgFileParserTest {
 
   @Test
   void testSetRxSource() {
-    RxMsgFileParser parser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg);
+    RxMsgFileParser parser = new RxMsgFileParser(OdeLogMetadata.RecordType.rxMsg, OdeLogMetadata.RecordType.rxMsg.name() + "filetype");
 
     parser.setRxSource(0);
     assertEquals(RxSource.RSU, parser.getRxSource());
