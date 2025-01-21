@@ -20,21 +20,21 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType.bsmTx;
 import static us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType.rxMsg;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mocked;
-import mockit.Tested;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.coder.StringPublisher;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
-import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
+import us.dot.its.jpo.ode.importer.parser.FileParser;
 import us.dot.its.jpo.ode.importer.parser.LogFileParser;
 import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -48,17 +48,15 @@ class LogFileToAsn1CodecPublisherTest {
   private static final String GZ = ".gz";
   private static final String schemaVersion = "8";
 
-  @Tested
   LogFileToAsn1CodecPublisher testLogFileToAsn1CodecPublisher;
 
-  @Injectable
-  StringPublisher injectableStringPublisher;
-
-  @Injectable
-  JsonTopics injectableJsonTopics;
-
-  @Injectable
-  RawEncodedJsonTopics injectableRawEncodedJsonTopics;
+  public LogFileToAsn1CodecPublisherTest() {
+    // StringPublisher stringPublisher, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics
+    var mockStringPublisher = mock(StringPublisher.class);
+    var mockJsonTopics = mock(JsonTopics.class);
+    var mockRawEncodedJsonTopics = mock(RawEncodedJsonTopics.class);
+    testLogFileToAsn1CodecPublisher = new LogFileToAsn1CodecPublisher(mockStringPublisher, mockJsonTopics, mockRawEncodedJsonTopics);
+  }
 
   @Test
   void testPublishInit() throws Exception {
@@ -82,24 +80,10 @@ class LogFileToAsn1CodecPublisherTest {
   }
 
   @Test
-  void testPublishThrowsLogFileToAsn1CodecPublisherException(@Mocked LogFileParser mockLogFileParser) {
+  void testPublishThrowsLogFileToAsn1CodecPublisherException() {
     assertThrows(LogFileToAsn1CodecPublisherException.class, () -> {
-      new Expectations() {
-        {
-          LogFileParserFactory.getLogFileParser(anyString);
-          result = mockLogFileParser;
-
-          /*
-           * If the embedded parser fails to parse a log file header, it may throw an
-           * exception
-           * which is then caught by the parser and re-thrown as
-           * LogFileToAsn1CodecPublisherException.
-           * This mocked object will simulate that eventuality.
-           */
-          mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
-          result = new LogFileToAsn1CodecPublisherException(anyString, (Exception) any);
-        }
-      };
+      var mockLogFileParser = mock(LogFileParser.class);
+      when(mockLogFileParser.parseFile(any(), anyString())).thenThrow(new FileParser.FileParserException("exception msg", null));
 
       testLogFileToAsn1CodecPublisher.publish(new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
           "fileName", ImporterFileType.LOG_FILE, mockLogFileParser);
@@ -108,17 +92,10 @@ class LogFileToAsn1CodecPublisherTest {
   }
 
   @Test
-  void testPublishDecodeFailure(@Mocked LogFileParser mockLogFileParser) throws Exception {
-    new Expectations() {
-      {
-        LogFileParserFactory.getLogFileParser(anyString);
-        result = mockLogFileParser;
+  void testPublishDecodeFailure() throws Exception {
+    var mockLogFileParser = mock(LogFileParser.class);
 
-        mockLogFileParser.parseFile((BufferedInputStream) any, anyString);
-        result = ParserStatus.ERROR;
-      }
-    };
-
+    when(mockLogFileParser.parseFile(any(), anyString())).thenReturn(FileParser.ParserStatus.ERROR);
     List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(
         new BufferedInputStream(new ByteArrayInputStream(new byte[0])),
         "fileName", ImporterFileType.LOG_FILE, mockLogFileParser);
@@ -148,7 +125,8 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -184,7 +162,8 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -218,7 +197,8 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -254,7 +234,8 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -291,7 +272,8 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
@@ -321,7 +303,8 @@ class LogFileToAsn1CodecPublisherTest {
      * currently we dont' support JSON input records. We may in the future.
      */
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.JSON_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.JSON_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     assertTrue(dataList.isEmpty());
   }
@@ -349,7 +332,8 @@ class LogFileToAsn1CodecPublisherTest {
 
     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-    List<OdeData> dataList = testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE, LogFileParserFactory.getLogFileParser(filename));
 
     for (OdeData data : dataList) {
       assertTrue(DateTimeUtils.difference(DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
