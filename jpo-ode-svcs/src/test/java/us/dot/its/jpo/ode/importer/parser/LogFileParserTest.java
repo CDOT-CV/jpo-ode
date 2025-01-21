@@ -1,9 +1,9 @@
 package us.dot.its.jpo.ode.importer.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedInputStream;
@@ -28,7 +28,7 @@ class LogFileParserTest {
     String filename = recordType.name();
     LogFileParser parser = LogFileParserFactory.getLogFileParser(filename);
 
-    assertTrue(parser instanceof BsmLogFileParser);
+    assertInstanceOf(BsmLogFileParser.class, parser);
     assertEquals(recordType, parser.getRecordType());
   }
 
@@ -38,7 +38,7 @@ class LogFileParserTest {
     String filename = recordType.name();
     LogFileParser parser = LogFileParserFactory.getLogFileParser(filename);
 
-    assertTrue(parser instanceof BsmLogFileParser);
+    assertInstanceOf(BsmLogFileParser.class, parser);
     assertEquals(recordType, parser.getRecordType());
   }
 
@@ -48,7 +48,7 @@ class LogFileParserTest {
     String filename = recordType.name();
     LogFileParser parser = LogFileParserFactory.getLogFileParser(filename);
 
-    assertTrue(parser instanceof RxMsgFileParser);
+    assertInstanceOf(RxMsgFileParser.class, parser);
     assertEquals(recordType, parser.getRecordType());
   }
 
@@ -58,7 +58,7 @@ class LogFileParserTest {
     String filename = recordType.name();
     LogFileParser parser = LogFileParserFactory.getLogFileParser(filename);
 
-    assertTrue(parser instanceof DistressMsgFileParser);
+    assertInstanceOf(DistressMsgFileParser.class, parser);
     assertEquals(recordType, parser.getRecordType());
   }
 
@@ -68,13 +68,13 @@ class LogFileParserTest {
     String filename = recordType.name();
     LogFileParser parser = LogFileParserFactory.getLogFileParser(filename);
 
-    assertTrue(parser instanceof DriverAlertFileParser);
+    assertInstanceOf(DriverAlertFileParser.class, parser);
     assertEquals(recordType, parser.getRecordType());
   }
 
   @Test
   void testFactoryThrowsException() {
-    assertThrows(IllegalArgumentException.class, () -> {
+    assertThrows(LogFileParserFactory.LogFileParserFactoryException.class, () -> {
       LogFileParserFactory.getLogFileParser("invalidFileName");
       fail("Expected IllegalArgumentException");
     });
