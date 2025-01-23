@@ -1,7 +1,7 @@
 
 # Coding Standards
 
-[**https://dzone.com/articles/java-code-review-checklist**](https://webmail.bah.com/owa/redir.aspx?REF=ZhArHW04o5Lor_RX2IzYf8QasYy5Ise3e9Otxtmbzud9Pr3PH1DUCAFodHRwczovL2R6b25lLmNvbS9hcnRpY2xlcy9qYXZhLWNvZGUtcmV2aWV3LWNoZWNrbGlzdA..)
+[**Java Code Review Checklist**](https://dzone.com/articles/java-code-review-checklist)
 
 ## Clean Code
 
