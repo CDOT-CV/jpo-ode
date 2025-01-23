@@ -10,7 +10,7 @@ By contributing to the US Department of Transportation Joint Program office (JPO
 
 ## Style Guide
 
-[Code Standards](https://usdotjpoode.atlassian.net/wiki/spaces/ODTD/pages/8234945/Code+Standards)
+[Code Standards](coding_standards.md)
 
 
 ## Miscellaneous Documentation
