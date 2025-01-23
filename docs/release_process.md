@@ -48,6 +48,10 @@ The first step in the quarterly release process is to ensure that the code is re
         - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
         - [ ] Code changes for release are merged into `develop`
         - [ ] A new branch `release_(year)-(quarter)` is created from `develop`
+    - [ ] jpo-utils
+        - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
+        - [ ] Code changes for release are merged into `develop`
+        - [ ] A new branch `release_(year)-(quarter)` is created from `develop`
     - [ ] jpo-cvmanager
         - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
         - [ ] Code changes for release are merged into `develop`
@@ -140,6 +144,18 @@ After the release branches are created, preliminary testing should be conducted 
         - [ ] unit tests pass
         - [ ] program starts up correctly
         - [ ] GUI functions & can display messages
+    - [ ] jpo-utils
+        - [ ] jpo-deduplicator
+            - [ ] deduplicator code compiles
+            - [ ] deduplicator unit tests pass
+            - [ ] program starts up correctly
+            - [ ] program processes BSM, SPaT, MAP, and TIM messages
+            - [ ] ProcessedMap, ProcessedSpat, OdeMap, OdeTim, OdeRawEncodedTim, OdeBsm messages are consumed
+            - [ ] A single message is output for each of the input types
+        - [ ] jpo-jikkou docker image builds
+        - [ ] jpo-kafka-connect image builds
+            - [ ] Verify all connectors are created using connect rest api
+
 
 ## 3. Project Reference Updates & Release Creation
 ### Description
@@ -152,7 +168,7 @@ After preliminary testing is complete, project reference updates should be made 
     - jpo-security-svcs
     - jpo-sdw-depositor
     - jpo-s3-deposit
-    - jpo-utils
+    - jpo-utils (deduplicator)
 
 2. Merge ‘release_(year)-(quarter)’ branch into ‘master/main’ branch for the following projects:
     - asn1_codec
@@ -172,7 +188,7 @@ After preliminary testing is complete, project reference updates should be made 
     
     2e. Create a release for the jpo-s3-deposit project from the ‘master/main’ branch and tag the release with the version number of the release. (e.g. jpo-s3-deposit-x.x.x)
 
-    2f. Create a release for the jpo-utils project from the ‘master/main’ branch and tag the release with the version number of the release. (e.g. jpo-utils-x.x.x)
+    2f. Create a release for the jpo-utils project from the ‘master/main’ branch and tag the release with the version number of the release. (e.g. jpo-s3-deposit-x.x.x)
 
 3. Update version number in pom.xml files for the 'jpo-ode' project if not already done.
 
@@ -234,9 +250,23 @@ After preliminary testing is complete, project reference updates should be made 
 
 11. Merge `release_(year)-(quarter)` branch into `master/main` branch for the jpo-conflictmonitor project, and create a release with the version number of the release. (e.g. jpo-conflictmonitor-x.x.x)
 
-12. Update version number in pom.xml file for the `jpo-conflictvisualizer` project if not already done. The pom.xml can be found in the `api/jpo-conflictvisualizer-api` directory.
+12. Update git submodule references for the jpo-deduplicator project within the jpo-utils repo project to point to the tagged commit in jpo-geojsonconverter master/main branch. Also update the corresponding version number for the jpo-geojsonconverter and jpo-ode-* dependencies in the pom.xml files of the jpo-deduplicator project. This change will be necessary in the jpo-deduplicator/jpo-deduplicator/pom.xml file.
 
-13. Update git submodule references for the `jpo-conflictvisualizer` project to point to the tagged commit in jpo-conflictmonitor master/main branch. Also update the corresponding version number for the jpo-conflictmonitor dependency in the pom.xml file of the conflictvisualizer project.
+    10a. Open the jpo-utils repo project in an IDE.
+    
+    10b. Update the version number in the pom.xml files for the jpo-geojsonconverter and jpo-ode-* dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
+    
+    10c. Commit these changes to the `release_(year)-(quarter)` branch & push the changes to the remote repository.
+    
+    10d. Ensure these changes pass CI/CD checks before continuing.
+
+13. Merge `release_(year)-(quarter)` branch into `master/main` branch for the jpo-utils project, update the existing release tag (e.g. jpo-utils-x.x.x) to point to the newly committed version of jpo-utils
+
+14. Verify that the current release of the ODE points to the newly tagged version of the jpo-utils module
+
+15. Update version number in pom.xml file for the `jpo-conflictvisualizer` project if not already done. The pom.xml can be found in the `api/jpo-conflictvisualizer-api` directory.
+
+16. Update git submodule references for the `jpo-conflictvisualizer` project to point to the tagged commit in jpo-conflictmonitor master/main branch. Also update the corresponding version number for the jpo-conflictmonitor dependency in the pom.xml file of the conflictvisualizer project.
 
     13a. Open the jpo-conflictvisualizer project in an IDE.
     
@@ -252,9 +282,9 @@ After preliminary testing is complete, project reference updates should be made 
     
     13g. Ensure these changes pass CI/CD checks before continuing.
 
-14. Merge `release_(year)-(quarter)` branch into `master/main` branch for the jpo-conflictvisualizer project, and create a release with the version number of the release. (e.g. jpo-conflictvisualizer-x.x.x)
+17. Merge `release_(year)-(quarter)` branch into `master/main` branch for the jpo-conflictvisualizer project, and create a release with the version number of the release. (e.g. jpo-conflictvisualizer-x.x.x)
 
-15. Merge `release_(year)-(quarter)` branch into `master/main` branch for the jpo-cvmanager project, and create a release with the version number of the release. (e.g. jpo-cvmanager-x.x.x)
+18. Merge `release_(year)-(quarter)` branch into `master/main` branch for the jpo-cvmanager project, and create a release with the version number of the release. (e.g. jpo-cvmanager-x.x.x)
 
 #### Create Docker Images
 1. Within the github CI/CD release process, use the releases for each application to produce docker images with the same tag name, containing the version number of each app. For example, the jpo-ode release will produce a docker image with the version number of the release (e.g. 1.0.0).
@@ -338,6 +368,15 @@ After the docker images have been built and pushed to DockerHub, they should be 
     - [ ] jpo-conflictvisualizer-keycloak
         - [ ] image starts up correctly
         - [ ] authentication verified to work
+    - [ ] jpo-utils
+        - [ ] jpo-deduplicator
+            - [ ] image starts up correctly
+            - [ ] ProcessedMap, ProcessedSpat, OdeMap, OdeTim, OdeRawEncodedTim, OdeBsm messages are consumed
+            - [ ] A single message is output for each of the input types
+        - [ ] jpo-jikkou docker image starts up correctly
+        - [ ] jpo-kafka-connect image starts up correctly
+            - [ ] Verify all connectors are created using connect rest api
+        - [ ] mongodb docker image starts up correctly
 
 At this point the quarterly release process is complete.
 
