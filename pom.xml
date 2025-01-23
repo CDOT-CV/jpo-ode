@@ -121,6 +121,17 @@
         <artifactId>logback-core</artifactId>
         <version>1.5.13</version>
       </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+      </dependency>
+      <!-- If Janino is required for logback -->
+      <dependency>
+        <groupId>org.codehaus.janino</groupId>
+        <artifactId>janino</artifactId>
+        <version>3.1.10</version>
+      </dependency>
+
     </dependencies>
   </dependencyManagement>
 
