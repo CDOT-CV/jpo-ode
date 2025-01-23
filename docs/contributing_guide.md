@@ -28,7 +28,7 @@ By contributing to the US Department of Transportation Joint Program office (JPO
 ## Tools
 
 ### Issue tracker
-Contributors will utilize Github's issue tracking system to record and manage issues that are reported by users of the ODE in the field. These may include performance requests, found bugs, and new requests. The follow operating procedure highlights how the ODE development team will address and respond to reported issues.
+Contributors will utilize GitHub's issue tracking system to record and manage issues that are reported by users of the ODE in the field. These may include performance requests, found bugs, and new requests. The follow operating procedure highlights how the ODE development team will address and respond to reported issues.
 
 Issue Repository: [https://github.com/usdot-jpo-ode/jpo-ode/issues](https://github.com/usdot-jpo-ode/jpo-ode/issues)
 
