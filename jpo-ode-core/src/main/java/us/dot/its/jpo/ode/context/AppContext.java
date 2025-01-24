@@ -18,12 +18,10 @@ package us.dot.its.jpo.ode.context;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.UUID;
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 @Slf4j
 @Configuration
@@ -110,7 +108,6 @@ public class AppContext {
       }
       this.hostId = hostname;
       log.info("Host ID: {}", hostId);
-      EventLogger.logger.info("Initializing services on host {}", hostId);
    }
 
    public String getParam(String key) {

@@ -15,6 +15,8 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.snmp;
 
+import java.io.IOException;
+import java.text.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.snmp4j.PDU;
@@ -38,15 +40,11 @@ import org.snmp4j.smi.OID;
 import org.snmp4j.smi.OctetString;
 import org.snmp4j.smi.VariableBinding;
 import org.snmp4j.transport.DefaultUdpTransportMapping;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.plugin.SNMP;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.ServiceRequest.OdeInternal.RequestVerb;
 import us.dot.its.jpo.ode.plugin.SnmpProtocol;
-
-import java.io.IOException;
-import java.text.ParseException;
 
 /**
  * This object is used to abstract away the complexities of SNMP calls and allow
@@ -219,7 +217,6 @@ public class SnmpSession {
         ScopedPDU pdu = SnmpSession.createPDU(snmp, payload, rsu.getRsuIndex(), requestVerb, rsu.getSnmpProtocol(), dataSigningEnabledRSU);
         response = session.set(pdu, session.getSnmp(), session.getTarget(), false);
         String msg = "Message Sent to {}, index {}: {}";
-        EventLogger.logger.debug(msg, rsu.getRsuTarget(), rsu.getRsuIndex(), payload);
         logger.debug(msg, rsu.getRsuTarget(), rsu.getRsuIndex(), payload);
         return response;
     }

@@ -25,7 +25,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.context.AppContext;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -169,11 +168,9 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
           + consumedData;
       if (log.isDebugEnabled()) {
         // print error message and stack trace
-        EventLogger.logger.error(msg, e);
         log.error(msg, e);
       } else {
         // print error message only
-        EventLogger.logger.error(msg);
         log.error(msg);
       }
     }
@@ -198,7 +195,6 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
 
     } catch (Exception e) {
       String errMsg = "Malformed JSON.";
-      EventLogger.logger.error(errMsg, e);
       log.error(errMsg, e);
     }
 
@@ -345,13 +341,11 @@ public class Asn1EncodedDataRouter extends AbstractSubscriberProcessor<String, S
         } catch (Exception e) {
           String msg = ERROR_ON_SDX_DEPOSIT;
           log.error(msg, e);
-          EventLogger.logger.error(msg, e);
         }
 
       } else if (log.isErrorEnabled()) {
         // Added to avoid Sonar's "Invoke method(s) only conditionally." code smell
         String msg = "ASN.1 Encoder did not return ASD encoding {}";
-        EventLogger.logger.error(msg, consumedObj);
         log.error(msg, consumedObj);
       }
     }

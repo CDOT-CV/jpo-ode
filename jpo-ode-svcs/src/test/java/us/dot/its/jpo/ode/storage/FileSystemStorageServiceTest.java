@@ -16,7 +16,6 @@
 package us.dot.its.jpo.ode.storage;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,8 +26,10 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.junit.jupiter.api.BeforeEach;
+import lombok.extern.slf4j.Slf4j;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.Verifications;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,14 +43,9 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 
+@Slf4j
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = FileImporterProperties.class)
@@ -73,7 +69,7 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info(anyString, any, any);
+                log.info(anyString, any, any);
             }
         };
 
@@ -103,7 +99,7 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info(anyString);
+                log.info(anyString);
             }
         };
     }
@@ -132,7 +128,7 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info(anyString);
+                log.info(anyString);
             }
         };
     }
@@ -172,8 +168,8 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info("Deleting existing file: {}", any);
-                EventLogger.logger.info("Failed to delete existing file: {} ", any);
+                log.info("Deleting existing file: {}", any);
+                log.info("Failed to delete existing file: {} ", any);
             }
         };
     }
@@ -217,8 +213,8 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info("Copying file {} to {}", anyString, (Path) any);
-                EventLogger.logger.info("Failed to store file in shared directory {}", (Path) any);
+                log.info("Copying file {} to {}", anyString, (Path) any);
+                log.info("Failed to store file in shared directory {}", (Path) any);
             }
         };
     }
@@ -246,7 +242,7 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info("Failed to read files stored in {}", (Path) any);
+                log.info("Failed to read files stored in {}", (Path) any);
             }
         };
     }
@@ -428,7 +424,7 @@ public class FileSystemStorageServiceTest {
 
         new Verifications() {
             {
-                EventLogger.logger.info("Failed to initialize storage service {}", (Path) any);
+                log.info("Failed to initialize storage service {}", (Path) any);
             }
         };
     }
@@ -441,7 +437,7 @@ public class FileSystemStorageServiceTest {
         new Verifications() {
             {
                 FileSystemUtils.deleteRecursively((File) any);
-                EventLogger.logger.info("Deleting {}", (Path) any);
+                log.info("Deleting {}", (Path) any);
             }
         };
 
