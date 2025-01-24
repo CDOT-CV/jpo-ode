@@ -47,7 +47,7 @@ public class ImporterProcessor {
     this.fileType = fileType;
   }
 
-  public int processDirectory(Path dir, Path backupDir, Path failureDir) {
+  public void processDirectory(Path dir, Path backupDir, Path failureDir) {
     int count = 0;
     // Process files already in the directory
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
@@ -61,11 +61,10 @@ public class ImporterProcessor {
           count++;
         }
       }
-
-    } catch (Exception e) {
+    } catch (IOException e) {
       log.error("Error processing files.", e);
     }
-    return count;
+    log.debug("Processed {} files.", count);
   }
 
   public boolean processFile(Path filePath) {
