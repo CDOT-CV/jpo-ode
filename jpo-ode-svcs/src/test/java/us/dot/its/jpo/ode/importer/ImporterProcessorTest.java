@@ -17,9 +17,6 @@ package us.dot.its.jpo.ode.importer;
 
 import static org.junit.Assert.fail;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -100,22 +97,6 @@ public class ImporterProcessorTest {
       }
 
       testImporterProcessor.processDirectory(injectableDir, injectableBackupDir, injectableFailureDir);
-   }
-
-   @Test @Disabled
-   public void processFileFileShouldCatchExceptionStream() {
-
-      try {
-         new Expectations() {
-            {
-               new FileInputStream((File) any);
-               result = new IOException("testException123");
-            }
-         };
-      } catch (FileNotFoundException e) {
-         fail("Unexpected exception in expectations block: " + e);
-      }
-      testImporterProcessor.processFile(mockFile);
    }
 
 }

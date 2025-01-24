@@ -29,7 +29,6 @@ import java.util.zip.ZipInputStream;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher.FileAsn1CodecPublisherException;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 
 @Slf4j
@@ -67,7 +66,7 @@ public class ImporterProcessor {
     log.debug("Processed {} files.", count);
   }
 
-  public boolean processFile(Path filePath) {
+  private boolean processFile(Path filePath) {
     boolean success = true;
     FileType detectedFileType;
     try {
@@ -90,7 +89,6 @@ public class ImporterProcessor {
     } catch (Exception e) {
       success = false;
       log.error("Failed to open or process file: {}", filePath, e);
-      EventLogger.logger.error("Failed to open or process file: {}", filePath, e);
     }
 
     return success;
