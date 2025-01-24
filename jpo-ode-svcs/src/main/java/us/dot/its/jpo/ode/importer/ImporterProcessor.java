@@ -38,8 +38,8 @@ public class ImporterProcessor {
   private final int bufferSize;
   private final FileAsn1CodecPublisher codecPublisher;
   private final ImporterFileType fileType;
-  private final Pattern gZipPattern = Pattern.compile("application/.*gzip");
-  private final Pattern zipPattern = Pattern.compile("application/.*zip.*");
+  private static final Pattern gZipPattern = Pattern.compile("application/.*gzip");
+  private static final Pattern zipPattern = Pattern.compile("application/.*zip.*");
 
   public ImporterProcessor(FileAsn1CodecPublisher publisher, ImporterFileType fileType, int bufferSize) {
     this.codecPublisher = publisher;
@@ -132,7 +132,7 @@ public class ImporterProcessor {
   }
 
   private void publishFile(Path filePath, InputStream inputStream) throws FileAsn1CodecPublisherException {
-    BufferedInputStream bis= new BufferedInputStream(inputStream, this.bufferSize);
+    BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize);
     codecPublisher.publishFile(filePath, bis, fileType);
   }
 }
