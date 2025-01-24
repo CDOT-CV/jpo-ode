@@ -51,13 +51,13 @@ public class ImporterProcessor {
     int count = 0;
     // Process files already in the directory
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
-
       for (Path entry : stream) {
         if (entry.toFile().isDirectory()) {
           processDirectory(entry, backupDir, failureDir);
         } else {
           log.debug("Found a file to process: {}", entry.getFileName());
-          processAndBackupFile(entry, backupDir, failureDir);
+          var success = processFile(entry);
+          moveProcessedFile(entry, backupDir, failureDir, success);
           count++;
         }
       }
@@ -68,69 +68,72 @@ public class ImporterProcessor {
     return count;
   }
 
-  public void processAndBackupFile(Path filePath, Path backupDir, Path failureDir) {
-
-    // ODE-559
+  public boolean processFile(Path filePath) {
     boolean success = true;
-    InputStream inputStream = null;
-    BufferedInputStream bis = null;
-
+    FileType detectedFileType;
     try {
-      inputStream = new FileInputStream(filePath.toFile());
-      String probeContentType = Files.probeContentType(filePath);
-      if ((probeContentType != null && gZipPattern.matcher(probeContentType).matches()) || filePath.toString().toLowerCase().endsWith("gz")) {
-        log.info("Treating as gzip file");
-        inputStream = new GZIPInputStream(inputStream);
-        bis = publishFile(filePath, inputStream);
-      } else if ((probeContentType != null && zipPattern.matcher(probeContentType).matches()) || filePath.toString().endsWith("zip")) {
-        log.info("Treating as zip file");
-        inputStream = new ZipInputStream(inputStream);
+      detectedFileType = detectFileType(filePath);
+      log.info("Treating as {} file", detectedFileType.toString());
+    } catch (IOException e) {
+      log.error("Failed to detect file type: {}", filePath, e);
+      return false;
+    }
+
+    try (InputStream inputStream = getInputStream(filePath, detectedFileType)) {
+      if (detectedFileType == FileType.ZIP) {
         ZipInputStream zis = (ZipInputStream) inputStream;
         while (zis.getNextEntry() != null) {
-          bis = publishFile(filePath, inputStream);
+          publishFile(filePath, inputStream);
         }
       } else {
-        log.info("Treating as unknown file");
-        bis = publishFile(filePath, inputStream);
+        publishFile(filePath, inputStream);
       }
     } catch (Exception e) {
       success = false;
       log.error("Failed to open or process file: {}", filePath, e);
       EventLogger.logger.error("Failed to open or process file: {}", filePath, e);
-    } finally {
-      try {
-        if (bis != null) {
-          bis.close();
-        }
-        if (inputStream != null) {
-          inputStream.close();
-        }
-      } catch (IOException e) {
-        log.error("Failed to close file stream:", e);
-      }
     }
 
+    return success;
+  }
+
+  private void moveProcessedFile(Path filePath, Path backupDir, Path failureDir, boolean success) {
     try {
       if (success) {
         OdeFileUtils.backupFile(filePath, backupDir);
         log.info("File moved to backup: {}", backupDir);
-        EventLogger.logger.info("File moved to backup: {}", backupDir);
       } else {
         OdeFileUtils.moveFile(filePath, failureDir);
         log.info("File moved to failure directory: {}", failureDir);
-        EventLogger.logger.info("File moved to failure directory: {}", failureDir);
       }
     } catch (IOException e) {
       log.error("Unable to backup file: {}", filePath, e);
     }
   }
 
-  private BufferedInputStream publishFile(Path filePath, InputStream inputStream)
-      throws FileAsn1CodecPublisherException {
-    BufferedInputStream bis;
-    bis = new BufferedInputStream(inputStream, this.bufferSize);
-    codecPublisher.publishFile(filePath, bis, fileType);
-    return bis;
+  private FileType detectFileType(Path filePath) throws IOException {
+    String probeContentType = Files.probeContentType(filePath);
+    if (probeContentType != null) {
+      if (gZipPattern.matcher(probeContentType).matches() || filePath.toString().toLowerCase().endsWith("gz")) {
+        return FileType.GZIP;
+      } else if (zipPattern.matcher(probeContentType).matches() || filePath.toString().endsWith("zip")) {
+        return FileType.ZIP;
+      }
+    }
+
+    return FileType.UNKNOWN;
   }
 
+  private InputStream getInputStream(Path filePath, FileType fileType) throws IOException {
+    return switch (fileType) {
+      case GZIP -> new GZIPInputStream(new FileInputStream(filePath.toFile()));
+      case ZIP -> new ZipInputStream(new FileInputStream(filePath.toFile()));
+      default -> new FileInputStream(filePath.toFile());
+    };
+  }
+
+  private void publishFile(Path filePath, InputStream inputStream) throws FileAsn1CodecPublisherException {
+    BufferedInputStream bis= new BufferedInputStream(inputStream, this.bufferSize);
+    codecPublisher.publishFile(filePath, bis, fileType);
+  }
 }

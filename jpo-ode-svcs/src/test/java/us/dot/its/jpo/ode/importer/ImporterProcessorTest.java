@@ -25,14 +25,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
-
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
 import mockit.Tested;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 
 public class ImporterProcessorTest {
@@ -105,7 +103,7 @@ public class ImporterProcessorTest {
    }
 
    @Test @Disabled
-   public void processAndBackupFileFileShouldCatchExceptionStream() {
+   public void processFileFileShouldCatchExceptionStream() {
 
       try {
          new Expectations() {
@@ -117,7 +115,7 @@ public class ImporterProcessorTest {
       } catch (FileNotFoundException e) {
          fail("Unexpected exception in expectations block: " + e);
       }
-      testImporterProcessor.processAndBackupFile(mockFile, injectableBackupDir, injectableFailureDir);
+      testImporterProcessor.processFile(mockFile);
    }
 
 }
