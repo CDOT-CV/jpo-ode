@@ -25,9 +25,12 @@ import java.nio.file.Path;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
+
 import lombok.extern.slf4j.Slf4j;
+
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
 import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher.FileAsn1CodecPublisherException;
+import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 
 @Slf4j
@@ -94,6 +97,7 @@ public class ImporterProcessor {
       } catch (Exception e) {
          success = false;
          log.error("Failed to open or process file: {}", filePath, e);
+         EventLogger.logger.error("Failed to open or process file: {}", filePath, e);
       } finally {
          try {
             if (bis != null) {
@@ -111,9 +115,11 @@ public class ImporterProcessor {
          if (success) {
             OdeFileUtils.backupFile(filePath, backupDir);
             log.info("File moved to backup: {}", backupDir);
+            EventLogger.logger.info("File moved to backup: {}", backupDir);  
          } else {
             OdeFileUtils.moveFile(filePath, failureDir);
             log.info("File moved to failure directory: {}", failureDir);
+            EventLogger.logger.info("File moved to failure directory: {}", failureDir);
          }
       } catch (IOException e) {
          log.error("Unable to backup file: {}", filePath, e);

@@ -17,9 +17,6 @@ package us.dot.its.jpo.ode.services.asn1;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.text.ParseException;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import us.dot.its.jpo.ode.context.AppContext;
+import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.SDXDepositorTopics;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
@@ -38,8 +36,8 @@ import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
 import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
-import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
+import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -47,6 +45,10 @@ import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 import us.dot.its.jpo.ode.wrapper.MessageProducer;
+
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class Asn1CommandManager {
@@ -86,6 +88,7 @@ public class Asn1CommandManager {
             this.depositTopic = sdxDepositorTopics.getInput();
         } catch (Exception e) {
             String msg = "Error starting SDW depositor";
+            EventLogger.logger.error(msg, e);
             log.error(msg, e);
         }
     }
@@ -93,7 +96,9 @@ public class Asn1CommandManager {
     public void depositToSdw(String depositObj) throws Asn1CommandManagerException {
         stringMessageProducer.send(this.depositTopic, null, depositObj);
         log.info("Published message to SDW deposit topic {}", this.depositTopic);
+        EventLogger.logger.info("Published message to SDW deposit topic");
         log.debug("Message deposited: {}", depositObj);
+        EventLogger.logger.debug("Message deposited: {}", depositObj);
     }
 
     public void sendToRsus(ServiceRequest request, String encodedMsg) {

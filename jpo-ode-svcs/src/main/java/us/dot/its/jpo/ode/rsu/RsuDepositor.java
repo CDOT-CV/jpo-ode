@@ -16,16 +16,18 @@
 
 package us.dot.its.jpo.ode.rsu;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.snmp4j.event.ResponseEvent;
+import us.dot.its.jpo.ode.eventlog.EventLogger;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
 import us.dot.its.jpo.ode.traveler.TimTransmogrifier;
+
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @Slf4j
 public class RsuDepositor extends Thread {
@@ -83,6 +85,7 @@ public class RsuDepositor extends Thread {
                             httpResponseStatus = getResponseStatus(rsuResponse, curRsu);
                         } catch (IOException | ParseException e) {
                             String msg = "Exception caught in TIM RSU deposit loop.";
+                            EventLogger.logger.error(msg, e);
                             log.error(msg, e);
                             httpResponseStatus = e.getClass().getName() + ": " + e.getMessage();
                         }
