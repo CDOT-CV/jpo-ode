@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.upload;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 
 import org.junit.jupiter.api.Assertions;
@@ -29,7 +28,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
-import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
 
@@ -42,14 +40,11 @@ class FileUploadControllerTest {
   StorageService mockStorageService;
 
   @Mock
-  ImporterDirectoryWatcher mockImporterDirectoryWatcher;
-
-  @Mock
   MultipartFile mockMultipartFile;
 
   @BeforeEach
   public void setup() {
-    testFileUploadController = new FileUploadController(mockStorageService, mockImporterDirectoryWatcher);
+    testFileUploadController = new FileUploadController(mockStorageService);
   }
 
   @Test

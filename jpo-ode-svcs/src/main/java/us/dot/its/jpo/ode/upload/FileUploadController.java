@@ -16,8 +16,6 @@
 
 package us.dot.its.jpo.ode.upload;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,7 +26,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
 
@@ -49,15 +46,9 @@ public class FileUploadController {
    */
   @Autowired
   public FileUploadController(
-      StorageService storageService,
-      ImporterDirectoryWatcher importerDirectoryWatcher) {
+      StorageService storageService) {
     super();
     this.storageService = storageService;
-
-    ExecutorService threadPool = Executors.newCachedThreadPool();
-
-    // Create the importers that watch folders for new/modified files
-    threadPool.submit(importerDirectoryWatcher);
   }
 
   /**
