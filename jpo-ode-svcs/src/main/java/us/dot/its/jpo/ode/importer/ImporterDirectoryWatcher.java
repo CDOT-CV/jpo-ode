@@ -32,14 +32,14 @@ import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 
+/**
+ * The ImporterDirectoryWatcher uses a scheduled task to periodically scan the designated inbox directory for
+ * files offloaded from the Roadside Units (RSUs) for offline bulk processing.
+ */
 @Component
 @EnableScheduling
 @Slf4j
 public class ImporterDirectoryWatcher {
-
-  public enum ImporterFileType {
-    LOG_FILE, JSON_FILE
-  }
 
   @Setter
   @Getter
@@ -82,7 +82,7 @@ public class ImporterDirectoryWatcher {
 
     this.importerProcessor = new ImporterProcessor(
         new LogFileToAsn1CodecPublisher(kafkaTemplate, jsonTopics, rawEncodedJsonTopics),
-        ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
+        ImporterFileType.LOG_FILE,
         fileImporterProperties.getBufferSize());
   }
 

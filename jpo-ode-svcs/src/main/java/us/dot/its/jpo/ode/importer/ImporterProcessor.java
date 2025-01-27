@@ -28,7 +28,6 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
-import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 
 @Slf4j
