@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*===========================================================================
  * Copyright 2018 572682
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
@@ -13,6 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
+
 package us.dot.its.jpo.ode.importer;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -37,31 +38,31 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 @EnableConfigurationProperties(value = {OdeKafkaProperties.class, FileImporterProperties.class, JsonTopics.class, RawEncodedJsonTopics.class})
 class ImporterDirectoryWatcherTest {
 
-    @Autowired
-    FileImporterProperties injectableFileImporterProperties;
-    @Autowired
-    OdeKafkaProperties odeKafkaProperties;
-    @Autowired
-    JsonTopics jsonTopics;
-    @Autowired
-    RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  FileImporterProperties injectableFileImporterProperties;
+  @Autowired
+  OdeKafkaProperties odeKafkaProperties;
+  @Autowired
+  JsonTopics jsonTopics;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
 
 
-    @Test
-    void testConstructorCreatesThreeDirectories() {
+  @Test
+  void testConstructorCreatesThreeDirectories() {
 
-        ImporterDirectoryWatcher testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties,
-            jsonTopics,
-                ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
-                rawEncodedJsonTopics, null);
+    ImporterDirectoryWatcher testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties,
+        jsonTopics,
+        ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
+        rawEncodedJsonTopics, null);
 
-        assertNotNull(testImporterDirectoryWatcher);
-        Path inbox = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getObuLogUploadLocation());
-        assertTrue(Files.exists(inbox));
-        Path backups = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getBackupDir());
-        assertTrue(Files.exists(backups));
-        Path failures = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getFailedDir());
-        assertTrue(Files.exists(failures));
-    }
+    assertNotNull(testImporterDirectoryWatcher);
+    Path inbox = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getObuLogUploadLocation());
+    assertTrue(Files.exists(inbox));
+    Path backups = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getBackupDir());
+    assertTrue(Files.exists(backups));
+    Path failures = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getFailedDir());
+    assertTrue(Files.exists(failures));
+  }
 
 }
