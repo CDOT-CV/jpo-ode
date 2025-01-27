@@ -34,7 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import us.dot.its.jpo.ode.coder.StringPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 import us.dot.its.jpo.ode.importer.parser.FileParser;
@@ -54,10 +54,11 @@ class LogFileToAsn1CodecPublisherTest {
   LogFileToAsn1CodecPublisher testLogFileToAsn1CodecPublisher;
 
   public LogFileToAsn1CodecPublisherTest() {
-    var mockStringPublisher = mock(StringPublisher.class);
+    var mockStringPublisher = mock(KafkaTemplate.class);
     var mockJsonTopics = mock(JsonTopics.class);
     var mockRawEncodedJsonTopics = mock(RawEncodedJsonTopics.class);
-    testLogFileToAsn1CodecPublisher = new LogFileToAsn1CodecPublisher(mockStringPublisher, mockJsonTopics, mockRawEncodedJsonTopics);
+    testLogFileToAsn1CodecPublisher =
+        new LogFileToAsn1CodecPublisher((KafkaTemplate<String, String>) mockStringPublisher, mockJsonTopics, mockRawEncodedJsonTopics);
   }
 
   @Test

@@ -21,7 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.StringPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
 import us.dot.its.jpo.ode.importer.parser.BsmLogFileParser;
 import us.dot.its.jpo.ode.importer.parser.DriverAlertFileParser;
@@ -81,7 +81,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   private final RawEncodedJsonTopics rawEncodedJsonTopics;
   private final JsonTopics jsonTopics;
-  private final StringPublisher publisher;
+  private final KafkaTemplate<String, String> publisher;
   private final SerialId serialId;
 
   /**
@@ -93,7 +93,8 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
    * @param jsonTopics           the topic configuration for processing JSON data
    * @param rawEncodedJsonTopics the topic configuration for processing raw encoded JSON data
    */
-  public LogFileToAsn1CodecPublisher(StringPublisher stringPublisher, JsonTopics jsonTopics, RawEncodedJsonTopics rawEncodedJsonTopics) {
+  public LogFileToAsn1CodecPublisher(KafkaTemplate<String, String> stringPublisher, JsonTopics jsonTopics,
+                                     RawEncodedJsonTopics rawEncodedJsonTopics) {
     this.jsonTopics = jsonTopics;
     this.rawEncodedJsonTopics = rawEncodedJsonTopics;
     this.publisher = stringPublisher;
@@ -191,21 +192,21 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
       msgMetadata.setSerialId(serialId);
 
       if (isDriverAlertRecord(fileParser)) {
-        publisher.publish(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false));
+        publisher.send(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false));
       } else if (isBsmRecord(fileParser)) {
-        publisher.publish(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
+        publisher.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
       } else if (isSpatRecord(fileParser)) {
-        publisher.publish(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
+        publisher.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
       } else {
         String messageType = UperUtil.determineMessageType(msgPayload);
         switch (messageType) {
-          case "MAP" -> publisher.publish(rawEncodedJsonTopics.getMap(), JsonUtils.toJson(odeData, false));
-          case "SPAT" -> publisher.publish(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
-          case "TIM" -> publisher.publish(rawEncodedJsonTopics.getTim(), JsonUtils.toJson(odeData, false));
-          case "BSM" -> publisher.publish(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
-          case "SSM" -> publisher.publish(rawEncodedJsonTopics.getSsm(), JsonUtils.toJson(odeData, false));
-          case "SRM" -> publisher.publish(rawEncodedJsonTopics.getSrm(), JsonUtils.toJson(odeData, false));
-          case "PSM" -> publisher.publish(rawEncodedJsonTopics.getPsm(), JsonUtils.toJson(odeData, false));
+          case "MAP" -> publisher.send(rawEncodedJsonTopics.getMap(), JsonUtils.toJson(odeData, false));
+          case "SPAT" -> publisher.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
+          case "TIM" -> publisher.send(rawEncodedJsonTopics.getTim(), JsonUtils.toJson(odeData, false));
+          case "BSM" -> publisher.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
+          case "SSM" -> publisher.send(rawEncodedJsonTopics.getSsm(), JsonUtils.toJson(odeData, false));
+          case "SRM" -> publisher.send(rawEncodedJsonTopics.getSrm(), JsonUtils.toJson(odeData, false));
+          case "PSM" -> publisher.send(rawEncodedJsonTopics.getPsm(), JsonUtils.toJson(odeData, false));
           default -> log.warn("Unknown message type: {}", messageType);
         }
       }

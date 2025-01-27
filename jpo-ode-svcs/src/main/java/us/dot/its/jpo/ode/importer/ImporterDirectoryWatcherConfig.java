@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.importer;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -35,12 +36,13 @@ public class ImporterDirectoryWatcherConfig {
       FileImporterProperties fileImporterProps,
       OdeKafkaProperties odeKafkaProperties,
       JsonTopics jsonTopics,
-      RawEncodedJsonTopics rawEncodedJsonTopics
+      RawEncodedJsonTopics rawEncodedJsonTopics,
+      KafkaTemplate<String, String> kafkaTemplate
   ) {
     return new ImporterDirectoryWatcher(fileImporterProps,
-        odeKafkaProperties,
         jsonTopics,
         ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
-        rawEncodedJsonTopics);
+        rawEncodedJsonTopics,
+        kafkaTemplate);
   }
 }

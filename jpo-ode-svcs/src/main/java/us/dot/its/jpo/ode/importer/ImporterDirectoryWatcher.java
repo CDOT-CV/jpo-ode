@@ -25,10 +25,9 @@ import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.StringPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 
@@ -51,10 +50,10 @@ public class ImporterDirectoryWatcher implements Runnable {
   private final Path failuresPath;
 
   public ImporterDirectoryWatcher(FileImporterProperties fileImporterProperties,
-                                  OdeKafkaProperties odeKafkaProperties,
                                   JsonTopics jsonTopics,
                                   ImporterFileType fileType,
-                                  RawEncodedJsonTopics rawEncodedJsonTopics) {
+                                  RawEncodedJsonTopics rawEncodedJsonTopics,
+                                  KafkaTemplate<String, String> kafkaTemplate) {
     this.props = fileImporterProperties;
     this.watching = true;
 
@@ -82,12 +81,8 @@ public class ImporterDirectoryWatcher implements Runnable {
       log.error("Error creating directory", e);
     }
 
-    StringPublisher messagePub = new StringPublisher(odeKafkaProperties.getBrokers(),
-        odeKafkaProperties.getKafkaType(),
-        odeKafkaProperties.getDisabledTopics());
-
-
-    this.importerProcessor = new ImporterProcessor(new LogFileToAsn1CodecPublisher(messagePub, jsonTopics, rawEncodedJsonTopics),
+    this.importerProcessor = new ImporterProcessor(
+        new LogFileToAsn1CodecPublisher(kafkaTemplate, jsonTopics, rawEncodedJsonTopics),
         fileType,
         fileImporterProperties.getBufferSize());
 

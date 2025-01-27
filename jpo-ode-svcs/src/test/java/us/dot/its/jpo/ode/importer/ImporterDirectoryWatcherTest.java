@@ -15,6 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.importer;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,15 +28,9 @@ import org.springframework.boot.test.context.ConfigDataApplicationContextInitial
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
@@ -52,10 +51,9 @@ class ImporterDirectoryWatcherTest {
     void testConstructorCreatesThreeDirectories() {
 
         ImporterDirectoryWatcher testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties,
-                odeKafkaProperties,
-                jsonTopics,
+            jsonTopics,
                 ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
-                rawEncodedJsonTopics);
+                rawEncodedJsonTopics, null);
 
         assertNotNull(testImporterDirectoryWatcher);
         Path inbox = Path.of(injectableFileImporterProperties.getUploadLocationRoot(), injectableFileImporterProperties.getObuLogUploadLocation());
