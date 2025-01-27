@@ -42,7 +42,7 @@ public class FileUploadController {
    * Constructs an instance of FileUploadController, initializes the storage service,
    * and sets up a directory watcher for monitoring file events.
    *
-   * @param storageService       the storage service used to handle file storage operations
+   * @param storageService the storage service used to handle file storage operations
    */
   @Autowired
   public FileUploadController(
