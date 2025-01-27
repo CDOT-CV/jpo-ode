@@ -67,17 +67,17 @@ public class ImporterProcessor {
 
   private boolean processFile(Path filePath) {
     boolean success = true;
-    FileType detectedFileType;
+    FileFormat detectedFileFormat;
     try {
-      detectedFileType = detectFileType(filePath);
-      log.info("Treating as {} file", detectedFileType.toString());
+      detectedFileFormat = detectFileType(filePath);
+      log.info("Treating as {} file", detectedFileFormat.toString());
     } catch (IOException e) {
       log.error("Failed to detect file type: {}", filePath, e);
       return false;
     }
 
-    try (InputStream inputStream = getInputStream(filePath, detectedFileType)) {
-      if (detectedFileType == FileType.ZIP) {
+    try (InputStream inputStream = getInputStream(filePath, detectedFileFormat)) {
+      if (detectedFileFormat == FileFormat.ZIP) {
         publishZipFiles(filePath, inputStream);
       } else {
         publishFile(filePath, inputStream);
@@ -104,21 +104,21 @@ public class ImporterProcessor {
     }
   }
 
-  private FileType detectFileType(Path filePath) throws IOException {
+  private FileFormat detectFileType(Path filePath) throws IOException {
     String probeContentType = Files.probeContentType(filePath);
     if (probeContentType != null) {
       if (gZipPattern.matcher(probeContentType).matches() || filePath.toString().toLowerCase().endsWith("gz")) {
-        return FileType.GZIP;
+        return FileFormat.GZIP;
       } else if (zipPattern.matcher(probeContentType).matches() || filePath.toString().endsWith("zip")) {
-        return FileType.ZIP;
+        return FileFormat.ZIP;
       }
     }
 
-    return FileType.UNKNOWN;
+    return FileFormat.UNKNOWN;
   }
 
-  private InputStream getInputStream(Path filePath, FileType fileType) throws IOException {
-    return switch (fileType) {
+  private InputStream getInputStream(Path filePath, FileFormat fileFormat) throws IOException {
+    return switch (fileFormat) {
       case GZIP -> new GZIPInputStream(new FileInputStream(filePath.toFile()));
       case ZIP -> new ZipInputStream(new FileInputStream(filePath.toFile()));
       default -> new FileInputStream(filePath.toFile());
