@@ -27,20 +27,20 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
-import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher.FileAsn1CodecPublisherException;
+import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.ImporterDirectoryWatcher.ImporterFileType;
+import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 
 @Slf4j
 public class ImporterProcessor {
 
   private final int bufferSize;
-  private final FileAsn1CodecPublisher codecPublisher;
+  private final LogFileToAsn1CodecPublisher codecPublisher;
   private final ImporterFileType fileType;
   private static final Pattern gZipPattern = Pattern.compile("application/.*gzip");
   private static final Pattern zipPattern = Pattern.compile("application/.*zip.*");
 
-  public ImporterProcessor(FileAsn1CodecPublisher publisher, ImporterFileType fileType, int bufferSize) {
+  public ImporterProcessor(LogFileToAsn1CodecPublisher publisher, ImporterFileType fileType, int bufferSize) {
     this.codecPublisher = publisher;
     this.bufferSize = bufferSize;
     this.fileType = fileType;
@@ -129,8 +129,12 @@ public class ImporterProcessor {
     };
   }
 
-  private void publishFile(Path filePath, InputStream inputStream) throws FileAsn1CodecPublisherException {
-    BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize);
-    codecPublisher.publishFile(filePath, bis, fileType);
+  private void publishFile(Path filePath, InputStream inputStream)
+      throws LogFileParserFactory.LogFileParserFactoryException, LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException, IOException {
+    var fileName = filePath.getFileName().toString();
+    var parser = LogFileParserFactory.getLogFileParser(fileName);
+    try (BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize)) {
+      codecPublisher.publish(bis, fileName, fileType, parser);
+    }
   }
 }

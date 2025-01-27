@@ -435,4 +435,5 @@ class LogFileParserTest {
     assertEquals(GeneratedBy.OBU, metadata.getRecordGeneratedBy());
     assertNull(metadata.getReceivedMessageDetails());
   }
+
 }

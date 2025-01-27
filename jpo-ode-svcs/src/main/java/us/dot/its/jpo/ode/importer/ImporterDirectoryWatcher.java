@@ -15,21 +15,21 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.importer;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.coder.FileAsn1CodecPublisher;
-import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
-import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import us.dot.its.jpo.ode.coder.StringPublisher;
+import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
+import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 
 @Slf4j
 public class ImporterDirectoryWatcher implements Runnable {
@@ -81,7 +81,12 @@ public class ImporterDirectoryWatcher implements Runnable {
             log.error("Error creating directory", e);
         }
 
-        this.importerProcessor = new ImporterProcessor(new FileAsn1CodecPublisher(odeKafkaProperties, jsonTopics, rawEncodedJsonTopics),
+        StringPublisher messagePub = new StringPublisher(odeKafkaProperties.getBrokers(),
+            odeKafkaProperties.getKafkaType(),
+            odeKafkaProperties.getDisabledTopics());
+
+
+        this.importerProcessor = new ImporterProcessor(new LogFileToAsn1CodecPublisher(messagePub, jsonTopics, rawEncodedJsonTopics),
                 fileType,
                 fileImporterProperties.getBufferSize());
 
