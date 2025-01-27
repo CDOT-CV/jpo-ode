@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -40,10 +38,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 @EnableScheduling
 @Slf4j
 public class ImporterDirectoryWatcher {
-
-  @Setter
-  @Getter
-  private boolean watching;
 
   private final ImporterProcessor importerProcessor;
   private final FileImporterProperties props;
@@ -67,7 +61,6 @@ public class ImporterDirectoryWatcher {
                                   RawEncodedJsonTopics rawEncodedJsonTopics,
                                   KafkaTemplate<String, String> kafkaTemplate) {
     this.props = fileImporterProperties;
-    this.watching = true;
 
     this.inboxPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getObuLogUploadLocation());
     log.debug("UPLOADER - BSM log file upload directory: {}", inboxPath);

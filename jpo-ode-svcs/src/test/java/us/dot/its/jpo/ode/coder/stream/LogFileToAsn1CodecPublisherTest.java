@@ -304,7 +304,7 @@ class LogFileToAsn1CodecPublisherTest {
      */
 
     List<OdeData> dataList =
-        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.JSON_FILE, LogFileParserFactory.getLogFileParser(filename));
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.UNKNOWN, LogFileParserFactory.getLogFileParser(filename));
 
     assertTrue(dataList.isEmpty());
   }
