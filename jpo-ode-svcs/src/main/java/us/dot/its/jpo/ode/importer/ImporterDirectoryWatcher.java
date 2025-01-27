@@ -19,18 +19,21 @@ package us.dot.its.jpo.ode.importer;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 
+@Component
+@EnableScheduling
 @Slf4j
 public class ImporterDirectoryWatcher implements Runnable {
 
@@ -44,14 +47,12 @@ public class ImporterDirectoryWatcher implements Runnable {
 
   private final ImporterProcessor importerProcessor;
   private final FileImporterProperties props;
-  private final ScheduledExecutorService executor;
   private final Path inboxPath;
   private final Path backupPath;
   private final Path failuresPath;
 
   public ImporterDirectoryWatcher(FileImporterProperties fileImporterProperties,
                                   JsonTopics jsonTopics,
-                                  ImporterFileType fileType,
                                   RawEncodedJsonTopics rawEncodedJsonTopics,
                                   KafkaTemplate<String, String> kafkaTemplate) {
     this.props = fileImporterProperties;
@@ -83,29 +84,13 @@ public class ImporterDirectoryWatcher implements Runnable {
 
     this.importerProcessor = new ImporterProcessor(
         new LogFileToAsn1CodecPublisher(kafkaTemplate, jsonTopics, rawEncodedJsonTopics),
-        fileType,
+        ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
         fileImporterProperties.getBufferSize());
-
-    executor = Executors.newScheduledThreadPool(1);
   }
 
-  @Override
+  @Scheduled(fixedRateString = "${ode.file-importer.time-period}", timeUnit = TimeUnit.SECONDS)
   public void run() {
-
     log.info("Processing inbox directory {} every {} seconds.", inboxPath, props.getTimePeriod());
-
-    // ODE-646: the old method of watching the directory used file
-    // event notifications and was unreliable for large quantities of files
-    // Watch directory for file events
-    executor.scheduleWithFixedDelay(() -> importerProcessor.processDirectory(inboxPath, backupPath, failuresPath),
-        0, props.getTimePeriod(), TimeUnit.SECONDS);
-
-    try {
-      // This line will only execute in the event that .scheduleWithFixedDelay() throws an error
-      executor.awaitTermination(props.getTimePeriod(), TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
-      log.error("Directory watcher polling loop interrupted!", e);
-    }
+    importerProcessor.processDirectory(inboxPath, backupPath, failuresPath);
   }
 }
