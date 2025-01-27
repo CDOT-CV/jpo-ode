@@ -126,8 +126,8 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
         try {
           status = fileParser.parseFile(inputStream);
           switch (status) {
-            case ParserStatus.COMPLETE -> addDataToList(dataList, fileParser);
-            case ParserStatus.EOF -> publishList(dataList, fileParser);
+            case ParserStatus.ENTRY_PARSING_COMPLETE -> addDataToList(dataList, fileParser);
+            case ParserStatus.FILE_PARSING_COMPLETE -> publishList(dataList, fileParser);
             case ParserStatus.INIT -> log.error("Failed to parse the header bytes.");
             default -> log.error("Failed to decode ASN.1 data");
           }
@@ -135,7 +135,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
         } catch (Exception e) {
           throw new LogFileToAsn1CodecPublisherException("Error parsing or publishing data.", e);
         }
-      } while (status == ParserStatus.COMPLETE);
+      } while (status == ParserStatus.ENTRY_PARSING_COMPLETE);
     }
 
     return dataList;
