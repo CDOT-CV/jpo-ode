@@ -51,6 +51,17 @@ public class ImporterDirectoryWatcher {
   private final Path backupPath;
   private final Path failuresPath;
 
+  /**
+   * Constructs an instance of ImporterDirectoryWatcher responsible for managing the
+   * inbox, failure, and backup directories for processing files offloaded from RSUs.
+   * Initializes the ImporterProcessor for handling log files and their associated encoding.
+   *
+   * @param fileImporterProperties Configuration properties for file importer.
+   * @param jsonTopics             Configuration for Kafka topics that handle JSON payloads.
+   * @param rawEncodedJsonTopics   Configuration for Kafka topics that handle raw encoded
+   *                               JSON payloads.
+   * @param kafkaTemplate          Kafka template for producing messages to Kafka topics.
+   */
   public ImporterDirectoryWatcher(FileImporterProperties fileImporterProperties,
                                   JsonTopics jsonTopics,
                                   RawEncodedJsonTopics rawEncodedJsonTopics,
