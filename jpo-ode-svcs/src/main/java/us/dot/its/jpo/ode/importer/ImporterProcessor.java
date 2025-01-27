@@ -30,6 +30,23 @@ import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
 import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
 
+/**
+ * The {@code ImporterProcessor} class is responsible for processing files within directories and subdirectories.
+ * It detects the file format, handles compression if necessary, and publishes the contents of the file using
+ * a configured {@link LogFileToAsn1CodecPublisher}. The processed files are then moved to the appropriate
+ * directory based on the result of the processing.
+ *
+ * <p>The class can handle gzipped, zipped, and plain file formats. Within the handling of zip files, it is capable
+ * of accessing and processing individual entries in the archive. Failed or successfully processed files are moved to
+ * predefined failure or backup directories, respectively.
+ *
+ * <h2>Exceptions:</h2>
+ * <ul>
+ *   <li>{@link IOException}: Thrown during file I/O operations.</li>
+ *   <li>{@link LogFileParserFactory.LogFileParserFactoryException}: Thrown if there is an issue creating a log file parser.</li>
+ *   <li>{@link LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException}: Thrown if file content cannot be published.</li>
+ * </ul>
+ */
 @Slf4j
 public class ImporterProcessor {
 
@@ -39,12 +56,37 @@ public class ImporterProcessor {
   private static final Pattern gZipPattern = Pattern.compile("application/.*gzip");
   private static final Pattern zipPattern = Pattern.compile("application/.*zip.*");
 
+  /**
+   * Constructs an instance of ImporterProcessor for processing and encoding files
+   * of a specific type. This class facilitates proper handling of log files and
+   * their transformation into {@link us.dot.its.jpo.ode.model.OdeData} objects
+   * based on the specified importer file type and buffer size.
+   *
+   * @param publisher  The publisher responsible for encoding and transferring log files
+   *                   to their respective downstream systems or topics.
+   * @param fileType   The type of file to be processed by this processor, which determines
+   *                   the specific handling and encoding logic.
+   * @param bufferSize The size of the buffer to be used during file processing operations,
+   *                   impacting memory usage and performance.
+   */
   public ImporterProcessor(LogFileToAsn1CodecPublisher publisher, ImporterFileType fileType, int bufferSize) {
     this.codecPublisher = publisher;
     this.bufferSize = bufferSize;
     this.fileType = fileType;
   }
 
+  /**
+   * Processes all the files in the given directory. If a subdirectory is encountered,
+   * it recursively processes that subdirectory.
+   *
+   * <p>For each file, it attempts to parse the file into {@link us.dot.its.jpo.ode.model.OdeData} objects,
+   * produce the parsed data to the message type's respective topics, and moves the processed file
+   * to either the backup directory or the failure directory based on the processing result.</p>
+   *
+   * @param dir        The directory containing files to be processed. Must not be {@code null}.
+   * @param backupDir  The directory where successfully processed files will be moved. Must not be {@code null}.
+   * @param failureDir The directory where failed files will be moved. Must not be {@code null}.
+   */
   public void processDirectory(Path dir, Path backupDir, Path failureDir) {
     int count = 0;
     // Process files already in the directory
