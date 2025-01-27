@@ -53,7 +53,6 @@ class ImporterDirectoryWatcherTest {
 
     ImporterDirectoryWatcher testImporterDirectoryWatcher = new ImporterDirectoryWatcher(injectableFileImporterProperties,
         jsonTopics,
-        ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
         rawEncodedJsonTopics, null);
 
     assertNotNull(testImporterDirectoryWatcher);
