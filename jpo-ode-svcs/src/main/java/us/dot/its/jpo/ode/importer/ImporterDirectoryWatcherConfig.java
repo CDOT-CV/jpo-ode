@@ -40,6 +40,7 @@ public class ImporterDirectoryWatcherConfig {
       KafkaTemplate<String, String> kafkaTemplate
   ) {
     return new ImporterDirectoryWatcher(fileImporterProps,
+        odeKafkaProperties,
         jsonTopics,
         ImporterDirectoryWatcher.ImporterFileType.LOG_FILE,
         rawEncodedJsonTopics,

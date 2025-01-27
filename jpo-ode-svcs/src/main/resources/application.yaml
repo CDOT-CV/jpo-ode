@@ -102,7 +102,6 @@ ode:
         tim: "topic.OdeRawEncodedTIMJson"
       sdx-depositor:
         input: "topic.SDWDepositorInput"
-      file:
 
   receivers:
     generic:

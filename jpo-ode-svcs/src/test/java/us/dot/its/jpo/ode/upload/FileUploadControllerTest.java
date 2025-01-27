@@ -49,7 +49,6 @@ class FileUploadControllerTest {
 
   @BeforeEach
   public void setup() {
-    doNothing().when(mockImporterDirectoryWatcher).run();
     testFileUploadController = new FileUploadController(mockStorageService, mockImporterDirectoryWatcher);
   }
 
