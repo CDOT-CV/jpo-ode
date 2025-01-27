@@ -15,8 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.util;
 
-import java.text.ParseException;
-import java.time.*;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
@@ -27,9 +30,22 @@ public class DateTimeUtils {
    private DateTimeUtils() {
    }
 
-    public static void setClock(Clock clock) {
-        DateTimeUtils.clock = clock;
-    }
+   /**
+    * Sets a new clock object to be used within the DateTimeUtils class and returns the previous clock.
+    * The method is intended only for use within unit tests. Ideally, this method wouldn't exist, but there is a tight coupling
+    * between the DateTimeUtils class and the {@link us.dot.its.jpo.ode.model.OdeObject} model creation. When using this method for testing,
+    * remember to call this `setClock` method with the previous clock object at the end of your test. This will keep the tests from interfering
+    * with each other.
+    *
+    * @param clock the new Clock object to be used
+    *
+    * @return the previously set Clock object
+    */
+   public static Clock setClock(Clock clock) {
+      var previousClock = DateTimeUtils.clock;
+      DateTimeUtils.clock = clock;
+      return previousClock;
+   }
 
    public static String now() {
       return nowZDT().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
