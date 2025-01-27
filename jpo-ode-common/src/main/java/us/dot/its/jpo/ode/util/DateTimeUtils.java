@@ -23,6 +23,9 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
+/**
+ * Utility class for operations related to date and time, primarily using ZonedDateTime and ISO-8601 formats.
+ */
 public class DateTimeUtils {
 
   private static Clock clock = Clock.systemUTC();
