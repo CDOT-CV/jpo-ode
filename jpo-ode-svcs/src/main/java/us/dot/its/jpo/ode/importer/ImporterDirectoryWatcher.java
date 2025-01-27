@@ -35,7 +35,7 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 @Component
 @EnableScheduling
 @Slf4j
-public class ImporterDirectoryWatcher implements Runnable {
+public class ImporterDirectoryWatcher {
 
   public enum ImporterFileType {
     LOG_FILE, JSON_FILE
@@ -68,16 +68,14 @@ public class ImporterDirectoryWatcher implements Runnable {
     log.debug("UPLOADER - Backup directory: {}", backupPath);
 
     try {
-      String msg = "Created directory {}";
-
       OdeFileUtils.createDirectoryRecursively(inboxPath);
-      log.debug(msg, inboxPath);
+      log.debug("Created inbox directory at: {}", inboxPath);
 
       OdeFileUtils.createDirectoryRecursively(failuresPath);
-      log.debug(msg, failuresPath);
+      log.debug("Created failures directory at: {}", failuresPath);
 
       OdeFileUtils.createDirectoryRecursively(backupPath);
-      log.debug(msg, backupPath);
+      log.debug("Created backup directory at: {}", backupPath);
     } catch (IOException e) {
       log.error("Error creating directory", e);
     }
