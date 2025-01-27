@@ -34,14 +34,15 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = {OdeKafkaProperties.class, FileImporterProperties.class, JsonTopics.class, RawEncodedJsonTopics.class})
+@ContextConfiguration(
+    initializers = ConfigDataApplicationContextInitializer.class,
+    classes = {OdeKafkaProperties.class, FileImporterProperties.class, JsonTopics.class, RawEncodedJsonTopics.class}
+)
+@EnableConfigurationProperties
 class ImporterDirectoryWatcherTest {
 
   @Autowired
   FileImporterProperties injectableFileImporterProperties;
-  @Autowired
-  OdeKafkaProperties odeKafkaProperties;
   @Autowired
   JsonTopics jsonTopics;
   @Autowired
