@@ -196,7 +196,7 @@ class TimTransmogrifierTest {
       OdeGeoRegion.GeoRegionException {
 
     Clock fixedClock = Clock.fixed(Instant.parse("2024-10-30T19:00:15.190Z"), ZoneId.of("UTC"));
-    DateTimeUtils.setClock(fixedClock);
+    final Clock prevClock = DateTimeUtils.setClock(fixedClock);
 
     SDW inputSDW = new SDW();
     inputSDW.setDeliverystart("2017-06-01T17:47:11-05:00");
@@ -238,7 +238,7 @@ class TimTransmogrifierTest {
       OdeGeoRegion.GeoRegionException {
 
     Clock fixedClock = Clock.fixed(Instant.parse("2024-10-30T19:36:15.170Z"), ZoneId.of("UTC"));
-    DateTimeUtils.setClock(fixedClock);
+    final Clock prevClock = DateTimeUtils.setClock(fixedClock);
 
     SDW inputSDW = new SDW();
     inputSDW.setDeliverystart("2017-06-01T17:47:11-05:00");
@@ -295,7 +295,7 @@ class TimTransmogrifierTest {
     TravelerMessageFromHumanToAsnConverter.convertTravelerInputDataToEncodableTim(encodableTid);
 
     // Set the clock to a fixed instant for value comparison
-    DateTimeUtils.setClock(
+    final Clock prevClock = DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2024-11-05T16:51:14.473Z"), ZoneId.of("UTC")));
 
     // execute
@@ -307,6 +307,8 @@ class TimTransmogrifierTest {
             "\\s", "") // remove all whitespace
         .replaceAll("<false/>", "<false />"); // add space before closing tag
     Assertions.assertEquals(expectedXml, actualXML);
+
+    DateTimeUtils.setClock(prevClock);
   }
 
   @Test
