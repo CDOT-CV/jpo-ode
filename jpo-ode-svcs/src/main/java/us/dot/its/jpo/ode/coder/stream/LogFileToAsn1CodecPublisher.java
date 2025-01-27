@@ -131,7 +131,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
             case ParserStatus.INIT -> log.error("Failed to parse the header bytes.");
             default -> log.error("Failed to decode ASN.1 data");
           }
-          inputStream = removeNextNewLineCharacter(inputStream);
+          removeNextNewLineCharacter(inputStream);
         } catch (Exception e) {
           throw new LogFileToAsn1CodecPublisherException("Error parsing or publishing data.", e);
         }
@@ -216,7 +216,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   // This method will check if the next character is a newline character (0x0A in hex or 10 in converted decimal)
   // or if the next character does not contain a newline character it will put that character back into the buffered input stream
-  private BufferedInputStream removeNextNewLineCharacter(BufferedInputStream bis) {
+  private void removeNextNewLineCharacter(BufferedInputStream bis) {
     try {
       bis.mark(1);
       int nextByte = bis.read();
@@ -226,6 +226,5 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
     } catch (IOException e) {
       log.error("Error removing next newline character: ", e);
     }
-    return bis;
   }
 }
