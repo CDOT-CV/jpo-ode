@@ -21,7 +21,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -110,17 +109,6 @@ public class FileSystemStorageService implements StorageService {
     } catch (Exception e) {
       log.error("Failed to store file in shared directory {}", path);
       throw new StorageException("Failed to store file in shared directory " + path, e);
-    }
-  }
-
-  @Override
-  public Stream<Path> loadAll() {
-    try (var filesStream = Files.walk(this.rootLocation, 1)){
-      return filesStream.filter(path -> !path.equals(this.rootLocation))
-          .map(this.rootLocation::relativize);
-    } catch (IOException e) {
-      log.error("Failed to read files stored in {}", this.rootLocation);
-      throw new StorageException("Failed to read files stored in " + this.rootLocation, e);
     }
   }
 

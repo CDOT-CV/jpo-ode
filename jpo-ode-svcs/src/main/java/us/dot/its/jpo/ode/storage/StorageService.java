@@ -17,7 +17,6 @@
 package us.dot.its.jpo.ode.storage;
 
 import java.nio.file.Path;
-import java.util.stream.Stream;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -29,8 +28,6 @@ public interface StorageService {
   void init();
 
   void store(MultipartFile file, LogFileType type);
-
-  Stream<Path> loadAll();
 
   Path load(String filename);
 

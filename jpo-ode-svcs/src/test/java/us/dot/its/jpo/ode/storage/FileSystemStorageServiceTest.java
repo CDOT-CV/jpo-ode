@@ -202,34 +202,6 @@ public class FileSystemStorageServiceTest {
     }
 
     @Test @Disabled
-    public void loadAllShouldRethrowException(/**@Mocked Files unused**/) {
-        try {
-            new Expectations() {
-                {
-                    Files.walk((Path) any, anyInt);// .filter(null).map(null);
-                    result = new IOException("testException123");
-                }
-            };
-        } catch (IOException e) {
-            fail("Unexpected exception creating Expectations: " + e);
-        }
-
-        try {
-            new FileSystemStorageService(fileImporterProperties).loadAll();
-            fail("Expected StorageException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-            assertTrue("Incorrect message received", e.getMessage().startsWith("Failed to read files stored in"));
-        }
-
-        new Verifications() {
-            {
-                EventLogger.logger.info("Failed to read files stored in {}", (Path) any);
-            }
-        };
-    }
-
-    @Test @Disabled
     public void initShouldCreateDirectories(@Mocked final Files unused) {
 
         new FileSystemStorageService(fileImporterProperties).init();
