@@ -26,6 +26,4 @@ public interface StorageService {
 
   void store(MultipartFile file, LogFileType type);
 
-  void deleteAll();
-
 }

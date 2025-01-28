@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -37,7 +36,6 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
@@ -199,19 +197,5 @@ public class FileSystemStorageServiceTest {
                 EventLogger.logger.info("Failed to store file in shared directory {}", (Path) any);
             }
         };
-    }
-
-    @Test @Disabled
-    public void deleteAllShouldDeleteRecursivelyAndLog(@Mocked final FileSystemUtils unused) {
-
-        new FileSystemStorageService(fileImporterProperties).deleteAll();
-
-        new Verifications() {
-            {
-                FileSystemUtils.deleteRecursively((File) any);
-                EventLogger.logger.info("Deleting {}", (Path) any);
-            }
-        };
-
     }
 }

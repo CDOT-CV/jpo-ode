@@ -24,7 +24,6 @@ import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 
@@ -110,11 +109,5 @@ public class FileSystemStorageService implements StorageService {
       log.error("Failed to store file in shared directory {}", path);
       throw new StorageException("Failed to store file in shared directory " + path, e);
     }
-  }
-
-  @Override
-  public void deleteAll() {
-    log.info("Deleting all files and directories in {}", this.rootLocation);
-    FileSystemUtils.deleteRecursively(rootLocation.toFile());
   }
 }
