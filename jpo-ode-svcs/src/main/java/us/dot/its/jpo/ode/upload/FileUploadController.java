@@ -68,7 +68,7 @@ public class FileUploadController {
 
     log.debug("File received at endpoint: /upload/{}, name={}", type, file.getOriginalFilename());
     try {
-      storageService.store(file, LogFileType.valueOf(type));
+      storageService.store(file, LogFileType.fromString(type));
     } catch (Exception e) {
       log.error("File storage error", e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"Error\": \"File storage error.\"}");

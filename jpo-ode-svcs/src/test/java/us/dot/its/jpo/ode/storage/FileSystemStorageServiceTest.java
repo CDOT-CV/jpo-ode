@@ -46,8 +46,8 @@ import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
-@EnableConfigurationProperties(value = FileImporterProperties.class)
+@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class, classes = FileImporterProperties.class)
+@EnableConfigurationProperties
 public class FileSystemStorageServiceTest {
 
     @Autowired
