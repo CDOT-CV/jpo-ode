@@ -36,7 +36,6 @@ import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 @Slf4j
 public class FileSystemStorageService implements StorageService {
 
-  private final Path rootLocation;
   private final Path logFileLocation;
 
   /**
@@ -48,11 +47,9 @@ public class FileSystemStorageService implements StorageService {
   @Autowired
   public FileSystemStorageService(FileImporterProperties properties) {
 
-    this.rootLocation = Paths.get(properties.getUploadLocationRoot());
     this.logFileLocation = Paths.get(properties.getUploadLocationRoot(),
         properties.getObuLogUploadLocation());
 
-    log.info("Upload location (root): {}", this.rootLocation);
     log.info("Upload location (OBU log file): {}", this.logFileLocation);
   }
 
