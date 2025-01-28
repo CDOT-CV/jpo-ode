@@ -15,6 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.storage;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -23,22 +29,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
 
 @Service
 @Slf4j
 public class FileSystemStorageService implements StorageService {
 
-    private Path rootLocation;
-    private Path logFileLocation;
+    private final Path rootLocation;
+    private final Path logFileLocation;
 
     @Autowired
     public FileSystemStorageService(FileImporterProperties properties) {
@@ -52,15 +50,17 @@ public class FileSystemStorageService implements StorageService {
     }
 
     @Override
-    public void store(MultipartFile file, String type) {
+    public void store(MultipartFile file, LogFileType type) {
 
         // Discern the destination path via the file type (bsm or messageFrame)
         Path path;
-        if (("bsmlog").equals(type) || ("obulog").equals(type)) {
-           path = this.logFileLocation.resolve(file.getOriginalFilename());
-        } else {
-            EventLogger.logger.error("File type unknown: {} {}", type, file.getName());
-            throw new StorageException("File type unknown: " + type + " " + file.getName());
+        switch (type) {
+            case BSM, OBU -> path = this.logFileLocation.resolve(file.getOriginalFilename());
+            case UNKNOWN -> {
+                EventLogger.logger.error("File type unknown: {} {}", type, file.getName());
+                throw new StorageException("File type unknown: " + type + " " + file.getName());
+            }
+            default -> throw new StorageException("File type unknown: " + type + " " + file.getName());
         }
 
         // Check file is not empty

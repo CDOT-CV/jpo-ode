@@ -16,7 +16,6 @@
 package us.dot.its.jpo.ode.storage;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,8 +26,9 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.junit.jupiter.api.BeforeEach;
+import mockit.Expectations;
+import mockit.Mocked;
+import mockit.Verifications;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,11 +42,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
-
-import mockit.Expectations;
-import mockit.Mocked;
-import mockit.Verifications;
-import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 
@@ -61,10 +56,8 @@ public class FileSystemStorageServiceTest {
     @Test @Disabled
     public void storeShouldThrowExceptionUnknownType(@Mocked MultipartFile mockMultipartFile) {
 
-        String unknownType = "test123";
-
         try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, unknownType);
+            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.UNKNOWN);
             fail("Expected StorageException");
         } catch (Exception e) {
             assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
@@ -81,9 +74,6 @@ public class FileSystemStorageServiceTest {
 
     @Test @Disabled
     public void storeShouldTryToResolveBsmFilename(@Mocked MultipartFile mockMultipartFile) {
-
-        String testType = "obulog";
-
         new Expectations() {
             {
                 mockMultipartFile.getOriginalFilename();
@@ -94,7 +84,7 @@ public class FileSystemStorageServiceTest {
         };
 
         try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, testType);
+            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
             fail("Expected StorageException");
         } catch (Exception e) {
             assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
@@ -110,9 +100,6 @@ public class FileSystemStorageServiceTest {
 
     @Test @Disabled
     public void storeShouldThrowAnErrorEmptyFile(@Mocked MultipartFile mockMultipartFile) {
-
-        String testType = "obulog";
-
         new Expectations() {
             {
                 mockMultipartFile.getOriginalFilename();
@@ -123,7 +110,7 @@ public class FileSystemStorageServiceTest {
         };
 
         try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, testType);
+            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
             fail("Expected StorageException");
         } catch (Exception e) {
             assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
@@ -139,9 +126,6 @@ public class FileSystemStorageServiceTest {
 
     @Test @Disabled
     public void storeShouldRethrowDeleteException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unused) {
-
-        String testType = "obulog";
-
         new Expectations() {
             {
                 mockMultipartFile.getOriginalFilename();
@@ -163,7 +147,7 @@ public class FileSystemStorageServiceTest {
         }
 
         try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, testType);
+            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
             fail("Expected StorageException");
         } catch (Exception e) {
             assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
@@ -181,9 +165,6 @@ public class FileSystemStorageServiceTest {
     @Test @Disabled
     public void storeShouldRethrowCopyException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unusedFiles,
             @Mocked final Logger mockLogger, @Mocked LoggerFactory unusedLogger, @Mocked InputStream mockInputStream) {
-
-        String testType = "obulog";
-
         try {
             new Expectations() {
                 {
@@ -207,7 +188,7 @@ public class FileSystemStorageServiceTest {
         }
 
         try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, testType);
+            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
             fail("Expected StorageException");
         } catch (Exception e) {
             assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());

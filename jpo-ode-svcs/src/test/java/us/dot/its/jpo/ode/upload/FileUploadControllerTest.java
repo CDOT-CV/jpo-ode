@@ -28,6 +28,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
+import us.dot.its.jpo.ode.storage.LogFileType;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
 
@@ -49,7 +50,7 @@ class FileUploadControllerTest {
 
   @Test
   void handleFileUploadReturnsErrorOnStorageException() {
-    doThrow(new RuntimeException()).when(mockStorageService).store(any(), anyString());
+    doThrow(new RuntimeException()).when(mockStorageService).store(any(), LogFileType.valueOf(anyString()));
     Assertions.assertEquals(HttpStatus.BAD_REQUEST, testFileUploadController.handleFileUpload(mockMultipartFile, "type").getStatusCode());
   }
 

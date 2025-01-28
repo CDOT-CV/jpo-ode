@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import us.dot.its.jpo.ode.storage.LogFileType;
 import us.dot.its.jpo.ode.storage.StorageFileNotFoundException;
 import us.dot.its.jpo.ode.storage.StorageService;
 
@@ -67,7 +68,7 @@ public class FileUploadController {
 
     log.debug("File received at endpoint: /upload/{}, name={}", type, file.getOriginalFilename());
     try {
-      storageService.store(file, type);
+      storageService.store(file, LogFileType.valueOf(type));
     } catch (Exception e) {
       log.error("File storage error", e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("{\"Error\": \"File storage error.\"}");
