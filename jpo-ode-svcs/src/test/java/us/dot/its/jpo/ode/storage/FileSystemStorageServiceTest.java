@@ -202,52 +202,6 @@ public class FileSystemStorageServiceTest {
     }
 
     @Test @Disabled
-    public void initShouldCreateDirectories(@Mocked final Files unused) {
-
-        new FileSystemStorageService(fileImporterProperties).init();
-
-        try {
-            new Verifications() {
-                {
-                    Files.createDirectory((Path) any);
-                    times = 1;
-                }
-            };
-        } catch (IOException e) {
-            fail("Unexpected exception in verifications block: " + e);
-        }
-    }
-
-    @Test @Disabled
-    public void initShouldRethrowAndLogException(@Mocked final Files unused) {
-
-        try {
-            new Expectations() {
-                {
-                    Files.createDirectory((Path) any);
-                    result = new IOException("testException123");
-                }
-            };
-        } catch (IOException e) {
-            fail("Unexpected exception in expectations block: " + e);
-        }
-
-        try {
-            new FileSystemStorageService(fileImporterProperties).init();
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown.", StorageException.class, e.getClass());
-            assertTrue("Incorrect exception message",
-                    e.getMessage().startsWith("Failed to initialize storage service"));
-        }
-
-        new Verifications() {
-            {
-                EventLogger.logger.info("Failed to initialize storage service {}", (Path) any);
-            }
-        };
-    }
-
-    @Test @Disabled
     public void deleteAllShouldDeleteRecursivelyAndLog(@Mocked final FileSystemUtils unused) {
 
         new FileSystemStorageService(fileImporterProperties).deleteAll();

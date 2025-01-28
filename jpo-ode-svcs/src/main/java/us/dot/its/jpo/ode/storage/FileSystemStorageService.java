@@ -113,23 +113,8 @@ public class FileSystemStorageService implements StorageService {
   }
 
   @Override
-  public Path load(String filename) {
-    return rootLocation.resolve(filename);
-  }
-
-  @Override
   public void deleteAll() {
     log.info("Deleting all files and directories in {}", this.rootLocation);
     FileSystemUtils.deleteRecursively(rootLocation.toFile());
-  }
-
-  @Override
-  public void init() {
-    try {
-      Files.createDirectory(rootLocation);
-    } catch (IOException e) {
-      log.error("Failed to initialize storage service {}", this.rootLocation);
-      throw new StorageException("Failed to initialize storage service " + this.rootLocation, e);
-    }
   }
 }
