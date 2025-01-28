@@ -1,18 +1,19 @@
-/*******************************************************************************
+/*=============================================================================
  * Copyright 2018 572682
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
+
 package us.dot.its.jpo.ode.storage;
 
 import static org.junit.Assert.assertEquals;
@@ -43,159 +44,164 @@ import us.dot.its.jpo.ode.eventlog.EventLogger;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class, classes = FileImporterProperties.class)
 @EnableConfigurationProperties
-public class FileSystemStorageServiceTest {
+class FileSystemStorageServiceTest {
 
-    @Autowired
-    private FileImporterProperties fileImporterProperties;
+  @Autowired
+  private FileImporterProperties fileImporterProperties;
 
-    @Test @Disabled
-    public void storeShouldThrowExceptionUnknownType(@Mocked MultipartFile mockMultipartFile) {
+  @Test
+  @Disabled
+  void storeShouldThrowExceptionUnknownType(@Mocked MultipartFile mockMultipartFile) {
 
-        try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.UNKNOWN);
-            fail("Expected StorageException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-            assertTrue("Incorrect message received", e.getMessage().startsWith("File type unknown:"));
-        }
-
-        new Verifications() {
-            {
-                EventLogger.logger.info(anyString, any, any);
-            }
-        };
-
+    try {
+      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.UNKNOWN);
+      fail("Expected StorageException");
+    } catch (Exception e) {
+      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
+      assertTrue("Incorrect message received", e.getMessage().startsWith("File type unknown:"));
     }
 
-    @Test @Disabled
-    public void storeShouldTryToResolveBsmFilename(@Mocked MultipartFile mockMultipartFile) {
-        new Expectations() {
-            {
-                mockMultipartFile.getOriginalFilename();
-                result = anyString;
-                mockMultipartFile.isEmpty();
-                result = true;
-            }
-        };
+    new Verifications() {
+      {
+        EventLogger.logger.info(anyString, any, any);
+      }
+    };
 
-        try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-            fail("Expected StorageException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-            assertTrue("Incorrect message received", e.getMessage().startsWith("File is empty:"));
-        }
+  }
 
-        new Verifications() {
-            {
-                EventLogger.logger.info(anyString);
-            }
-        };
+  @Test
+  @Disabled
+  void storeShouldTryToResolveBsmFilename(@Mocked MultipartFile mockMultipartFile) {
+    new Expectations() {
+      {
+        mockMultipartFile.getOriginalFilename();
+        result = anyString;
+        mockMultipartFile.isEmpty();
+        result = true;
+      }
+    };
+
+    try {
+      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
+      fail("Expected StorageException");
+    } catch (Exception e) {
+      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
+      assertTrue("Incorrect message received", e.getMessage().startsWith("File is empty:"));
     }
 
-    @Test @Disabled
-    public void storeShouldThrowAnErrorEmptyFile(@Mocked MultipartFile mockMultipartFile) {
-        new Expectations() {
-            {
-                mockMultipartFile.getOriginalFilename();
-                result = anyString;
-                mockMultipartFile.isEmpty();
-                result = true;
-            }
-        };
+    new Verifications() {
+      {
+        EventLogger.logger.info(anyString);
+      }
+    };
+  }
 
-        try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-            fail("Expected StorageException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-            assertTrue("Incorrect message received", e.getMessage().startsWith("File is empty:"));
-        }
+  @Test
+  @Disabled
+  void storeShouldThrowAnErrorEmptyFile(@Mocked MultipartFile mockMultipartFile) {
+    new Expectations() {
+      {
+        mockMultipartFile.getOriginalFilename();
+        result = anyString;
+        mockMultipartFile.isEmpty();
+        result = true;
+      }
+    };
 
-        new Verifications() {
-            {
-                EventLogger.logger.info(anyString);
-            }
-        };
+    try {
+      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
+      fail("Expected StorageException");
+    } catch (Exception e) {
+      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
+      assertTrue("Incorrect message received", e.getMessage().startsWith("File is empty:"));
     }
 
-    @Test @Disabled
-    public void storeShouldRethrowDeleteException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unused) {
-        new Expectations() {
-            {
-                mockMultipartFile.getOriginalFilename();
-                result = anyString;
-                mockMultipartFile.isEmpty();
-                result = false;
-            }
-        };
+    new Verifications() {
+      {
+        EventLogger.logger.info(anyString);
+      }
+    };
+  }
 
-        try {
-            new Expectations() {
-                {
-                    Files.deleteIfExists((Path) any);
-                    result = new IOException("testException123");
-                }
-            };
-        } catch (IOException e1) {
-            fail("Unexpected exception on Files.deleteIfExists() expectation creation");
+  @Test
+  @Disabled
+  void storeShouldRethrowDeleteException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unused) {
+    new Expectations() {
+      {
+        mockMultipartFile.getOriginalFilename();
+        result = anyString;
+        mockMultipartFile.isEmpty();
+        result = false;
+      }
+    };
+
+    try {
+      new Expectations() {
+        {
+          Files.deleteIfExists((Path) any);
+          result = new IOException("testException123");
         }
-
-        try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-            fail("Expected StorageException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-            assertTrue("Incorrect message received", e.getMessage().startsWith("Failed to delete existing file:"));
-        }
-
-        new Verifications() {
-            {
-                EventLogger.logger.info("Deleting existing file: {}", any);
-                EventLogger.logger.info("Failed to delete existing file: {} ", any);
-            }
-        };
+      };
+    } catch (IOException e1) {
+      fail("Unexpected exception on Files.deleteIfExists() expectation creation");
     }
 
-    @Test @Disabled
-    public void storeShouldRethrowCopyException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unusedFiles,
-            @Mocked final Logger mockLogger, @Mocked LoggerFactory unusedLogger, @Mocked InputStream mockInputStream) {
-        try {
-            new Expectations() {
-                {
-                    mockMultipartFile.getOriginalFilename();
-                    result = anyString;
-
-                    mockMultipartFile.isEmpty();
-                    result = false;
-
-                    mockMultipartFile.getInputStream();
-                    result = mockInputStream;
-
-                    Files.deleteIfExists((Path) any);
-
-                    Files.copy((InputStream) any, (Path) any);
-                    result = new IOException("testException123");
-                }
-            };
-        } catch (IOException e1) {
-            fail("Unexpected exception creating test Expectations: " + e1);
-        }
-
-        try {
-            new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-            fail("Expected StorageException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-            assertTrue("Incorrect message received",
-                    e.getMessage().startsWith("Failed to store file in shared directory"));
-        }
-
-        new Verifications() {
-            {
-                EventLogger.logger.info("Copying file {} to {}", anyString, (Path) any);
-                EventLogger.logger.info("Failed to store file in shared directory {}", (Path) any);
-            }
-        };
+    try {
+      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
+      fail("Expected StorageException");
+    } catch (Exception e) {
+      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
+      assertTrue("Incorrect message received", e.getMessage().startsWith("Failed to delete existing file:"));
     }
+
+    new Verifications() {
+      {
+        EventLogger.logger.info("Deleting existing file: {}", any);
+        EventLogger.logger.info("Failed to delete existing file: {} ", any);
+      }
+    };
+  }
+
+  @Test
+  @Disabled
+  void storeShouldRethrowCopyException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unusedFiles,
+                                       @Mocked final Logger mockLogger, @Mocked LoggerFactory unusedLogger, @Mocked InputStream mockInputStream) {
+    try {
+      new Expectations() {
+        {
+          mockMultipartFile.getOriginalFilename();
+          result = anyString;
+
+          mockMultipartFile.isEmpty();
+          result = false;
+
+          mockMultipartFile.getInputStream();
+          result = mockInputStream;
+
+          Files.deleteIfExists((Path) any);
+
+          Files.copy((InputStream) any, (Path) any);
+          result = new IOException("testException123");
+        }
+      };
+    } catch (IOException e1) {
+      fail("Unexpected exception creating test Expectations: " + e1);
+    }
+
+    try {
+      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
+      fail("Expected StorageException");
+    } catch (Exception e) {
+      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
+      assertTrue("Incorrect message received",
+          e.getMessage().startsWith("Failed to store file in shared directory"));
+    }
+
+    new Verifications() {
+      {
+        EventLogger.logger.info("Copying file {} to {}", anyString, (Path) any);
+        EventLogger.logger.info("Failed to store file in shared directory {}", (Path) any);
+      }
+    };
+  }
 }
