@@ -22,8 +22,6 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import mockit.Expectations;
@@ -37,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.core.io.UrlResource;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.FileSystemUtils;
@@ -233,142 +230,6 @@ public class FileSystemStorageServiceTest {
     }
 
     @Test @Disabled
-    public void loadAsResourceShouldThrowExceptionWhenFileNotExists(
-          @Mocked Path mockRootPath,
-          @Mocked Path mockResolvedPath,
-          @Mocked UrlResource mockUrlResource) {
-
-        try {
-            new Expectations() {
-                {
-                    mockRootPath.resolve(anyString);
-                    result = mockResolvedPath;
-
-                    mockResolvedPath.toUri();
-
-                    new UrlResource((URI) any); 
-                    result = mockUrlResource;
-                    
-                    mockUrlResource.exists();
-                    result = false;
-                }
-            };
-        } catch (MalformedURLException e) {
-            fail("Unexpected exception creating Expectations");
-        }
-
-        try {
-            FileSystemStorageService testFileSystemStorageService = new FileSystemStorageService(fileImporterProperties);
-            testFileSystemStorageService.loadAsResource("testFile");
-            fail("Expected StorageFileNotFoundException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown.", StorageFileNotFoundException.class, e.getClass());
-            assertTrue("Incorrect exception message", e.getMessage().startsWith("Could not read file:"));
-        }
-    }
-
-    @Test @Disabled
-    public void loadAsResourceShouldThrowExceptionWhenFileNotReadable(@Mocked Path mockRootPath,
-            @Mocked Path mockResolvedPath, @Mocked UrlResource mockUrlResource) {
-
-        try {
-            new Expectations() {
-                {
-                    mockRootPath.resolve(anyString);
-                    result = mockResolvedPath;
-
-                    mockResolvedPath.toUri();
-
-                    new UrlResource((URI) any);
-                    result = mockUrlResource;
-
-                    mockUrlResource.exists();
-                    result = true;
-                    
-                    mockUrlResource.isReadable();
-                    result = false;
-                }
-            };
-        } catch (MalformedURLException e) {
-            fail("Unexpected exception creating Expectations");
-        }
-
-        try {
-            FileSystemStorageService testFileSystemStorageService = new FileSystemStorageService(fileImporterProperties);
-            testFileSystemStorageService.loadAsResource("testFile");
-            fail("Expected StorageFileNotFoundException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown.", StorageFileNotFoundException.class, e.getClass());
-            assertTrue("Incorrect exception message", e.getMessage().startsWith("Could not read file:"));
-        }
-    }
-
-    @Test @Disabled
-    public void loadAsResourceShouldRethrowMalformedURLException(@Mocked Path mockRootPath,
-            @Mocked Path mockResolvedPath, @Mocked UrlResource mockUrlResource) {
-
-        try {
-            new Expectations() {
-                {
-                    mockRootPath.resolve(anyString);
-                    result = mockResolvedPath;
-
-                    mockResolvedPath.toUri();
-
-                    new UrlResource((URI) any);
-                    result = new MalformedURLException("testException123");
-                }
-            };
-        } catch (MalformedURLException e) {
-            fail("Unexpected exception creating Expectations");
-        }
-
-        try {
-            FileSystemStorageService testFileSystemStorageService = new FileSystemStorageService(fileImporterProperties);
-
-            testFileSystemStorageService.loadAsResource("testFile");
-            fail("Expected StorageFileNotFoundException");
-        } catch (Exception e) {
-            assertEquals("Incorrect exception thrown.", StorageFileNotFoundException.class, e.getClass());
-            assertTrue("Incorrect exception message", e.getMessage().startsWith("Could not read file:"));
-        }
-    }
-
-    @Test @Disabled
-    public void loadAsResourceShouldReturnResource(@Mocked Path mockRootPath, @Mocked Path mockResolvedPath,
-            @Mocked UrlResource mockUrlResource) {
-
-        try {
-            new Expectations() {
-                {
-                    mockRootPath.resolve(anyString);
-                    result = mockResolvedPath;
-
-                    mockResolvedPath.toUri();
-
-                    new UrlResource((URI) any);
-                    result = mockUrlResource;
-
-                    mockUrlResource.exists();
-                    result = true;
-                    mockUrlResource.isReadable();
-                    result = true;
-                }
-            };
-        } catch (MalformedURLException e) {
-            fail("Unexpected exception creating Expectations");
-        }
-
-        try {
-            FileSystemStorageService testFileSystemStorageService = new FileSystemStorageService(fileImporterProperties);
-
-            assertEquals(UrlResource.class, testFileSystemStorageService.loadAsResource("testFile").getClass());
-        } catch (Exception e) {
-            fail("Unexpected exception: " + e);
-        }
-    }
-
-    @Test @Disabled
     public void initShouldCreateDirectories(@Mocked final Files unused) {
 
         new FileSystemStorageService(fileImporterProperties).init();
@@ -427,5 +288,4 @@ public class FileSystemStorageServiceTest {
         };
 
     }
-
 }
