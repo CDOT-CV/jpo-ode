@@ -53,6 +53,8 @@ class LogFileToAsn1CodecPublisherTest {
 
   LogFileToAsn1CodecPublisher testLogFileToAsn1CodecPublisher;
 
+  // We can be certain that the mock template is the right type, so we should be safe suppressing the unchecked warnings
+  @SuppressWarnings("unchecked")
   public LogFileToAsn1CodecPublisherTest() {
     var mockStringPublisher = mock(KafkaTemplate.class);
     var mockJsonTopics = mock(JsonTopics.class);
