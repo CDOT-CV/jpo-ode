@@ -26,11 +26,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import mockit.Expectations;
-import mockit.Mocked;
 import mockit.Verifications;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +44,7 @@ import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.eventlog.EventLogger;
 
-@ExtendWith(SpringExtension.class)
+@ExtendWith(value = {SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class, classes = FileImporterProperties.class)
 @EnableConfigurationProperties
 class FileSystemStorageServiceTest {
@@ -51,7 +53,7 @@ class FileSystemStorageServiceTest {
   private FileImporterProperties fileImporterProperties;
 
   @Test
-  void storeShouldThrowExceptionUnknownType(@Mocked MultipartFile mockMultipartFile) {
+  void storeShouldThrowExceptionUnknownType(@Mock MultipartFile mockMultipartFile) {
     var storageService = new FileSystemStorageService(fileImporterProperties);
     var storageException = assertThrows(StorageException.class, () -> storageService.store(mockMultipartFile, LogFileType.UNKNOWN));
     assertTrue(storageException.getMessage().startsWith("File type unknown:"), "Incorrect message received");
@@ -59,62 +61,18 @@ class FileSystemStorageServiceTest {
   }
 
   @Test
-  @Disabled
-  void storeShouldTryToResolveBsmFilename(@Mocked MultipartFile mockMultipartFile) {
-    new Expectations() {
-      {
-        mockMultipartFile.getOriginalFilename();
-        result = anyString;
-        mockMultipartFile.isEmpty();
-        result = true;
-      }
-    };
+  void storeShouldThrowExceptionOnEmptyFile(@Mock MultipartFile mockMultipartFile) {
 
-    try {
-      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-      fail("Expected StorageException");
-    } catch (Exception e) {
-      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
-      assertTrue(e.getMessage().startsWith("File is empty:"), "Incorrect message received");
-    }
-
-    new Verifications() {
-      {
-        EventLogger.logger.info(anyString);
-      }
-    };
+    Mockito.doReturn("filename").when(mockMultipartFile).getOriginalFilename();
+    Mockito.doReturn(true).when(mockMultipartFile).isEmpty();
+    var storageService = new FileSystemStorageService(fileImporterProperties);
+    var storageException = assertThrows(StorageException.class, () -> storageService.store(mockMultipartFile, LogFileType.OBU));
+    assertTrue(storageException.getMessage().startsWith("File is empty:"), "Incorrect message received");
   }
 
   @Test
   @Disabled
-  void storeShouldThrowAnErrorEmptyFile(@Mocked MultipartFile mockMultipartFile) {
-    new Expectations() {
-      {
-        mockMultipartFile.getOriginalFilename();
-        result = anyString;
-        mockMultipartFile.isEmpty();
-        result = true;
-      }
-    };
-
-    try {
-      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-      fail("Expected StorageException");
-    } catch (Exception e) {
-      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
-      assertTrue(e.getMessage().startsWith("File is empty:"), "Incorrect message received");
-    }
-
-    new Verifications() {
-      {
-        EventLogger.logger.info(anyString);
-      }
-    };
-  }
-
-  @Test
-  @Disabled
-  void storeShouldRethrowDeleteException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unused) {
+  void storeShouldRethrowDeleteException(@Mock MultipartFile mockMultipartFile, @Mock Files unused) {
     new Expectations() {
       {
         mockMultipartFile.getOriginalFilename();
@@ -153,8 +111,8 @@ class FileSystemStorageServiceTest {
 
   @Test
   @Disabled
-  void storeShouldRethrowCopyException(@Mocked MultipartFile mockMultipartFile, @Mocked Files unusedFiles,
-                                       @Mocked final Logger mockLogger, @Mocked LoggerFactory unusedLogger, @Mocked InputStream mockInputStream) {
+  void storeShouldRethrowCopyException(@Mock MultipartFile mockMultipartFile, @Mock Files unusedFiles,
+                                       @Mock final Logger mockLogger, @Mock LoggerFactory unusedLogger, @Mock InputStream mockInputStream) {
     try {
       new Expectations() {
         {
