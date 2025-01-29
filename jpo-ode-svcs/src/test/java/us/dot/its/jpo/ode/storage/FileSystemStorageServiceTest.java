@@ -16,25 +16,15 @@
 
 package us.dot.its.jpo.ode.storage;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import mockit.Expectations;
-import mockit.Verifications;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
@@ -42,7 +32,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
-import us.dot.its.jpo.ode.eventlog.EventLogger;
 
 @ExtendWith(value = {SpringExtension.class, MockitoExtension.class})
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class, classes = FileImporterProperties.class)
@@ -81,45 +70,13 @@ class FileSystemStorageServiceTest {
   }
 
   @Test
-  @Disabled
-  void storeShouldRethrowCopyException(@Mock MultipartFile mockMultipartFile, @Mock Files unusedFiles,
-                                       @Mock final Logger mockLogger, @Mock LoggerFactory unusedLogger, @Mock InputStream mockInputStream) {
-    try {
-      new Expectations() {
-        {
-          mockMultipartFile.getOriginalFilename();
-          result = anyString;
+  void storeShouldRethrowCopyException(@Mock MultipartFile mockMultipartFile) throws IOException {
+    Mockito.doReturn("filename").when(mockMultipartFile).getOriginalFilename();
+    Mockito.doReturn(false).when(mockMultipartFile).isEmpty();
+    Mockito.doReturn(null).when(mockMultipartFile).getInputStream();
 
-          mockMultipartFile.isEmpty();
-          result = false;
-
-          mockMultipartFile.getInputStream();
-          result = mockInputStream;
-
-          Files.deleteIfExists((Path) any);
-
-          Files.copy((InputStream) any, (Path) any);
-          result = new IOException("testException123");
-        }
-      };
-    } catch (IOException e1) {
-      fail("Unexpected exception creating test Expectations: " + e1);
-    }
-
-    try {
-      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-      fail("Expected StorageException");
-    } catch (Exception e) {
-      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
-      assertTrue(e.getMessage().startsWith("Failed to store file in shared directory"),
-          "Incorrect message received");
-    }
-
-    new Verifications() {
-      {
-        EventLogger.logger.info("Copying file {} to {}", anyString, (Path) any);
-        EventLogger.logger.info("Failed to store file in shared directory {}", (Path) any);
-      }
-    };
+    var storageService = new FileSystemStorageService(fileImporterProperties);
+    var storageException = assertThrows(StorageException.class, () -> storageService.store(mockMultipartFile, LogFileType.OBU));
+    assertTrue(storageException.getMessage().startsWith("Failed to store file in shared directory"), "Incorrect message received");
   }
 }
