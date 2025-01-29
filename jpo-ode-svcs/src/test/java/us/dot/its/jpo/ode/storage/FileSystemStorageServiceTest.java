@@ -16,9 +16,10 @@
 
 package us.dot.its.jpo.ode.storage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,22 +51,10 @@ class FileSystemStorageServiceTest {
   private FileImporterProperties fileImporterProperties;
 
   @Test
-  @Disabled
   void storeShouldThrowExceptionUnknownType(@Mocked MultipartFile mockMultipartFile) {
-
-    try {
-      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.UNKNOWN);
-      fail("Expected StorageException");
-    } catch (Exception e) {
-      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-      assertTrue("Incorrect message received", e.getMessage().startsWith("File type unknown:"));
-    }
-
-    new Verifications() {
-      {
-        EventLogger.logger.info(anyString, any, any);
-      }
-    };
+    var storageService = new FileSystemStorageService(fileImporterProperties);
+    var storageException = assertThrows(StorageException.class, () -> storageService.store(mockMultipartFile, LogFileType.UNKNOWN));
+    assertTrue(storageException.getMessage().startsWith("File type unknown:"), "Incorrect message received");
 
   }
 
@@ -85,8 +74,8 @@ class FileSystemStorageServiceTest {
       new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
       fail("Expected StorageException");
     } catch (Exception e) {
-      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-      assertTrue("Incorrect message received", e.getMessage().startsWith("File is empty:"));
+      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
+      assertTrue(e.getMessage().startsWith("File is empty:"), "Incorrect message received");
     }
 
     new Verifications() {
@@ -112,8 +101,8 @@ class FileSystemStorageServiceTest {
       new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
       fail("Expected StorageException");
     } catch (Exception e) {
-      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-      assertTrue("Incorrect message received", e.getMessage().startsWith("File is empty:"));
+      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
+      assertTrue(e.getMessage().startsWith("File is empty:"), "Incorrect message received");
     }
 
     new Verifications() {
@@ -150,8 +139,8 @@ class FileSystemStorageServiceTest {
       new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
       fail("Expected StorageException");
     } catch (Exception e) {
-      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-      assertTrue("Incorrect message received", e.getMessage().startsWith("Failed to delete existing file:"));
+      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
+      assertTrue(e.getMessage().startsWith("Failed to delete existing file:"), "Incorrect message received");
     }
 
     new Verifications() {
@@ -192,9 +181,9 @@ class FileSystemStorageServiceTest {
       new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
       fail("Expected StorageException");
     } catch (Exception e) {
-      assertEquals("Incorrect exception thrown", StorageException.class, e.getClass());
-      assertTrue("Incorrect message received",
-          e.getMessage().startsWith("Failed to store file in shared directory"));
+      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
+      assertTrue(e.getMessage().startsWith("Failed to store file in shared directory"),
+          "Incorrect message received");
     }
 
     new Verifications() {
