@@ -17,7 +17,7 @@
 package us.dot.its.jpo.ode.upload;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 
 import org.junit.jupiter.api.Assertions;
@@ -50,7 +50,7 @@ class FileUploadControllerTest {
 
   @Test
   void handleFileUploadReturnsErrorOnStorageException() {
-    doThrow(new RuntimeException()).when(mockStorageService).store(any(), LogFileType.valueOf(anyString()));
+    doThrow(new RuntimeException()).when(mockStorageService).store(any(), eq(LogFileType.UNKNOWN));
     Assertions.assertEquals(HttpStatus.BAD_REQUEST, testFileUploadController.handleFileUpload(mockMultipartFile, "type").getStatusCode());
   }
 
