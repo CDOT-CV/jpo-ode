@@ -71,42 +71,13 @@ class FileSystemStorageServiceTest {
   }
 
   @Test
-  @Disabled
-  void storeShouldRethrowDeleteException(@Mock MultipartFile mockMultipartFile, @Mock Files unused) {
-    new Expectations() {
-      {
-        mockMultipartFile.getOriginalFilename();
-        result = anyString;
-        mockMultipartFile.isEmpty();
-        result = false;
-      }
-    };
+  void storeShouldRethrowDeleteException(@Mock MultipartFile mockMultipartFile) {
+    Mockito.doReturn("filename").when(mockMultipartFile).getOriginalFilename();
+    Mockito.doReturn(false).when(mockMultipartFile).isEmpty();
 
-    try {
-      new Expectations() {
-        {
-          Files.deleteIfExists((Path) any);
-          result = new IOException("testException123");
-        }
-      };
-    } catch (IOException e1) {
-      fail("Unexpected exception on Files.deleteIfExists() expectation creation");
-    }
-
-    try {
-      new FileSystemStorageService(fileImporterProperties).store(mockMultipartFile, LogFileType.OBU);
-      fail("Expected StorageException");
-    } catch (Exception e) {
-      assertEquals(StorageException.class, e.getClass(), "Incorrect exception thrown");
-      assertTrue(e.getMessage().startsWith("Failed to delete existing file:"), "Incorrect message received");
-    }
-
-    new Verifications() {
-      {
-        EventLogger.logger.info("Deleting existing file: {}", any);
-        EventLogger.logger.info("Failed to delete existing file: {} ", any);
-      }
-    };
+    var storageService = new FileSystemStorageService(fileImporterProperties);
+    var storageException = assertThrows(StorageException.class, () -> storageService.store(mockMultipartFile, LogFileType.OBU));
+    assertTrue(storageException.getMessage().startsWith("Failed to store file in shared directory"), "Incorrect message received");
   }
 
   @Test
