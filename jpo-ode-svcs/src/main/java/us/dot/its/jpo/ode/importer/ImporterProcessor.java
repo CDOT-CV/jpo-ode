@@ -120,7 +120,7 @@ public class ImporterProcessor {
 
     try (InputStream inputStream = getInputStream(filePath, detectedFileFormat)) {
       if (detectedFileFormat == FileFormat.ZIP) {
-        publishZipFiles(filePath, inputStream);
+        publishZipFiles(filePath, (ZipInputStream) inputStream);
       } else {
         publishFile(filePath, inputStream);
       }
@@ -176,10 +176,9 @@ public class ImporterProcessor {
     }
   }
 
-  private void publishZipFiles(Path filePath, InputStream inputStream)
+  private void publishZipFiles(Path filePath, ZipInputStream inputStream)
       throws IOException, LogFileParserFactory.LogFileParserFactoryException, LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException {
-    ZipInputStream zis = (ZipInputStream) inputStream;
-    while (zis.getNextEntry() != null) {
+    while (inputStream.getNextEntry() != null) {
       publishFile(filePath, inputStream);
     }
   }
