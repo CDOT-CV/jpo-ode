@@ -29,7 +29,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher;
+import us.dot.its.jpo.ode.coder.stream.LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException;
 import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
+import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory.LogFileParserFactoryException;
 
 /**
  * The {@code ImporterProcessor} class is responsible for processing files within directories and subdirectories.
@@ -146,8 +148,8 @@ public class ImporterProcessor {
     };
   }
 
-  private void publishFile(Path filePath, InputStream inputStream)
-      throws LogFileParserFactory.LogFileParserFactoryException, LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException, IOException {
+  private void publishFile(Path filePath, InputStream inputStream) throws
+      LogFileParserFactoryException, LogFileToAsn1CodecPublisherException, IOException {
     var fileName = filePath.getFileName().toString();
     var parser = LogFileParserFactory.getLogFileParser(fileName);
     try (BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize)) {
