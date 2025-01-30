@@ -93,6 +93,7 @@ public class ImporterDirectoryWatcher {
   @Scheduled(fixedRateString = "${ode.file-importer.time-period}", timeUnit = TimeUnit.SECONDS)
   public void run() {
     log.info("Processing inbox directory {} every {} seconds.", inboxPath, props.getTimePeriod());
-    importerProcessor.processDirectory(inboxPath, backupPath, failuresPath);
+    var filesProcessedSuccessfully = importerProcessor.processDirectory(inboxPath, backupPath, failuresPath);
+    log.info("Successfully processed {} files.", filesProcessedSuccessfully);
   }
 }

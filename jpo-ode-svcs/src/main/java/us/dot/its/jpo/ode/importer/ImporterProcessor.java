@@ -16,8 +16,6 @@
 
 package us.dot.its.jpo.ode.importer;
 
-import static us.dot.its.jpo.ode.importer.FileFormat.detectFileFormat;
-
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -116,16 +114,16 @@ public class ImporterProcessor {
   }
 
   private boolean processFile(Path filePath) {
-    boolean success = true;
     FileFormat detectedFileFormat;
     try {
-      detectedFileFormat = detectFileFormat(filePath);
+      detectedFileFormat = FileFormat.detectFileFormat(filePath);
       log.info("Treating as {} file", detectedFileFormat.toString());
     } catch (IOException e) {
       log.error("Failed to detect file type: {}", filePath, e);
       return false;
     }
 
+    boolean success = true;
     try (InputStream inputStream = getInputStream(filePath, detectedFileFormat)) {
       if (detectedFileFormat == FileFormat.ZIP) {
         publishZipFiles(filePath, (ZipInputStream) inputStream);
