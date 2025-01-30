@@ -1,151 +1,151 @@
-/*******************************************************************************
+/*============================================================================
  * Copyright 2018 572682
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
  * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
+
 package us.dot.its.jpo.ode.importer;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-
 import mockit.Expectations;
 import mockit.Injectable;
 import mockit.Mocked;
-import us.dot.its.jpo.ode.importer.OdeFileUtils;
+import org.junit.jupiter.api.Test;
 
-public class OdeFileUtilsTest {
-   
-   @Injectable
-   Path dir;
-   @Mocked
-   Path backupDir;
+class OdeFileUtilsTest {
 
-   @Test
-   public void createDirectoryRecursivelyShouldThrowExceptionDirDoesNotExist() {
-       try {
-           OdeFileUtils.createDirectoryRecursively(dir);
-           fail("Expected IOException directory does not exist");
-       } catch (Exception e) {
-           assertEquals(IOException.class, e.getClass());
-           assertEquals("Failed to verify directory creation - directory does not exist.", e.getMessage());
-       }
-   }
+  @Injectable
+  Path dir;
+  @Mocked
+  Path backupDir;
 
-   @Test
-   public void createDirectoryRecursivelyShouldThrowExceptionUnableToCreateDirectory(@Mocked final Files unused) {
+  @Test
+  void createDirectoryRecursivelyShouldThrowExceptionDirDoesNotExist() {
+    try {
+      OdeFileUtils.createDirectoryRecursively(dir);
+      fail("Expected IOException directory does not exist");
+    } catch (Exception e) {
+      assertEquals(IOException.class, e.getClass());
+      assertEquals("Failed to verify directory creation - directory does not exist.", e.getMessage());
+    }
+  }
 
-       try {
-           new Expectations() {
-               {
-                   Files.createDirectories((Path) any);
-                   result = new IOException("testException123");
-               }
-           };
-       } catch (IOException e) {
-           fail("Unexpected exception in expectations block: " + e);
-       }
+  @Test
+  void createDirectoryRecursivelyShouldThrowExceptionUnableToCreateDirectory(@Mocked final Files unused) {
 
-       try {
-          OdeFileUtils.createDirectoryRecursively(dir);
-           fail("Expected IOException while trying to create directory:");
-       } catch (Exception e) {
-           assertEquals(IOException.class, e.getClass());
-           assertTrue(e.getMessage().startsWith("Exception while trying to create directory:"));
-       }
-   }
+    try {
+      new Expectations() {
+        {
+          Files.createDirectories((Path) any);
+          result = new IOException("testException123");
+        }
+      };
+    } catch (IOException e) {
+      fail("Unexpected exception in expectations block: " + e);
+    }
 
-   @Test
-   public void testCreateDirectoryRecursively() {
-       new Expectations() {
-           {
-               dir.toFile().exists();
-               result = true;
-           }
-       };
+    try {
+      OdeFileUtils.createDirectoryRecursively(dir);
+      fail("Expected IOException while trying to create directory:");
+    } catch (Exception e) {
+      assertEquals(IOException.class, e.getClass());
+      assertTrue(e.getMessage().startsWith("Exception while trying to create directory:"));
+    }
+  }
 
-       try {
-          OdeFileUtils.createDirectoryRecursively(dir);
-       } catch (Exception e) {
-           fail("Unexpected exception: " + e);
-       }
-   }
+  @Test
+  void testCreateDirectoryRecursively() {
+    new Expectations() {
+      {
+        dir.toFile().exists();
+        result = true;
+      }
+    };
 
-   @Test
-   public void backupFileShouldThrowExceptionBackupDirDoesNotExist(@Mocked Path mockFile) {
+    try {
+      OdeFileUtils.createDirectoryRecursively(dir);
+    } catch (Exception e) {
+      fail("Unexpected exception: " + e);
+    }
+  }
 
-       new Expectations() {
-           {
-               backupDir.toFile().exists();
-               result = false;
-           }
-       };
+  @Test
+  void backupFileShouldThrowExceptionBackupDirDoesNotExist(@Mocked Path mockFile) {
 
-       try {
-          OdeFileUtils.backupFile(mockFile, backupDir);
-           fail("Expected IOException while trying to backup file:");
-       } catch (Exception e) {
-           assertEquals(IOException.class, e.getClass());
-           assertTrue(e.getMessage().startsWith("Backup directory does not exist:"));
-       }
-   }
+    new Expectations() {
+      {
+        backupDir.toFile().exists();
+        result = false;
+      }
+    };
 
-   @Test
-   public void backupFileShouldThrowExceptionUnableToMoveFile(@Mocked final Files unused, @Injectable Path mockFile) {
+    try {
+      OdeFileUtils.backupFile(mockFile, backupDir);
+      fail("Expected IOException while trying to backup file:");
+    } catch (Exception e) {
+      assertEquals(IOException.class, e.getClass());
+      assertTrue(e.getMessage().startsWith("Backup directory does not exist:"));
+    }
+  }
 
-       try {
-           new Expectations() {
-               {
-                   backupDir.toFile().exists();
-                   result = true;
+  @Test
+  void backupFileShouldThrowExceptionUnableToMoveFile(@Mocked final Files unused, @Injectable Path mockFile) {
 
-                   Files.move((Path) any, (Path) any, (CopyOption) any);
-                   result = new IOException("testException123");
-               }
-           };
-       } catch (IOException e) {
-           fail("Unexpected exception in expectations block: " + e);
-       }
+    try {
+      new Expectations() {
+        {
+          backupDir.toFile().exists();
+          result = true;
 
-       try {
-          OdeFileUtils.backupFile(mockFile, backupDir);
-           fail("Expected IOException while trying to move file:");
-       } catch (Exception e) {
-           assertEquals(IOException.class, e.getClass());
-           assertTrue(e.getMessage().startsWith("Unable to move file to backup:"));
-       }
-   }
+          Files.move((Path) any, (Path) any, (CopyOption) any);
+          result = new IOException("testException123");
+        }
+      };
+    } catch (IOException e) {
+      fail("Unexpected exception in expectations block: " + e);
+    }
 
-   @Test
-   public void testBackupFile(@Mocked final Files unused, @Injectable Path mockFile) {
+    try {
+      OdeFileUtils.backupFile(mockFile, backupDir);
+      fail("Expected IOException while trying to move file:");
+    } catch (Exception e) {
+      assertEquals(IOException.class, e.getClass());
+      assertTrue(e.getMessage().startsWith("Unable to move file to backup:"));
+    }
+  }
 
-       new Expectations() {
-           {
-               backupDir.toFile().exists();
-               result = true;
-           }
-       };
+  @Test
+  void testBackupFile(@Mocked final Files unused, @Injectable Path mockFile) {
 
-       try {
-          OdeFileUtils.backupFile(mockFile, backupDir);
-       } catch (Exception e) {
-           fail("Unexpected exception: " + e);
-       }
-   }
+    new Expectations() {
+      {
+        backupDir.toFile().exists();
+        result = true;
+      }
+    };
+
+    try {
+      OdeFileUtils.backupFile(mockFile, backupDir);
+    } catch (Exception e) {
+      fail("Unexpected exception: " + e);
+    }
+  }
 
 }
