@@ -92,7 +92,7 @@ public class ImporterProcessor {
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
       for (Path entry : stream) {
         if (entry.toFile().isDirectory()) {
-          processDirectory(entry, backupDir, failureDir);
+          successCount += processDirectory(entry, backupDir, failureDir);
         } else {
           log.debug("Found a file to process: {}", entry.getFileName());
           var success = processFile(entry);

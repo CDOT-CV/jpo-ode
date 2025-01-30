@@ -55,7 +55,7 @@ class ImporterProcessorTest {
     var fileForProcessing = new File("%s/%s.gz".formatted(dirToProcess, bsmTx.name()));
     assertTrue(fileForProcessing.createNewFile());
     fileForProcessing.deleteOnExit();
-    GZIPOutputStream os =        new GZIPOutputStream(new FileOutputStream(fileForProcessing));
+    GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(fileForProcessing));
     os.write("test".getBytes());
     os.finish();
     os.close();
@@ -64,11 +64,23 @@ class ImporterProcessorTest {
     int result = importerProcessor.processDirectory(dirToProcess, backupDir, failureDir);
     assertEquals(1, result);
   }
-//
-//  @Test
-//  void testProcessDirectoryWithNestedDirectories() throws IOException {
-//    //
-//  }
+
+  @Test
+  void testProcessDirectoryWithNestedDirectories(@Mock LogFileToAsn1CodecPublisher publisher) throws IOException {
+    var nestedDirectory = new File(dirToProcess + "/nestedDirectory");
+    nestedDirectory.mkdirs();
+    var fileForProcessing = new File("%s/%s.gz".formatted(nestedDirectory, bsmTx.name()));
+    assertTrue(fileForProcessing.createNewFile());
+    fileForProcessing.deleteOnExit();
+    GZIPOutputStream os = new GZIPOutputStream(new FileOutputStream(fileForProcessing));
+    os.write("test".getBytes());
+    os.finish();
+    os.close();
+
+    ImporterProcessor importerProcessor = new ImporterProcessor(publisher, ImporterFileType.LOG_FILE, 1024);
+    int result = importerProcessor.processDirectory(dirToProcess, backupDir, failureDir);
+    assertEquals(1, result);
+  }
 //
 //  @Test
 //  void testProcessDirectoryWithFailure()
