@@ -16,6 +16,8 @@
 
 package us.dot.its.jpo.ode.importer;
 
+import static us.dot.its.jpo.ode.importer.FileFormat.detectFileFormat;
+
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,7 +25,6 @@ import java.io.InputStream;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 import lombok.extern.slf4j.Slf4j;
@@ -53,8 +54,6 @@ public class ImporterProcessor {
   private final int bufferSize;
   private final LogFileToAsn1CodecPublisher codecPublisher;
   private final ImporterFileType fileType;
-  private static final Pattern gZipPattern = Pattern.compile("application/.*gzip");
-  private static final Pattern zipPattern = Pattern.compile("application/.*zip.*");
 
   /**
    * Constructs an instance of ImporterProcessor for processing and encoding files
@@ -87,8 +86,8 @@ public class ImporterProcessor {
    * @param backupDir  The directory where successfully processed files will be moved. Must not be {@code null}.
    * @param failureDir The directory where failed files will be moved. Must not be {@code null}.
    */
-  public void processDirectory(Path dir, Path backupDir, Path failureDir) {
-    int count = 0;
+  public int processDirectory(Path dir, Path backupDir, Path failureDir) {
+    int successCount = 0;
     // Process files already in the directory
     try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
       for (Path entry : stream) {
@@ -97,21 +96,28 @@ public class ImporterProcessor {
         } else {
           log.debug("Found a file to process: {}", entry.getFileName());
           var success = processFile(entry);
-          moveProcessedFile(entry, backupDir, failureDir, success);
-          count++;
+          if (success) {
+            OdeFileUtils.backupFile(entry, backupDir);
+            log.info("File moved to backup: {}", backupDir);
+            successCount++;
+          } else {
+            OdeFileUtils.moveFile(entry, failureDir);
+            log.info("File moved to failure directory: {}", failureDir);
+          }
         }
       }
     } catch (IOException e) {
       log.error("Error processing files.", e);
     }
-    log.debug("Processed {} files.", count);
+    log.debug("Processed {} files.", successCount);
+    return successCount;
   }
 
   private boolean processFile(Path filePath) {
     boolean success = true;
     FileFormat detectedFileFormat;
     try {
-      detectedFileFormat = detectFileType(filePath);
+      detectedFileFormat = detectFileFormat(filePath);
       log.info("Treating as {} file", detectedFileFormat.toString());
     } catch (IOException e) {
       log.error("Failed to detect file type: {}", filePath, e);
@@ -130,33 +136,6 @@ public class ImporterProcessor {
     }
 
     return success;
-  }
-
-  private void moveProcessedFile(Path filePath, Path backupDir, Path failureDir, boolean success) {
-    try {
-      if (success) {
-        OdeFileUtils.backupFile(filePath, backupDir);
-        log.info("File moved to backup: {}", backupDir);
-      } else {
-        OdeFileUtils.moveFile(filePath, failureDir);
-        log.info("File moved to failure directory: {}", failureDir);
-      }
-    } catch (IOException e) {
-      log.error("Unable to backup file: {}", filePath, e);
-    }
-  }
-
-  private FileFormat detectFileType(Path filePath) throws IOException {
-    String probeContentType = Files.probeContentType(filePath);
-    if (probeContentType != null) {
-      if (gZipPattern.matcher(probeContentType).matches() || filePath.toString().toLowerCase().endsWith("gz")) {
-        return FileFormat.GZIP;
-      } else if (zipPattern.matcher(probeContentType).matches() || filePath.toString().endsWith("zip")) {
-        return FileFormat.ZIP;
-      }
-    }
-
-    return FileFormat.UNKNOWN;
   }
 
   private InputStream getInputStream(Path filePath, FileFormat fileFormat) throws IOException {
