@@ -16,133 +16,119 @@
 
 package us.dot.its.jpo.ode.importer;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.when;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import mockit.Expectations;
-import mockit.Injectable;
-import mockit.Mocked;
+import java.util.Arrays;
+import java.util.Objects;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class OdeFileUtilsTest {
 
-  @Injectable
-  Path dir;
-  @Mocked
-  Path backupDir;
-
   @Test
-  void createDirectoryRecursivelyShouldThrowExceptionDirDoesNotExist() {
-    try {
-      OdeFileUtils.createDirectoryRecursively(dir);
-      fail("Expected IOException directory does not exist");
-    } catch (Exception e) {
-      assertEquals(IOException.class, e.getClass());
-      assertEquals("Failed to verify directory creation - directory does not exist.", e.getMessage());
+  void createDirectoryRecursivelyShouldThrowExceptionDirDoesNotExist(@Mock Path dir, @Mock File mockFile) {
+    try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+      filesMock.when(() -> Files.exists(any(Path.class))).thenReturn(false);
+      filesMock.when(() -> Files.createDirectories(any(Path.class))).thenReturn(dir);
+      when(mockFile.exists()).thenReturn(false);
+      when(dir.toFile()).thenReturn(mockFile);
+
+      var ioException = assertThrows(IOException.class, () -> OdeFileUtils.createDirectoryRecursively(dir));
+      assertEquals("Failed to verify directory creation - directory does not exist.", ioException.getMessage());
     }
   }
 
   @Test
-  void createDirectoryRecursivelyShouldThrowExceptionUnableToCreateDirectory(@Mocked final Files unused) {
+  void createDirectoryRecursivelyShouldThrowExceptionUnableToCreateDirectory() {
+    try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+      filesMock.when(() -> Files.createDirectories(any(Path.class)))
+          .thenThrow(new IOException("testException123"));
 
-    try {
-      new Expectations() {
-        {
-          Files.createDirectories((Path) any);
-          result = new IOException("testException123");
-        }
-      };
-    } catch (IOException e) {
-      fail("Unexpected exception in expectations block: " + e);
+      // Testing the actual method and asserting the exception
+      Path mockPath = mock(Path.class);
+      var ioException = assertThrows(IOException.class, () -> OdeFileUtils.createDirectoryRecursively(mockPath));
+      assertTrue(ioException.getMessage().startsWith("Exception while trying to create directory:"));
     }
 
-    try {
-      OdeFileUtils.createDirectoryRecursively(dir);
-      fail("Expected IOException while trying to create directory:");
-    } catch (Exception e) {
-      assertEquals(IOException.class, e.getClass());
-      assertTrue(e.getMessage().startsWith("Exception while trying to create directory:"));
-    }
   }
 
   @Test
   void testCreateDirectoryRecursively() {
-    new Expectations() {
-      {
-        dir.toFile().exists();
-        result = true;
-      }
-    };
-
+    var tempDir = new File(System.getProperty("java.io.tmpdir"));
     try {
-      OdeFileUtils.createDirectoryRecursively(dir);
+      OdeFileUtils.createDirectoryRecursively(tempDir.toPath());
     } catch (Exception e) {
       fail("Unexpected exception: " + e);
     }
   }
 
+
   @Test
-  void backupFileShouldThrowExceptionBackupDirDoesNotExist(@Mocked Path mockFile) {
+  void backupFileShouldThrowExceptionBackupDirDoesNotExist() {
+    // Mock the behavior of the backupDir.toFile().exists() method
+    Path backupDir = mock(Path.class);
+    Path mockFile = mock(Path.class);
 
-    new Expectations() {
-      {
-        backupDir.toFile().exists();
-        result = false;
-      }
-    };
+    File mockBackupDirFile = mock(File.class);
+    when(backupDir.toFile()).thenReturn(mockBackupDirFile);
+    when(mockBackupDirFile.exists()).thenReturn(false);
 
-    try {
-      OdeFileUtils.backupFile(mockFile, backupDir);
-      fail("Expected IOException while trying to backup file:");
-    } catch (Exception e) {
-      assertEquals(IOException.class, e.getClass());
-      assertTrue(e.getMessage().startsWith("Backup directory does not exist:"));
+    // Execute and assert
+    Exception exception = assertThrows(IOException.class, () -> OdeFileUtils.backupFile(mockFile, backupDir));
+    assertTrue(exception.getMessage().startsWith("Backup directory does not exist:"));
+  }
+
+  @Test
+  void backupFileShouldThrowExceptionUnableToMoveFile() {
+    // Mock Path and Files behavior
+    Path mockFile = mock(Path.class);
+    Path backupDir = mock(Path.class);
+    File mockBackupDirFile = mock(File.class);
+
+    when(mockFile.getFileName()).thenReturn(Path.of("testfile.uper"));
+    when(backupDir.toFile()).thenReturn(mockBackupDirFile);
+    when(mockBackupDirFile.exists()).thenReturn(true);
+
+    // Mock Files.move to throw an IOException
+    try (MockedStatic<Files> filesMock = mockStatic(Files.class)) {
+      filesMock.when(() -> Files.move(any(Path.class), any(Path.class), any(CopyOption.class)))
+          .thenThrow(new IOException("testException123"));
+
+      // Execute and assert
+      Exception exception = assertThrows(IOException.class, () -> OdeFileUtils.backupFile(mockFile, backupDir));
+      assertTrue(exception.getMessage().startsWith("Unable to move file to backup:"));
     }
   }
 
   @Test
-  void backupFileShouldThrowExceptionUnableToMoveFile(@Mocked final Files unused, @Injectable Path mockFile) {
+  void testBackupFile() {
+    var tempDir = new File(System.getProperty("java.io.tmpdir"));
+
+    var tempBackupDir = new File(System.getProperty("java.io.tmpdir") + "/backups");
+    tempBackupDir.deleteOnExit();
+    var tempFile = new File(tempDir, "testfile.uper");
+    tempFile.deleteOnExit();
 
     try {
-      new Expectations() {
-        {
-          backupDir.toFile().exists();
-          result = true;
-
-          Files.move((Path) any, (Path) any, (CopyOption) any);
-          result = new IOException("testException123");
-        }
-      };
-    } catch (IOException e) {
-      fail("Unexpected exception in expectations block: " + e);
-    }
-
-    try {
-      OdeFileUtils.backupFile(mockFile, backupDir);
-      fail("Expected IOException while trying to move file:");
-    } catch (Exception e) {
-      assertEquals(IOException.class, e.getClass());
-      assertTrue(e.getMessage().startsWith("Unable to move file to backup:"));
-    }
-  }
-
-  @Test
-  void testBackupFile(@Mocked final Files unused, @Injectable Path mockFile) {
-
-    new Expectations() {
-      {
-        backupDir.toFile().exists();
-        result = true;
-      }
-    };
-
-    try {
-      OdeFileUtils.backupFile(mockFile, backupDir);
+      assertTrue(tempFile.createNewFile());
+      OdeFileUtils.backupFile(tempFile.toPath(), tempBackupDir.toPath());
+      assertTrue(Arrays.stream(Objects.requireNonNull(tempBackupDir.listFiles())).anyMatch(f -> f.getName().contains("testfile.pbo")));
     } catch (Exception e) {
       fail("Unexpected exception: " + e);
     }
