@@ -218,7 +218,7 @@ public class SnmpSession {
    *                              the request destination.
    * @param payload               The payload string to be included in the PDU of the request.
    * @param requestVerb           The type of SNMP request verb (e.g., GET, SET) for the operation.
-   * @param dataSigningEnabledRSU A boolean flag indicating if data signing is enabled for the RSU.
+   * @param dataSigningEnabledRSU A boolean flag indicating if ODE data signing is enabled for messages meant for RSUs.
    *
    * @return A ResponseEvent representing the response received from the RSU.
    *
