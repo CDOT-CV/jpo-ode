@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.kafka.producer;
 
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.util.Map;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
@@ -163,6 +164,11 @@ public class KafkaProducerConfig {
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
       producerProps.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
     }
+    // linger.ms isn't present in the KafkaProperties object above, but it is important to limit the amount of time
+    // we wait before publishing messages via the KafkaTemplate producer while the data size of the batch is less than the
+    // batch-size set in the application.yaml. The default is (2^31)-1 millis, which is not suitable for our use case.
+    producerProps.put(ProducerConfig.LINGER_MS_CONFIG, odeKafkaProperties.getProducer().getLingerMs());
+    producerProps.put(ProducerConfig.RETRIES_CONFIG, odeKafkaProperties.getProducer().getRetries());
     return producerProps;
   }
 }
