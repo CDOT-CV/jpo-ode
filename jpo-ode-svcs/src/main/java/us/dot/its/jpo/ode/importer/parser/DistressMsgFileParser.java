@@ -23,6 +23,9 @@ import us.dot.its.jpo.ode.model.OdeLogMetadata;
  * DistressMsgFileParser extends the {@link LogFileParser} abstract class and provides functionality
  * to parse log files containing Distress TIMs. It defines * steps to parse specific components like
  * location, time, security result codes, and payload data within the file.
+ *
+ * <p>Note: There doesn't seem to be any reference to Distress Notifications in the 2024 spec,
+ * so it's likely this message type is no longer supported. We may consider deprecating this parser in the future.
  */
 public class DistressMsgFileParser extends LogFileParser {
 
