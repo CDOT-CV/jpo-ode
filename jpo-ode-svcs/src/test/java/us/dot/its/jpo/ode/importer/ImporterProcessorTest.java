@@ -81,6 +81,42 @@ class ImporterProcessorTest {
   }
 
   @Test
+  void testProcessDirectoryZip(@Mock LogFileToAsn1CodecPublisher publisher) throws IOException {
+    var firstFileForProcessing = new File("%s/first-%s.uper".formatted(dirToProcess, bsmTx.name()));
+    assertTrue(firstFileForProcessing.createNewFile());
+    firstFileForProcessing.deleteOnExit();
+    var os = new FileOutputStream(firstFileForProcessing);
+    os.write("test".getBytes());
+    os.flush();
+    os.close();
+
+    var secondFileForProcessing = new File("%s/second-%s.uper".formatted(dirToProcess, bsmTx.name()));
+    assertTrue(secondFileForProcessing.createNewFile());
+    secondFileForProcessing.deleteOnExit();
+    os = new FileOutputStream(secondFileForProcessing);
+    os.write("test2".getBytes());
+    os.flush();
+    os.close();
+
+    var zipFileForProcessing = new File("%s/%s.zip".formatted(dirToProcess, bsmTx.name()));
+    assertTrue(zipFileForProcessing.createNewFile());
+    zipFileForProcessing.deleteOnExit();
+    var zipOutputStream = new java.util.zip.ZipOutputStream(new FileOutputStream(zipFileForProcessing));
+    zipOutputStream.putNextEntry(new java.util.zip.ZipEntry("first.uper"));
+    zipOutputStream.write("test".getBytes());
+    zipOutputStream.closeEntry();
+    zipOutputStream.putNextEntry(new java.util.zip.ZipEntry("second.uper"));
+    zipOutputStream.write("test2".getBytes());
+    zipOutputStream.closeEntry();
+    zipOutputStream.finish();
+    zipOutputStream.close();
+
+    ImporterProcessor importerProcessor = new ImporterProcessor(publisher, ImporterFileType.LOG_FILE, 1024);
+    int result = importerProcessor.processDirectory(dirToProcess, backupDir, failureDir);
+    assertEquals(1, result);
+  }
+
+  @Test
   void testProcessDirectoryWithNestedDirectories(@Mock LogFileToAsn1CodecPublisher publisher) throws IOException {
     var nestedDirectory = new File(dirToProcess + "/nestedDirectory");
     nestedDirectory.mkdirs();
@@ -96,44 +132,15 @@ class ImporterProcessorTest {
     int result = importerProcessor.processDirectory(dirToProcess, backupDir, failureDir);
     assertEquals(1, result);
   }
-//
-//  @Test
-//  void testProcessDirectoryWithFailure()
-//      throws IOException, LogFileParserFactory.LogFileParserFactoryException, LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException {
-//    Path mockDir = mock(Path.class);
-//    DirectoryStream<Path> mockStream = mock(DirectoryStream.class);
-//    Path mockFile = mock(Path.class);
-//
-//    when(Files.newDirectoryStream(mockDir)).thenReturn(mockStream);
-//    when(mockStream.iterator()).thenReturn(List.of(mockFile).iterator());
-//    when(mockFile.toFile().isDirectory()).thenReturn(false);
-//    //when(OdeFileUtils.moveFile(mockFile, mockFailureDir)).thenReturn(null);
-//
-//    ImporterProcessor importerProcessor = new ImporterProcessor(codecPublisher, ImporterFileType.LOG_FILE, 1024);
-//    doThrow(IOException.class).when(codecPublisher).publish(any(), any(), any(), any());
-//
-//    int result = importerProcessor.processDirectory(mockDir, mockBackupDir, mockFailureDir);
-//
-//    assertEquals(0, result);
-//    //verify(OdeFileUtils, times(1)).moveFile(mockFile, mockFailureDir);
-//  }
-//
-//  @Test
-//  void testProcessNestedDirectories(@Mock DirectoryStream<Path> mockStream) throws IOException {
-//    Path mockDir = mock(Path.class);
-//    Path mockSubDir = mock(Path.class);
-//    Path mockFile = mock(Path.class);
-//
-//    when(Files.newDirectoryStream(mockDir)).thenReturn(mockStream);
-//    when(mockStream.iterator()).thenReturn(List.of(mockSubDir).iterator());
-//    when(mockSubDir.toFile().isDirectory()).thenReturn(true);
-//    when(Files.newDirectoryStream(mockSubDir)).thenReturn(mockStream);
-//    when(mockStream.iterator()).thenReturn(List.of(mockFile).iterator());
-//    when(mockFile.toFile().isDirectory()).thenReturn(false);
-//
-//    ImporterProcessor importerProcessor = new ImporterProcessor(codecPublisher, ImporterFileType.LOG_FILE, 1024);
-//    int result = importerProcessor.processDirectory(mockDir, mockBackupDir, mockFailureDir);
-//
-//    assertEquals(1, result);
-//  }
+
+  @Test
+  void testProcessDirectoryWithEmptyDirectory() {
+    var emptyDir = new File(dirToProcess + "/empty");
+    emptyDir.mkdirs();
+    ImporterProcessor importerProcessor = new ImporterProcessor(null, ImporterFileType.LOG_FILE, 1024);
+
+    int result = importerProcessor.processDirectory(emptyDir.toPath(), backupDir, failureDir);
+
+    assertEquals(0, result);
+  }
 }

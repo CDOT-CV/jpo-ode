@@ -40,13 +40,6 @@ import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory.LogFileParserFact
  * <p>The class can handle gzipped, zipped, and plain file formats. Within the handling of zip files, it is capable
  * of accessing and processing individual entries in the archive. Failed or successfully processed files are moved to
  * predefined failure or backup directories, respectively.
- *
- * <h2>Exceptions:</h2>
- * <ul>
- *   <li>{@link IOException}: Thrown during file I/O operations.</li>
- *   <li>{@link LogFileParserFactory.LogFileParserFactoryException}: Thrown if there is an issue creating a log file parser.</li>
- *   <li>{@link LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException}: Thrown if file content cannot be published.</li>
- * </ul>
  */
 @Slf4j
 public class ImporterProcessor {
@@ -128,7 +121,9 @@ public class ImporterProcessor {
       if (detectedFileFormat == FileFormat.ZIP) {
         publishZipFiles(filePath, (ZipInputStream) inputStream);
       } else {
-        publishFile(filePath, inputStream);
+        try (BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize)) {
+          publishFile(filePath, bis);
+        }
       }
     } catch (Exception e) {
       success = false;
@@ -146,19 +141,20 @@ public class ImporterProcessor {
     };
   }
 
-  private void publishFile(Path filePath, InputStream inputStream) throws
-      LogFileParserFactoryException, LogFileToAsn1CodecPublisherException, IOException {
+  private void publishFile(Path filePath, BufferedInputStream bis) throws
+      LogFileParserFactoryException, LogFileToAsn1CodecPublisherException {
     var fileName = filePath.getFileName().toString();
     var parser = LogFileParserFactory.getLogFileParser(fileName);
-    try (BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize)) {
-      codecPublisher.publish(bis, fileName, fileType, parser);
-    }
+    codecPublisher.publish(bis, fileName, fileType, parser);
   }
 
+
   private void publishZipFiles(Path filePath, ZipInputStream inputStream)
-      throws IOException, LogFileParserFactory.LogFileParserFactoryException, LogFileToAsn1CodecPublisher.LogFileToAsn1CodecPublisherException {
-    while (inputStream.getNextEntry() != null) {
-      publishFile(filePath, inputStream);
+      throws IOException, LogFileParserFactoryException, LogFileToAsn1CodecPublisherException {
+    try (BufferedInputStream bis = new BufferedInputStream(inputStream, this.bufferSize)) {
+      while (inputStream.getNextEntry() != null) {
+        publishFile(filePath, bis);
+      }
     }
   }
 }
