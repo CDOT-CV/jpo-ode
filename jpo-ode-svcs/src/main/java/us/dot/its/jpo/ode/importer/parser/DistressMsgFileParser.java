@@ -21,7 +21,7 @@ import us.dot.its.jpo.ode.model.OdeLogMetadata;
 
 /**
  * DistressMsgFileParser extends the {@link LogFileParser} abstract class and provides functionality
- * to parse log files containing Distress TIMs. It defines * steps to parse specific components like
+ * to parse log files containing Distress TIMs. It defines steps to parse specific components like
  * location, time, security result codes, and payload data within the file.
  */
 public class DistressMsgFileParser extends LogFileParser {
