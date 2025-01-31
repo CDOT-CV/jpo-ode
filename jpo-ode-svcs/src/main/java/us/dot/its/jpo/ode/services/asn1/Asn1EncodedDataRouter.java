@@ -158,13 +158,13 @@ public class Asn1EncodedDataRouter {
     log.debug("Mapped to object ServiceRequest: {}", request);
 
     if (payloadData.has("code") && payloadData.has("message")) {
-      // The ASN.1 decoding has failed. We cannot proceed
+      // The ASN.1 encoding has failed. We cannot proceed
       var code = payloadData.get("code");
       var message = payloadData.get("message");
 
-      log.error("ASN.1 decoding failed with code {} and message {}.", code, message);
+      log.error("ASN.1 encoding failed with code {} and message {}.", code, message);
       throw new Asn1EncodedDataRouterException(
-          "ASN.1 decoding failed with code %s and message %s.".formatted(code, message));
+          "ASN.1 encoding failed with code %s and message %s.".formatted(code, message));
     }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
