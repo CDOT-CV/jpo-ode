@@ -70,7 +70,7 @@ class LogFileToAsn1CodecPublisherTest {
   }
 
   @Test
-  void testPublishEOF(
+  void testPublishEmptyInputStreamDoesNotThrowException(
       @Mock JsonTopics jsonTopics,
       @Mock RawEncodedJsonTopics rawEncodedJsonTopics,
       @Mock KafkaTemplate<String, String> kafkaTemplate) throws Exception {
