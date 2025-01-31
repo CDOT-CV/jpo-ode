@@ -70,7 +70,7 @@ class OdeFileUtilsTest {
 
   @Test
   void testCreateDirectoryRecursively() {
-    var tempDir = new File(System.getProperty("java.io.tmpdir"));
+    var tempDir = new File(System.getProperty("java.io.tmpdir") + "/OdeFileUtilsTest-createDirectoryRecursively");
     try {
       OdeFileUtils.createDirectoryRecursively(tempDir.toPath());
     } catch (Exception e) {
@@ -119,8 +119,8 @@ class OdeFileUtilsTest {
   @Test
   void testBackupFile() {
     var tempDir = new File(System.getProperty("java.io.tmpdir"));
-
-    var tempBackupDir = new File(System.getProperty("java.io.tmpdir") + "/backups");
+    var tempBackupDir = new File(System.getProperty("java.io.tmpdir") + "/OdeFileUtilsTest-backups");
+    tempBackupDir.mkdirs();
     tempBackupDir.deleteOnExit();
     var tempFile = new File(tempDir, "testfile.uper");
     tempFile.deleteOnExit();
