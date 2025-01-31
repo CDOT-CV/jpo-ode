@@ -393,16 +393,15 @@ public class Asn1EncodedDataRouter {
   }
 
   /**
-   * Strips header from unsigned message (all bytes before 001F hex value).
+   * Strips header from unsigned message (all bytes before the TIM start flag hex value).
    */
   private String stripHeader(String encodedUnsignedTim) {
-    // find 001F hex value
     int index = encodedUnsignedTim.indexOf(SupportedMessageType.TIM.getStartFlag().toUpperCase());
     if (index == -1) {
       log.warn("No {} hex value found in encoded message", SupportedMessageType.TIM.getStartFlag());
       return encodedUnsignedTim;
     }
-    // strip everything before 001F
+    // strip everything before the start flag
     return encodedUnsignedTim.substring(index);
   }
 
