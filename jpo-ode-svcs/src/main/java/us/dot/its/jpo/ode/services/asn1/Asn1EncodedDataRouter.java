@@ -169,9 +169,9 @@ public class Asn1EncodedDataRouter {
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
     } else if (dataSigningEnabledSDW && request.getSdw() != null) {
-      processSignedMessage(request, payloadData);
+      processDoubleEncodedMessage(request, payloadData);
     } else {
-      processEncodedTimUnsigned(request, metadataJson, payloadData);
+      processSingleEncodedTim(request, metadataJson, payloadData);
     }
   }
 
@@ -182,7 +182,7 @@ public class Asn1EncodedDataRouter {
   }
 
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
-  private void processSignedMessage(ServiceRequest request, JSONObject dataObj) {
+  private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj) {
 
     JSONObject asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
 
@@ -240,7 +240,7 @@ public class Asn1EncodedDataRouter {
 
   // SDW in metadata but no ASD in body (send back for another encoding) -> sign MessageFrame
   // -> send to RSU -> craft ASD object -> publish back to encoder stream
-  private void processEncodedTimUnsigned(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
+  private void processSingleEncodedTim(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
     log.debug("Unsigned ASD received. Depositing it to SDW.");
 
     if (null != request.getSdw()) {

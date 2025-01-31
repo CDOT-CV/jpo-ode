@@ -145,7 +145,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processSignedMessage() throws IOException {
+  void processDoubleEncodedMessage() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimTmcFiltered(),
@@ -166,7 +166,7 @@ class Asn1EncodedDataRouterTest {
         xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter,
-        "processSignedMessage"
+        "processDoubleEncodedMessage"
     );
 
     var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
@@ -175,12 +175,12 @@ class Asn1EncodedDataRouterTest {
     var streamId = "266e6742-40fb-4c9e-a6b0-72ed2dddddfe";
     kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
 
-    var input = loadResourceString("asn1-encoder-output-unsigned-tim.xml");
+    var input = loadResourceString("asn1-encoder-output-tim-with-advisory-data.xml");
     var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
     Awaitility.await().until(completableFuture::isDone);
 
     var testConsumer =
-        createTestConsumer("processSignedMessage");
+        createTestConsumer("processDoubleEncodedMessage");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
     var expected = loadResourceString("expected-asn1-encoded-router-sdx-deposit.json");
@@ -195,7 +195,7 @@ class Asn1EncodedDataRouterTest {
     }
     assertTrue(foundValidRecord);
     container.stop();
-    log.debug("processSignedMessage container stopped");
+    log.debug("processDoubleEncodedMessage container stopped");
   }
 
   @Test
@@ -281,7 +281,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processEncodedTimUnsigned() throws IOException {
+  void processSingleEncodedTim() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimTmcFiltered()
@@ -310,11 +310,11 @@ class Asn1EncodedDataRouterTest {
     odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
     kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
 
-    var input = loadResourceString("asn1-encoder-output-unsigned-tim.xml");
+    var input = loadResourceString("asn1-encoder-output-tim-with-advisory-data.xml");
     input = replaceStreamId(input, streamId);
     kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
 
-    var testConsumer = createTestConsumer("processEncodedTimUnsigned");
+    var testConsumer = createTestConsumer("processSingleEncodedTim");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
     var expected = loadResourceString("expected-asn1-encoded-router-sdx-deposit.json");
@@ -341,7 +341,7 @@ class Asn1EncodedDataRouterTest {
     }
     assertTrue(foundValidRecord);
     container.stop();
-    log.debug("processEncodedTimUnsigned container stopped");
+    log.debug("processSingleEncodedTim container stopped");
   }
 
   private KafkaMessageListenerContainer<String, String> setupListenerContainer(
