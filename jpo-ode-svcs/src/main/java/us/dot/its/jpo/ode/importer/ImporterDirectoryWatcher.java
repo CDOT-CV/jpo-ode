@@ -90,6 +90,18 @@ public class ImporterDirectoryWatcher {
         fileImporterProperties.getBufferSize());
   }
 
+  /**
+   * Executes the scheduled task to process the inbox directory at a fixed interval.
+   * The method logs the processing information, processes files in the inbox, and logs
+   * the number of files processed successfully.
+   *
+   * <p>This task runs at a fixed rate defined in the application configuration using
+   * the property {@code ode.file-importer.time-period}, measured in seconds.</p>
+   *
+   * <p>During execution, the method utilizes the file processing logic to handle files
+   * located in the inbox directory, moving them to either the backup or failures directory
+   * based on the processing outcome.</p>
+   */
   @Scheduled(fixedRateString = "${ode.file-importer.time-period}", timeUnit = TimeUnit.SECONDS)
   public void run() {
     log.info("Processing inbox directory {} every {} seconds.", inboxPath, props.getTimePeriod());
