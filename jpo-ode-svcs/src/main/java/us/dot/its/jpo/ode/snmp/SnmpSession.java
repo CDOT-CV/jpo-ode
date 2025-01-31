@@ -277,8 +277,7 @@ public class SnmpSession {
    * @param index                 The index value associated with the PDU construction.
    * @param verb                  The request verb (e.g., GET, SET) for the PDU.
    * @param snmpProtocol          The SNMP protocol version or type used for constructing the PDU.
-   * @param dataSigningEnabledRSU A boolean flag indicating whether data signing is enabled for the
-   *                              RSU.
+   * @param dataSigningEnabledRSU A boolean flag indicating if ODE data signing is enabled for messages meant for RSUs.
    *
    * @return A ScopedPDU object constructed based on the provided parameters, or null if the
    *     protocol is unknown.
