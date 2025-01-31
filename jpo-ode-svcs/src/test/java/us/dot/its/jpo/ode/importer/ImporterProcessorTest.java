@@ -66,6 +66,21 @@ class ImporterProcessorTest {
   }
 
   @Test
+  void testProcessDirectoryPlainText(@Mock LogFileToAsn1CodecPublisher publisher) throws IOException {
+    var fileForProcessing = new File("%s/%s.txt".formatted(dirToProcess, bsmTx.name()));
+    assertTrue(fileForProcessing.createNewFile());
+    fileForProcessing.deleteOnExit();
+    var os = new FileOutputStream(fileForProcessing);
+    os.write("test".getBytes());
+    os.flush();
+    os.close();
+
+    ImporterProcessor importerProcessor = new ImporterProcessor(publisher, ImporterFileType.LOG_FILE, 1024);
+    int result = importerProcessor.processDirectory(dirToProcess, backupDir, failureDir);
+    assertEquals(1, result);
+  }
+
+  @Test
   void testProcessDirectoryWithNestedDirectories(@Mock LogFileToAsn1CodecPublisher publisher) throws IOException {
     var nestedDirectory = new File(dirToProcess + "/nestedDirectory");
     nestedDirectory.mkdirs();
