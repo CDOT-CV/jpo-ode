@@ -81,7 +81,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   private final RawEncodedJsonTopics rawEncodedJsonTopics;
   private final JsonTopics jsonTopics;
-  private final KafkaTemplate<String, String> publisher;
+  private final KafkaTemplate<String, String> template;
   private final SerialId serialId;
 
   /**
@@ -89,15 +89,15 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
    * to ASN.1 encoded formats and publishing them. It integrates with given
    * publishers and topic configurations for data processing and dissemination.
    *
-   * @param stringPublisher      the publisher responsible for publishing the encoded strings
+   * @param template             the publisher responsible for publishing the encoded strings
    * @param jsonTopics           the topic configuration for processing JSON data
    * @param rawEncodedJsonTopics the topic configuration for processing raw encoded JSON data
    */
-  public LogFileToAsn1CodecPublisher(KafkaTemplate<String, String> stringPublisher, JsonTopics jsonTopics,
+  public LogFileToAsn1CodecPublisher(KafkaTemplate<String, String> template, JsonTopics jsonTopics,
                                      RawEncodedJsonTopics rawEncodedJsonTopics) {
     this.jsonTopics = jsonTopics;
     this.rawEncodedJsonTopics = rawEncodedJsonTopics;
-    this.publisher = stringPublisher;
+    this.template = template;
     this.serialId = new SerialId();
   }
 
@@ -192,21 +192,21 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
       msgMetadata.setSerialId(serialId);
 
       if (isDriverAlertRecord(fileParser)) {
-        publisher.send(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false));
+        template.send(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false));
       } else if (isBsmRecord(fileParser)) {
-        publisher.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
+        template.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
       } else if (isSpatRecord(fileParser)) {
-        publisher.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
+        template.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
       } else {
         String messageType = UperUtil.determineMessageType(msgPayload);
         switch (messageType) {
-          case "MAP" -> publisher.send(rawEncodedJsonTopics.getMap(), JsonUtils.toJson(odeData, false));
-          case "SPAT" -> publisher.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
-          case "TIM" -> publisher.send(rawEncodedJsonTopics.getTim(), JsonUtils.toJson(odeData, false));
-          case "BSM" -> publisher.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
-          case "SSM" -> publisher.send(rawEncodedJsonTopics.getSsm(), JsonUtils.toJson(odeData, false));
-          case "SRM" -> publisher.send(rawEncodedJsonTopics.getSrm(), JsonUtils.toJson(odeData, false));
-          case "PSM" -> publisher.send(rawEncodedJsonTopics.getPsm(), JsonUtils.toJson(odeData, false));
+          case "MAP" -> template.send(rawEncodedJsonTopics.getMap(), JsonUtils.toJson(odeData, false));
+          case "SPAT" -> template.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
+          case "TIM" -> template.send(rawEncodedJsonTopics.getTim(), JsonUtils.toJson(odeData, false));
+          case "BSM" -> template.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
+          case "SSM" -> template.send(rawEncodedJsonTopics.getSsm(), JsonUtils.toJson(odeData, false));
+          case "SRM" -> template.send(rawEncodedJsonTopics.getSrm(), JsonUtils.toJson(odeData, false));
+          case "PSM" -> template.send(rawEncodedJsonTopics.getPsm(), JsonUtils.toJson(odeData, false));
           default -> log.warn("Unknown message type: {}", messageType);
         }
       }
