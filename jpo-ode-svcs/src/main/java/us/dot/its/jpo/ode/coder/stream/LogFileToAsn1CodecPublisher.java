@@ -61,13 +61,12 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   /**
    * This exception is thrown to indicate an error that occurred while processing
-   * a log file to be published via the ASN.1 codec. It acts as a wrapper for
+   * a log file to be published to kafka for further processing. It acts as a wrapper for
    * exceptions that arise in this context, providing additional context through
    * a descriptive message and the underlying cause.
    *
    * <p>The exception is typically used in scenarios where log files are parsed,
-   * converted, or otherwise processed to be published in ASN.1 format, and a
-   * failure in this process needs appropriate propagation and handling.</p>
+   * converted, or otherwise processed, and a failure in this process needs appropriate handling.</p>
    */
   public static class LogFileToAsn1CodecPublisherException extends Exception {
 
@@ -86,8 +85,8 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   /**
    * Constructs a LogFileToAsn1CodecPublisher instance used for converting log files
-   * to ASN.1 encoded formats and publishing them. It integrates with given
-   * publishers and topic configurations for data processing and dissemination.
+   * to {@link OdeData} objects and publishing them to kafka for further processing. It integrates with given
+   * publishers and topic configurations for data processing.
    *
    * @param stringPublisher      the publisher responsible for publishing the encoded strings
    * @param jsonTopics           the topic configuration for processing JSON data
