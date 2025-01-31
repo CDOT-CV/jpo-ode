@@ -110,7 +110,9 @@ public class SnmpSession {
    * Sends a SET-type PDU to the target specified by the constructor.
    *
    * @param pdu The message content to be sent to the target
+   *
    * @return ResponseEvent
+   *
    * @throws IOException when calling this method before the session is ready
    */
   public ResponseEvent<Address> set(PDU pdu, Snmp snmpob, UserTarget targetob, Boolean keepOpen)
@@ -152,12 +154,21 @@ public class SnmpSession {
     return responseEvent;
   }
 
+
   /**
-   * Sends a SET-type PDU to the target specified by the constructor.
+   * Sends an SNMP GET request to the specified target and handles the response.
    *
-   * @param pdu The message content to be sent to the target
-   * @return ResponseEvent
-   * @throws IOException when calling this method before the session is ready
+   * @param pdu      The Protocol Data Unit (PDU) containing the SNMP message to send.
+   * @param snmpob   The SNMP session object used to send the request.
+   * @param targetob The target object specifying the destination for the SNMP request.
+   * @param keepOpen A boolean flag that determines whether the SNMP session should
+   *                 remain open after the request is sent.
+   *
+   * @return A {@link ResponseEvent} object representing the response received from
+   *     the SNMP target, or null if no response was received.
+   *
+   * @throws IOException If the session is not ready, if there is an error in starting
+   *                     the listener, or any failure occurs while sending the SNMP request.
    */
   public ResponseEvent get(PDU pdu, Snmp snmpob, UserTarget targetob, Boolean keepOpen)
       throws IOException {
@@ -208,12 +219,14 @@ public class SnmpSession {
    * @param payload               The payload string to be included in the PDU of the request.
    * @param requestVerb           The type of SNMP request verb (e.g., GET, SET) for the operation.
    * @param dataSigningEnabledRSU A boolean flag indicating if data signing is enabled for the RSU.
+   *
    * @return A ResponseEvent representing the response received from the RSU.
+   *
    * @throws ParseException If there is an error in parsing the payload or PDU creation.
    * @throws IOException    If there is an error in establishing or using the SNMP transport.
    */
   public static ResponseEvent<Address> createAndSend(SNMP snmp, RSU rsu, String payload,
-      RequestVerb requestVerb, boolean dataSigningEnabledRSU) throws ParseException, IOException {
+                                                     RequestVerb requestVerb, boolean dataSigningEnabledRSU) throws ParseException, IOException {
 
     SnmpSession session = new SnmpSession(rsu);
 
@@ -266,12 +279,14 @@ public class SnmpSession {
    * @param snmpProtocol          The SNMP protocol version or type used for constructing the PDU.
    * @param dataSigningEnabledRSU A boolean flag indicating whether data signing is enabled for the
    *                              RSU.
+   *
    * @return A ScopedPDU object constructed based on the provided parameters, or null if the
-   *         protocol is unknown.
+   *     protocol is unknown.
+   *
    * @throws ParseException If there is an error in parsing the payload or during PDU creation.
    */
   public static ScopedPDU createPDU(SNMP snmp, String payload, int index, RequestVerb verb,
-      SnmpProtocol snmpProtocol, boolean dataSigningEnabledRSU) throws ParseException {
+                                    SnmpProtocol snmpProtocol, boolean dataSigningEnabledRSU) throws ParseException {
     switch (snmpProtocol) {
       case FOURDOT1:
         return createPDUWithFourDot1Protocol(snmp, payload, index, verb);
@@ -289,8 +304,9 @@ public class SnmpSession {
    *
    * @param oid The Object Identifier (OID) as a string, representing the SNMP object ID.
    * @param val The value to be encoded, provided as a hexadecimal string.
+   *
    * @return A VariableBinding object that contains the OID and the encoded value, or null
-   *         if the value does not fall within any of the predefined ranges.
+   *     if the value does not fall within any of the predefined ranges.
    */
   public static VariableBinding getPEncodedVariableBinding(String oid, String val) {
     Integer intVal = Integer.parseInt(val, 16);
@@ -322,7 +338,7 @@ public class SnmpSession {
   }
 
   private static ScopedPDU createPDUWithFourDot1Protocol(SNMP snmp, String payload, int index,
-      RequestVerb verb) throws ParseException {
+                                                         RequestVerb verb) throws ParseException {
     //////////////////////////////
     // - OID examples - //
     //////////////////////////////
@@ -383,7 +399,7 @@ public class SnmpSession {
   }
 
   private static ScopedPDU createPDUWithNTCIP1218Protocol(SNMP snmp, String payload, int index,
-      RequestVerb verb, boolean dataSigningEnabledRSU) throws ParseException {
+                                                          RequestVerb verb, boolean dataSigningEnabledRSU) throws ParseException {
     //////////////////////////////
     // - OID examples - //
     //////////////////////////////
