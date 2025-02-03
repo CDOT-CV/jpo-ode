@@ -48,13 +48,13 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 
 /**
  * The LogFileToAsn1CodecPublisher class is responsible for processing log files
- * and publishing data in ASN.1 encoded format to Kafka topics. It serves as an implementation
+ * and publishing the data to Kafka topics. It serves as an implementation
  * of the Asn1CodecPublisher interface.
  *
- * <p>This class handles different file types and decoding processes, converting them into ODE metadata
- * and payload models for publishing. It can also differentiate between various record types, such as
- * Driver Alert, BSM (Basic Safety Message), and SPAT (Signal Phase and Timing), and directs the data
- * to the appropriate topics defined in RawEncodedJsonTopics or JsonTopics.</p>
+ * <p>This class handles different file types and decoding processes, converting them into {@link OdeData}
+ * containing {@link OdeLogMetadata} and {@link OdeMsgPayload} models for publishing. It can also differentiate between various record types,
+ * such as Traveler Information Message (TIM), BSM (Basic Safety Message), and SPaT (Signal Phase and Timing), and directs the data to
+ * the appropriate topics defined in {@link RawEncodedJsonTopics} or {@link JsonTopics}.</p>
  */
 @Slf4j
 public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
@@ -85,9 +85,8 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
   private final SerialId serialId;
 
   /**
-   * Constructs a LogFileToAsn1CodecPublisher instance used for converting log files
-   * to ASN.1 encoded formats and publishing them. It integrates with given
-   * publishers and topic configurations for data processing and dissemination.
+   * Constructs a LogFileToAsn1CodecPublisher instance used for converting log files into {@link OdeData} objects and publishing
+   * the data to the relevant kafka topics for further processing.
    *
    * @param template             the publisher responsible for publishing the encoded strings
    * @param jsonTopics           the topic configuration for processing JSON data
@@ -102,10 +101,8 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
   }
 
   /**
-   * Publishes data parsed from a given input stream based on the specified file type.
-   * The method processes the input stream, parses the data using specific parsers
-   * depending on the file type, and publishes the parsed data. Handles both complete
-   * and incomplete data scenarios and maintains a list of all successfully parsed data.
+   * Uses the {@link LogFileParser} to parse the {@code BufferedInputStream} into {@link OdeData} objects. It then publishes each
+   * parsed {@code OdeData} object to the relevant kafka topic for further processing.
    *
    * @param inputStream the input stream containing the data to be parsed
    * @param fileName    the name of the file associated with the data in the input stream
