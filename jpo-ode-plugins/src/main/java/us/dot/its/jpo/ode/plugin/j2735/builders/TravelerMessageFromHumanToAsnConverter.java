@@ -33,7 +33,6 @@ import us.dot.its.jpo.ode.plugin.j2735.timstorage.DirectionOfUse.DirectionOfUseE
 import us.dot.its.jpo.ode.plugin.j2735.timstorage.DistanceUnits.DistanceUnitsEnum;
 import us.dot.its.jpo.ode.plugin.j2735.timstorage.Extent;
 import us.dot.its.jpo.ode.plugin.j2735.timstorage.SpeedLimitType.SpeedLimitTypeEnum;
-import us.dot.its.jpo.ode.util.CommonUtils;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
@@ -554,8 +553,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // directionality (optional)
     if (region.has(DIRECTIONALITY)) {
       JsonNode directionality = region.get(DIRECTIONALITY);
-      String enumString =
-          CommonUtils.enumToString(DirectionOfUseEnum.class, directionality.asText());
+      String enumString =  DirectionOfUseEnum.valueOf(directionality.asText()).toString();
       if (enumString != null) {
         region.set(DIRECTIONALITY, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
@@ -789,7 +787,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     // extent - no changes
     JsonNode extentNode = oldRegion.get(EXTENT);
-    String extent = CommonUtils.enumToString(Extent.ExtentEnum.class, extentNode.asText());
+    String extent = Extent.ExtentEnum.valueOf(extentNode.asText()).toString();
     oldRegion.set(EXTENT, JsonUtils.newNode().put(extent, EMPTY_FIELD_FLAG));
 
     // area - needs changes
@@ -872,7 +870,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // replace units
     if (updatedNode.has(UNITS)) {
       JsonNode units = updatedNode.get(UNITS);
-      String enumString = CommonUtils.enumToString(DistanceUnitsEnum.class, units.asText());
+      String enumString = DistanceUnitsEnum.valueOf(units.asText()).toString();
       if (enumString != null) {
         updatedNode.set(UNITS, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
@@ -910,7 +908,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     if (updatedNode.has(DIRECTIONALITY)) {
       JsonNode directionality = updatedNode.get(DIRECTIONALITY);
       String enumString =
-          CommonUtils.enumToString(DirectionOfUseEnum.class, directionality.asText());
+          DirectionOfUseEnum.valueOf(directionality.asText()).toString();
       if (enumString != null) {
         updatedNode.set(DIRECTIONALITY, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
@@ -1147,7 +1145,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     // type
     JsonNode typeNode = regulatorySpeedLimitNode.get(TYPE);
-    String type = CommonUtils.enumToString(SpeedLimitTypeEnum.class, typeNode.asText());
+    String type = SpeedLimitTypeEnum.valueOf(typeNode.asText()).toString();
     if (type != null) {
       updatedNode.set(TYPE, JsonUtils.newNode().put(type, EMPTY_FIELD_FLAG));
     }
