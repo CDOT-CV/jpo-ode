@@ -907,8 +907,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // replace directionality
     if (updatedNode.has(DIRECTIONALITY)) {
       JsonNode directionality = updatedNode.get(DIRECTIONALITY);
-      String enumString =
-          DirectionOfUseEnum.valueOf(directionality.asText()).toString();
+      String enumString = enumToString(DirectionOfUseEnum.class, directionality.asText());
       if (enumString != null) {
         updatedNode.set(DIRECTIONALITY, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
