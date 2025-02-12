@@ -238,7 +238,7 @@ public class Asn1EncodedDataRouter {
 
   /**
    * Constructs an XML representation of an Advisory Situation Data (ASD) message containing a
-   * signed Traveler Information Message (TIM). Processes the provided service request and signed
+   * Traveler Information Message (TIM). Processes the provided service request and signed
    * message to create and structure the ASD before converting it to an XML string output.
    *
    * @param request   the service request object containing meta information, service region,
