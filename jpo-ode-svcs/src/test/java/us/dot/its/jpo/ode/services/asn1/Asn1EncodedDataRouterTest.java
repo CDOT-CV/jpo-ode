@@ -61,6 +61,7 @@ import us.dot.its.jpo.ode.kafka.TestKafkaStreamsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
+import us.dot.its.jpo.ode.model.SDXDeposit;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.SecurityServicesClient;
@@ -183,13 +184,14 @@ class Asn1EncodedDataRouterTest {
         createTestConsumer("processDoubleEncodedMessage");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
-    var expected = loadResourceString("expected-asn1-encoded-router-sdx-deposit.json");
+    var expected = objectMapper.readValue(loadResourceString("expected-asn1-encoded-router-sdx-deposit.json"), SDXDeposit.class);
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records.records(sdxDepositorTopic);
     var foundValidRecord = false;
     for (var consumerRecord : sdxDepositorRecord) {
-      if (consumerRecord.value().equals(expected)) {
+      var actual = objectMapper.readValue(consumerRecord.value(), SDXDeposit.class);
+      if (actual.equals(expected)) {
         foundValidRecord = true;
       }
     }

@@ -44,6 +44,7 @@ import us.dot.its.jpo.ode.model.OdeAsdPayload;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
+import us.dot.its.jpo.ode.model.SDXDeposit;
 import us.dot.its.jpo.ode.plugin.SNMP;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
@@ -182,14 +183,12 @@ public class Asn1EncodedDataRouter {
   }
 
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
-  private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj) {
-
-    JSONObject asdObj = dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
-
-    JSONObject deposit = new JSONObject();
-    deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
-    deposit.put("encodedMsg", asdObj.getString(BYTES));
-    kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
+  private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj) throws JsonProcessingException {
+    SDXDeposit sdxDeposit = new SDXDeposit(
+        request.getSdw().getEstimatedRemovalDate(),
+        dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING).getString(BYTES)
+    );
+    kafkaTemplate.send(this.sdxDepositTopic, mapper.writeValueAsString(sdxDeposit));
   }
 
   // no SDW in metadata (SNMP deposit only) -> sign MF -> send to RSU
