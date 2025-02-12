@@ -191,7 +191,6 @@ public class Asn1EncodedDataRouter {
     kafkaTemplate.send(this.sdxDepositTopic, mapper.writeValueAsString(sdxDeposit));
   }
 
-  // no SDW in metadata (SNMP deposit only) -> sign MF -> send to RSU
   private void processUnsignedMessage(ServiceRequest request,
                                       JSONObject metadataJson,
                                       JSONObject payloadJson) {
