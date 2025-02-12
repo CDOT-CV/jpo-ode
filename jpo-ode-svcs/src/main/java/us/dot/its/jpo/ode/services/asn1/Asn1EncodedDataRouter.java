@@ -45,7 +45,6 @@ import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.model.SDXDeposit;
-import us.dot.its.jpo.ode.plugin.SNMP;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
@@ -250,7 +249,6 @@ public class Asn1EncodedDataRouter {
    */
   private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg) throws JsonProcessingException, ParseException {
     SDW sdw = request.getSdw();
-    SNMP snmp = request.getSnmp();
     DdsAdvisorySituationData asd;
 
     byte sendToRsu =
@@ -260,14 +258,8 @@ public class Asn1EncodedDataRouter {
     asd = new DdsAdvisorySituationData()
         .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
         .setTimeToLive(sdw.getTtl())
-        .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId());
-
-    if (null != snmp) {
-      asd.setAsdmDetails(snmp.getDeliverystart(), snmp.getDeliverystop(), distroType, null);
-    } else {
-      asd.setAsdmDetails(sdw.getDeliverystart(), sdw.getDeliverystop(), distroType, null);
-    }
-
+        .setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId())
+        .setAsdmDetails(sdw.getDeliverystart(), sdw.getDeliverystop(), distroType, null);
 
     var asdJson = (ObjectNode) mapper.readTree(asd.toJson());
 
