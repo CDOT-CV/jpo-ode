@@ -168,10 +168,10 @@ public class Asn1EncodedDataRouter {
     }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
-    } else if (dataSigningEnabledSDW && request.getSdw() != null) {
+    } else if (request.getSdw() != null) {
       processDoubleEncodedMessage(request, payloadData);
     } else {
-      processSingleEncodedTim(request, metadataJson, payloadData);
+      log.warn("SDW not provided in metadata, and no ASD in payload. Skipping...");
     }
   }
 
@@ -236,45 +236,6 @@ public class Asn1EncodedDataRouter {
     setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
 
     kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
-  }
-
-  // SDW in metadata but no ASD in body (send back for another encoding) -> sign MessageFrame
-  // -> send to RSU -> craft ASD object -> publish back to encoder stream
-  private void processSingleEncodedTim(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
-    log.debug("Unsigned ASD received. Depositing it to SDW.");
-
-    if (null != request.getSdw()) {
-      var asdObj = payloadJson.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
-      if (null != asdObj) {
-        depositToSdx(request, asdObj.getString(BYTES));
-      } else {
-        log.error("ASN.1 Encoder did not return ASD encoding {}", payloadJson);
-      }
-    }
-
-    if (payloadJson.has(MESSAGE_FRAME)) {
-      JSONObject mfObj = payloadJson.getJSONObject(MESSAGE_FRAME);
-      String encodedTim = mfObj.getString(BYTES);
-
-      depositToFilteredTopic(metadataJson, encodedTim);
-
-      var encodedTimWithoutHeader = stripHeader(encodedTim);
-      log.debug("Encoded message - phase 2: {}", encodedTimWithoutHeader);
-
-      sendToRsus(request, encodedTimWithoutHeader);
-    }
-  }
-
-  private void depositToSdx(ServiceRequest request, String asdBytes) {
-    try {
-      JSONObject deposit = new JSONObject();
-      deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
-      deposit.put("encodedMsg", asdBytes);
-      kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
-      log.info("SDX deposit successful.");
-    } catch (Exception e) {
-      log.error("Failed to deposit to SDX", e);
-    }
   }
 
   /**
