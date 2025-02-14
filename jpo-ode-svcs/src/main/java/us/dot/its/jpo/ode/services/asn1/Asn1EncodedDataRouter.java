@@ -171,7 +171,8 @@ public class Asn1EncodedDataRouter {
     } else if (dataSigningEnabledSDW && request.getSdw() != null) {
       processDoubleEncodedMessage(request, payloadData);
     } else {
-      processSingleEncodedTim(request, metadataJson, payloadData);
+      log.warn("SDW data signing not enabled. Proceeding with unsigned TIM processing. This is not recommended for production use.");
+      processUnsignedTimDeposit(request, metadataJson, payloadData);
     }
   }
 
@@ -183,11 +184,7 @@ public class Asn1EncodedDataRouter {
 
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
   private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj) throws JsonProcessingException {
-    SDXDeposit sdxDeposit = new SDXDeposit(
-        request.getSdw().getEstimatedRemovalDate(),
-        dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING).getString(BYTES)
-    );
-    kafkaTemplate.send(this.sdxDepositTopic, mapper.writeValueAsString(sdxDeposit));
+    depositToSdx(request, dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING).getString(BYTES));
   }
 
   private void processUnsignedMessage(ServiceRequest request,
@@ -235,15 +232,24 @@ public class Asn1EncodedDataRouter {
     kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
   }
 
-  // SDW in metadata but no ASD in body (send back for another encoding) -> sign MessageFrame
-  // -> send to RSU -> craft ASD object -> publish back to encoder stream
-  private void processSingleEncodedTim(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
+  /**
+   * This handles the flow where a TIM is submitted to the {@link us.dot.its.jpo.ode.traveler.TimDepositController}
+   * and {@link SecurityServicesProperties} has dataSigningEnabledSDW set to false. This is not a common path since
+   * it's strongly suggested to always have signing enabled in production.
+   */
+  private void processUnsignedTimDeposit(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
     log.debug("Unsigned ASD received. Depositing it to SDW.");
 
     if (null != request.getSdw()) {
       var asdObj = payloadJson.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
       if (null != asdObj) {
-        depositToSdx(request, asdObj.getString(BYTES));
+        try {
+          depositToSdx(request, asdObj.getString(BYTES));
+        } catch (Exception e) {
+          // even if we fail to deposit to the SDX in this flow, we still want to attempt to deposit to
+          // the TMC Filtered topic below
+          log.error("Failed to deposit to SDX", e);
+        }
       } else {
         log.error("ASN.1 Encoder did not return ASD encoding {}", payloadJson);
       }
@@ -262,16 +268,12 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-  private void depositToSdx(ServiceRequest request, String asdBytes) {
-    try {
-      JSONObject deposit = new JSONObject();
-      deposit.put("estimatedRemovalDate", request.getSdw().getEstimatedRemovalDate());
-      deposit.put("encodedMsg", asdBytes);
-      kafkaTemplate.send(this.sdxDepositTopic, deposit.toString());
-      log.info("SDX deposit successful.");
-    } catch (Exception e) {
-      log.error("Failed to deposit to SDX", e);
-    }
+  private void depositToSdx(ServiceRequest request, String asdBytes) throws JsonProcessingException {
+    SDXDeposit sdxDeposit = new SDXDeposit(
+        request.getSdw().getEstimatedRemovalDate(),
+        asdBytes
+    );
+    kafkaTemplate.send(this.sdxDepositTopic, mapper.writeValueAsString(sdxDeposit));
   }
 
   /**

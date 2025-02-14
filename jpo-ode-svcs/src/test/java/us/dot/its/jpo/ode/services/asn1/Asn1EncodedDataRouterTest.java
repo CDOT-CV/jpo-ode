@@ -283,7 +283,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processSingleEncodedTim() throws IOException {
+  void processUnsignedTimDeposit() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimTmcFiltered()
