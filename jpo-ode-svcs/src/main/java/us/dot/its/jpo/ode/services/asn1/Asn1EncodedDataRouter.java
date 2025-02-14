@@ -168,11 +168,10 @@ public class Asn1EncodedDataRouter {
     }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadataJson, payloadData);
-    } else if (dataSigningEnabledSDW && request.getSdw() != null) {
+    } else if (request.getSdw() != null) {
       processDoubleEncodedMessage(request, payloadData);
     } else {
-      log.warn("SDW data signing not enabled. Proceeding with unsigned TIM processing. This is not recommended for production use.");
-      processUnsignedTimDeposit(request, metadataJson, payloadData);
+      log.warn("Received encoded AdvisorySituationData message without SDW data. This should never happen.");
     }
   }
 
@@ -230,42 +229,6 @@ public class Asn1EncodedDataRouter {
     setRequiredExpiryDate(dateFormat, timStartDateTime, maxDurationTime, timWithExpiration);
 
     kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
-  }
-
-  /**
-   * This handles the flow where a TIM is submitted to the {@link us.dot.its.jpo.ode.traveler.TimDepositController}
-   * and {@link SecurityServicesProperties} has dataSigningEnabledSDW set to false. This is not a common path since
-   * it's strongly suggested to always have signing enabled in production.
-   */
-  private void processUnsignedTimDeposit(ServiceRequest request, JSONObject metadataJson, JSONObject payloadJson) {
-    log.debug("Unsigned ASD received. Depositing it to SDW.");
-
-    if (null != request.getSdw()) {
-      var asdObj = payloadJson.getJSONObject(ADVISORY_SITUATION_DATA_STRING);
-      if (null != asdObj) {
-        try {
-          depositToSdx(request, asdObj.getString(BYTES));
-        } catch (Exception e) {
-          // even if we fail to deposit to the SDX in this flow, we still want to attempt to deposit to
-          // the TMC Filtered topic below
-          log.error("Failed to deposit to SDX", e);
-        }
-      } else {
-        log.error("ASN.1 Encoder did not return ASD encoding {}", payloadJson);
-      }
-    }
-
-    if (payloadJson.has(MESSAGE_FRAME)) {
-      JSONObject mfObj = payloadJson.getJSONObject(MESSAGE_FRAME);
-      String encodedTim = mfObj.getString(BYTES);
-
-      depositToFilteredTopic(metadataJson, encodedTim);
-
-      var encodedTimWithoutHeader = stripHeader(encodedTim);
-      log.debug("Encoded message - phase 2: {}", encodedTimWithoutHeader);
-
-      sendToRsus(request, encodedTimWithoutHeader);
-    }
   }
 
   private void depositToSdx(ServiceRequest request, String asdBytes) throws JsonProcessingException {
