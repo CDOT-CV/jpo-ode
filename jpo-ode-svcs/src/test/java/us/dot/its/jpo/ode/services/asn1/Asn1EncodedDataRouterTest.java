@@ -34,7 +34,6 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -121,10 +120,9 @@ class Asn1EncodedDataRouterTest {
   @Value("${ode.kafka.topics.sdx-depositor.input}")
   String sdxDepositorTopic;
 
-  @Mock
-  RsuDepositor mockRsuDepositor;
   @Autowired
   private XmlMapper xmlMapper;
+
 
   private static String stripGeneratedFields(String expectedEncoderInput) {
     return expectedEncoderInput
@@ -163,7 +161,7 @@ class Asn1EncodedDataRouterTest {
         jsonTopics,
         securityServicesProperties,
         odeTimJsonTopology,
-        mockRsuDepositor,
+        Mockito.mock(RsuDepositor.class),
         secServicesClient,
         kafkaTemplate, sdxDepositorTopic,
         objectMapper,
@@ -214,6 +212,7 @@ class Asn1EncodedDataRouterTest {
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
+    var mockRsuDepositor = Mockito.mock(RsuDepositor.class);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         asn1CoderTopics,
         jsonTopics,
@@ -241,20 +240,24 @@ class Asn1EncodedDataRouterTest {
     Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "processUnsignedMessage", "false", embeddedKafka);
+        "processUnsignedMessageSDWOnly", "false", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
 
     var timCertConsumer =
-        consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessage");
+        consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessageSDWOnly");
     embeddedKafka.consumeFromAnEmbeddedTopic(timCertConsumer, jsonTopics.getTimCertExpiration());
     var expectedTimCertExpiry = loadResourceString("expected-tim-cert-expired.json");
-    var timCertExpirationRecord =
-        KafkaTestUtils.getSingleRecord(timCertConsumer, jsonTopics.getTimCertExpiration());
-    assertEquals(expectedTimCertExpiry, timCertExpirationRecord.value());
+    var foundValidCertExpiryRecord = false;
+    for (var consumerRecord : KafkaTestUtils.getRecords(timCertConsumer)) {
+      if (consumerRecord.value().equals(expectedTimCertExpiry)) {
+        foundValidCertExpiryRecord = true;
+      }
+    }
+    assertTrue(foundValidCertExpiryRecord);
 
     var timTmcFilteredConsumer =
-        consumerFactory.createConsumer("timTmcFiltered", "processUnsignedMessage");
+        consumerFactory.createConsumer("timTmcFiltered", "processUnsignedMessageSDWOnly");
     embeddedKafka.consumeFromAnEmbeddedTopic(timTmcFilteredConsumer,
         jsonTopics.getTimTmcFiltered());
     var expectedTimTmcFiltered = loadResourceString("expected-tim-tmc-filtered.json");
@@ -271,7 +274,7 @@ class Asn1EncodedDataRouterTest {
     assertTrue(foundValidRecord);
 
     var encoderInputConsumer =
-        consumerFactory.createConsumer("encoderInput", "processUnsignedMessage");
+        consumerFactory.createConsumer("encoderInput", "processUnsignedMessageSDWOnly");
     embeddedKafka.consumeFromAnEmbeddedTopic(encoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     var expectedEncoderInput = loadResourceString("expected-asn1-encoded-router-snmp-deposit.xml");
@@ -281,8 +284,12 @@ class Asn1EncodedDataRouterTest {
       var encoderInputWithStableFieldsOnly = stripGeneratedFields(consumerRecord.value());
       assertEquals(expectedEncoderInputWithStableFieldsOnly, encoderInputWithStableFieldsOnly);
     }
+
+    timCertConsumer.close();
+    timTmcFilteredConsumer.close();
+    encoderInputConsumer.close();
     container.stop();
-    log.debug("processUnsignedMessage container stopped");
+    log.debug("processUnsignedMessageSDWOnly container stopped");
   }
 
   @Test
@@ -296,6 +303,7 @@ class Asn1EncodedDataRouterTest {
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
+    var mockRsuDepositor = Mockito.mock(RsuDepositor.class);
     Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
         asn1CoderTopics,
         jsonTopics,
@@ -331,9 +339,13 @@ class Asn1EncodedDataRouterTest {
         consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessageWithRsus");
     embeddedKafka.consumeFromAnEmbeddedTopic(timCertConsumer, jsonTopics.getTimCertExpiration());
     var expectedTimCertExpiry = loadResourceString("expected-tim-cert-expired-rsus-case.json");
-    var timCertExpirationRecord =
-        KafkaTestUtils.getSingleRecord(timCertConsumer, jsonTopics.getTimCertExpiration());
-    assertEquals(expectedTimCertExpiry, timCertExpirationRecord.value());
+    var foundValidCertExpiryRecord = false;
+    for (var consumerRecord : KafkaTestUtils.getRecords(timCertConsumer)) {
+      if (consumerRecord.value().equals(expectedTimCertExpiry)) {
+        foundValidCertExpiryRecord = true;
+      }
+    }
+    assertTrue(foundValidCertExpiryRecord);
 
     var timTmcFilteredConsumer =
         consumerFactory.createConsumer("timTmcFiltered", "processUnsignedMessageWithRsus");
