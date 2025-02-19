@@ -103,6 +103,7 @@ class OdeFileUtilsTest {
 
     when(mockFile.getFileName()).thenReturn(Path.of("testfile.uper"));
     when(backupDir.toFile()).thenReturn(mockBackupDirFile);
+    when(backupDir.toString()).thenReturn("/tmp/OdeFileUtilsTest-backupDir");
     when(mockBackupDirFile.exists()).thenReturn(true);
 
     // Mock Files.move to throw an IOException
