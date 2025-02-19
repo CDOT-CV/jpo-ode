@@ -29,6 +29,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -153,8 +154,7 @@ public class Asn1EncodedDataRouter {
     }
 
     JSONObject payloadData = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
-    JSONObject metadataJson = consumedObj.getJSONObject(AppContext.METADATA_STRING);
-    ServiceRequest request = getServiceRequest(metadataJson);
+    ServiceRequest request = getServiceRequest(metadata);
     log.debug("Mapped to object ServiceRequest: {}", request);
 
     if (payloadData.has("code") && payloadData.has("message")) {
@@ -167,7 +167,7 @@ public class Asn1EncodedDataRouter {
           "ASN.1 encoding failed with code %s and message %s.".formatted(code, message));
     }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
-      processUnsignedMessage(request, metadataJson, payloadData);
+      processUnsignedMessage(request, metadata, payloadData);
     } else if (request.getSdw() != null) {
       processDoubleEncodedMessage(request, payloadData);
     } else {
@@ -176,9 +176,59 @@ public class Asn1EncodedDataRouter {
   }
 
   private ServiceRequest getServiceRequest(JSONObject metadataJson) throws JsonProcessingException {
+    if (metadataJson.has(TimTransmogrifier.REQUEST_STRING)) {
+      JSONObject request = metadataJson.getJSONObject(TimTransmogrifier.REQUEST_STRING);
+      processRsusIfPresent(request);
+    }
     String serviceRequestJson = metadataJson.getJSONObject(TimTransmogrifier.REQUEST_STRING).toString();
     log.debug("ServiceRequest: {}", serviceRequestJson);
     return mapper.readValue(serviceRequestJson, ServiceRequest.class);
+  }
+
+  /**
+   * When receiving the 'rsus' in xml, since there is only one 'rsu' and
+   * there is no construct for array in xml, the rsus does not translate
+   * to an array of 1 element. This method, resolves this issue.
+   * Note: the code modifies the request object in place.
+   */
+  private void processRsusIfPresent(JSONObject request) {
+    final String RSUS_KEY = TimTransmogrifier.RSUS_STRING;
+    if (!request.has(RSUS_KEY)) {
+      return;
+    }
+
+    Object rsus = request.get(RSUS_KEY);
+    // Workaround for XML-to-JSON structure issue
+    if (rsus instanceof JSONObject rsusJson && rsusJson.has(RSUS_KEY)) {
+      Object nestedRsus = rsusJson.get(RSUS_KEY);
+      JSONArray normalizedRsus = normalizeRsus(nestedRsus);
+      if (normalizedRsus != null) {
+        request.put(RSUS_KEY, normalizedRsus);
+      } else {
+        request.remove(RSUS_KEY);
+        log.debug("No RSUs exist in the request: {}", request);
+      }
+    }
+  }
+
+  private JSONArray normalizeRsus(Object rsus) {
+    JSONArray normalizedArray = new JSONArray();
+    if (rsus instanceof JSONArray rsusArray) {
+      // Multiple RSUs case
+      log.debug("Multiple RSUs exist in the request");
+      for (int i = 0; i < rsusArray.length(); i++) {
+        normalizedArray.put(rsusArray.get(i));
+      }
+      return normalizedArray;
+    } else if (rsus instanceof JSONObject) {
+      // Single RSU case
+      log.debug("Single RSU exists in the request");
+      normalizedArray.put(rsus);
+      return normalizedArray;
+    }
+
+    // No RSU found
+    return null;
   }
 
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX

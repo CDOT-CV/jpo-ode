@@ -18,6 +18,7 @@ package us.dot.its.jpo.ode.services.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -34,6 +35,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -62,6 +64,7 @@ import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.model.SDXDeposit;
+import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.security.SecurityServicesClient;
@@ -201,7 +204,7 @@ class Asn1EncodedDataRouterTest {
   }
 
   @Test
-  void processUnsignedMessage() throws IOException {
+  void processUnsignedMessageSDWOnly() throws IOException {
     String[] topicsForConsumption = {
         asn1CoderTopics.getEncoderInput(),
         jsonTopics.getTimCertExpiration(),
@@ -280,6 +283,80 @@ class Asn1EncodedDataRouterTest {
     }
     container.stop();
     log.debug("processUnsignedMessage container stopped");
+  }
+
+  @Test
+  void processUnsignedMessageWithRsus() throws IOException {
+    String[] topicsForConsumption = {
+        asn1CoderTopics.getEncoderInput(),
+        jsonTopics.getTimCertExpiration(),
+        jsonTopics.getTimTmcFiltered()
+    };
+    EmbeddedKafkaHolder.addTopics(topicsForConsumption);
+
+    securityServicesProperties.setIsSdwSigningEnabled(true);
+    securityServicesProperties.setIsRsuSigningEnabled(true);
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
+        asn1CoderTopics,
+        jsonTopics,
+        securityServicesProperties,
+        odeTimJsonTopology,
+        mockRsuDepositor,
+        secServicesClient,
+        kafkaTemplate, sdxDepositorTopic,
+        objectMapper,
+        xmlMapper);
+
+    final var container = setupListenerContainer(encoderRouter, "processUnsignedMessageWithRsus");
+
+    var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
+    // send to tim topic so that the OdeTimJsonTopology k-table has the correct record to return
+    var streamId = UUID.randomUUID().toString();
+    odeJsonTim = odeJsonTim.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+    var topologySendFuture = kafkaTemplate.send(jsonTopics.getTim(), streamId, odeJsonTim);
+    Awaitility.await().until(topologySendFuture::isDone);
+
+    var input = loadResourceString("asn1-encoder-output-tim-with-rsus.xml");
+    input = replaceStreamId(input, streamId);
+
+    var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
+    Awaitility.await().until(completableFuture::isDone);
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "processUnsignedMessage", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
+        new StringDeserializer(), new StringDeserializer());
+
+    var timCertConsumer =
+        consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessageWithRsus");
+    embeddedKafka.consumeFromAnEmbeddedTopic(timCertConsumer, jsonTopics.getTimCertExpiration());
+    var expectedTimCertExpiry = loadResourceString("expected-tim-cert-expired-rsus-case.json");
+    var timCertExpirationRecord =
+        KafkaTestUtils.getSingleRecord(timCertConsumer, jsonTopics.getTimCertExpiration());
+    assertEquals(expectedTimCertExpiry, timCertExpirationRecord.value());
+
+    var timTmcFilteredConsumer =
+        consumerFactory.createConsumer("timTmcFiltered", "processUnsignedMessageWithRsus");
+    embeddedKafka.consumeFromAnEmbeddedTopic(timTmcFilteredConsumer,
+        jsonTopics.getTimTmcFiltered());
+    var expectedTimTmcFiltered = loadResourceString("expected-tim-tmc-filtered-rsus-case.json");
+    var records = KafkaTestUtils.getRecords(timTmcFilteredConsumer);
+    expectedTimTmcFiltered =
+        expectedTimTmcFiltered.replaceAll("266e6742-40fb-4c9e-a6b0-72ed2dddddfe", streamId);
+    var foundValidRecord = false;
+    for (var consumerRecord : records.records(jsonTopics.getTimTmcFiltered())) {
+      if (consumerRecord.value().contains(streamId)) {
+        assertEquals(expectedTimTmcFiltered, consumerRecord.value());
+        foundValidRecord = true;
+      }
+    }
+    assertTrue(foundValidRecord);
+
+    Mockito.verify(mockRsuDepositor, Mockito.times(1)).deposit(Mockito.any(ServiceRequest.class), anyString());
+    timCertConsumer.close();
+    timTmcFilteredConsumer.close();
+    container.stop();
+    log.debug("processUnsignedMessageWithRsus container stopped");
   }
 
   private KafkaMessageListenerContainer<String, String> setupListenerContainer(
