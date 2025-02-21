@@ -28,8 +28,6 @@ import org.springframework.core.env.Environment;
 public class AppContext {
    // CONSTANTS
    public static final String ODE_HOSTNAME = "ODE_HOSTNAME";
-   public static final String ODE_ASN1_DATA = "OdeAsn1Data";
-   public static final String RECEIVEDMSGDETAILS_STRING = "receivedMessageDetails";
 
    private static AppContext instance = null;
 

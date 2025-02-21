@@ -36,7 +36,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
-import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.model.Asn1Encoding;
@@ -347,7 +346,7 @@ public class Asn1EncodedDataRouter {
     message.set(OdeMsgPayload.PAYLOAD_STRING, payloadNode);
 
     ObjectNode root = mapper.createObjectNode();
-    root.set(AppContext.ODE_ASN1_DATA, message);
+    root.set(OdeAsn1Data.ODE_ASN1_DATA, message);
 
     var outputXml = xmlMapper.writeValueAsString(root)
         .replace("<ObjectNode>", "")

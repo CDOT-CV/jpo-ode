@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeTimData;
 import us.dot.its.jpo.ode.model.OdeTimMetadata;
@@ -44,7 +43,7 @@ public class OdeTimDataCreatorHelper {
       JsonNode jsonNode;
       try {
         jsonNode = objectMapper.readTree(receivedMessageDetails.toJson());
-        object.set(AppContext.RECEIVEDMSGDETAILS_STRING, jsonNode);
+        object.set(OdeMsgMetadata.RECEIVEDMSGDETAILS_STRING, jsonNode);
       } catch (Exception e) {
         log.error("Failed to read JSON node: {}", e.getMessage());
       }

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
-import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.OdeMapData;
 import us.dot.its.jpo.ode.model.OdeMapMetadata;
 import us.dot.its.jpo.ode.model.OdeMapPayload;
@@ -38,7 +37,7 @@ public class OdeMapDataCreatorHelper {
 			JsonNode jsonNode;
 			try {
 				jsonNode = objectMapper.readTree(receivedMessageDetails.toJson());
-				object.set(AppContext.RECEIVEDMSGDETAILS_STRING, jsonNode);
+				object.set(OdeMsgMetadata.RECEIVEDMSGDETAILS_STRING, jsonNode);
 			} catch (JsonProcessingException e) {
 				e.printStackTrace();
 			} catch (IOException e) {

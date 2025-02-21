@@ -31,6 +31,7 @@ public class OdeMsgMetadata extends OdeObject {
 
   public static final String METADATA_STRING = "metadata";
   public static final String ENCODINGS_STRING = "encodings";
+  public static final String RECEIVEDMSGDETAILS_STRING = "receivedMessageDetails";
 
   /**
    * Enum for conveying where a message was generated from.
