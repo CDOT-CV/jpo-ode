@@ -3,7 +3,6 @@ package us.dot.its.jpo.ode.traveler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.Asn1Encoding;
 import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
@@ -134,7 +133,7 @@ public class TimTransmogrifier {
       }
 
       ObjectNode payloadObj = JsonUtils.toObjectNode(payload.toJson());
-      payloadObj.set(AppContext.DATA_STRING, dataBodyObj);
+      payloadObj.set(OdeMsgPayload.DATA_STRING, dataBodyObj);
 
       // Create a valid metadata from scratch
       OdeMsgMetadata metadata = new OdeMsgMetadata(payload);
@@ -159,7 +158,7 @@ public class TimTransmogrifier {
 
       ObjectNode message = JsonUtils.newNode();
       message.set(AppContext.METADATA_STRING, metaObject);
-      message.set(AppContext.PAYLOAD_STRING, payloadObj);
+      message.set(OdeMsgPayload.PAYLOAD_STRING, payloadObj);
 
       ObjectNode root = JsonUtils.newNode();
       root.set(AppContext.ODE_ASN1_DATA, message);

@@ -153,7 +153,7 @@ public class Asn1EncodedDataRouter {
       );
     }
 
-    JSONObject payloadData = consumedObj.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
+    JSONObject payloadData = consumedObj.getJSONObject(OdeMsgPayload.PAYLOAD_STRING).getJSONObject(OdeMsgPayload.DATA_STRING);
     ServiceRequest request = getServiceRequest(metadata);
     log.debug("Mapped to object ServiceRequest: {}", request);
 
@@ -329,7 +329,7 @@ public class Asn1EncodedDataRouter {
     OdeMsgPayload payload = new OdeAsdPayload(asd);
 
     var payloadNode = (ObjectNode) mapper.readTree(payload.toJson());
-    payloadNode.set(AppContext.DATA_STRING, advisorySituationDataNode);
+    payloadNode.set(OdeMsgPayload.DATA_STRING, advisorySituationDataNode);
 
     OdeMsgMetadata metadata = new OdeMsgMetadata(payload);
     var metadataNode = (ObjectNode) mapper.readTree(metadata.toJson());
@@ -344,7 +344,7 @@ public class Asn1EncodedDataRouter {
 
     ObjectNode message = mapper.createObjectNode();
     message.set(AppContext.METADATA_STRING, metadataNode);
-    message.set(AppContext.PAYLOAD_STRING, payloadNode);
+    message.set(OdeMsgPayload.PAYLOAD_STRING, payloadNode);
 
     ObjectNode root = mapper.createObjectNode();
     root.set(AppContext.ODE_ASN1_DATA, message);
