@@ -26,9 +26,6 @@ import org.springframework.core.env.Environment;
 @Slf4j
 @Configuration
 public class AppContext {
-   // CONSTANTS
-   public static final String ODE_HOSTNAME = "ODE_HOSTNAME";
-
    private static AppContext instance = null;
 
    @Autowired
