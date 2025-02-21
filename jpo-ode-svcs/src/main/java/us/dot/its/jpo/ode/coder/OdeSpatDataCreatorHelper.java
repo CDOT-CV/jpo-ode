@@ -1,13 +1,12 @@
 package us.dot.its.jpo.ode.coder;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
+import java.io.IOException;
 import us.dot.its.jpo.ode.context.AppContext;
+import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeSpatData;
 import us.dot.its.jpo.ode.model.OdeSpatMetadata;
 import us.dot.its.jpo.ode.model.OdeSpatPayload;
@@ -26,10 +25,10 @@ public class OdeSpatDataCreatorHelper {
 	public static OdeSpatData createOdeSpatData(String consumedData) throws XmlUtilsException {
 		ObjectNode consumed = XmlUtils.toObjectNode(consumedData);
 
-		JsonNode metadataNode = consumed.findValue(AppContext.METADATA_STRING);
+		JsonNode metadataNode = consumed.findValue(OdeMsgMetadata.METADATA_STRING);
 		if (metadataNode instanceof ObjectNode) {
 			ObjectNode object = (ObjectNode) metadataNode;
-			object.remove(AppContext.ENCODINGS_STRING);
+			object.remove(OdeMsgMetadata.ENCODINGS_STRING);
 			
 			//Spat header file does not have a location and use predefined set required RxSource
 			ReceivedMessageDetails receivedMessageDetails = new ReceivedMessageDetails();

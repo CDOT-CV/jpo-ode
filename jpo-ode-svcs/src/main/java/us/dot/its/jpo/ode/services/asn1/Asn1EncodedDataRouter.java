@@ -143,7 +143,7 @@ public class Asn1EncodedDataRouter {
     JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
-    JSONObject metadata = consumedObj.getJSONObject(AppContext.METADATA_STRING);
+    JSONObject metadata = consumedObj.getJSONObject(OdeMsgMetadata.METADATA_STRING);
 
     if (!metadata.has(TimTransmogrifier.REQUEST_STRING)) {
       throw new Asn1EncodedDataRouterException(
@@ -338,12 +338,12 @@ public class Asn1EncodedDataRouter {
 
     ArrayNode encodings = buildEncodings();
     var embeddedEncodings = xmlMapper.createObjectNode();
-    embeddedEncodings.set(AppContext.ENCODINGS_STRING, encodings);
+    embeddedEncodings.set(OdeMsgMetadata.ENCODINGS_STRING, encodings);
 
-    metadataNode.set(AppContext.ENCODINGS_STRING, embeddedEncodings);
+    metadataNode.set(OdeMsgMetadata.ENCODINGS_STRING, embeddedEncodings);
 
     ObjectNode message = mapper.createObjectNode();
-    message.set(AppContext.METADATA_STRING, metadataNode);
+    message.set(OdeMsgMetadata.METADATA_STRING, metadataNode);
     message.set(OdeMsgPayload.PAYLOAD_STRING, payloadNode);
 
     ObjectNode root = mapper.createObjectNode();

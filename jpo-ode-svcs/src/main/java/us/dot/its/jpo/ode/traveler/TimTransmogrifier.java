@@ -157,7 +157,7 @@ public class TimTransmogrifier {
       convertEncodingsArray(asd, metaObject);
 
       ObjectNode message = JsonUtils.newNode();
-      message.set(AppContext.METADATA_STRING, metaObject);
+      message.set(OdeMsgMetadata.METADATA_STRING, metaObject);
       message.set(OdeMsgPayload.PAYLOAD_STRING, payloadObj);
 
       ObjectNode root = JsonUtils.newNode();
@@ -196,8 +196,8 @@ public class TimTransmogrifier {
    private static void convertEncodingsArray(DdsAdvisorySituationData asd, ObjectNode metaObject)
          throws JsonUtilsException {
       ArrayNode encodings = buildEncodings(asd);
-      ObjectNode enc = XmlUtils.createEmbeddedJsonArrayForXmlConversion(AppContext.ENCODINGS_STRING, encodings);
-      metaObject.set(AppContext.ENCODINGS_STRING, enc);
+      ObjectNode enc = XmlUtils.createEmbeddedJsonArrayForXmlConversion(OdeMsgMetadata.ENCODINGS_STRING, encodings);
+      metaObject.set(OdeMsgMetadata.ENCODINGS_STRING, enc);
    }
 
    private static void convertRsusArray(ObjectNode request) {
