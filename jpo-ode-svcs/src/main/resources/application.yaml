@@ -21,6 +21,15 @@ spring:
     multipart:
       max-file-size: 1MB
       max-request-size: 1MB
+logging:
+  level:
+    root: ${ODE_ROOT_LOG_LEVEL:WARN}
+    us.dot.its.jpo.ode.eventlog.EventLogger: ${ODE_EVENT_LOG_LEVEL:WARN}
+    web: ${ODE_SPRING_LOG_LEVEL:WARN}
+    us.dot.its.jpo.ode: ${ODE_LOG_LEVEL:WARN}
+  pattern:
+    console: "%date{yyyy-MM-dd HH:mm:ss, UTC} [%thread] %-5level %logger{0} - %msg %n"
+
 ode:
   security-services:
     host-ip: ${DOCKER_HOST_IP}

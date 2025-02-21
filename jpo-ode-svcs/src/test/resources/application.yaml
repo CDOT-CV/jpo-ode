@@ -17,6 +17,12 @@ spring:
       client-id: "ode-svcs-consumer"
     admin:
       auto-create: false
+logging:
+  level:
+    root: OFF
+    us.dot.its.jpo.ode.eventlog.EventLogger: OFF
+  pattern:
+    console: "%date{yyyy-MM-dd HH:mm:ss, UTC} [%thread] %-5level %logger{0} - %msg %n"
 ode:
   security-services:
     host-ip: "test-host"
