@@ -83,10 +83,10 @@ see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-
 ### TIM Data Flow 3 (Offloaded Files)
 1. The [FileUploadController](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/upload/FileUploadController.java) writes the log file to the configured uploads directory defined in [FileImporterProperties](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/FileImporterProperties.java) (ex: /uploads/bsmlog)
 2. The [ImporterDirectoryWatcher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/importer/ImporterDirectoryWatcher.java) scans the upload directory for and processes new log files every one second.
-   [LogFileToAsn1CodecPublisher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/LogFileToAsn1CodecPublisher.java) class pushes it to the TIM to the RawEncodedTIMJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
-3. The [RawEncodedTIMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedTIMJsonRouter.java) processes messages from the OdeRawEncodedTIMJson topic and pushes the TIM to the Asn1DecoderInput topic. 
-4. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the TIM, and pushes it to the Asn1DecoderOutput topic.
-5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) pulls from the Asn1DecoderOutput topic and pushes the TIM to the OdeTimJson, OdeTimRxJson and OdeDNMsgJson topics.
+3. The [LogFileToAsn1CodecPublisher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/LogFileToAsn1CodecPublisher.java) pushes it to the TIM to the RawEncodedTIMJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
+4. The [RawEncodedTIMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedTIMJsonRouter.java) processes messages from the OdeRawEncodedTIMJson topic and pushes the TIM to the Asn1DecoderInput topic. 
+5. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the TIM, and pushes it to the Asn1DecoderOutput topic.
+6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) pulls from the Asn1DecoderOutput topic and pushes the TIM to the OdeTimJson, OdeTimRxJson and OdeDNMsgJson topics.
 
 ### SPAT Data Flow 1 (Receiver Classes)
 1. The SPAT comes in through the SpatReceiver class and is pushed to the OdeRawEncodedSPATJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
@@ -99,38 +99,34 @@ see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-
 7. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeSpatJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
 ### SPAT Data Flow 2 (Offloaded Files)
-1. The SPAT is offloaded onto a directory referenced by the FileUploadController class.
-2. The FileUploadController class indirectly invokes the LogFileToAsn1CodecPublisher class, which handles the offloaded message.
-3. The LogFileToAsn1CodecPublisher class pushes the SPAT to the OdeRawEncodedSPATJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
-4. The [RawEncodedSPATJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedSPATJsonRouter.java) processes messages from the OdeRawEncodedSPATJson topic.
-5. The [RawEncodedSPATJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedSPATJsonRouter.java) class pushes the SPAT to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
-6. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the SPAT, and pushes it to the Asn1DecoderOutput topic.
-7. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
+1. The [FileUploadController](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/upload/FileUploadController.java) writes the SPAT log file to the configured uploads directory defined in [FileImporterProperties](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/FileImporterProperties.java) (ex: /uploads/bsmlog)
+2. The [ImporterDirectoryWatcher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/importer/ImporterDirectoryWatcher.java) scans the upload directory for and processes new log files every one second.
+3. [LogFileToAsn1CodecPublisher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/LogFileToAsn1CodecPublisher.java) pushes the SPAT to the OdeRawEncodedSPATJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
+4. The [RawEncodedSPATJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedSPATJsonRouter.java) consumes messages from the OdeRawEncodedSPATJson topic and pushes the SPAT message to the Asn1DecoderInput topic.
+5. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the SPAT, and pushes it to the Asn1DecoderOutput topic.
+6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
    pushes the SPAT to the OdeSpatPojo, OdeSpatRxPojo, OdeDNMsgJson, OdeSpatRxJson, OdeSpatTxPojo and OdeSpatJson topics.
-8. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the OdeSpatJson topic, converts the SPAT and pushes it to the ProcessedOdeSpatJson topic.
-9. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeSpatJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
+7. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the OdeSpatJson topic, converts the SPAT and pushes it to the ProcessedOdeSpatJson topic.
+8. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeSpatJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
 ### MAP Data Flow 1 (Receiver Classes)
 1. The MAP comes in through the MapReceiver class and is pushed to the OdeRawEncodedMAPJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
 2. The [RawEncodedMAPJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedMAPJsonRouter.java) processes messages from the OdeRawEncodedMAPJson topic.
 3. The RawEncodedMAPJsonRouter class pushes the MAP to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
 4. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the MAP, and pushes it to the Asn1DecoderOutput topic.
-5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
-   pushes the MAP to the OdeMapTxPojo and OdeMapJson topics.
-6. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the OdeMapJson topic, converts the MAP and pushes it to the ProcessedOdeMapJson topic.
-7. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeMapJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
+5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) consumes from the Asn1DecoderOutput topic and pushes the MAP to the OdeMapTxPojo and OdeMapJson topics.
+6. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) consumes from the OdeMapJson topic, converts the MAP and pushes it to the ProcessedOdeMapJson topic.
+7. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) consumes from the ProcessedOdeMapJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
 ### MAP Data Flow 2 (Offloaded Files)
-1. The MAP is offloaded onto a directory referenced by the FileUploadController class.
-2. The FileUploadController class indirectly invokes the LogFileToAsn1CodecPublisher class, which handles the offloaded message.
-3. The LogFileToAsn1CodecPublisher class pushes the MAP to the OdeRawEncodedMAPJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
-4. The [RawEncodedMAPJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/RawEncodedMAPJsonRouter.java) processes messages from the OdeRawEncodedMAPJson topic.
-5. The RawEncodedMAPJsonRouter class pushes the MAP to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
-6. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the MAP, and pushes it to the Asn1DecoderOutput topic.
-7. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
-   pushes the MAP to the OdeMapTxPojo and OdeMapJson topics.
-8. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) pulls from the OdeMapJson topic, converts the MAP and pushes it to the ProcessedOdeMapJson topic.
-9. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) pulls from the ProcessedOdeMapJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
+1. The [FileUploadController](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/upload/FileUploadController.java) writes the MAP log file to the configured uploads directory defined in [FileImporterProperties](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/FileImporterProperties.java) (ex: /uploads/bsmlog)
+2. The [ImporterDirectoryWatcher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/importer/ImporterDirectoryWatcher.java) scans the upload directory for and processes new log files every one second.
+3. [LogFileToAsn1CodecPublisher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/LogFileToAsn1CodecPublisher.java)  pushes the MAP to the OdeRawEncodedMAPJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
+4. The [RawEncodedMAPJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/RawEncodedMAPJsonRouter.java) consumes messages from the OdeRawEncodedMAPJson topic and pushes the MAP to the Asn1DecoderInput topic.
+5. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) consumes from the Asn1DecoderInput topic, decodes the MAP, and pushes it to the Asn1DecoderOutput topic.
+6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) consumes from the Asn1DecoderOutput topic and pushes the MAP to the OdeMapTxPojo and OdeMapJson topics.
+7. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) consumes from the OdeMapJson topic, converts the MAP and pushes it to the ProcessedOdeMapJson topic.
+8. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) consumes from the ProcessedOdeMapJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
 ### SRM Data Flow
 1. The SRM comes in through the SrmReceiver class and is pushed to the OdeRawEncodedSRMJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
