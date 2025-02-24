@@ -147,9 +147,9 @@ public class Asn1EncodedDataRouter {
 
     if (!metadata.has(TimTransmogrifier.REQUEST_STRING)) {
       throw new Asn1EncodedDataRouterException(
-          String.format("Invalid or missing '%s' object in the encoder response. Unable to process record with key '%s'",
+          String.format("Invalid or missing '%s' object in the encoder response. Unable to process record with offset '%s'",
               TimTransmogrifier.REQUEST_STRING,
-              consumerRecord.key())
+              consumerRecord.offset())
       );
     }
 
