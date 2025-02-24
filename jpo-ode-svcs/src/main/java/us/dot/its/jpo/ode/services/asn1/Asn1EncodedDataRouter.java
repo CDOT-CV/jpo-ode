@@ -164,7 +164,7 @@ public class Asn1EncodedDataRouter {
 
       log.error("ASN.1 encoding failed with code {} and message {}.", code, message);
       throw new Asn1EncodedDataRouterException(
-          "ASN.1 encoding failed with code %s and message %s.".formatted(code, message));
+          "ASN.1 encoding failed for offset %d with code %s and message %s.".formatted(consumerRecord.offset(), code, message));
     }
     if (!payloadData.has(ADVISORY_SITUATION_DATA_STRING)) {
       processUnsignedMessage(request, metadata, payloadData);
