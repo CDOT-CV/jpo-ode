@@ -185,6 +185,8 @@ public class Asn1DecodedDataRouter {
       throws XmlUtils.XmlUtilsException {
     // ODE-518/ODE-604 Demultiplex the messages to appropriate topics based on the "recordType"
     OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumerRecord.value());
+    // NOTE: These three flows in the switch statement are all disabled in all known environments via the disabled-topics configuration settings.
+    // We may consider removing this code completely in the future.
     switch (recordType) {
       case bsmLogDuringEvent ->
           bsmDataKafkaTemplate.send(pojoTopics.getBsmDuringEvent(), consumerRecord.key(),
