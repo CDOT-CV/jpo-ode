@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Controller;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
+import us.dot.its.jpo.ode.udp.AbstractUdpReceiverPublisher;
 import us.dot.its.jpo.ode.udp.bsm.BsmReceiver;
 import us.dot.its.jpo.ode.udp.generic.GenericReceiver;
 import us.dot.its.jpo.ode.udp.map.MapReceiver;
@@ -28,7 +29,6 @@ import us.dot.its.jpo.ode.udp.tim.TimReceiver;
 public class UdpServicesController {
 
   private final List<ExecutorService> executors = new ArrayList<>();
-  private final List<AutoCloseable> receivers = new ArrayList<>();
 
   /**
    * Constructs a UdpServicesController to manage UDP receiver services for different message
@@ -62,7 +62,7 @@ public class UdpServicesController {
    *
    * @param receiver The receiver to start
    */
-  private void startReceiver(Runnable receiver) {
+  private void startReceiver(AbstractUdpReceiverPublisher receiver) {
     ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
       Thread thread = new Thread(r);
       thread.setDaemon(true); // Makes thread exit when main application exits
@@ -70,9 +70,6 @@ public class UdpServicesController {
     });
 
     executors.add(executor);
-    if (receiver instanceof AutoCloseable closeable) {
-      receivers.add(closeable);
-    }
 
     executor.submit(() -> {
       try {
@@ -105,15 +102,6 @@ public class UdpServicesController {
       } catch (InterruptedException e) {
         executor.shutdownNow();
         Thread.currentThread().interrupt();
-      }
-    });
-
-    // Then, close all receivers
-    receivers.forEach(receiver -> {
-      try {
-        receiver.close();
-      } catch (Exception e) {
-        log.error("Error closing receiver: {}", e.getMessage(), e);
       }
     });
 
