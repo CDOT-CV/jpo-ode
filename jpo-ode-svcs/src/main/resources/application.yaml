@@ -1,6 +1,11 @@
 spring:
   application:
     name: "jpo-ode-svcs"
+  task:
+    execution:
+      thread-name-prefix: ode-task-
+    scheduling:
+      thread-name-prefix: ode-scheduling-
   kafka:
     consumer:
       enable-auto-commit: true
@@ -143,3 +148,21 @@ ode:
     channels:
       filtered-output: "/topic/filtered_messages"
       unfiltered-output: "/topic/unfiltered_messages"
+management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  endpoint:
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+    info:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: prometheus, metrics, info, health
