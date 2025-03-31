@@ -1,15 +1,13 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import joptsimple.internal.Strings;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
-import joptsimple.internal.Strings;
-import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
@@ -64,9 +62,9 @@ public class Asn1DecodedDataRouter {
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
   public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate,
-      KafkaTemplate<String, OdeBsmData> bsmDataKafkaTemplate,
-      PojoTopics pojoTopics,
-      JsonTopics jsonTopics) {
+                               KafkaTemplate<String, OdeBsmData> bsmDataKafkaTemplate,
+                               PojoTopics pojoTopics,
+                               JsonTopics jsonTopics) {
     this.kafkaTemplate = kafkaTemplate;
     this.bsmDataKafkaTemplate = bsmDataKafkaTemplate;
     this.pojoTopics = pojoTopics;
@@ -92,7 +90,8 @@ public class Asn1DecodedDataRouter {
 
     if (payloadData.has("code")) {
       throw new Asn1DecodedDataRouterException(
-          String.format("Error processing decoded message with code %s and message %s", payloadData.getString("code"), payloadData.getString("message"))
+          String.format("Error processing decoded message with code %s and message %s", payloadData.getString("code"),
+              payloadData.getString("message"))
       );
     }
 
@@ -185,8 +184,8 @@ public class Asn1DecodedDataRouter {
   }
 
   private void routeTIM(ConsumerRecord<String, String> consumerRecord,
-      String streamId,
-      RecordType type) throws XmlUtilsException {
+                        String streamId,
+                        RecordType type) throws XmlUtilsException {
     String odeTimData =
         OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
     switch (type) {
@@ -203,13 +202,10 @@ public class Asn1DecodedDataRouter {
     // ODE-518/ODE-604 Demultiplex the messages to appropriate topics based on the "recordType"
     OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumerRecord.value());
     switch (recordType) {
-      case bsmLogDuringEvent ->
-          bsmDataKafkaTemplate.send(pojoTopics.getBsmDuringEvent(), consumerRecord.key(),
-              odeBsmData);
-      case rxMsg ->
-          bsmDataKafkaTemplate.send(pojoTopics.getRxBsm(), consumerRecord.key(), odeBsmData);
-      case bsmTx ->
-          bsmDataKafkaTemplate.send(pojoTopics.getTxBsm(), consumerRecord.key(), odeBsmData);
+      case bsmLogDuringEvent -> bsmDataKafkaTemplate.send(pojoTopics.getBsmDuringEvent(), consumerRecord.key(),
+          odeBsmData);
+      case rxMsg -> bsmDataKafkaTemplate.send(pojoTopics.getRxBsm(), consumerRecord.key(), odeBsmData);
+      case bsmTx -> bsmDataKafkaTemplate.send(pojoTopics.getTxBsm(), consumerRecord.key(), odeBsmData);
       default -> log.trace("Consumed BSM data with record type: {}", recordType);
     }
     // Send all BSMs also to OdeBsmPojo
