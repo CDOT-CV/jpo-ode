@@ -1,13 +1,15 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import joptsimple.internal.Strings;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import joptsimple.internal.Strings;
+import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
@@ -48,6 +50,15 @@ public class Asn1DecodedDataRouter {
   private final KafkaTemplate<String, OdeBsmData> bsmDataKafkaTemplate;
 
   /**
+   * Exception for Asn1DecodedDataRouter specific failures.
+   */
+  public static class Asn1DecodedDataRouterException extends Exception {
+    public Asn1DecodedDataRouterException(String string) {
+      super(string);
+    }
+  }
+
+  /**
    * Constructs an instance of Asn1DecodedDataRouter.
    *
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
@@ -71,15 +82,22 @@ public class Asn1DecodedDataRouter {
       topics = "${ode.kafka.topics.asn1.decoder-output}"
   )
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws XmlUtilsException, JsonProcessingException {
+      throws XmlUtilsException, JsonProcessingException, Asn1DecodedDataRouterException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName());
+
+    JSONObject payloadData = consumed.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
+
+    if (payloadData.has("code")) {
+      throw new Asn1DecodedDataRouterException(
+          String.format("Error processing decoded message with code %s and message %s", payloadData.getString("code"), payloadData.getString("message"))
+      );
+    }
+
     J2735DSRCmsgID messageId = J2735DSRCmsgID.valueOf(
-        consumed.getJSONObject(AppContext.PAYLOAD_STRING)
-            .getJSONObject(AppContext.DATA_STRING)
-            .getJSONObject("MessageFrame")
+        payloadData.getJSONObject("MessageFrame")
             .getInt("messageId")
     );
 
