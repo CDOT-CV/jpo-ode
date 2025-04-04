@@ -365,7 +365,7 @@ for more information on how to use the application.yaml file and how to override
 
 #### 6.6.5 - ODE Logging Properties
 
-ODE produces two an application log file for overall application health and behavior monitoring.
+ODE produces to an application log file for overall application health and behavior monitoring.
 
 The configuration of the logger is done via the [_logback.xml_](/jpo-ode-svcs/src/main/resources/logback.xml) file. 
 Once the service is built, the logging configuration is located in the _BOOT-INF\\classes\\_ directory of the
