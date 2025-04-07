@@ -12,8 +12,8 @@ The purpose of these diagrams is to show:
 - The arrows indicate the data flow. The beginning of the arrow is where it flows from and the end of the arrow is where it flows to.
 
 ## Data Flow Explanations
-### Overview Data Flow 1 (Tim Depositor Controller)
-1. Messages come in through the TimDepositorController class and are pushed to the Broadcast Messages and Json Messages groups of topics, as well as the AsnEncoderInput topic.
+### Overview Data Flow 1 (Tim Deposit Controller)
+1. Messages come in through the [TimDepositController](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/traveler/TimDepositController.java) class and are pushed to the Broadcast Messages and Json Messages groups of topics, as well as the AsnEncoderInput topic.
 2. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1EncoderInput and pushes encoded messages to the Asn1EncoderOutput topic.
 3. The [AsnEncodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1EncodedDataRouter.java) class pulls from the Asn1EncoderOutput topic and routes the message.
    1. If the message is not signed, it is sent to the [jpo-security-svcs](/jpo-security-svcs/jpo-security-svcs/src/main/java/us/dot/its/jpo/sec/controllers/SignatureController.java) REST API to be signed.
