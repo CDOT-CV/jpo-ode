@@ -6,7 +6,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
+import us.dot.its.jpo.asn.j2735.r2024.PersonalSafetyMessage.PersonalSafetyMessage;
 import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.model.OdePsmData;
 import us.dot.its.jpo.ode.model.OdePsmMetadata;
@@ -23,7 +25,7 @@ public class OdePsmDataCreatorHelper {
 	public OdePsmDataCreatorHelper() {
 	}
 
-	public static OdePsmData createOdePsmData(String consumedData) throws XmlUtilsException {
+	public static OdePsmData createOdePsmData(String consumedData) throws XmlUtilsException, JsonProcessingException, IOException {
 		ObjectNode consumed = XmlUtils.toObjectNode(consumedData);
 
 		JsonNode metadataNode = consumed.findValue(AppContext.METADATA_STRING);
@@ -52,8 +54,12 @@ public class OdePsmDataCreatorHelper {
 		if (metadata.getSchemaVersion() <= 4) {
 			metadata.setReceivedMessageDetails(null);
 		}
+		
+		XmlMapper xmlMapper = new XmlMapper();
+		String psmString = XmlUtils.findXmlContentString(consumedData, "PersonalSafetyMessage");
+		PersonalSafetyMessage psmObject = xmlMapper.readValue(psmString, PersonalSafetyMessage.class);
 
-		OdePsmPayload payload = new OdePsmPayload(PSMBuilder.genericPSM(consumed.findValue("PersonalSafetyMessage")));
+		OdePsmPayload payload = new OdePsmPayload(psmObject);
 		return new OdePsmData(metadata, payload);
 	}
 }

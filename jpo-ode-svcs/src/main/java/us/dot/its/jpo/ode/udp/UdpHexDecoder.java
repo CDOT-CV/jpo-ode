@@ -15,6 +15,8 @@ import us.dot.its.jpo.ode.model.OdeMapMetadata.MapSource;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
 import us.dot.its.jpo.ode.model.OdePsmMetadata;
 import us.dot.its.jpo.ode.model.OdePsmMetadata.PsmSource;
+import us.dot.its.jpo.ode.model.OdeSdsmMetadata;
+import us.dot.its.jpo.ode.model.OdeSdsmMetadata.SdsmSource;
 import us.dot.its.jpo.ode.model.OdeSpatMetadata;
 import us.dot.its.jpo.ode.model.OdeSpatMetadata.SpatSource;
 import us.dot.its.jpo.ode.model.OdeSrmMetadata;
@@ -300,6 +302,34 @@ public class UdpHexDecoder {
     psmMetadata.setSecurityResultCode(SecurityResultCode.success);
 
     return JsonUtils.toJson(new OdeAsn1Data(psmMetadata, psmPayload), false);
+  }
+
+  /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a SDSM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the SDSM data
+   * @return a JSON string representing the SDSM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
+  public static String buildJsonSdsmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    String senderIp = packet.getAddress().getHostAddress();
+    int senderPort = packet.getPort();
+    log.debug("Packet received from {}:{}", senderIp, senderPort);
+
+    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
+    OdeAsn1Payload sdsmPayload = getPayloadHexString(packet, SupportedMessageType.SDSM);
+    OdeSdsmMetadata sdsmMetadata = new OdeSdsmMetadata(sdsmPayload);
+    // Add header data for the decoding process
+    sdsmMetadata.setOdeReceivedAt(DateTimeUtils.now());
+
+    sdsmMetadata.setOriginIp(senderIp);
+    sdsmMetadata.setSdsmSource(SdsmSource.RSU);
+    sdsmMetadata.setRecordGeneratedBy(GeneratedBy.UNKNOWN);
+    sdsmMetadata.setSecurityResultCode(SecurityResultCode.success);
+
+    return JsonUtils.toJson(new OdeAsn1Data(sdsmMetadata, sdsmPayload), false);
   }
 
   /**

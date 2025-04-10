@@ -1,4 +1,4 @@
-package us.dot.its.jpo.ode.udp.psm;
+package us.dot.its.jpo.ode.udp.sdsm;
 
 import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
@@ -9,53 +9,53 @@ import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 
 /**
- * The PsmReceiver class extends AbstractUdpReceiverPublisher and is responsible for receiving UDP
- * packets containing PSM (Personal Safety Message) data, decoding them from their hex
+ * The SdsmReceiver class extends AbstractUdpReceiverPublisher and is responsible for receiving UDP
+ * packets containing SDSM (Sensor Data Sharing Message) data, decoding them from their hex
  * representation to JSON format, and then publishing the JSON data to a Kafka topic.
  *
  * </p>
  * The class utilizes a KafkaTemplate for publishing messages and a configurable topic name where
- * the decoded PSM JSON messages are sent.
+ * the decoded SDSM JSON messages are sent.
  */
 @Slf4j
-public class PsmReceiver extends AbstractUdpReceiverPublisher {
+public class SdsmReceiver extends AbstractUdpReceiverPublisher {
 
-  private final KafkaTemplate<String, String> psmPublisher;
+  private final KafkaTemplate<String, String> sdsmPublisher;
   private final String publishTopic;
 
   /**
-   * Constructs a PsmReceiver object that listens for UDP packets containing Personal Safety
-   * Message (PSM) data, decodes them, and publishes the decoded JSON data to a specified Kafka
+   * Constructs a SdsmReceiver object that listens for UDP packets containing Sensor Data Sharing
+   * Message (SDSM) data, decodes them, and publishes the decoded JSON data to a specified Kafka
    * topic.
    *
    * @param receiverProperties The properties containing configuration details such as the port to
    *                           listen on and buffer size.
    * @param kafkaTemplate      The KafkaTemplate used to publish messages to a Kafka topic.
-   * @param publishTopic       The name of the Kafka topic to which decoded PSM JSON messages should
+   * @param publishTopic       The name of the Kafka topic to which decoded SDSM JSON messages should
    *                           be published.
    */
-  public PsmReceiver(ReceiverProperties receiverProperties,
+  public SdsmReceiver(ReceiverProperties receiverProperties,
       KafkaTemplate<String, String> kafkaTemplate, String publishTopic) {
     super(receiverProperties.getReceiverPort(), receiverProperties.getBufferSize());
 
     this.publishTopic = publishTopic;
-    this.psmPublisher = kafkaTemplate;
+    this.sdsmPublisher = kafkaTemplate;
   }
 
   @Override
   public void run() {
-    log.debug("PSM UDP Receiver Service started.");
+    log.debug("SDSM UDP Receiver Service started.");
 
     byte[] buffer = new byte[bufferSize];
     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
-        log.debug("Waiting for UDP PSM packets...");
+        log.debug("Waiting for UDP SDSM packets...");
         socket.receive(packet);
         if (packet.getLength() > 0) {
-          String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);
-          if (psmJson != null) {
-            psmPublisher.send(publishTopic, psmJson);
+          String sdsmJson = UdpHexDecoder.buildJsonSdsmFromPacket(packet);
+          if (sdsmJson != null) {
+            sdsmPublisher.send(publishTopic, sdsmJson);
           }
         }
       } catch (InvalidPayloadException e) {

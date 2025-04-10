@@ -13,6 +13,9 @@ COPY ./jpo-ode-core/pom.xml ./jpo-ode-core/
 COPY ./jpo-ode-core/src ./jpo-ode-core/src/
 COPY ./jpo-ode-svcs/pom.xml ./jpo-ode-svcs/
 COPY ./jpo-ode-svcs/src ./jpo-ode-svcs/src
+COPY ./jpo-asn-pojos/pom.xml ./jpo-asn-pojos/
+COPY ./jpo-asn-pojos/jpo-asn-j2735-2024 ./jpo-asn-pojos/jpo-asn-j2735-2024
+COPY ./jpo-asn-pojos/jpo-asn-runtime ./jpo-asn-pojos/jpo-asn-runtime
 
 RUN mvn clean package -DskipTests
 
