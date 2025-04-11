@@ -326,6 +326,7 @@ public class UdpHexDecoder {
 
     sdsmMetadata.setOriginIp(senderIp);
     sdsmMetadata.setSdsmSource(SdsmSource.RSU);
+    sdsmMetadata.setRecordType(RecordType.sdsmTx);
     sdsmMetadata.setRecordGeneratedBy(GeneratedBy.UNKNOWN);
     sdsmMetadata.setSecurityResultCode(SecurityResultCode.success);
 

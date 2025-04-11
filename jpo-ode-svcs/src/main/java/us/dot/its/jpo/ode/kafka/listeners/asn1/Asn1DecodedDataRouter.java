@@ -19,6 +19,7 @@ import us.dot.its.jpo.asn.j2735.r2024.PersonalSafetyMessage.PersonalSafetyMessag
 import us.dot.its.jpo.ode.coder.OdeBsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
+import us.dot.its.jpo.ode.coder.OdeSdsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
@@ -31,6 +32,7 @@ import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdePsmData;
+import us.dot.its.jpo.ode.model.OdeSdsmData;
 import us.dot.its.jpo.ode.plugin.j2735.J2735DSRCmsgID;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
@@ -105,6 +107,7 @@ public class Asn1DecodedDataRouter {
       case SSMMessage -> routeSSM(consumerRecord, recordType);
       case SRMMessage -> routeSRM(consumerRecord, recordType);
       case PersonalSafetyMessage -> routePSM(consumerRecord, recordType);
+      case SensorDataSharingMessage -> routeSDSM(consumerRecord, recordType);
       case null, default -> log.warn("Unknown message type: {}", messageId);
     }
   }
@@ -195,5 +198,12 @@ public class Asn1DecodedDataRouter {
     }
     // Send all BSMs also to OdeBsmPojo
     bsmDataKafkaTemplate.send(pojoTopics.getBsm(), consumerRecord.key(), odeBsmData);
+  }
+
+  private void routeSDSM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
+      throws XmlUtils.XmlUtilsException, JsonMappingException, JsonProcessingException, IOException {
+    OdeSdsmData odeSdsmData = OdeSdsmDataCreatorHelper.createOdeSdsmData(consumerRecord.value());
+    // Send all SDSMs also to OdeSdsmJson
+    kafkaTemplate.send(jsonTopics.getSdsm(), consumerRecord.key(), odeSdsmData.toString());
   }
 }
