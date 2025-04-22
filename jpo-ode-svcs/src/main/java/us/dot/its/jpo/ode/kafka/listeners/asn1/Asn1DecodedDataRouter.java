@@ -15,13 +15,14 @@ import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
-import us.dot.its.jpo.ode.context.AppContext;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
+import us.dot.its.jpo.ode.model.OdeMsgMetadata;
+import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.plugin.j2735.J2735DSRCmsgID;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
@@ -102,7 +103,7 @@ public class Asn1DecodedDataRouter {
 
     var metadataJson = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName())
-        .getJSONObject(AppContext.METADATA_STRING);
+        .getJSONObject(OdeMsgMetadata.METADATA_STRING);
     OdeLogMetadata.RecordType recordType = OdeLogMetadata.RecordType
         .valueOf(metadataJson.getString("recordType"));
 
@@ -201,6 +202,8 @@ public class Asn1DecodedDataRouter {
       throws XmlUtils.XmlUtilsException {
     // ODE-518/ODE-604 Demultiplex the messages to appropriate topics based on the "recordType"
     OdeBsmData odeBsmData = OdeBsmDataCreatorHelper.createOdeBsmData(consumerRecord.value());
+    // NOTE: These three flows in the switch statement are all disabled in all known environments via the disabled-topics configuration settings.
+    // We may consider removing this code completely in the future.
     switch (recordType) {
       case bsmLogDuringEvent -> bsmDataKafkaTemplate.send(pojoTopics.getBsmDuringEvent(), consumerRecord.key(),
           odeBsmData);
