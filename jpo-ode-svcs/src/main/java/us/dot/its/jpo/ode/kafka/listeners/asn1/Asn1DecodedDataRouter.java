@@ -87,12 +87,12 @@ public class Asn1DecodedDataRouter {
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
-    JSONObject payloadData = consumed.getJSONObject(AppContext.PAYLOAD_STRING).getJSONObject(AppContext.DATA_STRING);
+    JSONObject payloadData = consumed.getJSONObject(OdeMsgPayload.PAYLOAD_STRING).getJSONObject(OdeMsgPayload.DATA_STRING);
 
     if (payloadData.has("code")) {
       throw new Asn1DecodedDataRouterException(
           String.format("Error processing decoded message with code %s and message %s", payloadData.getString("code"),
-              payloadData.getString("message"))
+              payloadData.has("message") ? payloadData.getString("message") : "NULL")
       );
     }
 
