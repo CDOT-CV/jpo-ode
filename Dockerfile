@@ -3,7 +3,15 @@ LABEL org.opencontainers.image.authors="583114@bah.com"
 
 WORKDIR /home
 
-# Copy only the files needed to avoid putting all sorts of junk from your local env on to the image
+# Copy ASN.1 POJO projects first
+COPY ./jpo-asn-pojos/pom.xml ./jpo-asn-pojos/
+COPY ./jpo-asn-pojos/jpo-asn-j2735-2024 ./jpo-asn-pojos/jpo-asn-j2735-2024
+COPY ./jpo-asn-pojos/jpo-asn-runtime ./jpo-asn-pojos/jpo-asn-runtime
+
+# Build and install ASN.1 POJOs first
+RUN cd jpo-asn-pojos && mvn clean install -DskipTests
+
+# Copy the rest of the project files
 COPY ./pom.xml ./
 COPY ./jpo-ode-common/pom.xml ./jpo-ode-common/
 COPY ./jpo-ode-common/src ./jpo-ode-common/src
@@ -13,10 +21,8 @@ COPY ./jpo-ode-core/pom.xml ./jpo-ode-core/
 COPY ./jpo-ode-core/src ./jpo-ode-core/src/
 COPY ./jpo-ode-svcs/pom.xml ./jpo-ode-svcs/
 COPY ./jpo-ode-svcs/src ./jpo-ode-svcs/src
-COPY ./jpo-asn-pojos/pom.xml ./jpo-asn-pojos/
-COPY ./jpo-asn-pojos/jpo-asn-j2735-2024 ./jpo-asn-pojos/jpo-asn-j2735-2024
-COPY ./jpo-asn-pojos/jpo-asn-runtime ./jpo-asn-pojos/jpo-asn-runtime
 
+# Build the main project
 RUN mvn clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
