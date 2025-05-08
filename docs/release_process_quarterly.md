@@ -176,6 +176,7 @@ None
 
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml files for the 'jpo-utils' project if not already done.
+    - [ ] Merge ‘release/(year)-(quarter)’ branch into ‘master’ branch for the jpo-sdw-depositor project
     - [ ] Create a release for the jpo-utils project from the ‘master’ branch and tag the release with the version number of the release. (e.g. jpo-utils-x.x.x)
     - [ ] Merge master branch into develop branch & verify that CI/CD passes.
 
