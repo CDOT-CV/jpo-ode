@@ -177,6 +177,12 @@ None
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml files for the 'jpo-utils' project if not already done.
     - [ ] Create a release for the jpo-utils project from the ‘master’ branch and tag the release with the version number of the release. (e.g. jpo-utils-x.x.x)
+    - [ ] Create docker images
+        - [ ] Use the release for the jpo-utils to produce docker images 'jpo-jikkou' & 'jpo-kafka-connect', containing the version number.
+        - [ ] Upload docker images to [DockerHub](https://hub.docker.com/u/usdotjpoode)
+        - [ ] Tag docker images with the version number of the app. (e.g. 1.0.0)
+        - [ ] Tag docker images with year and quarter of release. (e.g. 2024-Q2)
+        - [ ] Tag docker images with 'latest' tag for the most recent release.
     - [ ] Merge master branch into develop branch & verify that CI/CD passes.
 
 ### 4. DockerHub Image Testing
