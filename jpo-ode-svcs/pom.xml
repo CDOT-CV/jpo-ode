@@ -145,9 +145,14 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>usdot.jpo.ode</groupId>
+      <groupId>usdot.jpo.asn</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>1.0</version>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>usdot.jpo.asn</groupId>
+      <artifactId>jpo-asn-runtime</artifactId>
+      <version>1.0.0</version>
     </dependency>
   </dependencies>
   <build>
