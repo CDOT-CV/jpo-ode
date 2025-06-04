@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.Uuid;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
@@ -43,11 +44,14 @@ public class OdeTimJsonTopology {
   public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps, String topic) {
 
     Properties streamsProperties = new Properties();
-    streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson");
+    Uuid uuid = Uuid.randomUuid();
+    streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "KeyedOdeTimJson-" + uuid);
     streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
     streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
     streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
     streamsProperties.put(StreamsConfig.WINDOW_SIZE_MS_CONFIG, 3600 * 1000L); // 1 hour retention
+    streamsProperties.put(StreamsConfig.WINDOW_STORE_CHANGE_LOG_ADDITIONAL_RETENTION_MS_CONFIG, 1800 * 1000L); // 30 minute retention
+
 
     if ("CONFLUENT".equals(odeKafkaProps.getKafkaType())) {
       streamsProperties.putAll(odeKafkaProps.getConfluent().buildConfluentProperties());
