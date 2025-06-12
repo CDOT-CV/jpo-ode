@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.SecurityResultCode;
 import us.dot.its.jpo.ode.model.OdeLogMsgMetadataLocation;
@@ -187,30 +185,8 @@ public class UdpHexDecoder {
    */
   public static String buildJsonBsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
-    String senderIp = packet.getAddress().getHostAddress();
-    int senderPort = packet.getPort();
-    log.debug("Packet received from {}:{}", senderIp, senderPort);
-
-    OdeAsn1Payload bsmPayload = getPayloadHexString(packet, SupportedMessageType.BSM);
-    OdeBsmMetadata bsmMetadata = new OdeBsmMetadata(bsmPayload);
-
-    // Set BSM Metadata values that can be assumed from the UDP endpoint
-    bsmMetadata.setOdeReceivedAt(DateTimeUtils.now());
-
-    ReceivedMessageDetails receivedMessageDetails = new ReceivedMessageDetails();
-    OdeLogMsgMetadataLocation locationData = new OdeLogMsgMetadataLocation("unavailable",
-        "unavailable", "unavailable", "unavailable", "unavailable");
-    receivedMessageDetails.setRxSource(RxSource.RSU);
-    receivedMessageDetails.setLocationData(locationData);
-    bsmMetadata.setReceivedMessageDetails(receivedMessageDetails);
-
-    bsmMetadata.setOriginIp(senderIp);
-    bsmMetadata.setBsmSource(BsmSource.EV);
-    bsmMetadata.setRecordType(RecordType.bsmTx);
-    bsmMetadata.setRecordGeneratedBy(GeneratedBy.OBU);
-    bsmMetadata.setSecurityResultCode(SecurityResultCode.success);
-
-    return JsonUtils.toJson(new OdeAsn1Data(bsmMetadata, bsmPayload), false);
+    return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.BSM,
+        RecordType.bsmTx, Source.EV, GeneratedBy.OBU, true), false);
   }
 
   /**
@@ -303,7 +279,7 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a PSM
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a SDSM
    * message. It extracts metadata and payload, then structures them into a JSON format.
    *
    * @param packet the DatagramPacket containing the SDSM data
@@ -313,7 +289,7 @@ public class UdpHexDecoder {
   public static String buildJsonSdsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.SDSM,
-        RecordType.sdsmTx, Source.RSU, GeneratedBy.RSU), false);
+        RecordType.sdsmTx, Source.RSU, GeneratedBy.RSU, false), false);
   }
 
   /**
@@ -344,7 +320,7 @@ public class UdpHexDecoder {
    */
   public static OdeAsn1Data buildAsn1DataFromPacket(DatagramPacket packet,
       SupportedMessageType messageType, RecordType recordType, Source source,
-      GeneratedBy generatedBy) throws InvalidPayloadException {
+      GeneratedBy generatedBy, boolean includeReceivedMessageDetails) throws InvalidPayloadException {
 
     String senderIp = packet.getAddress().getHostAddress();
     int senderPort = packet.getPort();
@@ -362,6 +338,15 @@ public class UdpHexDecoder {
     metadata.setRecordType(recordType);
     metadata.setRecordGeneratedBy(generatedBy);
     metadata.setSecurityResultCode(SecurityResultCode.success);
+
+    if (includeReceivedMessageDetails) {
+      ReceivedMessageDetails receivedMessageDetails = new ReceivedMessageDetails();
+      OdeLogMsgMetadataLocation locationData = new OdeLogMsgMetadataLocation("unavailable",
+          "unavailable", "unavailable", "unavailable", "unavailable");
+      receivedMessageDetails.setRxSource(RxSource.RSU);
+      receivedMessageDetails.setLocationData(locationData);
+      metadata.setReceivedMessageDetails(receivedMessageDetails);
+    }
 
     return new OdeAsn1Data(metadata, payload);
   }

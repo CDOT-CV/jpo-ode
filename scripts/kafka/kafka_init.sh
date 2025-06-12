@@ -3,7 +3,6 @@ sleep 2s
 echo 'Creating kafka topics'
 
 # Create topics
-/opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeBsmPojo" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSpatTxPojo" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSpatPojo" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSpatJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
