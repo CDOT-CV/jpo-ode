@@ -74,47 +74,47 @@ class Asn1DecodedDataRouterTest {
 
   ObjectMapper mapper = new ObjectMapper();
 
-  // @Test
-  // void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
-  //   String[] topics = Arrays.array(jsonTopics.getBsm());
-  //   EmbeddedKafkaHolder.addTopics(topics);
+  @Test
+  void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getBsm());
+    EmbeddedKafkaHolder.addTopics(topics);
 
-  //   String baseTestData =
-  //       loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
 
-  //   var consumerProps = KafkaTestUtils.consumerProps("bsmDecoderTest", "false", embeddedKafka);
-  //   var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-  //       new StringDeserializer());
-  //   var testConsumer = consumerFactory.createConsumer();
-  //   embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+    var consumerProps = KafkaTestUtils.consumerProps("bsmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-  //   String baseExpectedBsm =
-  //       loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
-  //   for (String recordType : new String[] {"bsmTx"}) {
-  //     String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
-  //     var uniqueKey = UUID.randomUUID().toString();
-  //     kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
+    String baseExpectedBsm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
+    for (String recordType : new String[] {"bsmTx"}) {
+      String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-  //     var expectedBsm = replaceJSONRecordType(baseExpectedBsm, "bsmTx", recordType);
+      var expectedBsm = replaceJSONRecordType(baseExpectedBsm, "bsmTx", recordType);
 
-  //     OdeMessageFrameData expectedBsmMFrameData =
-  //         mapper.readValue(expectedBsm, OdeMessageFrameData.class);
-  //     switch (recordType) {
-  //       case "bsmTx" -> {
-  //         expectedBsmMFrameData.getMetadata().setRecordType(RecordType.bsmTx);
-  //       }
-  //       default -> throw new IllegalStateException("Unexpected value: " + recordType);
-  //     }
+      OdeMessageFrameData expectedBsmMFrameData =
+          mapper.readValue(expectedBsm, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "bsmTx" -> {
+          expectedBsmMFrameData.getMetadata().setRecordType(RecordType.bsmTx);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
 
-  //     var consumedBsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getBsm());
-  //     OdeMessageFrameData consumedBsmMFrameData =
-  //         mapper.readValue(consumedBsm.value(), OdeMessageFrameData.class);
+      var consumedBsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getBsm());
+      OdeMessageFrameData consumedBsmMFrameData =
+          mapper.readValue(consumedBsm.value(), OdeMessageFrameData.class);
 
-  //     assertThat(JsonUtils.toJson(consumedBsmMFrameData, false),
-  //         jsonEquals(JsonUtils.toJson(expectedBsmMFrameData, false)).withTolerance(0.0001));
-  //   }
-  //   testConsumer.close();
-  // }
+      assertThat(JsonUtils.toJson(consumedBsmMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedBsmMFrameData, false)).withTolerance(0.0001));
+    }
+    testConsumer.close();
+  }
 
   @Test
   void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
@@ -399,27 +399,27 @@ class Asn1DecodedDataRouterTest {
     testConsumer.close();
   }
 
-  // @Test
-  // void testAsn1DecodedDataRouterException() {
-  //   String baseTestData =
-  //       loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-failed-encoding.xml");
+  @Test
+  void testAsn1DecodedDataRouterException() {
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-failed-encoding.xml");
 
-  //   var uniqueKey = UUID.randomUUID().toString();
-  //   ConsumerRecord<String, String> consumedRecord =
-  //       new ConsumerRecord<>(asn1CoderTopics.getDecoderOutput(), 0, 0L, uniqueKey, baseTestData);
+    var uniqueKey = UUID.randomUUID().toString();
+    ConsumerRecord<String, String> consumedRecord =
+        new ConsumerRecord<>(asn1CoderTopics.getDecoderOutput(), 0, 0L, uniqueKey, baseTestData);
 
-  //   Asn1DecodedDataRouter router =
-  //       new Asn1DecodedDataRouter(kafkaStringTemplate, null, pojoTopics, jsonTopics, simpleObjectMapper, simpleXmlMapper);
+    Asn1DecodedDataRouter router =
+        new Asn1DecodedDataRouter(kafkaStringTemplate, pojoTopics, jsonTopics, simpleObjectMapper, simpleXmlMapper);
 
-  //   Exception exception =
-  //       assertThrows(Asn1DecodedDataRouter.Asn1DecodedDataRouterException.class, () -> {
-  //         router.listen(consumedRecord);
-  //       });
+    Exception exception =
+        assertThrows(Asn1DecodedDataRouter.Asn1DecodedDataRouterException.class, () -> {
+          router.listen(consumedRecord);
+        });
 
-  //   assertEquals("Error processing decoded message with code INVALID_DATA_TYPE_ERROR and message "
-  //       + "failed ASN.1 binary decoding of element MessageFrame: more data expected. Successfully decoded 0 bytes.",
-  //       exception.getMessage());
-  // }
+    assertEquals("Error processing decoded message with code INVALID_DATA_TYPE_ERROR and message "
+        + "failed ASN.1 binary decoding of element MessageFrame: more data expected. Successfully decoded 0 bytes.",
+        exception.getMessage());
+  }
 
   private String loadFromResource(String resourcePath) {
     String baseTestData;
