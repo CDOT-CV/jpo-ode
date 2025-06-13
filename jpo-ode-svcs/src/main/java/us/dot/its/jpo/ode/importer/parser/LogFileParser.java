@@ -165,10 +165,7 @@ public abstract class LogFileParser implements FileParser {
     }
     if (metadata instanceof OdeSpatMetadata odeSpatMetadata) {
       SpatSource spatSource = SpatSource.unknown;
-      boolean isCertPresent =
-          true; /*
-                 * ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)
-                 */
+      boolean isCertPresent = true; // ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)
       if (this instanceof SpatLogFileParser spatLogFileParser) {
         spatSource = spatLogFileParser.getSpatSource();
         isCertPresent = spatLogFileParser.isCertPresent(); // update
