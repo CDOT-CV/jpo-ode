@@ -34,10 +34,10 @@ public class BsmLogFileParser extends LogFileParser {
   private static final int DIRECTION_LENGTH = 1;
 
   /**
-   * Enum representing the source of the BSM: 0 (EV/Tx), 1 (RV/Rx), or unknown.
+   * Enum representing the source of the BSM: 0 (EV/Tx), 1 (RV/Rx), or UNKNOWN.
    */
   public enum BsmSource {
-      EV, RV, unknown
+      EV, RV, UNKNOWN
   }
 
   private BsmSource bsmSource; 
@@ -128,7 +128,7 @@ public class BsmLogFileParser extends LogFileParser {
     } catch (Exception e) {
       logger.error("Invalid BSM source: {}. Valid values are {}-{} inclusive",
           code, 0, BsmSource.values());
-      setBsmSource(BsmSource.unknown);
+      setBsmSource(BsmSource.UNKNOWN);
     }
   }
 

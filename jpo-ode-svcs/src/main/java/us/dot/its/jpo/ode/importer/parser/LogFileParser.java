@@ -154,7 +154,7 @@ public abstract class LogFileParser implements FileParser {
     metadata.setReceivedMessageDetails(buildReceivedMessageDetails(this));
 
     if (metadata instanceof OdeMessageFrameMetadata odeMFMetadata) {
-      Source source = Source.unknown;
+      Source source = Source.UNKNOWN;
       if (this instanceof BsmLogFileParser bsmLogFileParser) {
         source = Source.valueOf(bsmLogFileParser.getBsmSource().toString());
       } else if (this instanceof RxMsgFileParser rxMsgFileParser

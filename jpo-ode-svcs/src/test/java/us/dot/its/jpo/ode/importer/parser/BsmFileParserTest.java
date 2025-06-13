@@ -184,7 +184,7 @@ class BsmFileParserTest {
 
     int testDirection = 111;
     ParserStatus expectedStatus = ParserStatus.FILE_PARSING_COMPLETE;
-    BsmSource expectedDirection = BsmSource.unknown;
+    BsmSource expectedDirection = BsmSource.UNKNOWN;
     int expectedStep = 2;
 
     BufferedInputStream testInputStream = new BufferedInputStream(
