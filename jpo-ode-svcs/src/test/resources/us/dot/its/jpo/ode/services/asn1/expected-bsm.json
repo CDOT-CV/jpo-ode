@@ -11,7 +11,7 @@
 				"speed": "unavailable",
 				"heading": "unavailable"
 			},
-			"rxSource": "NA"
+			"rxSource": "RSU"
 		},
 		"payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
 		"serialId": {
