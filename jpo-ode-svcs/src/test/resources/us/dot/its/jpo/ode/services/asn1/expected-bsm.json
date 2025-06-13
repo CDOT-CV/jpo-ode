@@ -1,6 +1,5 @@
 {
 	"metadata": {
-		"bsmSource": "EV",
 		"logFileName": "",
 		"recordType": "bsmTx",
 		"securityResultCode": "success",
@@ -12,17 +11,17 @@
 				"speed": "unavailable",
 				"heading": "unavailable"
 			},
-			"rxSource": "RSU"
+			"rxSource": "NA"
 		},
-		"payloadType": "us.dot.its.jpo.ode.model.OdeBsmPayload",
+		"payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
 		"serialId": {
-			"streamId": "71406f1b-d33c-4e90-ace9-6ab9f8d116d0",
+			"streamId": "55e354ca-340b-4f18-be58-95ff9a77f8a2",
 			"bundleSize": 1,
 			"bundleId": 0,
 			"recordId": 0,
 			"serialNumber": 0
 		},
-		"odeReceivedAt": "2024-12-10T17:30:48.095Z",
+		"odeReceivedAt": "2025-06-12T18:18:16.896Z",
 		"schemaVersion": 8,
 		"maxDurationTime": 0,
 		"recordGeneratedAt": "",
@@ -30,173 +29,161 @@
 		"sanitized": false,
 		"odePacketID": "",
 		"odeTimStartDateTime": "",
-		"asn1": "001480B8494C4C950CD8CDE6E9651116579F22A424DD78FFFFF00761E4FD7EB7D07F7FFF80005F11D1020214C1C0FFC7C016AFF4017A0FF65403B0FD204C20FFCCC04F8FE40C420FFE6404CEFE60E9A10133408FCFDE1438103AB4138F00E1EEC1048EC160103E237410445C171104E26BC103DC4154305C2C84103B1C1C8F0A82F42103F34262D1123198103DAC25FB12034CE10381C259F12038CA103574251B10E3B2210324C23AD0F23D8EFFFE0000209340D10000004264BF00",
-		"originIp": "172.18.0.1"
+		"asn1": "03810040038081B1001480AD4644A9EA5442BC26E97C7496576E052569B214000070007050FD7D0FA1007FFF8000681250020214C1C0FF64BFFA0FB84F720FF71BFF9500DFFFC0FF564006D001FFFC0FF5BBFE5B031FFFC0FF573FF73075FFFC0FF973FFB708FFFFC0FFEFC00B50B5FFFC0FFF0401150BBFFFC0FFDF4015D0C1FFFC0FFB9C01690C7FFFC0FFC0401550C9FFFC0FFBAC014F0C9FFFC0FFBBC01530CBFFFC0FFBB400B30E7FFFC100383FFCD0E3FFFCFFFEC800400120000243450D45B978805B073A8672E91E9D80824A65C65F85E35B61502149263F000FE804E6B84AF66507D51690DE76F30D1468A68F8986B58E6AECB2C5FC4766C223F0B977E87678DDF714FE123C483622CC75",
+		"source": "EV",
+		"originIp": "172.18.0.1",
+		"isCertPresent": false
 	},
 	"payload": {
 		"data": {
-			"coreData": {
-				"msgCnt": 37,
-				"id": "31325433",
-				"secMark": 25399,
-				"position": {
-					"latitude": 40.5659938,
-					"longitude": -105.0317754,
-					"elevation": 1440.9
-				},
-				"accelSet": {
-					"accelLat": 0.00,
-					"accelLong": 0.27,
-					"accelVert": 0.00,
-					"accelYaw": 0.00
-				},
-				"accuracy": {
-					"semiMajor": 9.30,
-					"semiMinor": 12.05
-				},
-				"transmission": "UNAVAILABLE",
-				"speed": 0.28,
-				"heading": 313.2500,
-				"brakes": {
-					"wheelBrakes": {
-						"leftFront": false,
-						"rightFront": false,
-						"unavailable": true,
-						"leftRear": false,
-						"rightRear": false
-					},
-					"traction": "unavailable",
-					"abs": "unavailable",
-					"scs": "unavailable",
-					"brakeBoost": "unavailable",
-					"auxBrakes": "unavailable"
-				},
-				"size": {
-					"width": 190,
-					"length": 570
-				}
-			},
-			"partII": [
-				{
-					"id": "VehicleSafetyExtensions",
-					"value": {
-						"pathHistory": {
-							"crumbData": [
-								{
-									"elevationOffset": -0.6,
-									"latOffset": -0.0000113,
-									"lonOffset": 0.0000181,
-									"timeOffset": 1.90
-								},
-								{
-									"elevationOffset": -2.3,
-									"latOffset": -0.0000310,
-									"lonOffset": 0.0000472,
-									"timeOffset": 6.10
-								},
-								{
-									"elevationOffset": -1.4,
-									"latOffset": -0.0000103,
-									"lonOffset": 0.0000636,
-									"timeOffset": 15.70
-								},
-								{
-									"elevationOffset": -1.3,
-									"latOffset": -0.0000052,
-									"lonOffset": 0.0000615,
-									"timeOffset": 18.70
-								},
-								{
-									"elevationOffset": -1.7,
-									"latOffset": 0.0000614,
-									"lonOffset": 0.0001150,
-									"timeOffset": 25.89
-								},
-								{
-									"elevationOffset": 0.7,
-									"latOffset": 0.0001878,
-									"lonOffset": 0.0002503,
-									"timeOffset": 39.59
-								},
-								{
-									"elevationOffset": 3.1,
-									"latOffset": 0.0002333,
-									"lonOffset": 0.0002816,
-									"timeOffset": 45.39
-								},
-								{
-									"elevationOffset": 3.9,
-									"latOffset": 0.0002187,
-									"lonOffset": 0.0002952,
-									"timeOffset": 49.59
-								},
-								{
-									"elevationOffset": 4.6,
-									"latOffset": 0.0001976,
-									"lonOffset": 0.0002721,
-									"timeOffset": 56.99
-								},
-								{
-									"elevationOffset": 8.4,
-									"latOffset": 0.0001891,
-									"lonOffset": 0.0003655,
-									"timeOffset": 60.50
-								},
-								{
-									"elevationOffset": 13.7,
-									"latOffset": 0.0002022,
-									"lonOffset": 0.0004886,
-									"timeOffset": 63.49
-								},
-								{
-									"elevationOffset": 14.4,
-									"latOffset": 0.0001973,
-									"lonOffset": 0.0004861,
-									"timeOffset": 67.60
-								},
-								{
-									"elevationOffset": 14.4,
-									"latOffset": 0.0001795,
-									"lonOffset": 0.0004815,
-									"timeOffset": 72.70
-								},
-								{
-									"elevationOffset": 13.5,
-									"latOffset": 0.0001710,
-									"lonOffset": 0.0004749,
-									"timeOffset": 75.70
-								},
-								{
-									"elevationOffset": 12.1,
-									"latOffset": 0.0001609,
-									"lonOffset": 0.0004566,
-									"timeOffset": 78.80
-								}
-							]
+			"messageId": 20,
+			"value": {
+				"BasicSafetyMessage": {
+					"coreData": {
+						"msgCnt": 25,
+						"id": "12A7A951",
+						"secMark": 2800,
+						"lat": 405671913,
+						"long": -1050342901,
+						"elev": 15059,
+						"accuracy": {
+							"semiMajor": 100,
+							"semiMinor": 40,
+							"orientation": 0
 						},
-						"pathPrediction": {
-							"confidence": 0.0,
-							"radiusOfCurve": 0.0
+						"transmission": "unavailable",
+						"speed": 0,
+						"heading": 28752,
+						"angle": 127,
+						"accelSet": {
+							"long": 0,
+							"lat": 2001,
+							"vert": -127,
+							"yaw": 0
+						},
+						"brakes": {
+							"wheelBrakes": "80",
+							"traction": "unavailable",
+							"abs": "unavailable",
+							"scs": "unavailable",
+							"brakeBoost": "unavailable",
+							"auxBrakes": "unavailable"
+						},
+						"size": {
+							"width": 208,
+							"length": 586
 						}
-					}
-				},
-				{
-					"id": "SupplementalVehicleExtensions",
-					"value": {
-						"classDetails": {
-							"fuelType": "unknownFuel",
-							"hpmsType": "none",
-							"keyType": 0,
-							"role": "basicVehicle"
-						},
-						"vehicleData": {
-							"height": 1.90
-						},
-						"doNotUse2": {}
-					}
+					},
+					"partII": [
+						{
+							"partII-Id": 0,
+							"partII-Value": {
+								"VehicleSafetyExtensions": {
+									"pathHistory": {
+										"crumbData": [
+											{
+												"latOffset": -311,
+												"lonOffset": -48,
+												"elevationOffset": -36,
+												"timeOffset": 10170
+											},
+											{
+												"latOffset": -285,
+												"lonOffset": -54,
+												"elevationOffset": 6,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -340,
+												"lonOffset": 54,
+												"elevationOffset": 0,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -329,
+												"lonOffset": -211,
+												"elevationOffset": 24,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -338,
+												"lonOffset": -71,
+												"elevationOffset": 58,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -210,
+												"lonOffset": -37,
+												"elevationOffset": 71,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -33,
+												"lonOffset": 90,
+												"elevationOffset": 90,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -32,
+												"lonOffset": 138,
+												"elevationOffset": 93,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -66,
+												"lonOffset": 174,
+												"elevationOffset": 96,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -141,
+												"lonOffset": 180,
+												"elevationOffset": 99,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -128,
+												"lonOffset": 170,
+												"elevationOffset": 100,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -139,
+												"lonOffset": 167,
+												"elevationOffset": 100,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -137,
+												"lonOffset": 169,
+												"elevationOffset": 101,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": -138,
+												"lonOffset": 89,
+												"elevationOffset": 115,
+												"timeOffset": 65535
+											},
+											{
+												"latOffset": 112,
+												"lonOffset": -26,
+												"elevationOffset": 113,
+												"timeOffset": 65535
+											}
+										]
+									},
+									"pathPrediction": {
+										"radiusOfCurve": 32767,
+										"confidence": 200
+									}
+								}
+							}
+						}
+					]
 				}
-			]
+			}
 		},
-		"dataType": "us.dot.its.jpo.ode.plugin.j2735.J2735Bsm"
+		"dataType": "us.dot.its.jpo.asn.j2735.r2024.BasicSafetyMessage.BasicSafetyMessageMessageFrame"
 	}
 }

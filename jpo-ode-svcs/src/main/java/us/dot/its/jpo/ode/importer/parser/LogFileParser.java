@@ -1,16 +1,15 @@
-/*=============================================================================
- * Copyright 2018 572682
+/*
+ * ============================================================================= Copyright 2018
+ * 572682
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
 
@@ -23,11 +22,11 @@ import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdeLogMsgMetadataLocation;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata.Source;
 import us.dot.its.jpo.ode.model.OdeSpatMetadata;
 import us.dot.its.jpo.ode.model.OdeSpatMetadata.SpatSource;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
@@ -40,10 +39,10 @@ import us.dot.its.jpo.ode.plugin.j2735.builders.SpeedOrVelocityBuilder;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 /**
- * Abstract class LogFileParser providing common functionalities and structure
- * for parsing log files. It defines the methods and state required to parse
- * different types of log files and update the corresponding metadata. Implementing
- * classes should provide specific parsing logic based on the log file format.
+ * Abstract class LogFileParser providing common functionalities and structure for parsing log
+ * files. It defines the methods and state required to parse different types of log files and update
+ * the corresponding metadata. Implementing classes should provide specific parsing logic based on
+ * the log file format.
  */
 @Slf4j
 @Setter
@@ -135,14 +134,13 @@ public abstract class LogFileParser implements FileParser {
   }
 
   /**
-   * Updates the given metadata object with various attributes derived from the current
-   * state of the parser.
+   * Updates the given metadata object with various attributes derived from the current state of the
+   * parser.
    *
-   * @param metadata the metadata object to be updated with information such as log filename,
-   *                 record type, generated time, security result code, and received message details.
-   *                 Specific handling is applied if the metadata is an instance of
-   *                 {@code OdeBsmMetadata} or {@code OdeSpatMetadata}, involving additional
-   *                 attributes like BSM source or SPAT source.
+   * @param metadata the metadata object to be updated with information such as log filename, record
+   *        type, generated time, security result code, and received message details. Specific
+   *        handling is applied if the metadata is an instance of {@code OdeBsmMetadata} or
+   *        {@code OdeSpatMetadata}, involving additional attributes like BSM source or SPAT source.
    */
   public void updateMetadata(OdeLogMetadata metadata) {
     metadata.setLogFileName(getFilename());
@@ -155,22 +153,25 @@ public abstract class LogFileParser implements FileParser {
 
     metadata.setReceivedMessageDetails(buildReceivedMessageDetails(this));
 
-    if (metadata instanceof OdeBsmMetadata odeBsmMetadata) {
-      BsmSource bsmSource = BsmSource.unknown;
+    if (metadata instanceof OdeMessageFrameMetadata odeMFMetadata) {
+      Source source = Source.unknown;
       if (this instanceof BsmLogFileParser bsmLogFileParser) {
-        bsmSource = bsmLogFileParser.getBsmSource();
-      } else if (this instanceof RxMsgFileParser rxMsgFileParser && rxMsgFileParser.getRxSource() == RxSource.RV) {
-        bsmSource = BsmSource.RV;
+        source = Source.valueOf(bsmLogFileParser.getBsmSource().toString());
+      } else if (this instanceof RxMsgFileParser rxMsgFileParser
+          && rxMsgFileParser.getRxSource() == RxSource.RV) {
+        source = Source.RV;
       }
-
-      odeBsmMetadata.setBsmSource(bsmSource);
+      odeMFMetadata.setSource(source);
     }
     if (metadata instanceof OdeSpatMetadata odeSpatMetadata) {
       SpatSource spatSource = SpatSource.unknown;
-      boolean isCertPresent = true; /*ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)*/
+      boolean isCertPresent =
+          true; /*
+                 * ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)
+                 */
       if (this instanceof SpatLogFileParser spatLogFileParser) {
         spatSource = spatLogFileParser.getSpatSource();
-        isCertPresent = spatLogFileParser.isCertPresent(); //update
+        isCertPresent = spatLogFileParser.isCertPresent(); // update
       }
       odeSpatMetadata.setSpatSource(spatSource);
       odeSpatMetadata.setIsCertPresent(isCertPresent);
@@ -191,15 +192,16 @@ public abstract class LogFileParser implements FileParser {
     BigDecimal genericLatitude = LatitudeBuilder.genericLatitude(locationDetails.getLatitude());
     BigDecimal genericLongitude = LongitudeBuilder.genericLongitude(locationDetails.getLongitude());
     BigDecimal genericElevation = ElevationBuilder.genericElevation(locationDetails.getElevation());
-    BigDecimal genericSpeedOrVelocity = SpeedOrVelocityBuilder
-        .genericSpeedOrVelocity(locationDetails.getSpeed());
+    BigDecimal genericSpeedOrVelocity =
+        SpeedOrVelocityBuilder.genericSpeedOrVelocity(locationDetails.getSpeed());
     BigDecimal genericHeading = HeadingBuilder.genericHeading(locationDetails.getHeading());
 
     var locationMetadata = new OdeLogMsgMetadataLocation(
         genericLatitude == null ? null : genericLatitude.stripTrailingZeros().toPlainString(),
         genericLongitude == null ? null : genericLongitude.stripTrailingZeros().toPlainString(),
         genericElevation == null ? null : genericElevation.stripTrailingZeros().toPlainString(),
-        genericSpeedOrVelocity == null ? null : genericSpeedOrVelocity.stripTrailingZeros().toPlainString(),
+        genericSpeedOrVelocity == null ? null
+            : genericSpeedOrVelocity.stripTrailingZeros().toPlainString(),
         genericHeading == null ? null : genericHeading.stripTrailingZeros().toPlainString());
     var rxMsgDetails = new ReceivedMessageDetails(locationMetadata, null);
 
@@ -213,10 +215,9 @@ public abstract class LogFileParser implements FileParser {
   }
 
   /**
-   * This method sequentially delegates the writing operation to several
-   * internal parsers, namely `locationParser`, `timeParser`,
-   * `secResCodeParser`, and `payloadParser`, each contributing specific
-   * portions of data to the output stream.
+   * This method sequentially delegates the writing operation to several internal parsers, namely
+   * `locationParser`, `timeParser`, `secResCodeParser`, and `payloadParser`, each contributing
+   * specific portions of data to the output stream.
    *
    * @param os the output stream to which the parsed data will be written.
    *

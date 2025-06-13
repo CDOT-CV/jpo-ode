@@ -42,8 +42,10 @@ public class OdeMessageFrameDataCreatorHelper {
 
     OdeMessageFrameMetadata metadata =
           simpleXmlMapper.convertValue(metadataNode, OdeMessageFrameMetadata.class);
-    // Header file does not have a location and use predefined set required RxSource
-    metadata.getReceivedMessageDetails().setRxSource(RxSource.NA);
+    // Assign the rxSource if it does not exist due to the schema requiring it
+    if (metadata.getReceivedMessageDetails() != null && metadata.getReceivedMessageDetails().getRxSource() == null) {
+      metadata.getReceivedMessageDetails().setRxSource(RxSource.NA);
+    }
 
     if (metadata.getSchemaVersion() <= 4) {
       metadata.setReceivedMessageDetails(null);
