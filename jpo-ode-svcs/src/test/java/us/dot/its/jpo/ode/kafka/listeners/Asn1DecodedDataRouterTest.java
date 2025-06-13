@@ -90,7 +90,7 @@ class Asn1DecodedDataRouterTest {
 
     String baseExpectedBsm =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
-    for (String recordType : new String[] {"bsmTx"}) {
+    for (String recordType : new String[] {"bsmTx", "rxMsg", "bsmLogDuringEvent"}) {
       String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
@@ -102,6 +102,12 @@ class Asn1DecodedDataRouterTest {
       switch (recordType) {
         case "bsmTx" -> {
           expectedBsmMFrameData.getMetadata().setRecordType(RecordType.bsmTx);
+        }
+        case "rxMsg" -> {
+          expectedBsmMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
+        }
+        case "bsmLogDuringEvent" -> {
+          expectedBsmMFrameData.getMetadata().setRecordType(RecordType.bsmLogDuringEvent);
         }
         default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
