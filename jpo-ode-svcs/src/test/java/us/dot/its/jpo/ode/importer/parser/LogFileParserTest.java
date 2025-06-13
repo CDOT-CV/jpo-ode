@@ -11,10 +11,10 @@ import java.io.ByteArrayInputStream;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata.Source;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
 import us.dot.its.jpo.ode.model.RxSource;
 
@@ -103,11 +103,11 @@ class LogFileParserTest {
     BsmLogFileParser parser = (BsmLogFileParser) LogFileParserFactory.getLogFileParser(filename);
     ParserStatus status = parser.parseFile(bis);
 
-    OdeBsmMetadata metadata = new OdeBsmMetadata();
+    OdeMessageFrameMetadata metadata = new OdeMessageFrameMetadata();
     parser.updateMetadata(metadata);
 
     assertEquals(ParserStatus.ENTRY_PARSING_COMPLETE, status);
-    assertEquals(BsmSource.EV, metadata.getBsmSource());
+    assertEquals(Source.EV, metadata.getSource());
     assertEquals(GeneratedBy.OBU, metadata.getRecordGeneratedBy());
     assertEquals(RxSource.NA, metadata.getReceivedMessageDetails().getRxSource());
   }
@@ -135,11 +135,11 @@ class LogFileParserTest {
     BsmLogFileParser parser = (BsmLogFileParser) LogFileParserFactory.getLogFileParser(filename);
     ParserStatus status = parser.parseFile(bis);
 
-    OdeBsmMetadata metadata = new OdeBsmMetadata();
+    OdeMessageFrameMetadata metadata = new OdeMessageFrameMetadata();
     parser.updateMetadata(metadata);
 
     assertEquals(ParserStatus.ENTRY_PARSING_COMPLETE, status);
-    assertEquals(BsmSource.EV, metadata.getBsmSource());
+    assertEquals(Source.EV, metadata.getSource());
     assertEquals(GeneratedBy.OBU, metadata.getRecordGeneratedBy());
     assertEquals(RxSource.NA, metadata.getReceivedMessageDetails().getRxSource());
   }
@@ -229,13 +229,13 @@ class LogFileParserTest {
     RxMsgFileParser parser = (RxMsgFileParser) LogFileParserFactory.getLogFileParser(filename);
     ParserStatus status = parser.parseFile(bis);
 
-    OdeBsmMetadata metadata = new OdeBsmMetadata();
+    OdeMessageFrameMetadata metadata = new OdeMessageFrameMetadata();
     parser.updateMetadata(metadata);
 
     assertEquals(ParserStatus.ENTRY_PARSING_COMPLETE, status);
     assertEquals(GeneratedBy.OBU, metadata.getRecordGeneratedBy());
     assertEquals(RxSource.RV, metadata.getReceivedMessageDetails().getRxSource());
-    assertEquals(BsmSource.RV, metadata.getBsmSource());
+    assertEquals(Source.RV, metadata.getSource());
   }
 
   @Test

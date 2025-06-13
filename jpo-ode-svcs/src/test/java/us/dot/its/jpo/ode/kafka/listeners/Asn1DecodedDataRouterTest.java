@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,14 +39,11 @@ import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.model.OdeBsmData;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.JsonUtils;
-import us.dot.its.jpo.ode.wrapper.serdes.MessagingDeserializer;
 
 @Slf4j
 @SpringBootTest(
@@ -80,72 +76,48 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
-    String[] topics = Arrays.array(pojoTopics.getBsm(), pojoTopics.getBsmDuringEvent(),
-        pojoTopics.getRxBsm(), pojoTopics.getTxBsm());
+    String[] topics = Arrays.array(jsonTopics.getBsm());
     EmbeddedKafkaHolder.addTopics(topics);
 
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
+
     var consumerProps = KafkaTestUtils.consumerProps("bsmDecoderTest", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<String, OdeBsmData>(consumerProps);
-    consumerFactory.setKeyDeserializer(new StringDeserializer());
-    consumerFactory.setValueDeserializer(new MessagingDeserializer<>());
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-    String decodedBsmXml =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
-    OdeBsmData expectedBsm = mapper.readValue(
-        new File("src/test/resources/us/dot/its/jpo/ode/services/asn1/expected-bsm.json"),
-        OdeBsmData.class);
-    for (String recordType : new String[] {"bsmLogDuringEvent", "rxMsg", "bsmTx"}) {
-      String topic;
-      OdeBsmData expectedBsmForType =
-          mapper.readValue(mapper.writeValueAsString(expectedBsm), OdeBsmData.class);
-      OdeBsmMetadata expectedBsmMetadata = (OdeBsmMetadata) expectedBsmForType.getMetadata();
+    String baseExpectedBsm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
+    for (String recordType : new String[] {"bsmTx", "rxMsg", "bsmLogDuringEvent"}) {
+      String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
+      var expectedBsm = replaceJSONRecordType(baseExpectedBsm, "bsmTx", recordType);
+
+      OdeMessageFrameData expectedBsmMFrameData =
+          mapper.readValue(expectedBsm, OdeMessageFrameData.class);
       switch (recordType) {
-        case "bsmLogDuringEvent" -> {
-          topic = pojoTopics.getBsmDuringEvent();
-          expectedBsmMetadata.setRecordType(RecordType.bsmLogDuringEvent);
+        case "bsmTx" -> {
+          expectedBsmMFrameData.getMetadata().setRecordType(RecordType.bsmTx);
         }
         case "rxMsg" -> {
-          topic = pojoTopics.getRxBsm();
-          expectedBsmMetadata.setRecordType(RecordType.rxMsg);
+          expectedBsmMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
         }
-        case "bsmTx" -> {
-          topic = pojoTopics.getTxBsm();
-          expectedBsmMetadata.setRecordType(RecordType.bsmTx);
+        case "bsmLogDuringEvent" -> {
+          expectedBsmMFrameData.getMetadata().setRecordType(RecordType.bsmLogDuringEvent);
         }
         default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
 
-      String inputData = replaceRecordType(decodedBsmXml, "bsmTx", recordType);
-      var uniqueKey = UUID.randomUUID().toString();
-      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
+      var consumedBsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getBsm());
+      OdeMessageFrameData consumedBsmMFrameData =
+          mapper.readValue(consumedBsm.value(), OdeMessageFrameData.class);
 
-      AtomicReference<ConsumerRecord<String, OdeBsmData>> consumedSpecific =
-          new AtomicReference<>();
-      AtomicReference<ConsumerRecord<String, OdeBsmData>> consumedBsm = new AtomicReference<>();
-      Awaitility.await().until(() -> {
-        var records = KafkaTestUtils.getRecords(testConsumer);
-        for (ConsumerRecord<String, OdeBsmData> cr : records.records(topic)) {
-          if (cr.key().equals(uniqueKey)) {
-            consumedSpecific.set(cr);
-            break;
-          }
-        }
-        for (ConsumerRecord<String, OdeBsmData> cr : records.records(pojoTopics.getBsm())) {
-          if (cr.key().equals(uniqueKey)) {
-            consumedBsm.set(cr);
-            break;
-          }
-        }
-        return consumedSpecific.get() != null && consumedBsm.get() != null;
-      });
-
-      assertThat(JsonUtils.toJson(consumedSpecific.get().value(), false),
-          jsonEquals(JsonUtils.toJson(expectedBsmForType, false)).withTolerance(0.0001));
-      assertThat(JsonUtils.toJson(consumedBsm.get().value(), false),
-          jsonEquals(JsonUtils.toJson(expectedBsmForType, false)).withTolerance(0.0001));
+      assertThat(JsonUtils.toJson(consumedBsmMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedBsmMFrameData, false)).withTolerance(0.0001));
     }
     testConsumer.close();
   }
@@ -443,7 +415,7 @@ class Asn1DecodedDataRouterTest {
         new ConsumerRecord<>(asn1CoderTopics.getDecoderOutput(), 0, 0L, uniqueKey, baseTestData);
 
     Asn1DecodedDataRouter router =
-        new Asn1DecodedDataRouter(kafkaStringTemplate, null, pojoTopics, jsonTopics, simpleObjectMapper, simpleXmlMapper);
+        new Asn1DecodedDataRouter(kafkaStringTemplate, pojoTopics, jsonTopics, simpleObjectMapper, simpleXmlMapper);
 
     Exception exception =
         assertThrows(Asn1DecodedDataRouter.Asn1DecodedDataRouterException.class, () -> {
