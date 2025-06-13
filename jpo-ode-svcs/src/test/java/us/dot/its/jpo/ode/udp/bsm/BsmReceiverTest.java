@@ -35,8 +35,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class,},
+    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, },
     properties = {"ode.receivers.bsm.receiver-port=15352",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.BsmReceiverTest"})
 @ContextConfiguration(
