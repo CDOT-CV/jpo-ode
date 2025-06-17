@@ -55,7 +55,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 class LogFileToAsn1CodecPublisherTest {
 
   private static final String GZ = ".gz";
-  private static final String SCHEMA_VERSION = "8";
+  private static final String SCHEMA_VERSION = "9";
 
   @Test
   void testPublishInit(@Mock JsonTopics jsonTopics, @Mock RawEncodedJsonTopics rawEncodedJsonTopics,

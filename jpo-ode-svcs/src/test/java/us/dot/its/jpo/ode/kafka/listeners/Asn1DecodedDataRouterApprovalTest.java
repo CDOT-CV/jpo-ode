@@ -1,7 +1,7 @@
 package us.dot.its.jpo.ode.kafka.listeners;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
