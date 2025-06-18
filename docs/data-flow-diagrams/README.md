@@ -54,9 +54,8 @@ The purpose of these diagrams is to show:
 3. The [RawEncodedBSMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/RawEncodedBSMJsonRouter.java) pushes the TIM to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
 4. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic and pushes the decoded BSM to the Asn1DecoderOutput topic.
 5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
-   pushes the BSM to the OdeBsmRxPojo, OdeBsmTxPojo, OdeBsmPojo and OdeBsmDuringEventPojo topics.
-6. The [BSMPojoToJSONListener](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/BSMPojoToJSONListener.java) class pulls from OdeBsmPojo and pushes the BSM in JSON form to the OdeBsmJson topic.
-7. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the OdeBsmJson topic and pushes the filtered BSM to the FilteredOdeBsmJson topic.
+   pushes the BSM to the OdeBsmJson topic in JSON format.
+6. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the OdeBsmJson topic and pushes the filtered BSM to the FilteredOdeBsmJson topic.
 
 ### BSM Data Flow 2 (Offloaded Files)
 1. The BSM is offloaded onto a directory referenced by the FileUploadController class.
@@ -66,9 +65,8 @@ The purpose of these diagrams is to show:
 5. The [RawEncodedBSMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedBSMJsonRouter.java) class pushes the TIM to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
 6. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic and pushes the decoded BSM to the Asn1DecoderOutput topic.
 7. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) class pulls from the Asn1DecoderOutput topic and
-   pushes the BSM to the OdeBsmRxPojo, OdeBsmTxPojo, OdeBsmPojo and OdeBsmDuringEventPojo topics.
-8. The [BSMPojoToJSONListener](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/BSMPojoToJSONListener.java) class pulls from OdeBsmPojo and pushes the BSM in JSON form to the OdeBsmJson topic.
-9. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the OdeBsmJson topic and pushes the filtered BSM to the FilteredOdeBsmJson topic.
+   pushes the BSM to the OdeBsmJson topic in JSON format.
+8. The [PPM](https://github.com/usdot-jpo-ode/jpo-cvdp) pulls from the OdeBsmJson topic and pushes the filtered BSM to the FilteredOdeBsmJson topic.
 
 ### TIM Data Flow 1 (Tim Depositor Controller)
 see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-depositor-controller)

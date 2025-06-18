@@ -43,9 +43,6 @@ ode:
       value-serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
       partitioner-class: "org.apache.kafka.clients.producer.internals.DefaultPartitioner"
     disabled-topics:
-      - "topic.OdeBsmRxPojo"
-      - "topic.OdeBsmTxPojo"
-      - "topic.OdeBsmDuringEventPojo"
       - "topic.OdeTimBroadcastPojo"
     topics:
       asn1:
@@ -75,14 +72,10 @@ ode:
         rx-spat: "topic.OdeSpatRxJson"
         j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
       pojo:
-        bsm: "topic.OdeBsmPojo"
         spat: "topic.OdeSpatPojo"
         ssm: "topic.OdeSsmPojo"
         tim-broadcast: "topic.OdeTimBroadcastPojo"
-        bsm-during-event: "topic.OdeBsmDuringEventPojo"
-        rx-bsm: "topic.OdeBsmRxPojo"
         rx-spat: "topic.OdeSpatRxPojo"
-        tx-bsm: "topic.OdeBsmTxPojo"
         tx-map: "topic.OdeMapTxPojo"
         tx-psm: "topic.OdePsmTxPojo"
         tx-spat: "topic.OdeSpatTxPojo"

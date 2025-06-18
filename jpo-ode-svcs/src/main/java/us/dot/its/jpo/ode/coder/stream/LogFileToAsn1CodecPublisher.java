@@ -34,11 +34,11 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata;
 import us.dot.its.jpo.ode.model.OdeData;
 import us.dot.its.jpo.ode.model.OdeDriverAlertData;
 import us.dot.its.jpo.ode.model.OdeDriverAlertPayload;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.model.OdeSpatMetadata;
@@ -152,7 +152,7 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
       odeData = new OdeDriverAlertData(metadata, payload);
     } else if (isBsmRecord(fileParser)) {
       payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
-      metadata = new OdeBsmMetadata(payload);
+      metadata = new OdeMessageFrameMetadata(payload);
       odeData = new OdeAsn1Data(metadata, payload);
     } else if (isSpatRecord(fileParser)) {
       payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
@@ -191,10 +191,6 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
       if (isDriverAlertRecord(fileParser)) {
         template.send(jsonTopics.getDriverAlert(), JsonUtils.toJson(odeData, false));
-      } else if (isBsmRecord(fileParser)) {
-        template.send(rawEncodedJsonTopics.getBsm(), JsonUtils.toJson(odeData, false));
-      } else if (isSpatRecord(fileParser)) {
-        template.send(rawEncodedJsonTopics.getSpat(), JsonUtils.toJson(odeData, false));
       } else {
         String messageType = UperUtil.determineMessageType(msgPayload);
         switch (messageType) {

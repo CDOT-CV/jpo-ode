@@ -35,15 +35,9 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
-    properties = {
-        "ode.receivers.generic.receiver-port=15460",
+    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, },
+    properties = {"ode.receivers.generic.receiver-port=15460",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.GenericReceiverTestBSM",
         "ode.kafka.topics.raw-encoded-json.map=topic.GenericReceiverTestMAP",
         "ode.kafka.topics.raw-encoded-json.psm=topic.GenericReceiverTestPSM",
@@ -51,13 +45,9 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.ssm=topic.GenericReceiverTestSSM",
         "ode.kafka.topics.raw-encoded-json.tim=topic.GenericReceiverTestTIM",
         "ode.kafka.topics.raw-encoded-json.srm=topic.GenericReceiverTestSRM",
-        "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM"
-    }
-)
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+        "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM"})
+@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class GenericReceiverTest {
 
@@ -74,35 +64,29 @@ class GenericReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    String[] topics = {
-        rawEncodedJsonTopics.getBsm(),
-        rawEncodedJsonTopics.getMap(),
-        rawEncodedJsonTopics.getPsm(),
-        rawEncodedJsonTopics.getSpat(),
-        rawEncodedJsonTopics.getSsm(),
-        rawEncodedJsonTopics.getTim(),
-        rawEncodedJsonTopics.getSrm(),
-        rawEncodedJsonTopics.getSdsm()
-    };
+    String[] topics = {rawEncodedJsonTopics.getBsm(), rawEncodedJsonTopics.getMap(),
+        rawEncodedJsonTopics.getPsm(), rawEncodedJsonTopics.getSpat(),
+        rawEncodedJsonTopics.getSsm(), rawEncodedJsonTopics.getTim(), rawEncodedJsonTopics.getSrm(),
+        rawEncodedJsonTopics.getSdsm()};
     EmbeddedKafkaHolder.addTopics(topics);
 
-    GenericReceiver genericReceiver = new GenericReceiver(
-        udpReceiverProperties.getGeneric(),
-        kafkaTemplate, rawEncodedJsonTopics
-    );
+    GenericReceiver genericReceiver = new GenericReceiver(udpReceiverProperties.getGeneric(),
+        kafkaTemplate, rawEncodedJsonTopics);
 
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(genericReceiver);
 
-    TestUDPClient udpClient = new TestUDPClient(
-        udpReceiverProperties.getGeneric().getReceiverPort());
+    TestUDPClient udpClient =
+        new TestUDPClient(udpReceiverProperties.getGeneric().getReceiverPort());
 
     var consumerProps = KafkaTestUtils.consumerProps("GenericReceiverTest", "true", embeddedKafka);
-    var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer());
+    var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
     var consumer = cf.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(consumer, topics);
 
-    final Clock prevClock = DateTimeUtils.setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
 
     // Test the PSM path
     String psmFileContent = Files.readString(
@@ -167,12 +151,9 @@ class GenericReceiverTest {
 
     // Test the SRM path
     String srmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt")
-    );
-    String expectedSrm = Files.readString(
-        Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json")
-    );
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
+    String expectedSrm = Files.readString(Paths
+        .get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
     udpClient.send(srmFileContent);
 
     var srmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSrm());
@@ -180,15 +161,14 @@ class GenericReceiverTest {
 
     // Test the SDSM path
     String sdsmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM.txt")
-    );
-    String expectedSdsm = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM_expected.json")
-    );
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM.txt"));
+    String expectedSdsm = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM_expected.json"));
     udpClient.send(sdsmFileContent);
 
     var sdsmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSdsm());
-    assertExpected("Produced SDSM message does not match expected", sdsmRecord.value(), expectedSdsm);
+    assertExpected("Produced SDSM message does not match expected", sdsmRecord.value(),
+        expectedSdsm);
 
     DateTimeUtils.setClock(prevClock);
   }

@@ -2,7 +2,7 @@
   "metadata" : {
     "securityResultCode" : "success",
     "recordGeneratedBy" : "OBU",
-    "schemaVersion" : 8,
+    "schemaVersion" : 9,
     "payloadType" : "us.dot.its.jpo.ode.model.OdeAsn1Payload",
     "serialId" : {
       "recordId" : 0,
