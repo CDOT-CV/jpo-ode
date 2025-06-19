@@ -52,7 +52,9 @@ public class LogFileParserFactory {
     } else if (filename.startsWith(OdeLogMetadata.RecordType.driverAlert.name())) {
       fileParser = new DriverAlertFileParser(OdeLogMetadata.RecordType.driverAlert, filename);
     } else if (filename.startsWith(OdeLogMetadata.RecordType.spatTx.name())) {
-      fileParser = new SpatLogFileParser(OdeLogMetadata.RecordType.spatTx, filename);
+      // SPaT message type is being set to rxMsg since all SPaT message logs are OBU received messages
+      // and not transmitted messages. It will still end up on the topic.OdeSpatJson topic.
+      fileParser = new SpatLogFileParser(OdeLogMetadata.RecordType.rxMsg, filename);
     } else {
       throw new LogFileParserFactoryException("Unknown log file prefix: " + filename);
     }

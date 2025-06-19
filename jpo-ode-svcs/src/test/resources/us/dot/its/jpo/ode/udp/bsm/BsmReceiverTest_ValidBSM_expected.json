@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "bsmSource": "EV",
+    "source": "EV",
     "recordType": "bsmTx",
     "securityResultCode": "success",
     "receivedMessageDetails": {
@@ -22,7 +22,8 @@
       "serialNumber": 0
     },
     "odeReceivedAt": "2024-11-26T23:53:21.120Z",
-    "schemaVersion": 8,
+    "schemaVersion": 9,
+    "isCertPresent": false,
     "maxDurationTime": 0,
     "recordGeneratedBy": "OBU",
     "sanitized": false,

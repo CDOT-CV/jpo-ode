@@ -58,7 +58,7 @@ class TimTransmogrifierTest {
   @Autowired
   RsuProperties rsuProperties;
 
-  private static final String schemaVersion = "8";
+  private static final String schemaVersion = "9";
 
   @Test
   void testUpdateRsuCreds_UpdateWhenNull() {
@@ -384,7 +384,7 @@ class TimTransmogrifierTest {
     timMetadata.setRecordGeneratedBy(OdeMsgMetadata.GeneratedBy.TMC);
     timMetadata.setRecordGeneratedAt(
         DateTimeUtils.isoDateTime(DateTimeUtils.isoDateTime(tim.getTimeStamp())));
-    timMetadata.setSchemaVersion(8);
+    timMetadata.setSchemaVersion(9);
     return timMetadata;
   }
 

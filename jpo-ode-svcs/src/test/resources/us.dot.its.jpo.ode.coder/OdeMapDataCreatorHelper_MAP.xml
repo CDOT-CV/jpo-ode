@@ -9,7 +9,7 @@
       <serialNumber>0</serialNumber>
     </serialId>
     <odeReceivedAt>2020-11-30T23:45:24.913657Z</odeReceivedAt>
-    <schemaVersion>6</schemaVersion>
+    <schemaVersion>9</schemaVersion>
     <maxDurationTime>0</maxDurationTime>
     <odePacketID />
     <odeTimStartDateTime />

@@ -1,6 +1,5 @@
 {
   "metadata": {
-    "bsmSource": "EV",
     "recordType": "bsmTx",
     "securityResultCode": "success",
     "receivedMessageDetails": {
@@ -22,11 +21,13 @@
       "serialNumber": 0
     },
     "odeReceivedAt": "2024-03-15T16:46:45.297174600Z",
-    "schemaVersion": 8,
+    "schemaVersion": 9,
     "maxDurationTime": 0,
     "recordGeneratedBy": "OBU",
     "sanitized": false,
-    "originIp": "192.168.0.1"
+    "originIp": "192.168.0.1",
+    "source": "EV",
+    "isCertPresent": false
   },
   "payload": {
     "dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
