@@ -23,13 +23,10 @@ import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import us.dot.its.jpo.ode.importer.ImporterFileType;
-import us.dot.its.jpo.ode.importer.parser.BsmLogFileParser;
 import us.dot.its.jpo.ode.importer.parser.DriverAlertFileParser;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
 import us.dot.its.jpo.ode.importer.parser.LogFileParser;
 import us.dot.its.jpo.ode.importer.parser.LogFileParserFactory;
-import us.dot.its.jpo.ode.importer.parser.RxMsgFileParser;
-import us.dot.its.jpo.ode.importer.parser.SpatLogFileParser;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -41,8 +38,6 @@ import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.model.OdeObject;
-import us.dot.its.jpo.ode.model.OdeSpatMetadata;
-import us.dot.its.jpo.ode.model.RxSource;
 import us.dot.its.jpo.ode.model.SerialId;
 import us.dot.its.jpo.ode.uper.UperUtil;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -150,17 +145,9 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
       payload = new OdeDriverAlertPayload(((DriverAlertFileParser) fileParser).getAlert());
       metadata = new OdeLogMetadata(payload);
       odeData = new OdeDriverAlertData(metadata, payload);
-    } else if (isBsmRecord(fileParser)) {
-      payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
-      metadata = new OdeMessageFrameMetadata(payload);
-      odeData = new OdeAsn1Data(metadata, payload);
-    } else if (isSpatRecord(fileParser)) {
-      payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
-      metadata = new OdeSpatMetadata(payload);
-      odeData = new OdeAsn1Data(metadata, payload);
     } else {
       payload = new OdeAsn1Payload(fileParser.getPayloadParser().getPayload());
-      metadata = new OdeLogMetadata(payload);
+      metadata = new OdeMessageFrameMetadata(payload);
       odeData = new OdeAsn1Data(metadata, payload);
     }
     fileParser.updateMetadata(metadata);
@@ -170,15 +157,6 @@ public class LogFileToAsn1CodecPublisher implements Asn1CodecPublisher {
 
   public boolean isDriverAlertRecord(LogFileParser fileParser) {
     return fileParser instanceof DriverAlertFileParser;
-  }
-
-  public boolean isBsmRecord(LogFileParser fileParser) {
-    return fileParser instanceof BsmLogFileParser || (fileParser instanceof RxMsgFileParser
-        && ((RxMsgFileParser) fileParser).getRxSource() == RxSource.RV);
-  }
-
-  public boolean isSpatRecord(LogFileParser fileParser) {
-    return fileParser instanceof SpatLogFileParser;
   }
 
   private void publishList(List<OdeData<OdeLogMetadata, OdeMsgPayload<OdeObject>>> dataList, LogFileParser fileParser) {
