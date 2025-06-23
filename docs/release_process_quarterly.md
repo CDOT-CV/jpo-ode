@@ -259,8 +259,7 @@ Not applicable
     - [ ] code compiles
     - [ ] unit tests pass
     - [ ] program starts up correctly
-    - [ ] http endpoint is reachable
-    - [ ] TIMs can be successfully pushed to http endpoint
+    - [ ] http endpoint (web page) is reachable
     - [ ] capable of ingesting messages via udp (see scripts in `scripts/tests` directory)
         - [ ] TIMs
         - [ ] BSMs
@@ -269,6 +268,13 @@ Not applicable
         - [ ] SPaTs
         - [ ] Maps
         - [ ] PSMs
+    - [ ] TIMs can make it through the entire pipeline successfully (integration)
+        - [ ] TIMs can be pushed to http (/tim) endpoint
+        - [ ] TIMs can be encoded & re-ingested into the ODE
+        - [ ] TIMs can be signed (verify security header is not stripped)
+        - [ ] TIMs can be sent to the SDX & are retrievable from the SDX
+    - [ ] multiple ODE instances can run against Kafka without K-Table conflicts
+
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml files for the 'jpo-ode' project if not already done.
         - [ ] Open the jpo-ode project in an IDE
@@ -295,8 +301,7 @@ Not applicable
 
 ### 4. DockerHub Image Testing
     - [ ] image starts up correctly
-    - [ ] http endpoint is reachable
-    - [ ] TIMs can be successfully pushed to http endpoint
+    - [ ] http endpoint (web page) is reachable
     - [ ] capable of ingesting messages via udp (see scripts in `scripts/tests` directory)
         - [ ] TIMs
         - [ ] BSMs
@@ -305,7 +310,12 @@ Not applicable
         - [ ] SPaTs
         - [ ] Maps
         - [ ] PSMs
-
+    - [ ] TIMs can make it through the entire pipeline successfully (integration)
+        - [ ] TIMs can be pushed to http (/tim) endpoint
+        - [ ] TIMs can be encoded & re-ingested into the ODE *
+        - [ ] TIMs can be signed (verify security header is not stripped)
+        - [ ] TIMs can be sent to the SDX & are retrievable from the SDX
+    - [ ] multiple ODE instances can run against Kafka without K-Table conflicts
 
 ## jpo-geojsonconverter
 ### Prerequisites
