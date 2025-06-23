@@ -76,7 +76,6 @@ ode:
         ssm: "topic.OdeSsmPojo"
         tim-broadcast: "topic.OdeTimBroadcastPojo"
         rx-spat: "topic.OdeSpatRxPojo"
-        tx-map: "topic.OdeMapTxPojo"
         tx-psm: "topic.OdePsmTxPojo"
         tx-spat: "topic.OdeSpatTxPojo"
         tx-srm: "topic.OdeSrmTxPojo"

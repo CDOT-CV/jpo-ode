@@ -15,7 +15,6 @@ public class PojoTopics {
   private String spat;
   private String ssm;
   private String timBroadcast;
-  private String txMap;
   private String txPsm;
   private String txSpat;
   private String txSrm;
