@@ -19,11 +19,6 @@ class PojoTopicsTest {
   PojoTopics pojoTopics;
 
   @Test
-  void getSpat() {
-    assertEquals("topic.OdeSpatPojo", pojoTopics.getSpat());
-  }
-
-  @Test
   void getSsm() {
     assertEquals("topic.OdeSsmPojo", pojoTopics.getSsm());
   }
@@ -34,18 +29,8 @@ class PojoTopicsTest {
   }
 
   @Test
-  void getRxSpat() {
-    assertEquals("topic.OdeSpatRxPojo", pojoTopics.getRxSpat());
-  }
-
-  @Test
   void getTxPsm() {
     assertEquals("topic.OdePsmTxPojo", pojoTopics.getTxPsm());
-  }
-
-  @Test
-  void getTxSpat() {
-    assertEquals("topic.OdeSpatTxPojo", pojoTopics.getTxSpat());
   }
 
   @Test

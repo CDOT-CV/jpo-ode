@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
@@ -126,8 +125,8 @@ public class Asn1DecodedDataRouter {
     switch (messageName) {
       case "basicSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getBsm());
       case "travelerInformation" -> routeTIM(consumerRecord, streamId, recordType);
-      case "signalPhaseAndTimingMessage" -> routeSPAT(consumerRecord, recordType);
       case "mapData" -> routeMessageFrame(consumerRecord, jsonTopics.getMap());
+      case "signalPhaseAndTimingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSpat());
       case "signalStatusMessage" -> routeSSM(consumerRecord, recordType);
       case "signalRequestMessage" -> routeSRM(consumerRecord, recordType);
       case "personalSafetyMessage" -> routePSM(consumerRecord, recordType);
@@ -165,21 +164,6 @@ public class Asn1DecodedDataRouter {
     }
     // Send all SSMs also to OdeSsmJson
     kafkaTemplate.send(jsonTopics.getSsm(), consumerRecord.key(), odeSsmData);
-  }
-
-  private void routeSPAT(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
-      throws XmlUtils.XmlUtilsException {
-    String odeSpatData =
-        OdeSpatDataCreatorHelper.createOdeSpatData(consumerRecord.value()).toString();
-    switch (recordType) {
-      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(),
-          odeSpatData);
-      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxSpat(), consumerRecord.key(), odeSpatData);
-      case spatTx -> kafkaTemplate.send(pojoTopics.getTxSpat(), consumerRecord.key(), odeSpatData);
-      default -> log.trace("Consumed SPAT data with record type: {}", recordType);
-    }
-    // Send all SPATs also to OdeSpatJson
-    kafkaTemplate.send(jsonTopics.getSpat(), consumerRecord.key(), odeSpatData);
   }
 
   private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,

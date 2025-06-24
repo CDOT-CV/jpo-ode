@@ -42,12 +42,8 @@ bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedMAPJson" --bootstrap-se
 bin/kafka-topics.sh --create --topic "topic.OdeMapJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # SPaT
-bin/kafka-topics.sh --create --topic "topic.OdeSpatTxPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeSpatPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeSpatJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.FilteredOdeSpatJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeSpatRxJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeSpatRxPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # ASN1
 bin/kafka-topics.sh --create --topic "topic.Asn1DecoderInput" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
