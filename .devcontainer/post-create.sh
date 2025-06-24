@@ -39,7 +39,6 @@ bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedSRMJson" --bootstrap-se
 
 # MAP
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedMAPJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeMapTxPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeMapJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # SPaT

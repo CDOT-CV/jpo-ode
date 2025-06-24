@@ -155,21 +155,12 @@ public abstract class LogFileParser implements FileParser {
       Source source = Source.UNKNOWN;
       switch (this) {
         case BsmLogFileParser bsmLogFileParser -> source = Source.valueOf(bsmLogFileParser.getBsmSource().toString());
-        case RxMsgFileParser rxMsgFileParser when rxMsgFileParser.getRxSource() == RxSource.RV -> source = Source.RV;
+        case RxMsgFileParser rxMsgFileParser -> source = Source.valueOf(rxMsgFileParser.getRxSource().toString());
         case SpatLogFileParser spatLogFileParser -> {
           source = Source.valueOf(spatLogFileParser.getSpatSource().toString());
           odeMFMetadata.setCertPresent(spatLogFileParser.isCertPresent());
         }
         default -> log.warn("Unknown parser type: {}", this.getClass().getSimpleName());
-      }
-      if (this instanceof BsmLogFileParser bsmLogFileParser) {
-        source = Source.valueOf(bsmLogFileParser.getBsmSource().toString());
-      } else if (this instanceof RxMsgFileParser rxMsgFileParser
-          && rxMsgFileParser.getRxSource() == RxSource.RV) {
-        source = Source.RV;
-      } else if (this instanceof SpatLogFileParser spatLogFileParser) {
-        source = Source.valueOf(spatLogFileParser.getSpatSource().toString());
-        odeMFMetadata.setCertPresent(spatLogFileParser.isCertPresent());
       }
       odeMFMetadata.setSource(source);
     }

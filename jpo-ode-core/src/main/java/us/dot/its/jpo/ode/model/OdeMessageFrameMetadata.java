@@ -17,7 +17,7 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
    * Enum representing the source of a message frame.
    */
   public enum Source {
-    RSU, V2X, MMITSS, EV, RV, UNKNOWN
+    RSU, V2X, MMITSS, EV, RV, SAT, SNMP, NA, UNKNOWN
   }
 
   private Source source;

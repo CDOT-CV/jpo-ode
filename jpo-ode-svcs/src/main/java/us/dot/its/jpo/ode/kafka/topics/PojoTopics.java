@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Configuration;
 public class PojoTopics {
   private String ssm;
   private String timBroadcast;
-  private String txMap;
   private String txPsm;
   private String txSrm;
 }

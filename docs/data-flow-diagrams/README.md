@@ -111,7 +111,7 @@ see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-
 2. The [RawEncodedMAPJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedMAPJsonRouter.java) processes messages from the OdeRawEncodedMAPJson topic.
 3. The RawEncodedMAPJsonRouter class pushes the MAP to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
 4. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the MAP, and pushes it to the Asn1DecoderOutput topic.
-5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) consumes from the Asn1DecoderOutput topic and pushes the MAP to the OdeMapTxPojo and OdeMapJson topics.
+5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) consumes from the Asn1DecoderOutput topic and pushes the MAP to the OdeMapJson topic.
 6. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) consumes from the OdeMapJson topic, converts the MAP and pushes it to the ProcessedOdeMapJson topic.
 7. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) consumes from the ProcessedOdeMapJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
@@ -121,7 +121,7 @@ see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-
 3. [LogFileToAsn1CodecPublisher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/LogFileToAsn1CodecPublisher.java)  pushes the MAP to the OdeRawEncodedMAPJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
 4. The [RawEncodedMAPJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/RawEncodedMAPJsonRouter.java) consumes messages from the OdeRawEncodedMAPJson topic and pushes the MAP to the Asn1DecoderInput topic.
 5. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) consumes from the Asn1DecoderInput topic, decodes the MAP, and pushes it to the Asn1DecoderOutput topic.
-6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) consumes from the Asn1DecoderOutput topic and pushes the MAP to the OdeMapTxPojo and OdeMapJson topics.
+6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) consumes from the Asn1DecoderOutput topic and pushes the MAP to the OdeMapJson topic.
 7. The [GeoJSON Converter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) consumes from the OdeMapJson topic, converts the MAP and pushes it to the ProcessedOdeMapJson topic.
 8. The [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) consumes from the ProcessedOdeMapJson topic and pushes to the [Conflict Monitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) Output Topics group.
 
