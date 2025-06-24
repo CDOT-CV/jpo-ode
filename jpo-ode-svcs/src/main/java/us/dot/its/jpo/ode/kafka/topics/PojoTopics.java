@@ -18,5 +18,4 @@ public class PojoTopics {
   private String txMap;
   private String txPsm;
   private String txSpat;
-  private String txSrm;
 }

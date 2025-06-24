@@ -52,9 +52,4 @@ class PojoTopicsTest {
   void getTxSpat() {
     assertEquals("topic.OdeSpatTxPojo", pojoTopics.getTxSpat());
   }
-
-  @Test
-  void getTxSrm() {
-    assertEquals("topic.OdeSrmTxPojo", pojoTopics.getTxSrm());
-  }
 }

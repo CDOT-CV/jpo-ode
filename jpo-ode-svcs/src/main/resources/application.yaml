@@ -86,7 +86,6 @@ ode:
         tx-map: "topic.OdeMapTxPojo"
         tx-psm: "topic.OdePsmTxPojo"
         tx-spat: "topic.OdeSpatTxPojo"
-        tx-srm: "topic.OdeSrmTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"

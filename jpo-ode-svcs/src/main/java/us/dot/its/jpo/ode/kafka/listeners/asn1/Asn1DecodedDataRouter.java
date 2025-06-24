@@ -18,7 +18,6 @@ import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -130,7 +129,7 @@ public class Asn1DecodedDataRouter {
       case "signalPhaseAndTimingMessage" -> routeSPAT(consumerRecord, recordType);
       case "mapData" -> routeMAP(consumerRecord, recordType);
       case "signalStatusMessage" -> routeSSM(consumerRecord, recordType);
-      case "signalRequestMessage" -> routeSRM(consumerRecord, recordType);
+      case "signalRequestMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSrm());
       case "personalSafetyMessage" -> routePSM(consumerRecord, recordType);
       case "sensorDataSharingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSdsm());
       default -> log.warn("Unknown message type: {}", messageName);
@@ -146,16 +145,6 @@ public class Asn1DecodedDataRouter {
     }
     // Send all PSMs also to OdePsmJson
     kafkaTemplate.send(jsonTopics.getPsm(), consumerRecord.key(), odePsmData);
-  }
-
-  private void routeSRM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
-      throws XmlUtils.XmlUtilsException {
-    String odeSrmData = OdeSrmDataCreatorHelper.createOdeSrmData(consumerRecord.value()).toString();
-    if (recordType == RecordType.srmTx) {
-      kafkaTemplate.send(pojoTopics.getTxSrm(), consumerRecord.key(), odeSrmData);
-    }
-    // Send all SRMs also to OdeSrmJson
-    kafkaTemplate.send(jsonTopics.getSrm(), consumerRecord.key(), odeSrmData);
   }
 
   private void routeSSM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
