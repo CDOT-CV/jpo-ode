@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 
 /**
@@ -34,7 +33,14 @@ public class BsmLogFileParser extends LogFileParser {
 
   private static final int DIRECTION_LENGTH = 1;
 
-  private BsmSource bsmSource; // 0 for EV(Tx), 1 for RV(Rx)
+  /**
+   * Enum representing the source of the BSM: 0 (EV/Tx), 1 (RV/Rx), or UNKNOWN.
+   */
+  public enum BsmSource {
+      EV, RV, UNKNOWN
+  }
+
+  private BsmSource bsmSource; 
 
   /**
    * Constructs a new instance of BsmLogFileParser with the specified record type.
@@ -119,11 +125,10 @@ public class BsmLogFileParser extends LogFileParser {
   protected void setBsmSource(byte[] code) {
     try {
       setBsmSource(BsmSource.values()[code[0]]);
-
     } catch (Exception e) {
-      logger.error("Invalid BsmSource: {}. Valid values are {}-{} inclusive",
+      logger.error("Invalid BSM source: {}. Valid values are {}-{} inclusive",
           code, 0, BsmSource.values());
-      setBsmSource(BsmSource.unknown);
+      setBsmSource(BsmSource.UNKNOWN);
     }
   }
 
