@@ -11,8 +11,6 @@ import us.dot.its.jpo.ode.model.OdeLogMsgMetadataLocation;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata.Source;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
-import us.dot.its.jpo.ode.model.OdePsmMetadata;
-import us.dot.its.jpo.ode.model.OdePsmMetadata.PsmSource;
 import us.dot.its.jpo.ode.model.OdeSrmMetadata;
 import us.dot.its.jpo.ode.model.OdeSrmMetadata.SrmSource;
 import us.dot.its.jpo.ode.model.OdeSsmMetadata;
@@ -223,23 +221,8 @@ public class UdpHexDecoder {
    */
   public static String buildJsonPsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
-    String senderIp = packet.getAddress().getHostAddress();
-    int senderPort = packet.getPort();
-    log.debug("Packet received from {}:{}", senderIp, senderPort);
-
-    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-    OdeAsn1Payload psmPayload = getPayloadHexString(packet, SupportedMessageType.PSM);
-    OdePsmMetadata psmMetadata = new OdePsmMetadata(psmPayload);
-    // Add header data for the decoding process
-    psmMetadata.setOdeReceivedAt(DateTimeUtils.now());
-
-    psmMetadata.setOriginIp(senderIp);
-    psmMetadata.setPsmSource(PsmSource.RSU);
-    psmMetadata.setRecordType(RecordType.psmTx);
-    psmMetadata.setRecordGeneratedBy(GeneratedBy.UNKNOWN);
-    psmMetadata.setSecurityResultCode(SecurityResultCode.success);
-
-    return JsonUtils.toJson(new OdeAsn1Data(psmMetadata, psmPayload), false);
+    return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.PSM,
+        RecordType.psmTx, Source.RSU, GeneratedBy.UNKNOWN, false), false);
   }
 
   /**

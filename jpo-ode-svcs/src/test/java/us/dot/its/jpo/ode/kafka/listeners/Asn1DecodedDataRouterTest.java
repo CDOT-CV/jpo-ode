@@ -294,8 +294,8 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouter_PSMDataFlow() {
-    String[] topics = Arrays.array(jsonTopics.getPsm(), pojoTopics.getTxPsm());
+  void testAsn1DecodedDataRouter_PSMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getPsm());
     EmbeddedKafkaHolder.addTopics(topics);
 
     String baseTestData =
@@ -309,20 +309,30 @@ class Asn1DecodedDataRouterTest {
 
     String baseExpectedPsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-psm.json");
     for (String recordType : new String[] {"psmTx", "unsupported"}) {
-
       String inputData = replaceRecordType(baseTestData, "psmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedPsm = replaceJSONRecordType(baseExpectedPsm, "psmTx", recordType);
 
-      var consumedPsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getPsm());
-      assertEquals(expectedPsm, consumedPsm.value());
-
-      if (recordType.equals("psmTx")) {
-        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getTxPsm());
-        assertEquals(expectedPsm, consumedSpecific.value());
+      OdeMessageFrameData expectedPsmMFrameData =
+          mapper.readValue(expectedPsm, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "psmTx" -> {
+          expectedPsmMFrameData.getMetadata().setRecordType(RecordType.psmTx);
+        }
+        case "unsupported" -> {
+          expectedPsmMFrameData.getMetadata().setRecordType(RecordType.unsupported);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
+
+      var consumedPsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getPsm());
+      OdeMessageFrameData consumedPsmMFrameData =
+          mapper.readValue(consumedPsm.value(), OdeMessageFrameData.class);
+
+      assertThat(JsonUtils.toJson(consumedPsmMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedPsmMFrameData, false)).withTolerance(0.0001));
     }
     testConsumer.close();
   }
