@@ -79,7 +79,6 @@ ode:
         j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
       pojo:
         tim-broadcast: "topic.OdeTimBroadcastPojo"
-        tx-psm: "topic.OdePsmTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"

@@ -22,9 +22,4 @@ class PojoTopicsTest {
   void getTimBroadcast() {
     assertEquals("topic.OdeTimBroadcastPojo", pojoTopics.getTimBroadcast());
   }
-
-  @Test
-  void getTxPsm() {
-    assertEquals("topic.OdePsmTxPojo", pojoTopics.getTxPsm());
-  }
 }

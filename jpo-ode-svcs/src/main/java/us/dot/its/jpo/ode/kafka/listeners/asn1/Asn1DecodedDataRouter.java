@@ -15,7 +15,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
@@ -125,23 +124,12 @@ public class Asn1DecodedDataRouter {
       case "travelerInformation" -> routeTIM(consumerRecord, streamId, recordType);
       case "mapData" -> routeMessageFrame(consumerRecord, jsonTopics.getMap());
       case "signalPhaseAndTimingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSpat());
+      case "personalSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getPsm());
       case "signalStatusMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSsm());
       case "signalRequestMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSrm());
-      case "personalSafetyMessage" -> routePSM(consumerRecord, recordType);
       case "sensorDataSharingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSdsm());
       default -> log.warn("Unknown message type: {}", messageName);
     }
-  }
-
-  private void routePSM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
-      throws XmlUtils.XmlUtilsException, JsonMappingException, JsonProcessingException,
-      IOException {
-    String odePsmData = OdePsmDataCreatorHelper.createOdePsmData(consumerRecord.value()).toString();
-    if (recordType == RecordType.psmTx) {
-      kafkaTemplate.send(pojoTopics.getTxPsm(), consumerRecord.key(), odePsmData);
-    }
-    // Send all PSMs also to OdePsmJson
-    kafkaTemplate.send(jsonTopics.getPsm(), consumerRecord.key(), odePsmData);
   }
 
   private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,

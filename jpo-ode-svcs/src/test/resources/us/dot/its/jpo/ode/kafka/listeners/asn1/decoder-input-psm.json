@@ -1,27 +1,29 @@
 {
-  "metadata": {
-    "recordType": "psmTx",
-    "securityResultCode": "success",
-    "payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
-    "serialId": {
-      "streamId": "fa3dfe1b-80cd-45cb-ae2c-c604a214fe56",
-      "bundleSize": 1,
-      "bundleId": 0,
-      "recordId": 0,
-      "serialNumber": 0
-    },
-    "odeReceivedAt": "2024-03-15T19:16:35.212860500Z",
-    "schemaVersion": 9,
-    "maxDurationTime": 0,
-    "recordGeneratedBy": "UNKNOWN",
-    "sanitized": false,
-    "psmSource": "RSU",
-    "originIp": "192.168.0.1"
-  },
-  "payload": {
-    "dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
-    "data": {
-      "bytes": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100"
-    }
-  }
+	"metadata": {
+		"recordType": "psmTx",
+		"securityResultCode": "success",
+		"payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
+		"serialId": {
+			"streamId": "35c8e45f-252a-4440-b8b5-a78405a6a001",
+			"bundleSize": 1,
+			"bundleId": 0,
+			"recordId": 0,
+			"serialNumber": 0
+		},
+		"odeReceivedAt": "2025-06-25T10:35:47.332Z",
+		"schemaVersion": 9,
+		"maxDurationTime": 0,
+		"recordGeneratedBy": "UNKNOWN",
+		"sanitized": false,
+		"asn1": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100",
+		"source": "RSU",
+		"originIp": "172.18.0.1",
+		"isCertPresent": false
+	},
+	"payload": {
+		"dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
+		"data": {
+			"bytes": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC79860100"
+		}
+	}
 }
