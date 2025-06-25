@@ -23,10 +23,8 @@ echo 'Creating kafka topics'
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeRawEncodedMAPJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeMapJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeRawEncodedSSMJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
-/opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSsmPojo" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSsmJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeRawEncodedSRMJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
-/opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSrmTxPojo" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeSrmJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdeRawEncodedPSMJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1
 /opt/bitnami/kafka/bin/kafka-topics.sh --create --if-not-exists  --topic "topic.OdePsmJson" --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1

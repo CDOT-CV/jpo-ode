@@ -28,7 +28,6 @@ bin/kafka-topics.sh --create --topic "topic.OdePsmJson" --bootstrap-server local
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedPSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # SSM
-bin/kafka-topics.sh --create --topic "topic.OdeSsmPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeSsmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedSSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 

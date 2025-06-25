@@ -11,7 +11,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "ode.kafka.topics.pojo")
 @Data
 public class PojoTopics {
-  private String ssm;
   private String timBroadcast;
-  private String txSrm;
 }
