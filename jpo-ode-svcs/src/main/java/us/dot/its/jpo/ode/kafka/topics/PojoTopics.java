@@ -13,5 +13,4 @@ import org.springframework.context.annotation.Configuration;
 public class PojoTopics {
   private String timBroadcast;
   private String txPsm;
-  private String txSrm;
 }

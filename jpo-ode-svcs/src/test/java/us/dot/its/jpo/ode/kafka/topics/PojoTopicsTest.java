@@ -27,9 +27,4 @@ class PojoTopicsTest {
   void getTxPsm() {
     assertEquals("topic.OdePsmTxPojo", pojoTopics.getTxPsm());
   }
-
-  @Test
-  void getTxSrm() {
-    assertEquals("topic.OdeSrmTxPojo", pojoTopics.getTxSrm());
-  }
 }

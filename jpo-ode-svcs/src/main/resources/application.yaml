@@ -80,7 +80,6 @@ ode:
       pojo:
         tim-broadcast: "topic.OdeTimBroadcastPojo"
         tx-psm: "topic.OdePsmTxPojo"
-        tx-srm: "topic.OdeSrmTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"
