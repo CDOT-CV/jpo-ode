@@ -69,16 +69,11 @@ ode:
         tim-ktable: "topic.OdeTimKTableJson"
         dn-message: "topic.OdeDNMsgJson"
         rx-tim: "topic.OdeTimRxJson"
-        rx-spat: "topic.OdeSpatRxJson"
         j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
       pojo:
-        spat: "topic.OdeSpatPojo"
         ssm: "topic.OdeSsmPojo"
         tim-broadcast: "topic.OdeTimBroadcastPojo"
-        rx-spat: "topic.OdeSpatRxPojo"
-        tx-map: "topic.OdeMapTxPojo"
         tx-psm: "topic.OdePsmTxPojo"
-        tx-spat: "topic.OdeSpatTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"

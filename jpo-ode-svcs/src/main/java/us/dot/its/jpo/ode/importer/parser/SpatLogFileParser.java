@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
-import us.dot.its.jpo.ode.model.OdeSpatMetadata.SpatSource;
 
 /**
  * SpatLogFileParser is responsible for parsing specific SPaT (Signal Phase and Timing)
@@ -33,6 +32,13 @@ public class SpatLogFileParser extends LogFileParser {
   private static final int RX_FROM_LENGTH = 1;
   /*ieee 1609 (acceptable values 0 = no,1 =yes by default the Cert shall be present)*/
   private static final int IS_CERT_PRESENT_LENGTH = 1;
+
+  /**
+   * Enum representing the source of the SPaT message.
+   */
+  public enum SpatSource {
+    RSU, V2X, MMITSS, UNKNOWN
+  }
 
   private SpatSource spatSource;
   private boolean isCertPresent;
@@ -126,7 +132,7 @@ public class SpatLogFileParser extends LogFileParser {
       setSpatSource(SpatSource.values()[code[0]]);
     } catch (Exception e) {
       logger.error("Invalid SpatSource: {}. Valid values are {}-{} inclusive", code, 0, SpatSource.values());
-      setSpatSource(SpatSource.unknown);
+      setSpatSource(SpatSource.UNKNOWN);
     }
   }
 
@@ -143,7 +149,7 @@ public class SpatLogFileParser extends LogFileParser {
       setCertPresent(code[0] != 0);
     } catch (Exception e) {
       logger.error("Invalid Certificate Presence indicator: {}. Valid values are {}-{} inclusive", code, 0, SpatSource.values());
-      setSpatSource(SpatSource.unknown);
+      setSpatSource(SpatSource.UNKNOWN);
     }
   }
 

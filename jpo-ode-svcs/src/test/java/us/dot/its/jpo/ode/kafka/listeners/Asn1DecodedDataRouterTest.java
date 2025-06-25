@@ -182,8 +182,7 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouter_SPaTDataFlow() throws IOException {
-    String[] topics = Arrays.array(jsonTopics.getSpat(), jsonTopics.getRxSpat(),
-        jsonTopics.getDnMessage(), pojoTopics.getTxSpat());
+    String[] topics = Arrays.array(jsonTopics.getSpat());
     EmbeddedKafkaHolder.addTopics(topics);
 
     String baseTestData =
@@ -197,29 +196,31 @@ class Asn1DecodedDataRouterTest {
 
     String baseExpectedSpat =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-spat.json");
-    for (String recordType : new String[] {"spatTx", "rxMsg", "dnMsg"}) {
-      String topic;
-      switch (recordType) {
-        case "rxMsg" -> topic = jsonTopics.getRxSpat();
-        case "dnMsg" -> topic = jsonTopics.getDnMessage();
-        case "spatTx" -> topic = pojoTopics.getTxSpat();
-        default -> throw new IllegalStateException("Unexpected value: " + recordType);
-      }
-
+    for (String recordType : new String[] {"spatTx", "rxMsg"}) {
       String inputData = replaceRecordType(baseTestData, "spatTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-      var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, topic);
+      var expectedSpat = replaceJSONRecordType(baseExpectedSpat, "spatTx", recordType);
+
+      OdeMessageFrameData expectedSpatMFrameData =
+          mapper.readValue(expectedSpat, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "spatTx" -> {
+          expectedSpatMFrameData.getMetadata().setRecordType(RecordType.spatTx);
+        }
+        case "rxMsg" -> {
+          expectedSpatMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
+
       var consumedSpat = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSpat());
+      OdeMessageFrameData consumedSpatMFrameData =
+          mapper.readValue(consumedSpat.value(), OdeMessageFrameData.class);
 
-      var expectedSpat =
-          mapper.readTree(replaceJSONRecordType(baseExpectedSpat, "spatTx", recordType));
-      var actualSpecific = mapper.readTree(consumedSpecific.value());
-      var actualSpat = mapper.readTree(consumedSpat.value());
-
-      assertEquals(expectedSpat, actualSpat);
-      assertEquals(expectedSpat, actualSpecific);
+      assertThat(JsonUtils.toJson(consumedSpatMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedSpatMFrameData, false)).withTolerance(0.0001));
     }
     testConsumer.close();
   }
@@ -327,8 +328,8 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouter_MAPDataFlow() {
-    String[] topics = Arrays.array(jsonTopics.getMap(), pojoTopics.getTxMap());
+  void testAsn1DecodedDataRouter_MAPDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getMap());
     EmbeddedKafkaHolder.addTopics(topics);
 
     String baseTestData =
@@ -342,20 +343,30 @@ class Asn1DecodedDataRouterTest {
 
     String baseExpectedMap = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-map.json");
     for (String recordType : new String[] {"mapTx", "unsupported"}) {
-
       String inputData = replaceRecordType(baseTestData, "mapTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedMap = replaceJSONRecordType(baseExpectedMap, "mapTx", recordType);
 
-      var consumedMap = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getMap());
-      assertEquals(expectedMap, consumedMap.value());
-
-      if (recordType.equals("mapTx")) {
-        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getTxMap());
-        assertEquals(expectedMap, consumedSpecific.value());
+      OdeMessageFrameData expectedMapMFrameData =
+          mapper.readValue(expectedMap, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "mapTx" -> {
+          expectedMapMFrameData.getMetadata().setRecordType(RecordType.mapTx);
+        }
+        case "unsupported" -> {
+          expectedMapMFrameData.getMetadata().setRecordType(RecordType.unsupported);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
+
+      var consumedMap = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getMap());
+      OdeMessageFrameData consumedMapMFrameData =
+          mapper.readValue(consumedMap.value(), OdeMessageFrameData.class);
+
+      assertThat(JsonUtils.toJson(consumedMapMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedMapMFrameData, false)).withTolerance(0.0001));
     }
     testConsumer.close();
   }

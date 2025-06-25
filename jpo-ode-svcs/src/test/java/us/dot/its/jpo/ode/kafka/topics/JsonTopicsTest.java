@@ -99,11 +99,6 @@ class JsonTopicsTest {
     }
 
     @Test
-    void getRxSpat() {
-        assertEquals("topic.OdeSpatRxJson", jsonTopics.getRxSpat());
-    }
-
-    @Test
     void getJ2735TimBroadcast() {
         assertEquals("topic.J2735TimBroadcastJson", jsonTopics.getJ2735TimBroadcast());
     }

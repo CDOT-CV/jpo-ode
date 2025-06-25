@@ -14,10 +14,8 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
-import us.dot.its.jpo.ode.coder.OdeMapDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSpatDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -126,8 +124,8 @@ public class Asn1DecodedDataRouter {
     switch (messageName) {
       case "basicSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getBsm());
       case "travelerInformation" -> routeTIM(consumerRecord, streamId, recordType);
-      case "signalPhaseAndTimingMessage" -> routeSPAT(consumerRecord, recordType);
-      case "mapData" -> routeMAP(consumerRecord, recordType);
+      case "mapData" -> routeMessageFrame(consumerRecord, jsonTopics.getMap());
+      case "signalPhaseAndTimingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSpat());
       case "signalStatusMessage" -> routeSSM(consumerRecord, recordType);
       case "signalRequestMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSrm());
       case "personalSafetyMessage" -> routePSM(consumerRecord, recordType);
@@ -155,33 +153,6 @@ public class Asn1DecodedDataRouter {
     }
     // Send all SSMs also to OdeSsmJson
     kafkaTemplate.send(jsonTopics.getSsm(), consumerRecord.key(), odeSsmData);
-  }
-
-  private void routeSPAT(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
-      throws XmlUtils.XmlUtilsException {
-    String odeSpatData =
-        OdeSpatDataCreatorHelper.createOdeSpatData(consumerRecord.value()).toString();
-    switch (recordType) {
-      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(),
-          odeSpatData);
-      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxSpat(), consumerRecord.key(), odeSpatData);
-      case spatTx -> kafkaTemplate.send(pojoTopics.getTxSpat(), consumerRecord.key(), odeSpatData);
-      default -> log.trace("Consumed SPAT data with record type: {}", recordType);
-    }
-    // Send all SPATs also to OdeSpatJson
-    kafkaTemplate.send(jsonTopics.getSpat(), consumerRecord.key(), odeSpatData);
-  }
-
-
-  private void routeMAP(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
-      throws XmlUtilsException {
-    String odeMapData = OdeMapDataCreatorHelper.createOdeMapData(consumerRecord.value()).toString();
-    if (recordType == RecordType.mapTx) {
-      kafkaTemplate.send(pojoTopics.getTxMap(), odeMapData);
-    }
-
-    // Send all MAP data to OdeMapJson despite the record type
-    kafkaTemplate.send(jsonTopics.getMap(), odeMapData);
   }
 
   private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
