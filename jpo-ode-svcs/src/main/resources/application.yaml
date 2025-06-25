@@ -74,7 +74,6 @@ ode:
         tim-tmc-filtered: "topic.OdeTimJsonTMCFiltered"
         tim-cert-expiration: "topic.OdeTIMCertExpirationTimeJson"
         tim-ktable: "topic.OdeTimKTableJson"
-        dn-message: "topic.OdeDNMsgJson"
         rx-tim: "topic.OdeTimRxJson"
         j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
       pojo:

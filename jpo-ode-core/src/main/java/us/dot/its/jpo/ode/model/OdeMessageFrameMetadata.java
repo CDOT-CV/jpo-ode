@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import us.dot.its.jpo.ode.plugin.ServiceRequest;
 
 /**
  * Represents the metadata of a message frame.
@@ -22,6 +23,9 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
 
   private Source source;
   private String originIp;
+
+  // Only used for messages created through the TIM deposit endpoint
+  private ServiceRequest request;
 
   // otherwise it will deserialize as "certPresent"
   @JsonProperty("isCertPresent")

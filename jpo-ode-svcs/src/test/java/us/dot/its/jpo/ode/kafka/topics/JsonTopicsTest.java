@@ -89,11 +89,6 @@ class JsonTopicsTest {
     }
 
     @Test
-    void getDnMessage() {
-        assertEquals("topic.OdeDNMsgJson", jsonTopics.getDnMessage());
-    }
-
-    @Test
     void getRxTim() {
         assertEquals("topic.OdeTimRxJson", jsonTopics.getRxTim());
     }

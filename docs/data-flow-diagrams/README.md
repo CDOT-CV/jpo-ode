@@ -76,7 +76,7 @@ see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-
 2. The [RawEncodedTIMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedTIMJsonRouter.java) processes messages from the OdeRawEncodedTIMJson topic
 3. The [RawEncodedTIMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedTIMJsonRouter.java) class pushes the TIM to the Asn1DecoderInput topic. Any remaining signed IEEE 1609.2 headers are removed at this point.
 4. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the TIM, and pushes it to the Asn1DecoderOutput topic.
-5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) pulls from the Asn1DecoderOutput topic and pushes the TIM to the OdeTimJson, OdeTimRxJson and OdeDNMsgJson topics.
+5. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) pulls from the Asn1DecoderOutput topic and pushes the TIM to the OdeTimJson topic.
 
 ### TIM Data Flow 3 (Offloaded Files)
 1. The [FileUploadController](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/upload/FileUploadController.java) writes the log file to the configured uploads directory defined in [FileImporterProperties](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/FileImporterProperties.java) (ex: /uploads/bsmlog)
@@ -84,7 +84,7 @@ see [Overview Data Flow 1 (Tim Depositor Controller)](#overview-data-flow-1-tim-
 3. The [LogFileToAsn1CodecPublisher](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/coder/stream/LogFileToAsn1CodecPublisher.java) pushes it to the TIM to the RawEncodedTIMJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.
 4. The [RawEncodedTIMJsonRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/json/RawEncodedTIMJsonRouter.java) processes messages from the OdeRawEncodedTIMJson topic and pushes the TIM to the Asn1DecoderInput topic. 
 5. The [ACM](https://github.com/usdot-jpo-ode/asn1_codec) pulls from the Asn1DecoderInput topic, decodes the TIM, and pushes it to the Asn1DecoderOutput topic.
-6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) pulls from the Asn1DecoderOutput topic and pushes the TIM to the OdeTimJson, OdeTimRxJson and OdeDNMsgJson topics.
+6. The [Asn1DecodedDataRouter](/jpo-ode-svcs/src/main/java/us/dot/its/jpo/ode/kafka/listeners/asn1/Asn1DecodedDataRouter.java) pulls from the Asn1DecoderOutput topic and pushes the TIM to the OdeTimJson topic.
 
 ### SPAT Data Flow 1 (Receiver Classes)
 1. The SPAT comes in through the SpatReceiver class and is pushed to the OdeRawEncodedSPATJson topic. Any IEEE 1609.3 or unsigned IEEE 1609.2 headers are stripped at this point.

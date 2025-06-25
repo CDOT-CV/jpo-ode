@@ -20,7 +20,10 @@
 
 package us.dot.its.jpo.ode.traveler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeParseException;
@@ -29,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -37,10 +41,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
+import us.dot.its.jpo.ode.model.OdeMessageFrameData;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.model.OdeObject;
@@ -76,6 +83,8 @@ public class TimDepositController {
   private final Asn1CoderTopics asn1CoderTopics;
   private final PojoTopics pojoTopics;
   private final JsonTopics jsonTopics;
+  private final ObjectMapper simpleObjectMapper;
+  private final XmlMapper simpleXmlMapper;
 
   private final KafkaTemplate<String, String> kafkaTemplate;
   private final KafkaTemplate<String, OdeObject> timDataKafkaTemplate;
@@ -102,12 +111,16 @@ public class TimDepositController {
       JsonTopics jsonTopics, TimIngestTrackerProperties ingestTrackerProperties,
       SecurityServicesProperties securityServicesProperties,
       KafkaTemplate<String, String> kafkaTemplate,
-      KafkaTemplate<String, OdeObject> timDataKafkaTemplate) {
+      KafkaTemplate<String, OdeObject> timDataKafkaTemplate,
+      @Qualifier("simpleObjectMapper") ObjectMapper simpleObjectMapper,
+      @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
     this.pojoTopics = pojoTopics;
     this.jsonTopics = jsonTopics;
+    this.simpleObjectMapper = simpleObjectMapper;
+    this.simpleXmlMapper = simpleXmlMapper;
 
     this.kafkaTemplate = kafkaTemplate;
     this.timDataKafkaTemplate = timDataKafkaTemplate;
@@ -134,8 +147,9 @@ public class TimDepositController {
    * @param verb       The HTTP verb being requested
    *
    * @return The request completion status
+   * @throws JsonProcessingException 
    */
-  public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) {
+  public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) throws JsonProcessingException {
 
     if (null == jsonString || jsonString.isEmpty()) {
       String errMsg = "Empty request.";
@@ -183,7 +197,7 @@ public class TimDepositController {
     // Add metadata to message and publish to kafka
     OdeTravelerInformationMessage tim = odeTID.getTim();
     OdeMsgPayload timDataPayload = new OdeMsgPayload(tim);
-    OdeRequestMsgMetadata timMetadata = new OdeRequestMsgMetadata(timDataPayload, request);
+    OdeMessageFrameMetadata timMetadata = new OdeMessageFrameMetadata(timDataPayload, request);
 
     // set packetID in tim Metadata
     timMetadata.setOdePacketID(tim.getPacketID());
@@ -277,9 +291,15 @@ public class TimDepositController {
       log.debug("XML representation: {}", xmlMsg);
 
       // Convert XML into ODE TIM JSON object and obfuscate RSU password
-      OdeTimData odeTimObj = OdeTimDataCreatorHelper.createOdeTimDataFromCreator(xmlMsg, timMetadata);
+      OdeMessageFrameData odeTimMessageFrameData =
+          OdeMessageFrameDataCreatorHelper.createOdeTimMessageFrameDataFromCreator(
+            xmlMsg, 
+            timMetadata,
+            simpleObjectMapper, 
+            simpleXmlMapper);
+      //OdeTimData odeTimObj = OdeTimDataCreatorHelper.createOdeTimDataFromCreator(xmlMsg, timMetadata);
 
-      String j2735Tim = odeTimObj.toString();
+      String j2735Tim = JsonUtils.toJson(odeTimMessageFrameData, false);
 
       String obfuscatedJ2735Tim = TimTransmogrifier.obfuscateRsuPassword(j2735Tim);
       // publish Broadcast TIM to a J2735 compliant topic.

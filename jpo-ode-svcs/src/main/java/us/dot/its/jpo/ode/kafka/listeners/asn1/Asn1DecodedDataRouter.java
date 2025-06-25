@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
-import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
@@ -18,7 +17,6 @@ import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSrmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
@@ -114,17 +112,17 @@ public class Asn1DecodedDataRouter {
     OdeLogMetadata.RecordType recordType =
         OdeLogMetadata.RecordType.valueOf(metadataJson.getString("recordType"));
 
-    String streamId;
-    if (Strings.isNullOrEmpty(consumerRecord.key())
-        || "null".equalsIgnoreCase(consumerRecord.key())) {
-      streamId = metadataJson.getJSONObject("serialId").getString("streamId");
-    } else {
-      streamId = consumerRecord.key();
-    }
+    // String streamId;
+    // if (Strings.isNullOrEmpty(consumerRecord.key())
+    //     || "null".equalsIgnoreCase(consumerRecord.key())) {
+    //   streamId = metadataJson.getJSONObject("serialId").getString("streamId");
+    // } else {
+    //   streamId = consumerRecord.key();
+    // }
 
     switch (messageName) {
       case "basicSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getBsm());
-      case "travelerInformation" -> routeTIM(consumerRecord, streamId, recordType);
+      case "travelerInformation" -> routeMessageFrame(consumerRecord, jsonTopics.getTim());
       case "mapData" -> routeMessageFrame(consumerRecord, jsonTopics.getMap());
       case "signalPhaseAndTimingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSpat());
       case "signalStatusMessage" -> routeSSM(consumerRecord, recordType);
@@ -166,18 +164,18 @@ public class Asn1DecodedDataRouter {
     kafkaTemplate.send(jsonTopics.getSsm(), consumerRecord.key(), odeSsmData);
   }
 
-  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
-      RecordType type) throws XmlUtilsException {
-    String odeTimData =
-        OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
-    switch (type) {
-      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
-      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
-      default -> log.trace("Consumed TIM data with record type: {}", type);
-    }
-    // Send all TIMs also to OdeTimJson
-    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
-  }
+  // private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
+  //     RecordType type) throws XmlUtilsException {
+  //   String odeTimData =
+  //       OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
+  //   switch (type) {
+  //     case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
+  //     case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
+  //     default -> log.trace("Consumed TIM data with record type: {}", type);
+  //   }
+  //   // Send all TIMs also to OdeTimJson
+  //   kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
+  // }
 
   private void routeMessageFrame(ConsumerRecord<String, String> consumerRecord, String... topics)
       throws XmlUtils.XmlUtilsException, IOException {

@@ -17,7 +17,6 @@ import us.dot.its.jpo.ode.model.OdeSrmMetadata;
 import us.dot.its.jpo.ode.model.OdeSrmMetadata.SrmSource;
 import us.dot.its.jpo.ode.model.OdeSsmMetadata;
 import us.dot.its.jpo.ode.model.OdeSsmMetadata.SsmSource;
-import us.dot.its.jpo.ode.model.OdeTimMetadata;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
 import us.dot.its.jpo.ode.model.RxSource;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
@@ -112,31 +111,17 @@ public class UdpHexDecoder {
   }
 
   /**
-   * Converts the data from the given {@link DatagramPacket} into a TIM message. It extracts
-   * metadata and payload, then structures them into an {@link OdeAsn1Data} object
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a TIM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
    *
    * @param packet the DatagramPacket containing the TIM data
-   * @return an {@link OdeAsn1Data} object representing the TIM message
+   * @return a JSON string representing the TIM message
    * @throws InvalidPayloadException if the payload extraction fails
    */
-  public static OdeAsn1Data buildTimFromPacket(DatagramPacket packet)
+  public static String buildJsonTimFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
-    String senderIp = packet.getAddress().getHostAddress();
-    int senderPort = packet.getPort();
-    log.debug("Packet received from {}:{}", senderIp, senderPort);
-
-    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-    OdeAsn1Payload timPayload = getPayloadHexString(packet, SupportedMessageType.TIM);
-    OdeTimMetadata timMetadata = new OdeTimMetadata(timPayload);
-
-    // Add header data for the decoding process
-    timMetadata.setOdeReceivedAt(DateTimeUtils.now());
-
-    timMetadata.setOriginIp(senderIp);
-    timMetadata.setRecordType(RecordType.timMsg);
-    timMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
-    timMetadata.setSecurityResultCode(SecurityResultCode.success);
-    return new OdeAsn1Data(timMetadata, timPayload);
+    return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.TIM,
+        RecordType.timMsg, Source.RSU, GeneratedBy.RSU, false), false);
   }
 
   /**
