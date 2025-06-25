@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -241,46 +242,47 @@ class LogFileToAsn1CodecPublisherTest {
     }
   }
 
-//   @Test
-//   void testPublishRxMsgTIMLogFile(@Mock JsonTopics jsonTopics,
-//       @Mock RawEncodedJsonTopics rawEncodedJsonTopics,
-//       @Mock KafkaTemplate<String, String> kafkaTemplate) throws Exception {
-//     var testLogFileToAsn1CodecPublisher =
-//         new LogFileToAsn1CodecPublisher(kafkaTemplate, jsonTopics, rawEncodedJsonTopics);
-//     byte[] buf = new byte[] {(byte) 0x01, // 1. RxSource = SAT
-//         (byte) 0x6f, (byte) 0x75, (byte) 0x4d, (byte) 0x19, // 2.0 latitude
-//         (byte) 0xa4, (byte) 0xa1, (byte) 0x5c, (byte) 0xce, // 2.1 longitude
-//         (byte) 0x67, (byte) 0x06, (byte) 0x00, (byte) 0x00, // 2.3 elevation
-//         (byte) 0x04, (byte) 0x00, // 2.3 speed
-//         (byte) 0x09, (byte) 0x27, // 2.4 heading
-//         (byte) 0xa9, (byte) 0x2c, (byte) 0xe2, (byte) 0x5a, // 2. utcTimeInSec
-//         (byte) 0x8f, (byte) 0x01, // 4. mSec
-//         (byte) 0x00, // 5. securityResultCode
-//         (byte) 0x06, (byte) 0x00, // 6.0 payloadLength
-//         // 6.1 payload
-//         (byte) 0x03, (byte) 0x81, (byte) 0x00, (byte) 0x14, (byte) 0x03, (byte) 0x80};
+  @Test
+  @Disabled("Requires the full TIM rework to be completed to fully resolve correctly")
+  void testPublishRxMsgTIMLogFile(@Mock JsonTopics jsonTopics,
+      @Mock RawEncodedJsonTopics rawEncodedJsonTopics,
+      @Mock KafkaTemplate<String, String> kafkaTemplate) throws Exception {
+    var testLogFileToAsn1CodecPublisher =
+        new LogFileToAsn1CodecPublisher(kafkaTemplate, jsonTopics, rawEncodedJsonTopics);
+    byte[] buf = new byte[] {(byte) 0x01, // 1. RxSource = SAT
+        (byte) 0x6f, (byte) 0x75, (byte) 0x4d, (byte) 0x19, // 2.0 latitude
+        (byte) 0xa4, (byte) 0xa1, (byte) 0x5c, (byte) 0xce, // 2.1 longitude
+        (byte) 0x67, (byte) 0x06, (byte) 0x00, (byte) 0x00, // 2.3 elevation
+        (byte) 0x04, (byte) 0x00, // 2.3 speed
+        (byte) 0x09, (byte) 0x27, // 2.4 heading
+        (byte) 0xa9, (byte) 0x2c, (byte) 0xe2, (byte) 0x5a, // 2. utcTimeInSec
+        (byte) 0x8f, (byte) 0x01, // 4. mSec
+        (byte) 0x00, // 5. securityResultCode
+        (byte) 0x06, (byte) 0x00, // 6.0 payloadLength
+        // 6.1 payload
+        (byte) 0x03, (byte) 0x81, (byte) 0x00, (byte) 0x14, (byte) 0x03, (byte) 0x80};
 
-//     String filename = rxMsg.name() + GZ;
+    String filename = rxMsg.name() + GZ;
 
-//     BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
+    BufferedInputStream bis = new BufferedInputStream(new ByteArrayInputStream(buf));
 
-//     List<OdeData<OdeLogMetadata, OdeMsgPayload<OdeObject>>> dataList =
-//         testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE,
-//             LogFileParserFactory.getLogFileParser(filename));
+    List<OdeData<OdeLogMetadata, OdeMsgPayload<OdeObject>>> dataList =
+        testLogFileToAsn1CodecPublisher.publish(bis, filename, ImporterFileType.LOG_FILE,
+            LogFileParserFactory.getLogFileParser(filename));
 
-//     var expectedStringToFormat = loadResourceAsString(
-//         "src/test/resources/us.dot.its.jpo.ode.coder/expectedRxMsgTIMLogFileToPublish.json");
-//     for (OdeData<OdeLogMetadata, OdeMsgPayload<OdeObject>> data : dataList) {
-//       assertTrue(DateTimeUtils.difference(
-//           DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
-//           DateTimeUtils.nowZDT()) > 0);
-//       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
-//       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
-//       String asn1String = data.getMetadata().getAsn1();
-//       var expected = String.format(expectedStringToFormat, SCHEMA_VERSION, asn1String, asn1String);
-//       assertEquals(expected, data.toJson());
-//     }
-//   }
+    var expectedStringToFormat = loadResourceAsString(
+        "src/test/resources/us.dot.its.jpo.ode.coder/expectedRxMsgTIMLogFileToPublish.json");
+    for (OdeData<OdeLogMetadata, OdeMsgPayload<OdeObject>> data : dataList) {
+      assertTrue(DateTimeUtils.difference(
+          DateTimeUtils.isoDateTime(data.getMetadata().getRecordGeneratedAt()),
+          DateTimeUtils.nowZDT()) > 0);
+      data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
+      data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
+      String asn1String = data.getMetadata().getAsn1();
+      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION, asn1String, asn1String);
+      assertEquals(expected, data.toJson());
+    }
+  }
 
   @Test
   void testPublishRxMsgBSMLogFile(@Mock JsonTopics jsonTopics,
