@@ -19,22 +19,7 @@ class PojoTopicsTest {
   PojoTopics pojoTopics;
 
   @Test
-  void getSsm() {
-    assertEquals("topic.OdeSsmPojo", pojoTopics.getSsm());
-  }
-
-  @Test
   void getTimBroadcast() {
     assertEquals("topic.OdeTimBroadcastPojo", pojoTopics.getTimBroadcast());
-  }
-
-  @Test
-  void getTxPsm() {
-    assertEquals("topic.OdePsmTxPojo", pojoTopics.getTxPsm());
-  }
-
-  @Test
-  void getTxSrm() {
-    assertEquals("topic.OdeSrmTxPojo", pojoTopics.getTxSrm());
   }
 }

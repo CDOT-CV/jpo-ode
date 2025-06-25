@@ -70,10 +70,7 @@ ode:
         rx-tim: "topic.OdeTimRxJson"
         j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
       pojo:
-        ssm: "topic.OdeSsmPojo"
         tim-broadcast: "topic.OdeTimBroadcastPojo"
-        tx-psm: "topic.OdePsmTxPojo"
-        tx-srm: "topic.OdeSrmTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"
