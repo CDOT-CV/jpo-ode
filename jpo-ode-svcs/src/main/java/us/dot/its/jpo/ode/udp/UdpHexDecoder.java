@@ -15,8 +15,6 @@ import us.dot.its.jpo.ode.model.OdePsmMetadata;
 import us.dot.its.jpo.ode.model.OdePsmMetadata.PsmSource;
 import us.dot.its.jpo.ode.model.OdeSrmMetadata;
 import us.dot.its.jpo.ode.model.OdeSrmMetadata.SrmSource;
-import us.dot.its.jpo.ode.model.OdeSsmMetadata;
-import us.dot.its.jpo.ode.model.OdeSsmMetadata.SsmSource;
 import us.dot.its.jpo.ode.model.OdeTimMetadata;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
 import us.dot.its.jpo.ode.model.RxSource;
@@ -163,24 +161,8 @@ public class UdpHexDecoder {
    */
   public static String buildJsonSsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
-    String senderIp = packet.getAddress().getHostAddress();
-    int senderPort = packet.getPort();
-    log.debug("Packet received from {}:{}", senderIp, senderPort);
-
-    // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-    OdeAsn1Payload ssmPayload = getPayloadHexString(packet, SupportedMessageType.SSM);
-    OdeSsmMetadata ssmMetadata = new OdeSsmMetadata(ssmPayload);
-
-    // Add header data for the decoding process
-    ssmMetadata.setOdeReceivedAt(DateTimeUtils.now());
-
-    ssmMetadata.setOriginIp(senderIp);
-    ssmMetadata.setSsmSource(SsmSource.RSU);
-    ssmMetadata.setRecordType(RecordType.ssmTx);
-    ssmMetadata.setRecordGeneratedBy(GeneratedBy.RSU);
-    ssmMetadata.setSecurityResultCode(SecurityResultCode.success);
-
-    return JsonUtils.toJson(new OdeAsn1Data(ssmMetadata, ssmPayload), false);
+    return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.SSM,
+      RecordType.ssmTx, Source.RSU, GeneratedBy.RSU, false), false);
   }
 
   /**
