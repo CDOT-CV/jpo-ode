@@ -1,9 +1,6 @@
 name: Publish Java Package
 
 on:
-  push:
-    tags:
-      - 'jpo-ode-*'
   release:
     types: [published]
 
