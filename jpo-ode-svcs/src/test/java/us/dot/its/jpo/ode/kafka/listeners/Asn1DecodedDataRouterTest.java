@@ -226,8 +226,8 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouter_SSMDataFlow() {
-    String[] topics = Arrays.array(jsonTopics.getSsm(), pojoTopics.getSsm());
+  void testAsn1DecodedDataRouter_SSMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getSsm());
     EmbeddedKafkaHolder.addTopics(topics);
 
     String baseTestData =
@@ -241,20 +241,30 @@ class Asn1DecodedDataRouterTest {
 
     String baseExpectedSsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-ssm.json");
     for (String recordType : new String[] {"ssmTx", "unsupported"}) {
-
       String inputData = replaceRecordType(baseTestData, "ssmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
       var expectedSsm = replaceJSONRecordType(baseExpectedSsm, "ssmTx", recordType);
 
-      var consumedSsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSsm());
-      assertEquals(expectedSsm, consumedSsm.value());
-
-      if (recordType.equals("ssmTx")) {
-        var consumedSpecific = KafkaTestUtils.getSingleRecord(testConsumer, pojoTopics.getSsm());
-        assertEquals(expectedSsm, consumedSpecific.value());
+      OdeMessageFrameData expectedSsmMFrameData =
+          mapper.readValue(expectedSsm, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "ssmTx" -> {
+          expectedSsmMFrameData.getMetadata().setRecordType(RecordType.ssmTx);
+        }
+        case "unsupported" -> {
+          expectedSsmMFrameData.getMetadata().setRecordType(RecordType.unsupported);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
       }
+
+      var consumedSsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getSsm());
+      OdeMessageFrameData consumedSsmMFrameData =
+          mapper.readValue(consumedSsm.value(), OdeMessageFrameData.class);
+
+      assertThat(JsonUtils.toJson(consumedSsmMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedSsmMFrameData, false)).withTolerance(0.0001));
     }
     testConsumer.close();
   }

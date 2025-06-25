@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdePsmDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeSsmDataCreatorHelper;
 import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
@@ -126,7 +125,7 @@ public class Asn1DecodedDataRouter {
       case "travelerInformation" -> routeTIM(consumerRecord, streamId, recordType);
       case "mapData" -> routeMessageFrame(consumerRecord, jsonTopics.getMap());
       case "signalPhaseAndTimingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSpat());
-      case "signalStatusMessage" -> routeSSM(consumerRecord, recordType);
+      case "signalStatusMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSsm());
       case "signalRequestMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSrm());
       case "personalSafetyMessage" -> routePSM(consumerRecord, recordType);
       case "sensorDataSharingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSdsm());
@@ -143,16 +142,6 @@ public class Asn1DecodedDataRouter {
     }
     // Send all PSMs also to OdePsmJson
     kafkaTemplate.send(jsonTopics.getPsm(), consumerRecord.key(), odePsmData);
-  }
-
-  private void routeSSM(ConsumerRecord<String, String> consumerRecord, RecordType recordType)
-      throws XmlUtils.XmlUtilsException {
-    String odeSsmData = OdeSsmDataCreatorHelper.createOdeSsmData(consumerRecord.value()).toString();
-    if (recordType == RecordType.ssmTx) {
-      kafkaTemplate.send(pojoTopics.getSsm(), consumerRecord.key(), odeSsmData);
-    }
-    // Send all SSMs also to OdeSsmJson
-    kafkaTemplate.send(jsonTopics.getSsm(), consumerRecord.key(), odeSsmData);
   }
 
   private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,

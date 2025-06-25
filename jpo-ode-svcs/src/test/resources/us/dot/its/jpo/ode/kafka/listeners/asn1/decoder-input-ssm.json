@@ -1,27 +1,29 @@
 {
-  "metadata": {
-    "recordType": "ssmTx",
-    "securityResultCode": "success",
-    "payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
-    "serialId": {
-      "streamId": "c4e4e92d-dccc-45f5-813f-7d36795529a0",
-      "bundleSize": 1,
-      "bundleId": 0,
-      "recordId": 0,
-      "serialNumber": 0
-    },
-    "odeReceivedAt": "2024-03-15T19:31:02.907835400Z",
-    "schemaVersion": 9,
-    "maxDurationTime": 0,
-    "recordGeneratedBy": "RSU",
-    "sanitized": false,
-    "originIp": "192.168.0.1",
-    "ssmSource": "RSU"
-  },
-  "payload": {
-    "dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
-    "data": {
-      "bytes": "0381004003807C001E120000000005E9C04071A26614C06000040BA000"
-    }
-  }
+	"metadata": {
+		"recordType": "ssmTx",
+		"securityResultCode": "success",
+		"payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
+		"serialId": {
+			"streamId": "dea190a7-ab49-4ae3-a2dd-b1dc815f03de",
+			"bundleSize": 1,
+			"bundleId": 0,
+			"recordId": 0,
+			"serialNumber": 0
+		},
+		"odeReceivedAt": "2025-06-25T09:50:47.794Z",
+		"schemaVersion": 9,
+		"maxDurationTime": 0,
+		"recordGeneratedBy": "RSU",
+		"sanitized": false,
+		"asn1": "0381004003807C001E120000000005E9C04071A26614C06000040BA000",
+		"source": "RSU",
+		"originIp": "172.18.0.1",
+		"isCertPresent": false
+	},
+	"payload": {
+		"dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
+		"data": {
+			"bytes": "0381004003807C001E120000000005E9C04071A26614C06000040BA000"
+		}
+	}
 }
