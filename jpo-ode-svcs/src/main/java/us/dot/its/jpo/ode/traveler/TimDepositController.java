@@ -47,7 +47,6 @@ import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
-import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.model.OdeObject;
@@ -197,6 +196,7 @@ public class TimDepositController {
     // Add metadata to message and publish to kafka
     OdeTravelerInformationMessage tim = odeTID.getTim();
     OdeMsgPayload timDataPayload = new OdeMsgPayload(tim);
+    OdeRequestMsgMetadata timMetadata = new OdeRequestMsgMetadata(timDataPayload, request);
     OdeMessageFrameMetadata timMetadata = new OdeMessageFrameMetadata(timDataPayload, request);
 
     // set packetID in tim Metadata
@@ -330,10 +330,11 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
+   * @throws JsonProcessingException if there is an error processing the JSON
    */
   @PutMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
-  public ResponseEntity<String> putTim(@RequestBody String jsonString) {
+  public ResponseEntity<String> putTim(@RequestBody String jsonString) throws JsonProcessingException {
 
     return depositTim(jsonString, ServiceRequest.OdeInternal.RequestVerb.PUT);
   }
@@ -344,10 +345,11 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
+   * @throws JsonProcessingException if there is an error processing the JSON
    */
   @PostMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
-  public ResponseEntity<String> postTim(@RequestBody String jsonString) {
+  public ResponseEntity<String> postTim(@RequestBody String jsonString) throws JsonProcessingException {
 
     return depositTim(jsonString, ServiceRequest.OdeInternal.RequestVerb.POST);
   }

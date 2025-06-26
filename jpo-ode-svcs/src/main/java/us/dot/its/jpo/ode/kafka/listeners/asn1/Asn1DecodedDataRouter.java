@@ -127,18 +127,18 @@ public class Asn1DecodedDataRouter {
     }
   }
 
-  // private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
-  //     RecordType type) throws XmlUtilsException {
-  //   String odeTimData =
-  //       OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
-  //   switch (type) {
-  //     case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
-  //     case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
-  //     default -> log.trace("Consumed TIM data with record type: {}", type);
-  //   }
-  //   // Send all TIMs also to OdeTimJson
-  //   kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
-  // }
+  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
+      RecordType type) throws XmlUtilsException {
+    String odeTimData =
+        OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
+    switch (type) {
+      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
+      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
+      default -> log.trace("Consumed TIM data with record type: {}", type);
+    }
+    // Send all TIMs also to OdeTimJson
+    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
+  }
 
   private void routeMessageFrame(ConsumerRecord<String, String> consumerRecord, String... topics)
       throws XmlUtils.XmlUtilsException, IOException {
