@@ -25,6 +25,7 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
   private String originIp;
 
   // Only used for messages created through the TIM deposit endpoint
+  @JsonProperty("request")
   private ServiceRequest request;
 
   // otherwise it will deserialize as "certPresent"

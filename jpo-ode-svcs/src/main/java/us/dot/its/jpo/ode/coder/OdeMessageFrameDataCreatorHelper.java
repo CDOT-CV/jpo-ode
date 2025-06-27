@@ -11,13 +11,7 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFramePayload;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
-import us.dot.its.jpo.ode.model.OdeRequestMsgMetadata;
-import us.dot.its.jpo.ode.model.OdeTimData;
-import us.dot.its.jpo.ode.model.OdeTimPayload;
 import us.dot.its.jpo.ode.model.RxSource;
-import us.dot.its.jpo.ode.plugin.j2735.travelerinformation.TravelerInformation;
-import us.dot.its.jpo.ode.util.XmlUtils;
-import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
 /**
  * Helper class for creating OdeMessageFrameData objects from consumed data.
@@ -43,6 +37,7 @@ public class OdeMessageFrameDataCreatorHelper {
     ObjectNode consumed = simpleXmlMapper.readValue(consumedData, ObjectNode.class);
     JsonNode metadataNode = consumed.findValue(OdeMsgMetadata.METADATA_STRING);
     if (metadataNode instanceof ObjectNode object) {
+      object.remove("request");
       object.remove(OdeMsgMetadata.ENCODINGS_STRING);      
     }
 
@@ -61,24 +56,6 @@ public class OdeMessageFrameDataCreatorHelper {
     MessageFrame<?> messageFrame =
         simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
     OdeMessageFramePayload payload = new OdeMessageFramePayload(messageFrame);
-    return new OdeMessageFrameData(metadata, payload);
-  }
-
-  /**
-   * Deserializes XML/XER from the TIM creator endpoint.
-   *
-   * @param consumedData The XML/XER as a String.
-   * @param metadata The pre-built ODE metadata object with unique TIM creator data.
-   */
-  public static OdeMessageFrameData createOdeTimMessageFrameDataFromCreator(String consumedData, OdeRequestMsgMetadata metadata,
-      ObjectMapper simpleObjectMapper, XmlMapper simpleXmlMapper) throws JsonProcessingException {
-    ObjectNode consumed = simpleXmlMapper.readValue(consumedData, ObjectNode.class);
-
-    JsonNode messageFrameNode = consumed.findValue("MessageFrame");
-    MessageFrame<?> messageFrame =
-        simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
-    OdeMessageFramePayload payload = new OdeMessageFramePayload(messageFrame);
-
     return new OdeMessageFrameData(metadata, payload);
   }
 }

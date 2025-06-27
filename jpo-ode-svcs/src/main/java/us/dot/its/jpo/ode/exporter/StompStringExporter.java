@@ -78,8 +78,7 @@ public class StompStringExporter {
       "${ode.kafka.topics.json.map}",
       "${ode.kafka.topics.json.ssm}",
       "${ode.kafka.topics.json.srm}",
-      "${ode.kafka.topics.json.driver-alert}",
-      "${ode.kafka.topics.json.tim-broadcast}"
+      "${ode.kafka.topics.json.driver-alert}"
   })
   public void listenUnfiltered(ConsumerRecord<String, String> consumerRecord) {
     log.debug("Received message on topic {} with offset {}. Publishing to unfiltered topic: {}",

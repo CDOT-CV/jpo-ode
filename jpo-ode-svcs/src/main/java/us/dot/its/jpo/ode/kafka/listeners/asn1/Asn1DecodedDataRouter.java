@@ -15,11 +15,8 @@ import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
-import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
-import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.XmlUtils;
@@ -64,7 +61,7 @@ public class Asn1DecodedDataRouter {
    *
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
-  public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate, PojoTopics pojoTopics,
+  public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate,
       JsonTopics jsonTopics, @Qualifier("simpleObjectMapper") ObjectMapper simpleObjectMapper,
       @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
     this.kafkaTemplate = kafkaTemplate;
@@ -100,20 +97,6 @@ public class Asn1DecodedDataRouter {
     DSRCmsgID messageId = new DSRCmsgID(msgId);
     String messageName = messageId.name().orElse("Unknown");
 
-    // var metadataJson = XmlUtils.toJSONObject(consumerRecord.value())
-    //     .getJSONObject(OdeAsn1Data.class.getSimpleName())
-    //     .getJSONObject(OdeMsgMetadata.METADATA_STRING);
-    // OdeLogMetadata.RecordType recordType =
-    //     OdeLogMetadata.RecordType.valueOf(metadataJson.getString("recordType"));
-
-    // String streamId;
-    // if (Strings.isNullOrEmpty(consumerRecord.key())
-    //     || "null".equalsIgnoreCase(consumerRecord.key())) {
-    //   streamId = metadataJson.getJSONObject("serialId").getString("streamId");
-    // } else {
-    //   streamId = consumerRecord.key();
-    // }
-
     switch (messageName) {
       case "basicSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getBsm());
       case "travelerInformation" -> routeMessageFrame(consumerRecord, jsonTopics.getTim());
@@ -125,19 +108,6 @@ public class Asn1DecodedDataRouter {
       case "sensorDataSharingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSdsm());
       default -> log.warn("Unknown message type: {}", messageName);
     }
-  }
-
-  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
-      RecordType type) throws XmlUtilsException {
-    String odeTimData =
-        OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
-    switch (type) {
-      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
-      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
-      default -> log.trace("Consumed TIM data with record type: {}", type);
-    }
-    // Send all TIMs also to OdeTimJson
-    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
   }
 
   private void routeMessageFrame(ConsumerRecord<String, String> consumerRecord, String... topics)

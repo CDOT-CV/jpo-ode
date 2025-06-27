@@ -32,7 +32,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -42,16 +41,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
+import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
-import us.dot.its.jpo.ode.model.OdeMsgPayload;
-import us.dot.its.jpo.ode.model.OdeObject;
-import us.dot.its.jpo.ode.model.OdeRequestMsgMetadata;
-import us.dot.its.jpo.ode.model.OdeTimData;
 import us.dot.its.jpo.ode.model.OdeTravelerInputData;
 import us.dot.its.jpo.ode.model.SerialId;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
@@ -80,17 +74,14 @@ public class TimDepositController {
   private static final String SUCCESS = "success";
 
   private final Asn1CoderTopics asn1CoderTopics;
-  private final PojoTopics pojoTopics;
   private final JsonTopics jsonTopics;
   private final ObjectMapper simpleObjectMapper;
   private final XmlMapper simpleXmlMapper;
 
   private final KafkaTemplate<String, String> kafkaTemplate;
-  private final KafkaTemplate<String, OdeObject> timDataKafkaTemplate;
 
   /**
-   * Unique exception for the TimDepositController to handle error state responses
-   * to the client.
+   * Unique exception for the TimDepositController to handle error state responses to the client.
    */
   public static class TimDepositControllerException extends Exception {
 
@@ -106,29 +97,27 @@ public class TimDepositController {
    * Spring Autowired constructor for the REST controller to properly initialize.
    */
   @Autowired
-  public TimDepositController(Asn1CoderTopics asn1CoderTopics, PojoTopics pojoTopics,
-      JsonTopics jsonTopics, TimIngestTrackerProperties ingestTrackerProperties,
+  public TimDepositController(Asn1CoderTopics asn1CoderTopics, JsonTopics jsonTopics,
+      TimIngestTrackerProperties ingestTrackerProperties,
       SecurityServicesProperties securityServicesProperties,
       KafkaTemplate<String, String> kafkaTemplate,
-      KafkaTemplate<String, OdeObject> timDataKafkaTemplate,
-      @Qualifier("simpleObjectMapper") ObjectMapper simpleObjectMapper,
-      @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
+      ObjectMapper simpleObjectMapper,
+      XmlMapper simpleXmlMapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
-    this.pojoTopics = pojoTopics;
     this.jsonTopics = jsonTopics;
     this.simpleObjectMapper = simpleObjectMapper;
     this.simpleXmlMapper = simpleXmlMapper;
 
     this.kafkaTemplate = kafkaTemplate;
-    this.timDataKafkaTemplate = timDataKafkaTemplate;
 
     // start the TIM ingest monitoring service if enabled
     if (ingestTrackerProperties.isTrackingEnabled()) {
       log.info("TIM ingest monitoring enabled.");
 
-      ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+      ScheduledExecutorService scheduledExecutorService =
+          Executors.newSingleThreadScheduledExecutor();
 
       scheduledExecutorService.scheduleAtFixedRate(
           new TimIngestWatcher(ingestTrackerProperties.getInterval()),
@@ -143,12 +132,13 @@ public class TimDepositController {
    * Send a TIM with the appropriate deposit type, ODE.PUT or ODE.POST.
    *
    * @param jsonString The value of the JSON message
-   * @param verb       The HTTP verb being requested
+   * @param verb The HTTP verb being requested
    *
    * @return The request completion status
-   * @throws JsonProcessingException 
+   * @throws JsonProcessingException if there is an error processing the JSON
    */
-  public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) throws JsonProcessingException {
+  public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb)
+      throws JsonProcessingException {
 
     if (null == jsonString || jsonString.isEmpty()) {
       String errMsg = "Empty request.";
@@ -193,16 +183,23 @@ public class TimDepositController {
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
 
-    // Add metadata to message and publish to kafka
-    OdeTravelerInformationMessage tim = odeTID.getTim();
-    OdeMsgPayload timDataPayload = new OdeMsgPayload(tim);
-    OdeRequestMsgMetadata timMetadata = new OdeRequestMsgMetadata(timDataPayload, request);
-    OdeMessageFrameMetadata timMetadata = new OdeMessageFrameMetadata(timDataPayload, request);
+    // Short circuit
+    // If the TIM has no RSU/SNMP or SDW structures, return a warning
+    if ((request.getRsus() == null || request.getSnmp() == null) && request.getSdw() == null) {
+      String warningMsg = "Warning: TIM contains no RSU, SNMP, or SDW fields."
+          + " Message only published to broadcast streams.";
+      log.warn(warningMsg);
+      return ResponseEntity.status(HttpStatus.OK).body(JsonUtils.jsonKeyValue(WARNING, warningMsg));
+    }
 
-    // set packetID in tim Metadata
+    // Build the TIM metadata and deposit payload
+    OdeTravelerInformationMessage tim = odeTID.getTim();
+    OdeMessageFrameMetadata timMetadata = new OdeMessageFrameMetadata();
+
+    // Configure the metadata
+    timMetadata.setRequest(request);
     timMetadata.setOdePacketID(tim.getPacketID());
-    // set maxDurationTime in tim Metadata and set latest startDatetime in tim
-    // metadata
+    // Calculate maxDurationTime and latestStartDateTime
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     if (null != tim.getDataframes() && tim.getDataframes().length > 0) {
       int maxDurationTime = 0;
@@ -221,13 +218,8 @@ public class TimDepositController {
       timMetadata.setMaxDurationTime(maxDurationTime);
       timMetadata.setOdeTimStartDateTime(dateFormat.format(latestStartDateTime));
     }
-    // Setting the SerialId to OdeBroadcastTim serialId to be changed to
-    // J2735BroadcastTim serialId after the message has been published to
-    // OdeTimBrodcast topic
-    final SerialId serialIdOde = new SerialId();
-    timMetadata.setSerialId(serialIdOde);
     timMetadata.setRecordGeneratedBy(GeneratedBy.TMC);
-
+    // Determine where the message was generated from
     try {
       timMetadata.setRecordGeneratedAt(
           DateTimeUtils.isoDateTime(DateTimeUtils.isoDateTime(tim.getTimeStamp())));
@@ -237,28 +229,9 @@ public class TimDepositController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
-
-    OdeTimData odeTimData = new OdeTimData(timMetadata, timDataPayload);
-    final SerialId serialIdJ2735 = new SerialId();
-    timDataKafkaTemplate.send(pojoTopics.getTimBroadcast(), serialIdJ2735.getStreamId(),
-        odeTimData);
-
-    String obfuscatedTimData = TimTransmogrifier.obfuscateRsuPassword(odeTimData.toJson());
-    kafkaTemplate.send(jsonTopics.getTimBroadcast(), serialIdJ2735.getStreamId(),
-        obfuscatedTimData);
-
-    // Now that the message has been published to OdeBroadcastTim topic, it should
-    // be changed to J2735BroadcastTim serialId
+    // Set a unique serial ID for the ODE TIM message
+    SerialId serialIdJ2735 = new SerialId();
     timMetadata.setSerialId(serialIdJ2735);
-
-    // Short circuit
-    // If the TIM has no RSU/SNMP or SDW structures, we are done
-    if ((request.getRsus() == null || request.getSnmp() == null) && request.getSdw() == null) {
-      String warningMsg = "Warning: TIM contains no RSU, SNMP, or SDW fields."
-          + " Message only published to broadcast streams.";
-      log.warn(warningMsg);
-      return ResponseEntity.status(HttpStatus.OK).body(JsonUtils.jsonKeyValue(WARNING, warningMsg));
-    }
 
     // Craft ASN-encodable TIM
     ObjectNode encodableTid;
@@ -285,34 +258,24 @@ public class TimDepositController {
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
 
+    // Publish the resulting ASN XML and JSON to the appropriate topics
     try {
       String xmlMsg;
       xmlMsg = TimTransmogrifier.convertToXml(null, encodableTid, timMetadata, serialIdJ2735);
       log.debug("XML representation: {}", xmlMsg);
 
       // Convert XML into ODE TIM JSON object and obfuscate RSU password
-      OdeMessageFrameData odeTimMessageFrameData =
-          OdeMessageFrameDataCreatorHelper.createOdeTimMessageFrameDataFromCreator(
-            xmlMsg, 
-            timMetadata,
-            simpleObjectMapper, 
-            simpleXmlMapper);
-      //OdeTimData odeTimObj = OdeTimDataCreatorHelper.createOdeTimDataFromCreator(xmlMsg, timMetadata);
+      OdeMessageFrameData odeTimMessageFrameData = OdeMessageFrameDataCreatorHelper
+          .createOdeMessageFrameData(xmlMsg, simpleObjectMapper, simpleXmlMapper);
 
+      // Create the TIM string and obfuscate the RSU password
       String j2735Tim = JsonUtils.toJson(odeTimMessageFrameData, false);
-
       String obfuscatedJ2735Tim = TimTransmogrifier.obfuscateRsuPassword(j2735Tim);
-      // publish Broadcast TIM to a J2735 compliant topic.
-      kafkaTemplate.send(jsonTopics.getJ2735TimBroadcast(), serialIdJ2735.getStreamId(),
-          obfuscatedJ2735Tim);
-      // publish J2735 TIM also to general un-filtered TIM topic with streamID as key
-      kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
-      // Write XML to the encoder input topic at the end to ensure the correct order
-      // of operations to pair each message to an OdeTimJson streamId key
-      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), serialIdJ2735.getStreamId(), xmlMsg);
 
-      serialIdOde.increment();
-      serialIdJ2735.increment();
+      // Publish TIM JSON to the OdeTimJson topic for the TIM topology KTable
+      kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
+      // Publish TIM XML to the Asn1EncoderInput topic to be encoded by the ASN.1 Encoder module
+      kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), serialIdJ2735.getStreamId(), xmlMsg);
     } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException e) {
       String errMsg = "Error sending data to ASN.1 Encoder module: " + e.getMessage();
       log.error(errMsg, e);
@@ -334,9 +297,10 @@ public class TimDepositController {
    */
   @PutMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
-  public ResponseEntity<String> putTim(@RequestBody String jsonString) throws JsonProcessingException {
+  public ResponseEntity<String> putTim(@RequestBody String jsonString)
+      throws JsonProcessingException {
 
-    return depositTim(jsonString, ServiceRequest.OdeInternal.RequestVerb.PUT);
+    return depositTim(jsonString, OdeInternal.RequestVerb.PUT);
   }
 
   /**
@@ -349,9 +313,10 @@ public class TimDepositController {
    */
   @PostMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
-  public ResponseEntity<String> postTim(@RequestBody String jsonString) throws JsonProcessingException {
+  public ResponseEntity<String> postTim(@RequestBody String jsonString)
+      throws JsonProcessingException {
 
-    return depositTim(jsonString, ServiceRequest.OdeInternal.RequestVerb.POST);
+    return depositTim(jsonString, OdeInternal.RequestVerb.POST);
   }
 
 }
