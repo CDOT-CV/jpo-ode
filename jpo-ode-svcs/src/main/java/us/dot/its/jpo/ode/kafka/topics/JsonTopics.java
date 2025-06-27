@@ -22,18 +22,10 @@ public class JsonTopics {
 
   private String driverAlert;
 
-  private String timBroadcast;
-
   private String bsmFiltered;
   private String spatFiltered;
   private String timFiltered;
   private String timTmcFiltered;
 
   private String timCertExpiration;
-
-  private String dnMessage;
-
-  private String rxTim;
-
-  private String j2735TimBroadcast;
 }
