@@ -16,7 +16,10 @@
 package us.dot.its.jpo.ode.plugin;
 
 import java.util.Arrays;
-
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 
@@ -96,9 +99,11 @@ public class ServiceRequest extends OdeObject {
 
   }
 
-  private static final long serialVersionUID = 1L;
+   // private static final long serialVersionUID = 1L;
    private OdeInternal ode;
    private SituationDataWarehouse.SDW sdw;
+   @JacksonXmlProperty(localName = "rsus")
+   @JacksonXmlElementWrapper(useWrapping = true, localName = "rsus")
    private RSU[] rsus;
    private SNMP snmp;
 

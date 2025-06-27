@@ -12,6 +12,7 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFramePayload;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.plugin.ServiceRequest;
 
 /**
  * Helper class for creating OdeMessageFrameData objects from consumed data.
@@ -36,10 +37,15 @@ public class OdeMessageFrameDataCreatorHelper {
       ObjectMapper simpleObjectMapper, XmlMapper simpleXmlMapper) throws JsonProcessingException {
     ObjectNode consumed = simpleXmlMapper.readValue(consumedData, ObjectNode.class);
     JsonNode metadataNode = consumed.findValue(OdeMsgMetadata.METADATA_STRING);
+    JsonNode requestNode = metadataNode.findValue("request");
     if (metadataNode instanceof ObjectNode object) {
-      object.remove("request");
       object.remove(OdeMsgMetadata.ENCODINGS_STRING);      
     }
+    // if (requestNode instanceof ObjectNode object) {
+    //   object.remove("rsus");      
+    // }
+
+    ServiceRequest request = simpleXmlMapper.convertValue(requestNode, ServiceRequest.class);
 
     OdeMessageFrameMetadata metadata =
           simpleXmlMapper.convertValue(metadataNode, OdeMessageFrameMetadata.class);
