@@ -273,7 +273,20 @@ Not applicable
         - [ ] TIMs can be encoded & re-ingested into the ODE
         - [ ] TIMs can be signed (verify security header is not stripped)
         - [ ] TIMs can be sent to the SDX & are retrievable from the SDX
-    - [ ] multiple ODE instances can run against Kafka without K-Table conflicts
+    - [ ] multiple ODE instances function correctly when running against shared Kafka
+        - [ ] no K-Table conflicts occur between instances
+        - [ ] message ingestion works reliably across instances for all message types
+            - [ ] TIMs
+            - [ ] BSMs
+            - [ ] SSMs
+            - [ ] SRMs
+            - [ ] SPaTs
+            - [ ] Maps
+            - [ ] PSMs
+        - [ ] message processing pipeline functions correctly across instances
+        - [ ] encoding/decoding works properly with multiple instances
+        - [ ] message signing functions correctly with multiple instances
+        - [ ] SDX deposit works correctly with multiple instances
 
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml files for the 'jpo-ode' project if not already done.
@@ -312,10 +325,23 @@ Not applicable
         - [ ] PSMs
     - [ ] TIMs can make it through the entire pipeline successfully (integration)
         - [ ] TIMs can be pushed to http (/tim) endpoint
-        - [ ] TIMs can be encoded & re-ingested into the ODE *
+        - [ ] TIMs can be encoded & re-ingested into the ODE
         - [ ] TIMs can be signed (verify security header is not stripped)
         - [ ] TIMs can be sent to the SDX & are retrievable from the SDX
-    - [ ] multiple ODE instances can run against Kafka without K-Table conflicts
+    - [ ] multiple ODE instances function correctly when running against shared Kafka
+        - [ ] no K-Table conflicts occur between instances
+        - [ ] message ingestion works reliably across instances for all message types
+            - [ ] TIMs
+            - [ ] BSMs
+            - [ ] SSMs
+            - [ ] SRMs
+            - [ ] SPaTs
+            - [ ] Maps
+            - [ ] PSMs
+        - [ ] message processing pipeline functions correctly across instances
+        - [ ] encoding/decoding works properly with multiple instances
+        - [ ] message signing functions correctly with multiple instances
+        - [ ] SDX deposit works correctly with multiple instances
 
 ## jpo-geojsonconverter
 ### Prerequisites
