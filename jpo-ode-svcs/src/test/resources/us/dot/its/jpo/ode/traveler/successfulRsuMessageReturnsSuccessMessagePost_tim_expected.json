@@ -1,5 +1,31 @@
 {
   "metadata": {
+    "request": {
+      "ode": {
+        "verb": "POST",
+        "version": 3
+      },
+      "rsus": [{
+        "rsuTarget": "172.0.0.1",
+        "rsuUsername": "myusername",
+        "snmpProtocol": "NTCIP1218",
+        "rsuRetries": 3,
+        "rsuTimeout": 5000,
+        "rsuPassword": "*",
+        "rsuIndex": 7
+      }],
+      "snmp": {
+        "mode": 1,
+        "deliverystop": "2024-05-13T22:30:00Z",
+        "rsuid": "83",
+        "deliverystart": "2024-05-13T14:30:00Z",
+        "enable": 1,
+        "channel": 183,
+        "msgid": 31,
+        "interval": 2000,
+        "status": 4
+      }
+    },
     "payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
     "serialId": {
       "streamId": "87b4c787-54ae-4ee2-864d-0212b26262a4",

@@ -37,18 +37,20 @@ public class OdeMessageFrameDataCreatorHelper {
       ObjectMapper simpleObjectMapper, XmlMapper simpleXmlMapper) throws JsonProcessingException {
     ObjectNode consumed = simpleXmlMapper.readValue(consumedData, ObjectNode.class);
     JsonNode metadataNode = consumed.findValue(OdeMsgMetadata.METADATA_STRING);
-    JsonNode requestNode = metadataNode.findValue("request");
+    ServiceRequest request = null;
     if (metadataNode instanceof ObjectNode object) {
-      object.remove(OdeMsgMetadata.ENCODINGS_STRING);      
+      object.remove(OdeMsgMetadata.ENCODINGS_STRING);
+      if (object.has("request")) {
+        String xmlBack = simpleXmlMapper.writeValueAsString(object.get("request"));
+        request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
+        object.remove("request");
+      }
     }
-    // if (requestNode instanceof ObjectNode object) {
-    //   object.remove("rsus");      
-    // }
-
-    ServiceRequest request = simpleXmlMapper.convertValue(requestNode, ServiceRequest.class);
-
+    
     OdeMessageFrameMetadata metadata =
           simpleXmlMapper.convertValue(metadataNode, OdeMessageFrameMetadata.class);
+    // Request will be null if not included
+    metadata.setRequest(request);
     // Assign the rxSource if it does not exist due to the schema requiring it
     if (metadata.getReceivedMessageDetails() != null && metadata.getReceivedMessageDetails().getRxSource() == null) {
       metadata.getReceivedMessageDetails().setRxSource(RxSource.NA);
