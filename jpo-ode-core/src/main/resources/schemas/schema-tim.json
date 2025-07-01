@@ -30,6 +30,14 @@
         "OdeTimMetadata": {
             "type": "object",
             "properties": {
+                "source": {
+                    "enum": [
+                        "RSU",
+                        "TMC",
+                        "UNKNOWN"
+                    ],
+                    "type": "string"
+                },
                 "logFileName": {
                     "type": "string"
                 },

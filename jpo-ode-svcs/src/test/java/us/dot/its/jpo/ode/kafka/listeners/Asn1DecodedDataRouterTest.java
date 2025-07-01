@@ -119,63 +119,49 @@ class Asn1DecodedDataRouterTest {
     testConsumer.close();
   }
 
-  // @Test
-  // void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
-  //   String[] topics =
-  //       Arrays.array(jsonTopics.getDnMessage(), jsonTopics.getRxTim(), jsonTopics.getTim());
-  //   EmbeddedKafkaHolder.addTopics(topics);
+  @Test
+  void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getTim());
+    EmbeddedKafkaHolder.addTopics(topics);
 
-  //   String baseTestData =
-  //       loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
 
-  //   var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "false", embeddedKafka);
-  //   var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-  //       new StringDeserializer());
-  //   var testConsumer = consumerFactory.createConsumer();
+    var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-  //   embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+    String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
+    for (String recordType : new String[] {"timMsg", "rxMsg"}) {
+      String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-  //   String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
-  //   for (String recordType : new String[] {"dnMsg", "rxMsg"}) {
-  //     String topic;
-  //     switch (recordType) {
-  //       case "rxMsg" -> topic = jsonTopics.getRxTim();
-  //       case "dnMsg" -> topic = jsonTopics.getDnMessage();
-  //       default -> throw new IllegalStateException("Unexpected value: " + recordType);
-  //     }
+      var expectedTim = replaceJSONRecordType(baseExpectedTim, "timMsg", recordType);
 
-  //     String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
-  //     var uniqueKey = UUID.randomUUID().toString();
-  //     kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
+      OdeMessageFrameData expectedTimMFrameData =
+          mapper.readValue(expectedTim, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "timMsg" -> {
+          expectedTimMFrameData.getMetadata().setRecordType(RecordType.timMsg);
+        }
+        case "rxMsg" -> {
+          expectedTimMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
 
-  //     AtomicReference<ConsumerRecord<String, String>> consumedSpecific = new AtomicReference<>();
-  //     AtomicReference<ConsumerRecord<String, String>> consumedTim = new AtomicReference<>();
-  //     Awaitility.await().until(() -> {
-  //       var records = KafkaTestUtils.getRecords(testConsumer);
-  //       for (ConsumerRecord<String, String> cr : records.records(topic)) {
-  //         if (cr.key().equals(uniqueKey)) {
-  //           consumedSpecific.set(cr);
-  //           break;
-  //         }
-  //       }
-  //       for (ConsumerRecord<String, String> cr : records.records(jsonTopics.getTim())) {
-  //         if (cr.key().equals(uniqueKey)) {
-  //           consumedTim.set(cr);
-  //           break;
-  //         }
-  //       }
-  //       return consumedSpecific.get() != null && consumedTim.get() != null;
-  //     });
-  //     var expectedTim =
-  //         mapper.readTree(replaceJSONRecordType(baseExpectedTim, "dnMsg", recordType));
-  //     var actualSpecific = mapper.readTree(consumedSpecific.get().value());
-  //     var actualTim = mapper.readTree(consumedTim.get().value());
+      var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+      OdeMessageFrameData consumedTimMFrameData =
+          mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
 
-  //     assertEquals(expectedTim, actualSpecific);
-  //     assertEquals(expectedTim, actualTim);
-  //   }
-  //   testConsumer.close();
-  // }
+      assertThat(JsonUtils.toJson(consumedTimMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedTimMFrameData, false)).withTolerance(0.0001));
+    }
+    testConsumer.close();
+  }
 
   @Test
   void testAsn1DecodedDataRouter_SPaTDataFlow() throws IOException {
