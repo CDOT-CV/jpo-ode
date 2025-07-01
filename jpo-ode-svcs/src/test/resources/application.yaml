@@ -43,7 +43,7 @@ ode:
       value-serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
       partitioner-class: "org.apache.kafka.clients.producer.internals.DefaultPartitioner"
     disabled-topics:
-      - "topic.OdeTimBroadcastPojo"
+      - ""
     topics:
       asn1:
         decoder-input: "topic.Asn1DecoderInput"
