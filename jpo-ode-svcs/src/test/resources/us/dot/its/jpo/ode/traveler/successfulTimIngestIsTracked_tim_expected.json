@@ -11,7 +11,6 @@
     "odeReceivedAt" : "2018-03-13T01:07:11.120Z",
     "schemaVersion" : 9,
     "maxDurationTime" : 0,
-    "certPresent": false,
     "isCertPresent": false,
     "recordGeneratedAt" : "2017-03-13T01:07:11.000Z",
     "recordGeneratedBy" : "TMC",

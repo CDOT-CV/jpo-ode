@@ -186,276 +186,194 @@ class TimDepositControllerTest {
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
   }
 
-  // @Test
-  // void failedObjectNodeConversionShouldReturnConvertingError(@Capturing TravelerMessageFromHumanToAsnConverter capturingTravelerMessageFromHumanToAsnConverter)
-  //     throws JsonUtilsException, TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException,
-  //     IOException, TravelerMessageFromHumanToAsnConverter.InvalidNodeLatLonOffsetException {
-  //   // prepare
-  //   odeKafkaProperties.setDisabledTopics(Set.of());
-  //   pojoTopics.setTimBroadcast(
-  //       "test.failedObjectNodeConversionShouldReturnConvertingError.timBroadcast.pojo");
-  //   jsonTopics.setTimBroadcast(
-  //       "test.failedObjectNodeConversionShouldReturnConvertingError.timBroadcast.json");
-  //   EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast());
-  //   final Clock prevClock = DateTimeUtils.setClock(
-  //       Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
-  //   TimDepositController testTimDepositController =
-  //       new TimDepositController(asn1CoderTopics, jsonTopics,
-  //           timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-  //           simpleObjectMapper, simpleXmlMapper);
-  //   new Expectations() {
+  @Test
+  void failedObjectNodeConversionShouldReturnConvertingError(
+        @Capturing TravelerMessageFromHumanToAsnConverter capturingTravelerMessageFromHumanToAsnConverter)
+      throws JsonUtilsException, TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException,
+      IOException, TravelerMessageFromHumanToAsnConverter.InvalidNodeLatLonOffsetException {
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    TimDepositController testTimDepositController =
+        new TimDepositController(asn1CoderTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            simpleObjectMapper, simpleXmlMapper);
+    new Expectations() {
 
-  //     {
-  //       TravelerMessageFromHumanToAsnConverter.convertTravelerInputDataToEncodableTim(
-  //           (JsonNode) any);
-  //       result = new JsonUtilsException("testException123", null);
-  //     }
-  //   };
-  //   String requestBody =
-  //       "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
+      {
+        TravelerMessageFromHumanToAsnConverter.convertTravelerInputDataToEncodableTim(
+            (JsonNode) any);
+        result = new JsonUtilsException("testException123", null);
+      }
+    };
+    String requestBody =
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-  //   // execute
-  //   ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
 
-  //   // verify
-  //   String expectedResponseBody =
-  //       "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
-  //   Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+    // verify
+    String expectedResponseBody =
+        "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-  //   // verify POJO tim broadcast message
-  //   var pojoConsumer = createStr2OdeObjConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(pojoConsumer, pojoTopics.getTimBroadcast());
-  //   var singlePojoTimBroadcastRecord =
-  //       KafkaTestUtils.getSingleRecord(pojoConsumer, pojoTopics.getTimBroadcast());
-  //   Assertions.assertNotNull(singlePojoTimBroadcastRecord.value());
+    // cleanup
+    DateTimeUtils.setClock(prevClock);
+  }
 
-  //   // verify JSON tim broadcast message
-  //   var stringConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(stringConsumer, jsonTopics.getTimBroadcast());
-  //   var singleJsonTimBroadcastRecord =
-  //       KafkaTestUtils.getSingleRecord(stringConsumer, jsonTopics.getTimBroadcast());
-  //   Assertions.assertNotNull(singleJsonTimBroadcastRecord.value());
-  //   var actualJson = new JSONObject(singleJsonTimBroadcastRecord.value());
-  //   var expectedJson = new JSONObject(loadTestResource(
-  //       "failedObjectNodeConversionShouldReturnConvertingError_timBroadcast_expected.json"));
-  //   String actualStreamId = getStreamId(actualJson);
-  //   String expectedStreamId = getStreamId(expectedJson);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   removeStreamId(actualJson);
-  //   removeStreamId(expectedJson);
-  //   Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+  @Test
+  void failedXmlConversionShouldReturnConversionError(
+      @Capturing TimTransmogrifier capturingTimTransmogrifier)
+      throws XmlUtils.XmlUtilsException, JsonUtilsException, JsonProcessingException {
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    TimDepositController testTimDepositController =
+        new TimDepositController(asn1CoderTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            simpleObjectMapper, simpleXmlMapper);
 
-  //   // cleanup
-  //   stringConsumer.close();
-  //   pojoConsumer.close();
-  //   DateTimeUtils.setClock(prevClock);
-  // }
+    new Expectations() {
+      {
+        TimTransmogrifier.convertToXml((DdsAdvisorySituationData) any, (ObjectNode) any,
+            (OdeMsgMetadata) any, (SerialId) any);
+        result = new XmlUtils.XmlUtilsException("testException123", null);
+      }
+    };
+    String requestBody =
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-  // @Test
-  // void failedXmlConversionShouldReturnConversionError(
-  //     @Capturing TimTransmogrifier capturingTimTransmogrifier)
-  //     throws XmlUtils.XmlUtilsException, JsonUtilsException, JsonProcessingException {
-  //   // prepare
-  //   // odeKafkaProperties.setDisabledTopics(Set.of());
-  //   // final Clock prevClock = DateTimeUtils.setClock(
-  //   //     Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
-  //   // TimDepositController testTimDepositController =
-  //   //     new TimDepositController(asn1CoderTopics, jsonTopics,
-  //   //         timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-  //   //         simpleObjectMapper, simpleXmlMapper);
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
 
-  //   // new Expectations() {
-  //   //   {
-  //   //     TimTransmogrifier.obfuscateRsuPassword((String) any);
-  //   //     result = "timWithObfuscatedPassword";
-  //   //   }
+    // // verify
+    String expectedResponseBody =
+        "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+    DateTimeUtils.setClock(prevClock);
+  }
 
-  //   //   {
-  //   //     TimTransmogrifier.convertToXml((DdsAdvisorySituationData) any, (ObjectNode) any,
-  //   //         (OdeMsgMetadata) any, (SerialId) any);
-  //   //     result = new XmlUtils.XmlUtilsException("testException123", null);
-  //   //   }
-  //   // };
-  //   // String requestBody =
-  //   //     "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
+  @Test
+  void testSuccessfulMessageReturnsSuccessMessagePost() throws IOException {
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePost.tim.json");
+    asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePost.encoderInput");
+    EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    TimDepositController testTimDepositController =
+        new TimDepositController(asn1CoderTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            simpleObjectMapper, simpleXmlMapper);
+    String requestBody =
+        "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
-  //   // // execute
-  //   // ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
 
-  //   // // verify
-  //   String expectedResponseBody =
-  //       "{\"error\":\"Error sending data to ASN.1 Encoder module: testException123\"}";
-  //   // Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
-  //   // DateTimeUtils.setClock(prevClock);
-  // }
+    // verify
+    String expectedResponseBody = "{\"success\":\"true\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-  // @Test
-  // void testSuccessfulMessageReturnsSuccessMessagePost() throws IOException {
-  //   // prepare
-  //   odeKafkaProperties.setDisabledTopics(Set.of());
-  //   pojoTopics.setTimBroadcast("test.successfulMessageReturnsSuccessMessagePost.timBroadcast.pojo");
-  //   jsonTopics.setTimBroadcast("test.successfulMessageReturnsSuccessMessagePost.timBroadcast.json");
-  //   jsonTopics.setJ2735TimBroadcast(
-  //       "test.successfulMessageReturnsSuccessMessagePost.j2735TimBroadcast.json");
-  //   jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePost.tim.json");
-  //   asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePost.encoderInput");
-  //   EmbeddedKafkaHolder.addTopics(pojoTopics.getTimBroadcast(), jsonTopics.getTimBroadcast(),
-  //       jsonTopics.getJ2735TimBroadcast(), jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-  //   final Clock prevClock = DateTimeUtils.setClock(
-  //       Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
-  //   TimDepositController testTimDepositController =
-  //       new TimDepositController(asn1CoderTopics, jsonTopics,
-  //           timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-  //           simpleObjectMapper, simpleXmlMapper);
-  //   String requestBody =
-  //       "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
+    // verify JSON tim message
+    var jsonTimConsumer = createStr2StrConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(
+        loadTestResource("successfulMessageReturnsSuccessMessagePost_tim_expected.json"));
+    String actualStreamId = getStreamId(actualTimJson);
+    String expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
 
-  //   // execute
-  //   ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
+    // verify ASN.1 coder encoder input message
+    var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml =
+        loadTestResource("successfulMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
-  //   // verify
-  //   String expectedResponseBody = "{\"success\":\"true\"}";
-  //   Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
+    // cleanup
+    jsonTimConsumer.close();
+    asn1CoderEncoderInputConsumer.close();
+    DateTimeUtils.setClock(prevClock);
+  }
 
-  //   // verify POJO tim broadcast message
-  //   var pojoTimBroadcastConsumer = createStr2OdeObjConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(pojoTimBroadcastConsumer,
-  //       pojoTopics.getTimBroadcast());
-  //   var pojoTimBroadcastRecord =
-  //       KafkaTestUtils.getSingleRecord(pojoTimBroadcastConsumer, pojoTopics.getTimBroadcast());
-  //   Assertions.assertNotNull(pojoTimBroadcastRecord.value());
+  @Test
+  void testSuccessfulSdwRequestMessageReturnsSuccessMessagePost() throws Exception {
+    // prepare
+    odeKafkaProperties.setDisabledTopics(Set.of());
+    jsonTopics.setTim("test.successfulSdwRequestMessageReturnsSuccessMessagePost.tim.json");
+    asn1CoderTopics.setEncoderInput(
+        "test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
+    EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    TimDepositController testTimDepositController =
+        new TimDepositController(asn1CoderTopics, jsonTopics,
+            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
+            simpleObjectMapper, simpleXmlMapper);
+    String file = "/sdwRequest.json";
+    String requestBody =
+        IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
 
-  //   // verify JSON tim broadcast message
-  //   var jsonTimBroadcastConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimBroadcastConsumer,
-  //       jsonTopics.getTimBroadcast());
-  //   var jsonTimBroadcastRecord =
-  //       KafkaTestUtils.getSingleRecord(jsonTimBroadcastConsumer, jsonTopics.getTimBroadcast());
-  //   var actualJson = new JSONObject(jsonTimBroadcastRecord.value());
-  //   var expectedJson = new JSONObject(
-  //       loadTestResource("successfulMessageReturnsSuccessMessagePost_timBroadcast_expected.json"));
-  //   String actualStreamId = getStreamId(actualJson);
-  //   String expectedStreamId = getStreamId(expectedJson);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   removeStreamId(actualJson);
-  //   removeStreamId(expectedJson);
-  //   Assertions.assertEquals(expectedJson.toString(2), actualJson.toString(2));
+    // execute
+    ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
 
-  //   // verify JSON J2735 tim broadcast message
-  //   var jsonJ2735TimBroadcastConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(jsonJ2735TimBroadcastConsumer,
-  //       jsonTopics.getJ2735TimBroadcast());
-  //   var jsonJ2735TimBroadcastRecord = KafkaTestUtils.getSingleRecord(jsonJ2735TimBroadcastConsumer,
-  //       jsonTopics.getJ2735TimBroadcast());
-  //   var actualJ2735Json = new JSONObject(jsonJ2735TimBroadcastRecord.value());
-  //   var expectedJ2735Json = new JSONObject(loadTestResource(
-  //       "successfulMessageReturnsSuccessMessagePost_j2735TimBroadcast_expected.json"));
-  //   actualStreamId = getStreamId(actualJ2735Json);
-  //   expectedStreamId = getStreamId(expectedJ2735Json);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   removeStreamId(actualJ2735Json);
-  //   removeStreamId(expectedJ2735Json);
-  //   Assertions.assertEquals(expectedJ2735Json.toString(2), actualJ2735Json.toString(2));
+    // verify
+    String expectedResponseBody = "{\"success\":\"true\"}";
+    Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
 
-  //   // verify JSON tim message
-  //   var jsonTimConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-  //   var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-  //   var actualTimJson = new JSONObject(jsonTimRecord.value());
-  //   var expectedTimJson = new JSONObject(
-  //       loadTestResource("successfulMessageReturnsSuccessMessagePost_tim_expected.json"));
-  //   actualStreamId = getStreamId(actualTimJson);
-  //   expectedStreamId = getStreamId(expectedTimJson);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   removeStreamId(actualTimJson);
-  //   removeStreamId(expectedTimJson);
-  //   Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
+    // verify JSON tim message
+    var jsonTimConsumer = createStr2StrConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
+    var actualTimJson = new JSONObject(jsonTimRecord.value());
+    var expectedTimJson = new JSONObject(
+        loadTestResource("successfulSdwRequestMessageReturnsSuccessMessagePost_tim_expected.json"));
+    String actualStreamId = getStreamId(actualTimJson);
+    String expectedStreamId = getStreamId(expectedTimJson);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    removeStreamId(actualTimJson);
+    removeStreamId(expectedTimJson);
+    Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
 
-  //   // verify ASN.1 coder encoder input message
-  //   var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-  //       asn1CoderTopics.getEncoderInput());
-  //   var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
-  //       asn1CoderTopics.getEncoderInput());
-  //   var actualXml = asn1CoderEncoderInputRecord.value();
-  //   var expectedXml =
-  //       loadTestResource("successfulMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
-  //   actualStreamId = getStreamId(actualXml);
-  //   expectedStreamId = getStreamId(expectedXml);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   actualXml = removeStreamId(actualXml, actualStreamId);
-  //   expectedXml = removeStreamId(expectedXml, expectedStreamId);
-  //   Assertions.assertEquals(expectedXml, actualXml);
+    // verify ASN.1 coder encoder input message
+    var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
+        asn1CoderTopics.getEncoderInput());
+    var actualXml = asn1CoderEncoderInputRecord.value();
+    var expectedXml = loadTestResource(
+        "successfulSdwRequestMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
+    actualStreamId = getStreamId(actualXml);
+    expectedStreamId = getStreamId(expectedXml);
+    Assertions.assertNotEquals(expectedStreamId, actualStreamId);
+    actualXml = removeStreamId(actualXml, actualStreamId);
+    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    Assertions.assertEquals(expectedXml, actualXml);
 
-  //   // cleanup
-  //   pojoTimBroadcastConsumer.close();
-  //   jsonTimBroadcastConsumer.close();
-  //   jsonJ2735TimBroadcastConsumer.close();
-  //   jsonTimConsumer.close();
-  //   asn1CoderEncoderInputConsumer.close();
-  //   DateTimeUtils.setClock(prevClock);
-  // }
-
-  // @Test
-  // void testSuccessfulSdwRequestMessageReturnsSuccessMessagePost() throws Exception {
-  //   // prepare
-  //   odeKafkaProperties.setDisabledTopics(Set.of());
-  //   jsonTopics.setTim("test.successfulSdwRequestMessageReturnsSuccessMessagePost.tim.json");
-  //   asn1CoderTopics.setEncoderInput(
-  //       "test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
-  //   EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-  //   final Clock prevClock = DateTimeUtils.setClock(
-  //       Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
-  //   TimDepositController testTimDepositController =
-  //       new TimDepositController(asn1CoderTopics, jsonTopics,
-  //           timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-  //           simpleObjectMapper, simpleXmlMapper);
-  //   String file = "/sdwRequest.json";
-  //   String requestBody =
-  //       IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
-
-  //   // execute
-  //   ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
-
-  //   // verify
-  //   String expectedResponseBody = "{\"success\":\"true\"}";
-  //   Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
-
-  //   // verify JSON tim message
-  //   var jsonTimConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
-  //   var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
-  //   var actualTimJson = new JSONObject(jsonTimRecord.value());
-  //   var expectedTimJson = new JSONObject(
-  //       loadTestResource("successfulSdwRequestMessageReturnsSuccessMessagePost_tim_expected.json"));
-  //   String actualStreamId = getStreamId(actualTimJson);
-  //   String expectedStreamId = getStreamId(expectedTimJson);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   removeStreamId(actualTimJson);
-  //   removeStreamId(expectedTimJson);
-  //   Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
-
-  //   // verify ASN.1 coder encoder input message
-  //   var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-  //   embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-  //       asn1CoderTopics.getEncoderInput());
-  //   var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
-  //       asn1CoderTopics.getEncoderInput());
-  //   var actualXml = asn1CoderEncoderInputRecord.value();
-  //   var expectedXml = loadTestResource(
-  //       "successfulSdwRequestMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
-  //   actualStreamId = getStreamId(actualXml);
-  //   expectedStreamId = getStreamId(expectedXml);
-  //   Assertions.assertNotEquals(expectedStreamId, actualStreamId);
-  //   actualXml = removeStreamId(actualXml, actualStreamId);
-  //   expectedXml = removeStreamId(expectedXml, expectedStreamId);
-  //   Assertions.assertEquals(expectedXml, actualXml);
-
-  //   // cleanup
-  //   jsonTimConsumer.close();
-  //   asn1CoderEncoderInputConsumer.close();
-  //   DateTimeUtils.setClock(prevClock);
-  // }
+    // cleanup
+    jsonTimConsumer.close();
+    asn1CoderEncoderInputConsumer.close();
+    DateTimeUtils.setClock(prevClock);
+  }
 
   @Test
   void testSuccessfulMessageReturnsSuccessMessagePostWithOde() throws IOException {
@@ -742,13 +660,11 @@ class TimDepositControllerTest {
     var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
         asn1CoderTopics.getEncoderInput());
     var actualXml = asn1CoderEncoderInputRecord.value();
-    var expectedXml =
-        loadTestResource("successfulRsuMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
     actualStreamId = getStreamId(actualXml);
-    expectedStreamId = getStreamId(expectedXml);
     Assertions.assertNotEquals(expectedStreamId, actualStreamId);
     actualXml = removeStreamId(actualXml, actualStreamId);
-    expectedXml = removeStreamId(expectedXml, expectedStreamId);
+    var expectedXml =
+        loadTestResource("successfulRsuMessageReturnsSuccessMessagePost_encoderInput_expected.xml");
     Assertions.assertEquals(expectedXml, actualXml);
 
     // cleanup

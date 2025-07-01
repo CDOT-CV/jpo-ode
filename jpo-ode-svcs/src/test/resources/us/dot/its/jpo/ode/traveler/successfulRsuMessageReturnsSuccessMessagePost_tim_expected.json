@@ -27,6 +27,7 @@
       }
     },
     "payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
+    "odePacketID": "123451234512345123",
     "serialId": {
       "streamId": "87b4c787-54ae-4ee2-864d-0212b26262a4",
       "bundleSize": 1,
@@ -40,9 +41,7 @@
     "recordGeneratedAt": "2024-05-10T19:01:22.000Z",
     "recordGeneratedBy": "TMC",
     "sanitized": false,
-    "odePacketID": "123451234512345123",
     "odeTimStartDateTime": "2024-05-13T20:30:05.014Z",
-    "certPresent": false,
     "isCertPresent": false
   },
   "payload": {
@@ -55,81 +54,6 @@
           "packetID": "123451234512345123",
           "urlB": "null",
           "dataFrames": [
-            {
-              "doNotUse1": 0,
-              "frameType": "advisory",
-              "msgId": {
-                "roadSignID": {
-                  "position": {
-                    "lat": 301234560,
-                    "long": -1001234500
-                  },
-                  "viewAngle": "FFFF",
-                  "mutcdCode": "warning"
-                }
-              },
-              "startYear": 2024,
-              "startTime": 192750,
-              "durationTime": 30,
-              "priority": 5,
-              "doNotUse2": 0,
-              "regions": [
-                {
-                  "name": "I_myroute_RSU_172.0.0.1",
-                  "id": {
-                    "region": 0,
-                    "id": 0
-                  },
-                  "anchor": {
-                    "lat": 301234560,
-                    "long": -1001234500
-                  },
-                  "laneWidth": 5000,
-                  "directionality": "both",
-                  "closedPath": false,
-                  "direction": "0010",
-                  "description": {
-                    "path": {
-                      "scale": 0,
-                      "offset": {
-                        "ll": {
-                          "nodes": [
-                            {
-                              "delta": {
-                                "node-LL1": {
-                                  "lon": 0,
-                                  "lat": 0
-                                }
-                              }
-                            },
-                            {
-                              "delta": {
-                                "node-LL1": {
-                                  "lon": 0,
-                                  "lat": 0
-                                }
-                              }
-                            }
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              ],
-              "doNotUse3": 0,
-              "doNotUse4": 0,
-              "content": {
-                "workZone": [
-                  {
-                    "item": {
-                      "itis": 771
-                    }
-                  }
-                ]
-              },
-              "url": "null"
-            },
             {
               "doNotUse1": 0,
               "frameType": "advisory",

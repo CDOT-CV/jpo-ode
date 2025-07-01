@@ -1,6 +1,6 @@
 {
   "metadata" : {
-    "payloadType" : "us.dot.its.jpo.ode.model.OdeTimPayload",
+    "payloadType" : "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
     "serialId" : {
       "streamId" : "343349a9-92c9-41de-9cd0-5f20c88b6ca8",
       "bundleSize" : 1,
@@ -9,6 +9,7 @@
       "serialNumber" : 0
     },
     "odeReceivedAt" : "2018-03-13T01:07:11.120Z",
+    "isCertPresent": false,
     "schemaVersion" : 9,
     "maxDurationTime" : 0,
     "recordGeneratedAt" : "2017-03-13T01:07:11.000Z",
@@ -32,10 +33,13 @@
   },
   "payload" : {
     "data" : {
-      "msgCnt" : 13,
-      "timeStamp" : 102607,
-      "dataFrames" : [ ]
+      "messageId": 31,
+      "value": {"TravelerInformation": {
+        "timeStamp": 102607,
+        "dataFrames": [],
+        "msgCnt": 13
+      }}
     },
-    "dataType" : "us.dot.its.jpo.ode.plugin.j2735.travelerinformation.TravelerInformation"
+    "dataType" : "us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame"
   }
 }

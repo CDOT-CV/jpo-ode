@@ -1,3 +1,4 @@
+
 {
   "metadata": {
     "request": {
@@ -22,13 +23,8 @@
     },
     "recordGeneratedBy": "TMC",
     "schemaVersion": 9,
-    "odePacketID": "67AEF692F8BB63067D",
-    "sanitized": false,
-    "recordGeneratedAt": "2020-04-30T14:24:11.581Z",
-    "maxDurationTime": 1440,
-    "odeTimStartDateTime": "2020-04-30T14:23:59.497Z",
-    "isCertPresent": false,
     "payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
+    "odePacketID": "67AEF692F8BB63067D",
     "serialId": {
       "streamId": "16175eaf-0a94-4263-8f60-668b9a7b7825",
       "recordId": 0,
@@ -36,7 +32,11 @@
       "bundleSize": 1,
       "bundleId": 0
     },
-    "certPresent": false,
+    "sanitized": false,
+    "recordGeneratedAt": "2020-04-30T14:24:11.581Z",
+    "maxDurationTime": 1440,
+    "odeTimStartDateTime": "2020-04-30T14:23:59.497Z",
+    "isCertPresent": false,
     "odeReceivedAt": "2018-03-13T01:07:11.120Z"
   },
   "payload": {
@@ -46,130 +46,67 @@
         "timeStamp": 173664,
         "packetID": "67AEF692F8BB63067D",
         "urlB": "null",
-        "dataFrames": [
-          {
-            "durationTime": 1440,
-            "regions": [{
-              "closedPath": false,
-              "anchor": {
-                "lat": 406047600,
-                "long": -1050013900
-              },
-              "name": "I_I 25_SAT-1CEE1793",
-              "laneWidth": 32700,
-              "directionality": "both",
-              "description": {"path": {
-                "offset": {"xy": {"nodes": [
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050012800,
-                    "lat": 406190100
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050009700,
-                    "lat": 406334900
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050008600,
-                    "lat": 406480600
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050009200,
-                    "lat": 406625700
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050008000,
-                    "lat": 406769500
-                  }}}
-                ]}},
-                "scale": 0
-              }},
-              "id": {
-                "id": 0,
-                "region": 0
-              },
-              "direction": "8001"
-            }],
-            "startYear": 2020,
-            "msgId": {"roadSignID": {
-              "viewAngle": "FFFF",
-              "mutcdCode": "warning",
-              "position": {
-                "lat": 406047600,
-                "long": -1050013900
-              }
+        "dataFrames": [{
+          "durationTime": 1440,
+          "regions": [{
+            "closedPath": false,
+            "anchor": {
+              "lat": 406047600,
+              "long": -1050013900
+            },
+            "name": "I_I 25_SAT-1CEE1793",
+            "laneWidth": 32700,
+            "directionality": "both",
+            "description": {"path": {
+              "offset": {"xy": {"nodes": [
+                {"delta": {"node-LatLon": {
+                  "lon": -1050012800,
+                  "lat": 406190100
+                }}},
+                {"delta": {"node-LatLon": {
+                  "lon": -1050009700,
+                  "lat": 406334900
+                }}},
+                {"delta": {"node-LatLon": {
+                  "lon": -1050008600,
+                  "lat": 406480600
+                }}},
+                {"delta": {"node-LatLon": {
+                  "lon": -1050009200,
+                  "lat": 406625700
+                }}},
+                {"delta": {"node-LatLon": {
+                  "lon": -1050008000,
+                  "lat": 406769500
+                }}}
+              ]}},
+              "scale": 0
             }},
-            "doNotUse1": 0,
-            "doNotUse2": 0,
-            "priority": 5,
-            "doNotUse3": 0,
-            "doNotUse4": 0,
-            "content": {"advisory": [{"item": {"itis": 5127}}]},
-            "url": "null",
-            "frameType": "advisory",
-            "startTime": 173663
-          },
-          {
-            "durationTime": 1440,
-            "regions": [{
-              "closedPath": false,
-              "anchor": {
-                "lat": 406047600,
-                "long": -1050013900
-              },
-              "name": "I_I 25_SAT-1CEE1793",
-              "laneWidth": 32700,
-              "directionality": "both",
-              "description": {"path": {
-                "offset": {"xy": {"nodes": [
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050012800,
-                    "lat": 406190100
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050009700,
-                    "lat": 406334900
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050008600,
-                    "lat": 406480600
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050009200,
-                    "lat": 406625700
-                  }}},
-                  {"delta": {"node-LatLon": {
-                    "lon": -1050008000,
-                    "lat": 406769500
-                  }}}
-                ]}},
-                "scale": 0
-              }},
-              "id": {
-                "id": 0,
-                "region": 0
-              },
-              "direction": "8001"
-            }],
-            "startYear": 2020,
-            "msgId": {"roadSignID": {
-              "viewAngle": "FFFF",
-              "mutcdCode": "warning",
-              "position": {
-                "lat": 406047600,
-                "long": -1050013900
-              }
-            }},
-            "doNotUse1": 0,
-            "doNotUse2": 0,
-            "priority": 5,
-            "doNotUse3": 0,
-            "doNotUse4": 0,
-            "content": {"advisory": [{"item": {"itis": 5127}}]},
-            "url": "null",
-            "frameType": "advisory",
-            "startTime": 173663
-          }
-        ],
+            "id": {
+              "id": 0,
+              "region": 0
+            },
+            "direction": "8001"
+          }],
+          "startYear": 2020,
+          "msgId": {"roadSignID": {
+            "viewAngle": "FFFF",
+            "mutcdCode": "warning",
+            "position": {
+              "lat": 406047600,
+              "long": -1050013900
+            }
+          }},
+          "doNotUse1": 0,
+          "doNotUse2": 0,
+          "priority": 5,
+          "doNotUse3": 0,
+          "doNotUse4": 0,
+          "content": {"advisory": [{"item": {"itis": 5127}}]},
+          "url": "null",
+          "frameType": "advisory",
+          "startTime": 173663
+        }],
         "msgCnt": 1
       }}
     },
