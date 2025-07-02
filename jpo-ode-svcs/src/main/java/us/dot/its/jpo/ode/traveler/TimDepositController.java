@@ -75,7 +75,6 @@ public class TimDepositController {
 
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
-  private final ObjectMapper simpleObjectMapper;
   private final XmlMapper simpleXmlMapper;
 
   private final KafkaTemplate<String, String> kafkaTemplate;
@@ -101,13 +100,11 @@ public class TimDepositController {
       TimIngestTrackerProperties ingestTrackerProperties,
       SecurityServicesProperties securityServicesProperties,
       KafkaTemplate<String, String> kafkaTemplate,
-      ObjectMapper simpleObjectMapper,
       XmlMapper simpleXmlMapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
     this.jsonTopics = jsonTopics;
-    this.simpleObjectMapper = simpleObjectMapper;
     this.simpleXmlMapper = simpleXmlMapper;
 
     this.kafkaTemplate = kafkaTemplate;
@@ -266,7 +263,7 @@ public class TimDepositController {
 
       // Convert XML into ODE TIM JSON object and obfuscate RSU password
       OdeMessageFrameData odeTimMessageFrameData = OdeMessageFrameDataCreatorHelper
-          .createOdeMessageFrameData(xmlMsg, simpleObjectMapper, simpleXmlMapper);
+          .createOdeMessageFrameData(xmlMsg, simpleXmlMapper);
 
       // Create the TIM string and obfuscate the RSU password
       String j2735Tim = JsonUtils.toJson(odeTimMessageFrameData, false);

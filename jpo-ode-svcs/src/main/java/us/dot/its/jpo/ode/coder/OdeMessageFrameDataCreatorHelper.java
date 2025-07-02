@@ -2,7 +2,6 @@ package us.dot.its.jpo.ode.coder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -28,13 +27,12 @@ public class OdeMessageFrameDataCreatorHelper {
    * Creates an OdeMessageFrameData object from consumed XML data.
    *
    * @param consumedData The XML data string to be processed
-   * @param simpleObjectMapper The ObjectMapper for simple JSON operations
    * @param simpleXmlMapper The XmlMapper for XML operations
    * @return OdeMessageFrameData object containing the processed data
    * @throws JsonProcessingException if there is an error processing the JSON data
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
-      ObjectMapper simpleObjectMapper, XmlMapper simpleXmlMapper) throws JsonProcessingException {
+      XmlMapper simpleXmlMapper) throws JsonProcessingException {
     ObjectNode consumed = simpleXmlMapper.readValue(consumedData, ObjectNode.class);
     JsonNode metadataNode = consumed.findValue(OdeMsgMetadata.METADATA_STRING);
     ServiceRequest request = null;

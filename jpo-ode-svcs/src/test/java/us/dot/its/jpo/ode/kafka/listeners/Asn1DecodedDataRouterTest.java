@@ -65,8 +65,6 @@ class Asn1DecodedDataRouterTest {
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
   @Autowired
-  private ObjectMapper simpleObjectMapper;
-  @Autowired
   private XmlMapper simpleXmlMapper;
 
   ObjectMapper mapper = new ObjectMapper();
@@ -439,7 +437,7 @@ class Asn1DecodedDataRouterTest {
         new ConsumerRecord<>(asn1CoderTopics.getDecoderOutput(), 0, 0L, uniqueKey, baseTestData);
 
     Asn1DecodedDataRouter router =
-        new Asn1DecodedDataRouter(kafkaStringTemplate, jsonTopics, simpleObjectMapper, simpleXmlMapper);
+        new Asn1DecodedDataRouter(kafkaStringTemplate, jsonTopics, simpleXmlMapper);
 
     Exception exception =
         assertThrows(Asn1DecodedDataRouter.Asn1DecodedDataRouterException.class, () -> {

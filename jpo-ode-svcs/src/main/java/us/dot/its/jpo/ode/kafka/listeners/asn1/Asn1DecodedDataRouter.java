@@ -44,7 +44,6 @@ public class Asn1DecodedDataRouter {
 
   private final JsonTopics jsonTopics;
   private final KafkaTemplate<String, String> kafkaTemplate;
-  private final ObjectMapper simpleObjectMapper;
   private final XmlMapper simpleXmlMapper;
 
   /**
@@ -62,11 +61,9 @@ public class Asn1DecodedDataRouter {
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
   public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate,
-      JsonTopics jsonTopics, @Qualifier("simpleObjectMapper") ObjectMapper simpleObjectMapper,
-      @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
+      JsonTopics jsonTopics, @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
     this.kafkaTemplate = kafkaTemplate;
     this.jsonTopics = jsonTopics;
-    this.simpleObjectMapper = simpleObjectMapper;
     this.simpleXmlMapper = simpleXmlMapper;
   }
 
@@ -116,7 +113,6 @@ public class Asn1DecodedDataRouter {
     OdeMessageFrameData odeMessageFrameData =
         OdeMessageFrameDataCreatorHelper.createOdeMessageFrameData(
             consumerRecord.value(), 
-            simpleObjectMapper, 
             simpleXmlMapper);
     String dataStr = JsonUtils.toJson(odeMessageFrameData, false);
     for (String topic : topics) {
