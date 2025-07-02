@@ -99,11 +99,9 @@ public class ServiceRequest extends OdeObject {
 
   }
 
-   // private static final long serialVersionUID = 1L;
+   private static final long serialVersionUID = 1L;
    private OdeInternal ode;
    private SituationDataWarehouse.SDW sdw;
-   @JacksonXmlProperty(localName = "rsus")
-   @JacksonXmlElementWrapper(useWrapping = true, localName = "rsus")
    private RSU[] rsus;
    private SNMP snmp;
 
