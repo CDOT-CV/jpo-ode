@@ -21,7 +21,6 @@
 package us.dot.its.jpo.ode.traveler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
@@ -135,9 +134,7 @@ public class TimDepositController {
    * @return The request completion status
    * @throws JsonProcessingException if there is an error processing the JSON
    */
-  public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb)
-      throws JsonProcessingException {
-
+  public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) {
     if (null == jsonString || jsonString.isEmpty()) {
       String errMsg = "Empty request.";
       log.error(errMsg);
@@ -273,7 +270,7 @@ public class TimDepositController {
       kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
       // Publish TIM XML to the Asn1EncoderInput topic to be encoded by the ASN.1 Encoder module
       kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), serialIdJ2735.getStreamId(), xmlMsg);
-    } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException e) {
+    } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException | JsonProcessingException e) {
       String errMsg = "Error sending data to ASN.1 Encoder module: " + e.getMessage();
       log.error(errMsg, e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -294,8 +291,7 @@ public class TimDepositController {
    */
   @PutMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
-  public ResponseEntity<String> putTim(@RequestBody String jsonString)
-      throws JsonProcessingException {
+  public ResponseEntity<String> putTim(@RequestBody String jsonString) {
 
     return depositTim(jsonString, OdeInternal.RequestVerb.PUT);
   }
@@ -310,8 +306,7 @@ public class TimDepositController {
    */
   @PostMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
-  public ResponseEntity<String> postTim(@RequestBody String jsonString)
-      throws JsonProcessingException {
+  public ResponseEntity<String> postTim(@RequestBody String jsonString) {
 
     return depositTim(jsonString, OdeInternal.RequestVerb.POST);
   }
