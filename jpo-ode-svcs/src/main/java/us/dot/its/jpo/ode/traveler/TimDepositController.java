@@ -216,7 +216,6 @@ public class TimDepositController {
       timMetadata.setOdeTimStartDateTime(dateFormat.format(latestStartDateTime));
     }
     timMetadata.setRecordGeneratedBy(GeneratedBy.TMC);
-    // Determine where the message was generated from
     try {
       timMetadata.setRecordGeneratedAt(
           DateTimeUtils.isoDateTime(DateTimeUtils.isoDateTime(tim.getTimeStamp())));
