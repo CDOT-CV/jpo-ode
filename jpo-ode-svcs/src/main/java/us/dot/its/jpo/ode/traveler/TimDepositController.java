@@ -76,6 +76,7 @@ public class TimDepositController {
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
   private final XmlMapper simpleXmlMapper;
+  private final SerialId serialIdJ2735;
 
   private final KafkaTemplate<String, String> kafkaTemplate;
 
@@ -106,8 +107,8 @@ public class TimDepositController {
     this.asn1CoderTopics = asn1CoderTopics;
     this.jsonTopics = jsonTopics;
     this.simpleXmlMapper = simpleXmlMapper;
-
     this.kafkaTemplate = kafkaTemplate;
+    serialIdJ2735 = new SerialId();
 
     // start the TIM ingest monitoring service if enabled
     if (ingestTrackerProperties.isTrackingEnabled()) {
@@ -226,7 +227,7 @@ public class TimDepositController {
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
     // Set a unique serial ID for the ODE TIM message
-    SerialId serialIdJ2735 = new SerialId();
+    serialIdJ2735.increment();
     timMetadata.setSerialId(serialIdJ2735);
 
     // Craft ASN-encodable TIM
