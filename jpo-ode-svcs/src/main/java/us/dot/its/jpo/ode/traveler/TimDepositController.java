@@ -75,9 +75,9 @@ public class TimDepositController {
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
   private final XmlMapper simpleXmlMapper;
-  private final SerialId serialIdJ2735;
-
   private final KafkaTemplate<String, String> kafkaTemplate;
+
+  private SerialId serialIdJ2735;
 
   /**
    * Unique exception for the TimDepositController to handle error state responses to the client.
@@ -224,7 +224,7 @@ public class TimDepositController {
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
     // Set a unique serial ID for the ODE TIM message
-    serialIdJ2735.increment();
+    serialIdJ2735 = serialIdJ2735.nextSerialId();
     timMetadata.setSerialId(serialIdJ2735);
 
     // Craft ASN-encodable TIM

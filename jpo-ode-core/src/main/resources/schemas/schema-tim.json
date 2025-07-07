@@ -38,6 +38,12 @@
                     ],
                     "type": "string"
                 },
+                "isCertPresent": {
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
                 "logFileName": {
                     "type": "string"
                 },
@@ -105,7 +111,9 @@
                 "sanitized",
                 "recordGeneratedAt",
                 "maxDurationTime",
-                "odeReceivedAt"
+                "odeReceivedAt",
+                "asn1",
+                "isCertPresent"
             ]
         },
         "MetadataRequest": {
