@@ -181,8 +181,7 @@ public class TimDepositController {
     // Short circuit
     // If the TIM has no RSU/SNMP or SDW structures, return a warning
     if ((request.getRsus() == null || request.getSnmp() == null) && request.getSdw() == null) {
-      String warningMsg = "Warning: TIM contains no RSU, SNMP, or SDW fields."
-          + " Message only published to broadcast streams.";
+      String warningMsg = "Warning: TIM contains no RSU, SNMP, or SDW fields.";
       log.warn(warningMsg);
       return ResponseEntity.status(HttpStatus.OK).body(JsonUtils.jsonKeyValue(WARNING, warningMsg));
     }
