@@ -272,7 +272,7 @@ Not applicable
         - [ ] TIMs can be pushed to http (/tim) endpoint
         - [ ] TIMs can be encoded & re-ingested into the ODE
         - [ ] TIMs can be signed (verify security header is not stripped)
-        - [ ] TIMs can be sent to the SDX & are retrievable from the SDX
+        - [ ] TIMs can be sent to the SDX
     - [ ] multiple ODE instances function correctly when running against shared Kafka
         - [ ] no K-Table conflicts occur between instances
         - [ ] message ingestion works reliably across instances for all message types
@@ -327,7 +327,7 @@ Not applicable
         - [ ] TIMs can be pushed to http (/tim) endpoint
         - [ ] TIMs can be encoded & re-ingested into the ODE
         - [ ] TIMs can be signed (verify security header is not stripped)
-        - [ ] TIMs can be sent to the SDX & are retrievable from the SDX
+        - [ ] TIMs can be sent to the SDX
     - [ ] multiple ODE instances function correctly when running against shared Kafka
         - [ ] no K-Table conflicts occur between instances
         - [ ] message ingestion works reliably across instances for all message types
