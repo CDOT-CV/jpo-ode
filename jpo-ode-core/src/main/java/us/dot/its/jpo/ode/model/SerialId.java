@@ -1,22 +1,32 @@
 /*******************************************************************************
- * Copyright 2018 572682
- * 
+ * Copyright 2018 572682.
+ *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- * 
+ * </p>
+ *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * </p>
+ *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
+ * </p>
  ******************************************************************************/
+
 package us.dot.its.jpo.ode.model;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import java.util.UUID;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
+/**
+ * SerialId represents a unique identifier for a data stream, includes stream ID, bundle ID, bundle
+ * size, record ID and serial number.
+ */
 public class SerialId {
   private static final char UUID_DELIMITER = '_';
   private static final char BUNDLE_RECORD_DELIMITER = '.';
@@ -33,12 +43,21 @@ public class SerialId {
     streamId = UUID.randomUUID().toString();
   }
 
+  /**
+   * Constructs a SerialId with the specified streamId, bundleSize, bundleId, and recordId.
+   *
+   * @param streamId the stream identifier
+   * @param bundleSize the size of the bundle
+   * @param bundleId the bundle identifier
+   * @param recordId the record identifier
+   */
   public SerialId(String streamId, int bundleSize, long bundleId, int recordId) {
     this();
-    if (streamId != null)
+    if (streamId != null) {
       this.streamId = streamId;
-    else
+    } else {
       this.streamId = this.streamId + "_null";
+    }
 
     this.bundleSize = bundleSize;
     this.bundleId = bundleId + (recordId / this.bundleSize);
@@ -46,6 +65,12 @@ public class SerialId {
     this.serialNumber = calculateSerialNumber();
   }
 
+  /**
+   * Constructs a SerialId by parsing the given serialId string.
+   *
+   * @param serialId the serialId string to parse
+   * @throws Exception if the serialId format is invalid
+   */
   public SerialId(String serialId) throws Exception {
 
     String[] splitId = serialId
@@ -62,6 +87,15 @@ public class SerialId {
     this.serialNumber = Integer.parseInt(splitId[4]);
   }
 
+  /**
+   * Constructs a SerialId with the specified streamId, bundleSize, bundleId, recordId, and serialNumber.
+   *
+   * @param streamId the stream identifier
+   * @param bundleSize the size of the bundle
+   * @param bundleId the bundle identifier
+   * @param recordId the record identifier
+   * @param serialNumber the serial number
+   */
   public SerialId(String streamId, int bundleSize, long bundleId, int recordId, long serialNumber) {
 
     this.streamId = streamId;
@@ -71,6 +105,11 @@ public class SerialId {
     this.serialNumber = serialNumber;
   }
 
+  /**
+   * Constructs a SerialId from a JsonNode.
+   *
+   * @param jsonNode the JsonNode containing the serial id fields
+   */
   public SerialId(JsonNode jsonNode) {
     this(jsonNode.get("streamId").asText(), jsonNode.get("bundleSize").asInt(),
         jsonNode.get("bundleId").asLong(), jsonNode.get("recordId").asInt(),
@@ -89,18 +128,33 @@ public class SerialId {
     return serialNumber + 1;
   }
 
+  /**
+   * Returns the next SerialId by cloning the current one and incrementing its values.
+   *
+   * @return the next SerialId in sequence
+   */
   public SerialId nextSerialId() {
     SerialId next = clone();
     next.increment();
     return next;
   }
 
-  synchronized public long increment() {
+  /**
+   * Increments the serial number, updating bundleId and recordId as needed.
+   *
+   * @return the incremented serial number
+   */
+  public synchronized long increment() {
     bundleId += (recordId + 1) / bundleSize;
     recordId = nextRecordId();
     return ++serialNumber;
   }
 
+  /**
+   * Creates and returns a copy of this SerialId with a new streamId.
+   *
+   * @return a cloned SerialId instance with the same bundleSize, bundleId, recordId, and serialNumber, but a new streamId
+   */
   public SerialId clone() {
     SerialId clone = new SerialId(UUID.randomUUID().toString(), bundleSize, bundleId, recordId);
     clone.serialNumber = this.serialNumber;
@@ -184,24 +238,32 @@ public class SerialId {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if (obj == null) {
       return false;
-    if (getClass() != obj.getClass())
+    }
+    if (getClass() != obj.getClass()) {
       return false;
+    }
     SerialId other = (SerialId) obj;
-    if (bundleId != other.bundleId)
+    if (bundleId != other.bundleId) {
       return false;
-    if (bundleSize != other.bundleSize)
+    }
+    if (bundleSize != other.bundleSize) {
       return false;
-    if (recordId != other.recordId)
+    }
+    if (recordId != other.recordId) {
       return false;
+    }
     if (streamId == null) {
-      if (other.streamId != null)
+      if (other.streamId != null) {
         return false;
-    } else if (!streamId.equals(other.streamId))
+      }
+    } else if (!streamId.equals(other.streamId)) {
       return false;
+    }
     return true;
   }
 
