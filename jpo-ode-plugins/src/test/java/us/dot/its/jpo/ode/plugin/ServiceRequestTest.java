@@ -40,7 +40,6 @@ public class ServiceRequestTest {
     Assertions.assertTrue(xml.contains("<snmpProtocol>NTCIP1218</snmpProtocol>"));
     Assertions.assertTrue(xml.contains("</rsus></rsus>"));
 
-    //ServiceRequest deserialized = xmlMapper.readValue(xml, ServiceRequest.class);
     ObjectNode consumed = xmlMapper.readValue(xml, ObjectNode.class);
     String xmlBack = xmlMapper.writeValueAsString(consumed);
     ServiceRequest deserialized = xmlMapper.readValue(xmlBack, ServiceRequest.class);
