@@ -175,7 +175,7 @@ class TimDepositControllerTest {
 
     // verify
     String expectedResponseBody =
-        "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields. Message only published to broadcast streams.\"}";
+        "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields.\"}";
     Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
   }
 
