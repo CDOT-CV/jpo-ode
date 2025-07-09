@@ -12,12 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.util.Arrays;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -29,6 +27,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -55,6 +54,7 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 @ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
     KafkaProperties.class})
 @DirtiesContext
+@TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")
 class Asn1DecodedDataRouterTest {
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();

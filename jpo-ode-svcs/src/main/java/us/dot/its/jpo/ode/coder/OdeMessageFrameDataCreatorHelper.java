@@ -6,12 +6,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformationMessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFramePayload;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.RxSource;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
+import us.dot.its.jpo.ode.util.XmlUtils;
 
 /**
  * Helper class for creating OdeMessageFrameData objects from consumed data.
@@ -33,22 +35,15 @@ public class OdeMessageFrameDataCreatorHelper {
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
       XmlMapper simpleXmlMapper) throws JsonProcessingException {
-    ObjectNode consumed = simpleXmlMapper.readValue(consumedData, ObjectNode.class);
-    JsonNode metadataNode = consumed.findValue(OdeMsgMetadata.METADATA_STRING);
-    ServiceRequest request = null;
-    if (metadataNode instanceof ObjectNode object) {
-      object.remove(OdeMsgMetadata.ENCODINGS_STRING);
-      if (object.has("request")) {
-        String xmlBack = simpleXmlMapper.writeValueAsString(object.get("request"));
-        request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
-        object.remove("request");
-      }
-    }
+    // Parse the XML into a tree structure first
+    JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
     
-    OdeMessageFrameMetadata metadata =
-          simpleXmlMapper.convertValue(metadataNode, OdeMessageFrameMetadata.class);
-    // Request will be null if not included
-    metadata.setRequest(request);
+    // Extract and deserialize metadata separately
+    JsonNode metadataNode = rootNode.get("metadata");
+    OdeMessageFrameMetadata metadata = simpleXmlMapper.treeToValue(metadataNode, OdeMessageFrameMetadata.class);
+    // Setting encodings to null as per the original code logic but is technically supportable
+    metadata.setEncodings(null);
+
     // Assign the rxSource if it does not exist due to the schema requiring it
     if (metadata.getReceivedMessageDetails() != null && metadata.getReceivedMessageDetails().getRxSource() == null) {
       metadata.getReceivedMessageDetails().setRxSource(RxSource.NA);
@@ -58,9 +53,8 @@ public class OdeMessageFrameDataCreatorHelper {
       metadata.setReceivedMessageDetails(null);
     }
 
-    JsonNode messageFrameNode = consumed.findValue("MessageFrame");
-    MessageFrame<?> messageFrame =
-        simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
+    JsonNode messageFrameNode = rootNode.get("payload").get("data").get("MessageFrame");
+    MessageFrame<?> messageFrame = simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
     OdeMessageFramePayload payload = new OdeMessageFramePayload(messageFrame);
     return new OdeMessageFrameData(metadata, payload);
   }

@@ -2,7 +2,6 @@ package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
