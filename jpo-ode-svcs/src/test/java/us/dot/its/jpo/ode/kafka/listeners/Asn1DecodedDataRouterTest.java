@@ -117,49 +117,49 @@ class Asn1DecodedDataRouterTest {
     testConsumer.close();
   }
 
-  // @Test
-  // void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
-  //   String[] topics = Arrays.array(jsonTopics.getTim());
-  //   EmbeddedKafkaHolder.addTopics(topics);
+  @Test
+  void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getTim());
+    EmbeddedKafkaHolder.addTopics(topics);
 
-  //   String baseTestData =
-  //       loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
 
-  //   var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "false", embeddedKafka);
-  //   var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-  //       new StringDeserializer());
-  //   var testConsumer = consumerFactory.createConsumer();
-  //   embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+    var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-  //   String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
-  //   for (String recordType : new String[] {"timMsg", "rxMsg"}) {
-  //     String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
-  //     var uniqueKey = UUID.randomUUID().toString();
-  //     kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
+    String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
+    for (String recordType : new String[] {"timMsg", "rxMsg"}) {
+      String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-  //     var expectedTim = replaceJSONRecordType(baseExpectedTim, "timMsg", recordType);
+      var expectedTim = replaceJSONRecordType(baseExpectedTim, "timMsg", recordType);
 
-  //     OdeMessageFrameData expectedTimMFrameData =
-  //         mapper.readValue(expectedTim, OdeMessageFrameData.class);
-  //     switch (recordType) {
-  //       case "timMsg" -> {
-  //         expectedTimMFrameData.getMetadata().setRecordType(RecordType.timMsg);
-  //       }
-  //       case "rxMsg" -> {
-  //         expectedTimMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
-  //       }
-  //       default -> throw new IllegalStateException("Unexpected value: " + recordType);
-  //     }
+      OdeMessageFrameData expectedTimMFrameData =
+          mapper.readValue(expectedTim, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "timMsg" -> {
+          expectedTimMFrameData.getMetadata().setRecordType(RecordType.timMsg);
+        }
+        case "rxMsg" -> {
+          expectedTimMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
 
-  //     var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
-  //     OdeMessageFrameData consumedTimMFrameData =
-  //         mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
+      var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+      OdeMessageFrameData consumedTimMFrameData =
+          mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
 
-  //     assertThat(JsonUtils.toJson(consumedTimMFrameData, false),
-  //         jsonEquals(JsonUtils.toJson(expectedTimMFrameData, false)).withTolerance(0.0001));
-  //   }
-  //   testConsumer.close();
-  // }
+      assertThat(JsonUtils.toJson(consumedTimMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedTimMFrameData, false)).withTolerance(0.0001));
+    }
+    testConsumer.close();
+  }
 
   @Test
   void testAsn1DecodedDataRouter_SPaTDataFlow() throws IOException {
