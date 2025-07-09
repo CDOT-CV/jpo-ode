@@ -28,7 +28,7 @@ public class OdeMessageFrameDataCreatorHelperTest {
   }
 
   @Test
-  void testDeserializeTimXml2Json() throws JsonMappingException, JsonProcessingException {
+  void testDeserializeTimXml() throws JsonMappingException, JsonProcessingException {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
     String timMFString = XmlUtils.findXmlContentString(baseTestData, "MessageFrame");
