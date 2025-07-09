@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.coder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -27,7 +28,7 @@ public class OdeMessageFrameDataCreatorHelperTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouterBSMDataFlow() throws JsonMappingException, JsonProcessingException {
+  void testDeserializeTimXml2Json() throws JsonMappingException, JsonProcessingException {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
     String timMFString = XmlUtils.findXmlContentString(baseTestData, "MessageFrame");
