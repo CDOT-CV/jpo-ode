@@ -1,7 +1,8 @@
 package us.dot.its.jpo.ode.coder;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -26,12 +27,30 @@ public class OdeMessageFrameDataCreatorHelperTest {
   }
 
   @Test
-  void testAsn1DecodedDataRouterBSMDataFlow() {
+  void testAsn1DecodedDataRouterBSMDataFlow() throws JsonMappingException, JsonProcessingException {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
     String timMFString = XmlUtils.findXmlContentString(baseTestData, "MessageFrame");
-    TravelerInformationMessageFrame actualMessageFrame = xmlMapper.convertValue(timMFString, TravelerInformationMessageFrame.class);
-    assertEquals(actualMessageFrame.getValue().getMsgCnt(), 93);
+    TravelerInformationMessageFrame actualMessageFrame = xmlMapper.readValue(timMFString, TravelerInformationMessageFrame.class);
+    assertEquals(-188,
+        actualMessageFrame.getValue()
+            .getDataFrames().get(0)
+            .getRegions().get(1)
+            .getDescription().getPath()
+            .getOffset().getLl()
+            .getNodes().get(0)
+            .getAttributes().getDWidth()
+            .getValue()
+    );
+    assertEquals(5, 
+        actualMessageFrame.getValue()
+            .getDataFrames().get(0)
+            .getRegions().get(1)
+            .getDescription().getPath()
+            .getOffset().getLl()
+            .getNodes().get(0)
+            .getAttributes().getDisabled().size()
+    );
   }
 
   private String loadFromResource(String resourcePath) {
