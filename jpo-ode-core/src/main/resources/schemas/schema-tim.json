@@ -34,6 +34,7 @@
                     "enum": [
                         "RSU",
                         "TMC",
+                        "SNMP",
                         "UNKNOWN"
                     ],
                     "type": "string"
