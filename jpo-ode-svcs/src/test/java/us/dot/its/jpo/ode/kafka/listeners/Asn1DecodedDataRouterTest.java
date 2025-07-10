@@ -155,8 +155,10 @@ class Asn1DecodedDataRouterTest {
       OdeMessageFrameData consumedTimMFrameData =
           mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
 
-      assertThat(JsonUtils.toJson(consumedTimMFrameData, false),
-          jsonEquals(JsonUtils.toJson(expectedTimMFrameData, false)).withTolerance(0.0001));
+      String actualMF = JsonUtils.toJson(consumedTimMFrameData, false);
+      String expectedMF = JsonUtils.toJson(expectedTimMFrameData, false);
+
+      assertThat(actualMF, jsonEquals(expectedMF).withTolerance(0.0001));
     }
     testConsumer.close();
   }
