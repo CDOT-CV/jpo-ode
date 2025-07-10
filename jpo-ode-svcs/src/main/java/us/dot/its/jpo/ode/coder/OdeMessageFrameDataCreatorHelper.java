@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.coder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
@@ -9,6 +10,7 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFramePayload;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.plugin.ServiceRequest;
 
 /**
  * Helper class for creating OdeMessageFrameData objects from consumed data.
@@ -35,7 +37,16 @@ public class OdeMessageFrameDataCreatorHelper {
     
     // Extract and deserialize metadata separately
     JsonNode metadataNode = rootNode.get("metadata");
+    ServiceRequest request = null;
+    if (metadataNode instanceof ObjectNode object) {
+      if (object.has("request")) {
+        String xmlBack = simpleXmlMapper.writeValueAsString(object.get("request"));
+        request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
+        object.remove("request");
+      }
+    }
     OdeMessageFrameMetadata metadata = simpleXmlMapper.treeToValue(metadataNode, OdeMessageFrameMetadata.class);
+    metadata.setRequest(request);
     // Setting encodings to null as per the original code logic but is technically supportable
     metadata.setEncodings(null);
 
