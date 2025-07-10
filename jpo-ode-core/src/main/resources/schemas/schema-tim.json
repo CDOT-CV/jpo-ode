@@ -113,7 +113,6 @@
                 "recordGeneratedAt",
                 "maxDurationTime",
                 "odeReceivedAt",
-                "asn1",
                 "isCertPresent"
             ]
         },
