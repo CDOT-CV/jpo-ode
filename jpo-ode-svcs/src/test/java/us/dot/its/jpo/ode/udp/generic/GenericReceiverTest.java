@@ -45,7 +45,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.ssm=topic.GenericReceiverTestSSM",
         "ode.kafka.topics.raw-encoded-json.tim=topic.GenericReceiverTestTIM",
         "ode.kafka.topics.raw-encoded-json.srm=topic.GenericReceiverTestSRM",
-        "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM"})
+        "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM",
+        "ode.kafka.topics.raw-encoded-json.rtcm=topic.GenericReceiverTestRTCM"})
 @ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
     RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
@@ -169,6 +170,17 @@ class GenericReceiverTest {
     var sdsmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSdsm());
     assertExpected("Produced SDSM message does not match expected", sdsmRecord.value(),
         expectedSdsm);
+
+    // Test the RTCM path
+    String rtcmFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
+    String expectedRtcm = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC_expected.json"));
+    udpClient.send(rtcmFileContent);
+
+    var rtcmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getRtcm());
+    assertExpected("Produced RTCM message does not match expected", rtcmRecord.value(),
+        expectedRtcm);
 
     DateTimeUtils.setClock(prevClock);
   }

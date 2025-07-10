@@ -137,6 +137,12 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
           publisher.send(rawEncodedJsonTopics.getSdsm(), sdsmJson);
         }
       }
+      case "RTCM" -> {
+        String rtcmJson = UdpHexDecoder.buildJsonRtcmFromPacket(packet);
+        if (rtcmJson != null) {
+          publisher.send(rawEncodedJsonTopics.getRtcm(), rtcmJson);
+        }
+      }
       default -> throw new UnsupportedMessageTypeException(messageType);
     }
   }

@@ -54,6 +54,16 @@ class JsonTopicsTest {
     }
 
     @Test
+    void getSdsm() {
+        assertEquals("topic.OdeSdsmJson", jsonTopics.getSdsm());
+    }
+
+    @Test
+    void getRtcm() {
+        assertEquals("topic.OdeRtcmJson", jsonTopics.getRtcm());
+    }
+
+    @Test
     void getDriverAlert() {
         assertEquals("topic.OdeDriverAlertJson", jsonTopics.getDriverAlert());
     }

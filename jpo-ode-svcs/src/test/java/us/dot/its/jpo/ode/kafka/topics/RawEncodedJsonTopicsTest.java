@@ -52,4 +52,14 @@ class RawEncodedJsonTopicsTest {
     void getTim() {
         assertEquals("topic.OdeRawEncodedTIMJson", rawEncodedJsonTopics.getTim());
     }
+
+    @Test
+    void getSdsm() {
+        assertEquals("topic.OdeRawEncodedSDSMJson", rawEncodedJsonTopics.getSdsm());
+    }
+
+    @Test
+    void getRtcm() {
+        assertEquals("topic.OdeRawEncodedRTCMJson", rawEncodedJsonTopics.getRtcm());
+    }
 }

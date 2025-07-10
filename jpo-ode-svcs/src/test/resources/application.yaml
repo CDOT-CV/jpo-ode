@@ -59,6 +59,7 @@ ode:
         ssm: "topic.OdeSsmJson"
         tim: "topic.OdeTimJson"
         sdsm: "topic.OdeSdsmJson"
+        rtcm: "topic.OdeRtcmJson"
         driver-alert: "topic.OdeDriverAlertJson"
         bsm-filtered: "topic.FilteredOdeBsmJson"
         spat-filtered: "topic.FilteredOdeSpatJson"
@@ -75,6 +76,7 @@ ode:
         ssm: "topic.OdeRawEncodedSSMJson"
         tim: "topic.OdeRawEncodedTIMJson"
         sdsm: "topic.OdeRawEncodedSDSMJson"
+        rtcm: "topic.OdeRawEncodedRTCMJson"
       sdx-depositor:
         input: "topic.SDWDepositorInput"
   receivers:
@@ -105,6 +107,9 @@ ode:
     sdsm:
       buffer-size: 500
       receiver-port: 44950
+    rtcm:
+      buffer-size: 500
+      receiver-port: 44960
   file-importer:
     buffer-size: 500
     backup-dir: "backup"

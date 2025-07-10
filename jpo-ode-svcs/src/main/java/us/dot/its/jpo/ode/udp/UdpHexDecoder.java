@@ -189,6 +189,20 @@ public class UdpHexDecoder {
   }
 
   /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a RTCM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the RTCM data
+   * @return a JSON string representing the RTCM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
+  public static String buildJsonRtcmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.RTCM,
+        RecordType.rtcmTx, Source.RSU, GeneratedBy.RSU, false), false);
+  }
+
+  /**
    * Given a buffer containing the full payload, this method retrieves and returns only the relevant
    * bytes of the message, excluding any padded bytes.
    *
