@@ -59,11 +59,6 @@ class JsonTopicsTest {
     }
 
     @Test
-    void getTimBroadcast() {
-        assertEquals("topic.OdeTimBroadcastJson", jsonTopics.getTimBroadcast());
-    }
-
-    @Test
     void getBsmFiltered() {
         assertEquals("topic.FilteredOdeBsmJson", jsonTopics.getBsmFiltered());
     }
@@ -86,20 +81,5 @@ class JsonTopicsTest {
     @Test
     void getTimCertExpiration() {
         assertEquals("topic.OdeTIMCertExpirationTimeJson", jsonTopics.getTimCertExpiration());
-    }
-
-    @Test
-    void getDnMessage() {
-        assertEquals("topic.OdeDNMsgJson", jsonTopics.getDnMessage());
-    }
-
-    @Test
-    void getRxTim() {
-        assertEquals("topic.OdeTimRxJson", jsonTopics.getRxTim());
-    }
-
-    @Test
-    void getJ2735TimBroadcast() {
-        assertEquals("topic.J2735TimBroadcastJson", jsonTopics.getJ2735TimBroadcast());
     }
 }

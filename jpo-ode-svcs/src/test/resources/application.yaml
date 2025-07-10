@@ -43,7 +43,7 @@ ode:
       value-serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
       partitioner-class: "org.apache.kafka.clients.producer.internals.DefaultPartitioner"
     disabled-topics:
-      - "topic.OdeTimBroadcastPojo"
+      - ""
     topics:
       asn1:
         decoder-input: "topic.Asn1DecoderInput"
@@ -60,18 +60,12 @@ ode:
         tim: "topic.OdeTimJson"
         sdsm: "topic.OdeSdsmJson"
         driver-alert: "topic.OdeDriverAlertJson"
-        tim-broadcast: "topic.OdeTimBroadcastJson"
         bsm-filtered: "topic.FilteredOdeBsmJson"
         spat-filtered: "topic.FilteredOdeSpatJson"
         tim-filtered: "topic.FilteredOdeTimJson"
         tim-tmc-filtered: "topic.OdeTimJsonTMCFiltered"
         tim-cert-expiration: "topic.OdeTIMCertExpirationTimeJson"
         tim-ktable: "topic.OdeTimKTableJson"
-        dn-message: "topic.OdeDNMsgJson"
-        rx-tim: "topic.OdeTimRxJson"
-        j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
-      pojo:
-        tim-broadcast: "topic.OdeTimBroadcastPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"

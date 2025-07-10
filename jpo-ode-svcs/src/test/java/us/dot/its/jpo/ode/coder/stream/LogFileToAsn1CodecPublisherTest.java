@@ -243,7 +243,6 @@ class LogFileToAsn1CodecPublisherTest {
   }
 
   @Test
-  @Disabled("Requires the full TIM rework to be completed to fully resolve correctly")
   void testPublishRxMsgTIMLogFile(@Mock JsonTopics jsonTopics,
       @Mock RawEncodedJsonTopics rawEncodedJsonTopics,
       @Mock KafkaTemplate<String, String> kafkaTemplate) throws Exception {

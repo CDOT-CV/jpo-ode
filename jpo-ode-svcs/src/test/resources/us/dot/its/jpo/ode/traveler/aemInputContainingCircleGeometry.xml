@@ -53,6 +53,7 @@
         </encodings>
     </metadata>
     <payload>
+        <dataType>MessageFrame</dataType>
         <data>
             <MessageFrame>
                 <messageId>31</messageId>
@@ -140,6 +141,5 @@
                 </value>
             </MessageFrame>
         </data>
-        <dataType>MessageFrame</dataType>
     </payload>
 </OdeAsn1Data>

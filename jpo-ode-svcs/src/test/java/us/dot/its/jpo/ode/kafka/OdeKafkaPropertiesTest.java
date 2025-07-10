@@ -29,7 +29,7 @@ class OdeKafkaPropertiesTest {
   void testGetKafkaTopicsDisabled() {
     Set<String> kafkaTopicsDisabled = odeKafkaProperties.getDisabledTopics();
     assertEquals(1, kafkaTopicsDisabled.size());
-    assertTrue(kafkaTopicsDisabled.contains("topic.OdeTimBroadcastPojo"));
+    assertTrue(kafkaTopicsDisabled.contains(""));
   }
 
   @Test

@@ -11,7 +11,6 @@ import us.dot.its.jpo.ode.udp.InvalidPayloadException;
 import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverProperties;
 import us.dot.its.jpo.ode.uper.UperUtil;
-import us.dot.its.jpo.ode.util.JsonUtils;
 
 /**
  * GenericReceiver is a class that listens for UDP packets and processes them based on the
@@ -103,13 +102,9 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         }
       }
       case "TIM" -> {
-        var tim = UdpHexDecoder.buildTimFromPacket(packet);
-        var timJson = JsonUtils.toJson(tim, false);
+        String timJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
         if (timJson != null) {
-          // We need to include the serialID as the key when publishing TIMs. Otherwise, the
-          // OdeTimJsonTopology won't work as intended.
-          publisher.send(rawEncodedJsonTopics.getTim(), tim.getMetadata().getSerialId().toString(),
-              timJson);
+          publisher.send(rawEncodedJsonTopics.getTim(), timJson);
         }
       }
       case "BSM" -> {

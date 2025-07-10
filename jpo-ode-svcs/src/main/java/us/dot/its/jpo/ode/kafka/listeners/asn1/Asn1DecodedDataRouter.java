@@ -2,10 +2,8 @@ package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
-import joptsimple.internal.Strings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
@@ -15,14 +13,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
-import us.dot.its.jpo.ode.coder.OdeTimDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
-import us.dot.its.jpo.ode.model.OdeLogMetadata;
-import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
-import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.XmlUtils;
@@ -48,10 +41,8 @@ import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 @Component
 public class Asn1DecodedDataRouter {
 
-  private final PojoTopics pojoTopics;
   private final JsonTopics jsonTopics;
   private final KafkaTemplate<String, String> kafkaTemplate;
-  private final ObjectMapper simpleObjectMapper;
   private final XmlMapper simpleXmlMapper;
 
   /**
@@ -68,13 +59,10 @@ public class Asn1DecodedDataRouter {
    *
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
-  public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate, PojoTopics pojoTopics,
-      JsonTopics jsonTopics, @Qualifier("simpleObjectMapper") ObjectMapper simpleObjectMapper,
-      @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
+  public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate,
+      JsonTopics jsonTopics, @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
     this.kafkaTemplate = kafkaTemplate;
-    this.pojoTopics = pojoTopics;
     this.jsonTopics = jsonTopics;
-    this.simpleObjectMapper = simpleObjectMapper;
     this.simpleXmlMapper = simpleXmlMapper;
   }
 
@@ -105,23 +93,9 @@ public class Asn1DecodedDataRouter {
     DSRCmsgID messageId = new DSRCmsgID(msgId);
     String messageName = messageId.name().orElse("Unknown");
 
-    var metadataJson = XmlUtils.toJSONObject(consumerRecord.value())
-        .getJSONObject(OdeAsn1Data.class.getSimpleName())
-        .getJSONObject(OdeMsgMetadata.METADATA_STRING);
-    OdeLogMetadata.RecordType recordType =
-        OdeLogMetadata.RecordType.valueOf(metadataJson.getString("recordType"));
-
-    String streamId;
-    if (Strings.isNullOrEmpty(consumerRecord.key())
-        || "null".equalsIgnoreCase(consumerRecord.key())) {
-      streamId = metadataJson.getJSONObject("serialId").getString("streamId");
-    } else {
-      streamId = consumerRecord.key();
-    }
-
     switch (messageName) {
       case "basicSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getBsm());
-      case "travelerInformation" -> routeTIM(consumerRecord, streamId, recordType);
+      case "travelerInformation" -> routeMessageFrame(consumerRecord, jsonTopics.getTim());
       case "mapData" -> routeMessageFrame(consumerRecord, jsonTopics.getMap());
       case "signalPhaseAndTimingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSpat());
       case "personalSafetyMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getPsm());
@@ -132,26 +106,12 @@ public class Asn1DecodedDataRouter {
     }
   }
 
-  private void routeTIM(ConsumerRecord<String, String> consumerRecord, String streamId,
-      RecordType type) throws XmlUtilsException {
-    String odeTimData =
-        OdeTimDataCreatorHelper.createOdeTimDataFromDecoded(consumerRecord.value()).toString();
-    switch (type) {
-      case dnMsg -> kafkaTemplate.send(jsonTopics.getDnMessage(), consumerRecord.key(), odeTimData);
-      case rxMsg -> kafkaTemplate.send(jsonTopics.getRxTim(), consumerRecord.key(), odeTimData);
-      default -> log.trace("Consumed TIM data with record type: {}", type);
-    }
-    // Send all TIMs also to OdeTimJson
-    kafkaTemplate.send(jsonTopics.getTim(), streamId, odeTimData);
-  }
-
   private void routeMessageFrame(ConsumerRecord<String, String> consumerRecord, String... topics)
       throws XmlUtils.XmlUtilsException, IOException {
     log.debug("routeMessageFrame to topics: {}", String.join(", ", topics));
     OdeMessageFrameData odeMessageFrameData =
         OdeMessageFrameDataCreatorHelper.createOdeMessageFrameData(
             consumerRecord.value(), 
-            simpleObjectMapper, 
             simpleXmlMapper);
     String dataStr = JsonUtils.toJson(odeMessageFrameData, false);
     for (String topic : topics) {

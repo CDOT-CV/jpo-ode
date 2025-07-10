@@ -246,7 +246,8 @@
                 "schemaVersion",
                 "recordGeneratedAt",
                 "sanitized",
-                "asn1"
+                "asn1",
+                "isCertPresent"
             ],
             "type": "object"
         },

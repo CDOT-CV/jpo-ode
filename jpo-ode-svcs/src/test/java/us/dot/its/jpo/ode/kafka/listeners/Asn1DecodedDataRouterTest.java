@@ -12,12 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.util.Arrays;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -29,6 +27,7 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -37,7 +36,6 @@ import us.dot.its.jpo.ode.kafka.listeners.asn1.Asn1DecodedDataRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
@@ -47,28 +45,25 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 
 @Slf4j
 @SpringBootTest(
-    classes = {KafkaProperties.class, PojoTopics.class, JsonTopics.class, Asn1CoderTopics.class,
+    classes = {KafkaProperties.class, JsonTopics.class, Asn1CoderTopics.class,
         KafkaConsumerConfig.class, KafkaProducerConfig.class, RawEncodedJsonTopics.class,
         Asn1CoderTopics.class, OdeKafkaProperties.class, Asn1DecodedDataRouter.class,
         SerializationConfig.class, TestMetricsConfig.class},
     properties = {"ode.kafka.disabled-topics="})
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    PojoTopics.class, KafkaProperties.class})
+    KafkaProperties.class})
 @DirtiesContext
+@TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")
 class Asn1DecodedDataRouterTest {
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
   @Autowired
   KafkaTemplate<String, String> kafkaStringTemplate;
   @Autowired
-  PojoTopics pojoTopics;
-  @Autowired
   JsonTopics jsonTopics;
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
-  @Autowired
-  private ObjectMapper simpleObjectMapper;
   @Autowired
   private XmlMapper simpleXmlMapper;
 
@@ -124,8 +119,7 @@ class Asn1DecodedDataRouterTest {
 
   @Test
   void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
-    String[] topics =
-        Arrays.array(jsonTopics.getDnMessage(), jsonTopics.getRxTim(), jsonTopics.getTim());
+    String[] topics = Arrays.array(jsonTopics.getTim());
     EmbeddedKafkaHolder.addTopics(topics);
 
     String baseTestData =
@@ -135,47 +129,36 @@ class Asn1DecodedDataRouterTest {
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
-
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
     String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
-    for (String recordType : new String[] {"dnMsg", "rxMsg"}) {
-      String topic;
-      switch (recordType) {
-        case "rxMsg" -> topic = jsonTopics.getRxTim();
-        case "dnMsg" -> topic = jsonTopics.getDnMessage();
-        default -> throw new IllegalStateException("Unexpected value: " + recordType);
-      }
-
+    for (String recordType : new String[] {"timMsg", "rxMsg"}) {
       String inputData = replaceRecordType(baseTestData, "timMsg", recordType);
       var uniqueKey = UUID.randomUUID().toString();
       kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
 
-      AtomicReference<ConsumerRecord<String, String>> consumedSpecific = new AtomicReference<>();
-      AtomicReference<ConsumerRecord<String, String>> consumedTim = new AtomicReference<>();
-      Awaitility.await().until(() -> {
-        var records = KafkaTestUtils.getRecords(testConsumer);
-        for (ConsumerRecord<String, String> cr : records.records(topic)) {
-          if (cr.key().equals(uniqueKey)) {
-            consumedSpecific.set(cr);
-            break;
-          }
-        }
-        for (ConsumerRecord<String, String> cr : records.records(jsonTopics.getTim())) {
-          if (cr.key().equals(uniqueKey)) {
-            consumedTim.set(cr);
-            break;
-          }
-        }
-        return consumedSpecific.get() != null && consumedTim.get() != null;
-      });
-      var expectedTim =
-          mapper.readTree(replaceJSONRecordType(baseExpectedTim, "dnMsg", recordType));
-      var actualSpecific = mapper.readTree(consumedSpecific.get().value());
-      var actualTim = mapper.readTree(consumedTim.get().value());
+      var expectedTim = replaceJSONRecordType(baseExpectedTim, "timMsg", recordType);
 
-      assertEquals(expectedTim, actualSpecific);
-      assertEquals(expectedTim, actualTim);
+      OdeMessageFrameData expectedTimMFrameData =
+          mapper.readValue(expectedTim, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "timMsg" -> {
+          expectedTimMFrameData.getMetadata().setRecordType(RecordType.timMsg);
+        }
+        case "rxMsg" -> {
+          expectedTimMFrameData.getMetadata().setRecordType(RecordType.rxMsg);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
+
+      var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+      OdeMessageFrameData consumedTimMFrameData =
+          mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
+
+      String actualMF = JsonUtils.toJson(consumedTimMFrameData, false);
+      String expectedMF = JsonUtils.toJson(expectedTimMFrameData, false);
+
+      assertThat(actualMF, jsonEquals(expectedMF).withTolerance(0.0001));
     }
     testConsumer.close();
   }
@@ -456,7 +439,7 @@ class Asn1DecodedDataRouterTest {
         new ConsumerRecord<>(asn1CoderTopics.getDecoderOutput(), 0, 0L, uniqueKey, baseTestData);
 
     Asn1DecodedDataRouter router =
-        new Asn1DecodedDataRouter(kafkaStringTemplate, pojoTopics, jsonTopics, simpleObjectMapper, simpleXmlMapper);
+        new Asn1DecodedDataRouter(kafkaStringTemplate, jsonTopics, simpleXmlMapper);
 
     Exception exception =
         assertThrows(Asn1DecodedDataRouter.Asn1DecodedDataRouterException.class, () -> {
