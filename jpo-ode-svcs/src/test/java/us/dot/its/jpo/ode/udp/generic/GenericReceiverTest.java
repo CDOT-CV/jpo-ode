@@ -68,7 +68,7 @@ class GenericReceiverTest {
     String[] topics = {rawEncodedJsonTopics.getBsm(), rawEncodedJsonTopics.getMap(),
         rawEncodedJsonTopics.getPsm(), rawEncodedJsonTopics.getSpat(),
         rawEncodedJsonTopics.getSsm(), rawEncodedJsonTopics.getTim(), rawEncodedJsonTopics.getSrm(),
-        rawEncodedJsonTopics.getSdsm()};
+        rawEncodedJsonTopics.getSdsm(), rawEncodedJsonTopics.getRtcm()};
     EmbeddedKafkaHolder.addTopics(topics);
 
     GenericReceiver genericReceiver = new GenericReceiver(udpReceiverProperties.getGeneric(),

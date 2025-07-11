@@ -42,6 +42,14 @@ bin/kafka-topics.sh --create --topic "topic.OdeMapJson" --bootstrap-server local
 bin/kafka-topics.sh --create --topic "topic.OdeSpatJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.FilteredOdeSpatJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
+# SDSM
+bin/kafka-topics.sh --create --topic "topic.OdeSdsmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedSDSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+
+# RTCM
+bin/kafka-topics.sh --create --topic "topic.OdeRtcmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedRTCMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+
 # ASN1
 bin/kafka-topics.sh --create --topic "topic.Asn1DecoderInput" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.Asn1DecoderOutput" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
