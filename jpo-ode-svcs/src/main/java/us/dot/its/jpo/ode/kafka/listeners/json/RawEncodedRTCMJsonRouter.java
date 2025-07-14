@@ -40,7 +40,7 @@ public class RawEncodedRTCMJsonRouter {
 
   /**
    * Consumes and processes Kafka messages containing ASN.1 encoded RTCM JSON data. This method
-   * extracts metadata and payload from the JSON message sends it for decoding.
+   * extracts metadata and payload from the JSON message and sends it for decoding.
    *
    * @param consumerRecord The Kafka consumer record containing the message key and value. The value
    *                       includes the raw ASN.1 encoded JSON RTCM data to be processed.
