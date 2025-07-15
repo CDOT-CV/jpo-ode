@@ -430,6 +430,51 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
+  void testAsn1DecodedDataRouter_RTCMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getRtcm());
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-rtcm.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps("rtcmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+
+    String baseExpectedRtcm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-rtcm.json");
+    for (String recordType : new String[] {"rtcmTx", "unsupported"}) {
+      String inputData = replaceRecordType(baseTestData, "rtcmTx", recordType);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
+
+      var expectedRtcm = replaceJSONRecordType(baseExpectedRtcm, "rtcmTx", recordType);
+
+      OdeMessageFrameData expectedRtcmMFrameData =
+          mapper.readValue(expectedRtcm, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "rtcmTx" -> {
+          expectedRtcmMFrameData.getMetadata().setRecordType(RecordType.rtcmTx);
+        }
+        case "unsupported" -> {
+          expectedRtcmMFrameData.getMetadata().setRecordType(RecordType.unsupported);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
+
+      var consumedRtcm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getRtcm());
+      OdeMessageFrameData consumedRtcmMFrameData =
+          mapper.readValue(consumedRtcm.value(), OdeMessageFrameData.class);
+
+      assertThat(JsonUtils.toJson(consumedRtcmMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedRtcmMFrameData, false)).withTolerance(0.0001));
+    }
+    testConsumer.close();
+  }
+
+  @Test
   void testAsn1DecodedDataRouterException() {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-failed-encoding.xml");

@@ -121,7 +121,7 @@ public class UperUtil {
    *
    * @param hexString the hexadecimal string representing a packet whose type is to be determined
    * @return a string indicating the type of the packet, such as "MAP", "SPAT", "TIM", "BSM", "SSM",
-   *         "PSM", or "SRM". If no valid type is found, returns an empty string.
+   *         "PSM", "SRM", "SDSM", or "RTCM". If no valid type is found, returns an empty string.
    */
   public static String determineHexPacketType(String hexString) {
     HashMap<String, Integer> flagIndexes = new HashMap<>();
@@ -142,6 +142,8 @@ public class UperUtil {
         findValidStartFlagLocation(hexString, SupportedMessageType.SRM.getStartFlag()));
     flagIndexes.put("SDSM",
         findValidStartFlagLocation(hexString, SupportedMessageType.SDSM.getStartFlag()));
+    flagIndexes.put("RTCM",
+        findValidStartFlagLocation(hexString, SupportedMessageType.RTCM.getStartFlag()));
 
     int lowestIndex = Integer.MAX_VALUE;
     String messageType = "";

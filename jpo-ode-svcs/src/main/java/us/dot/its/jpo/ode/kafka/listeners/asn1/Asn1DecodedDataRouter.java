@@ -102,6 +102,7 @@ public class Asn1DecodedDataRouter {
       case "signalStatusMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSsm());
       case "signalRequestMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSrm());
       case "sensorDataSharingMessage" -> routeMessageFrame(consumerRecord, jsonTopics.getSdsm());
+      case "rtcmCorrections" -> routeMessageFrame(consumerRecord, jsonTopics.getRtcm());
       default -> log.warn("Unknown message type: {}", messageName);
     }
   }

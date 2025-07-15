@@ -40,8 +40,12 @@ public class OdeMessageFrameDataCreatorHelper {
     ServiceRequest request = null;
     if (metadataNode instanceof ObjectNode object) {
       if (object.has("request")) {
-        String xmlBack = simpleXmlMapper.writeValueAsString(object.get("request"));
-        request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
+        JsonNode requestNode = object.get("request");
+        // Check if "request" is present and not an empty object
+        if (requestNode != null && requestNode.isObject() && requestNode.size() > 0) {
+          String xmlBack = simpleXmlMapper.writeValueAsString(requestNode);
+          request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
+        }
         object.remove("request");
       }
     }
