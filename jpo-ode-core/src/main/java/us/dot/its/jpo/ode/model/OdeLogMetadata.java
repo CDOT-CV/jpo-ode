@@ -46,7 +46,7 @@ public class OdeLogMetadata extends OdeMsgMetadata {
    * Enum representing the possible record types for log metadata.
    */
   public enum RecordType {
-    bsmLogDuringEvent, rxMsg, dnMsg, bsmTx, driverAlert, mapTx, spatTx, ssmTx, srmTx, timMsg, psmTx, sdsmTx, rtcmTx, unsupported
+    bsmLogDuringEvent, rxMsg, dnMsg, bsmTx, driverAlert, mapTx, spatTx, ssmTx, srmTx, timMsg, psmTx, sdsmTx, rtcmTx, rsmTx, unsupported
   }
 
   /**
