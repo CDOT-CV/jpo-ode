@@ -112,6 +112,9 @@ ode:
     rtcm:
       buffer-size: 500
       receiver-port: 44960
+    rsm:
+      buffer-size: 2000
+      receiver-port: 44970
   file-importer:
     buffer-size: 500
     backup-dir: "backup"

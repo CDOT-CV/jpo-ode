@@ -62,4 +62,9 @@ class RawEncodedJsonTopicsTest {
     void getRtcm() {
         assertEquals("topic.OdeRawEncodedRTCMJson", rawEncodedJsonTopics.getRtcm());
     }
+
+    @Test
+    void getRsm() {
+        assertEquals("topic.OdeRawEncodedRSMJson", rawEncodedJsonTopics.getRsm());
+    }
 }

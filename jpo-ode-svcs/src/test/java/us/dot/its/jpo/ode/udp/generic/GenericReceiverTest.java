@@ -46,7 +46,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.tim=topic.GenericReceiverTestTIM",
         "ode.kafka.topics.raw-encoded-json.srm=topic.GenericReceiverTestSRM",
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM",
-        "ode.kafka.topics.raw-encoded-json.rtcm=topic.GenericReceiverTestRTCM"})
+        "ode.kafka.topics.raw-encoded-json.rtcm=topic.GenericReceiverTestRTCM",
+        "ode.kafka.topics.raw-encoded-json.rsm=topic.GenericReceiverTestRSM"})
 @ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
     RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
@@ -68,7 +69,7 @@ class GenericReceiverTest {
     String[] topics = {rawEncodedJsonTopics.getBsm(), rawEncodedJsonTopics.getMap(),
         rawEncodedJsonTopics.getPsm(), rawEncodedJsonTopics.getSpat(),
         rawEncodedJsonTopics.getSsm(), rawEncodedJsonTopics.getTim(), rawEncodedJsonTopics.getSrm(),
-        rawEncodedJsonTopics.getSdsm(), rawEncodedJsonTopics.getRtcm()};
+        rawEncodedJsonTopics.getSdsm(), rawEncodedJsonTopics.getRtcm(), rawEncodedJsonTopics.getRsm()};
     EmbeddedKafkaHolder.addTopics(topics);
 
     GenericReceiver genericReceiver = new GenericReceiver(udpReceiverProperties.getGeneric(),
@@ -181,6 +182,17 @@ class GenericReceiverTest {
     var rtcmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getRtcm());
     assertExpected("Produced RTCM message does not match expected", rtcmRecord.value(),
         expectedRtcm);
+
+    // Test the RSM path
+    String rsmFileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM.txt"));
+    String expectedRsm = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM_expected.json"));
+    udpClient.send(rsmFileContent);
+
+    var rsmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getRsm());
+    assertExpected("Produced RSM message does not match expected", rsmRecord.value(),
+        expectedRsm);
 
     DateTimeUtils.setClock(prevClock);
   }
