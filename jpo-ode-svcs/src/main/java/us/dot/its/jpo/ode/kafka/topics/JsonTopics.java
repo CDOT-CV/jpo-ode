@@ -20,6 +20,7 @@ public class JsonTopics {
   private String tim;
   private String sdsm;
   private String rtcm;
+  private String rsm;
 
   private String driverAlert;
 

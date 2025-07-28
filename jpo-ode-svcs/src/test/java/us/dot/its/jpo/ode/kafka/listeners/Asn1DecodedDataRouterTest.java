@@ -475,6 +475,51 @@ class Asn1DecodedDataRouterTest {
   }
 
   @Test
+  void testAsn1DecodedDataRouter_RSMDataFlow() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getRsm());
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    String baseTestData =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-rsm.xml");
+
+    var consumerProps = KafkaTestUtils.consumerProps("rsmDecoderTest", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+
+    String baseExpectedRsm =
+        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-rsm.json");
+    for (String recordType : new String[] {"rsmTx", "unsupported"}) {
+      String inputData = replaceRecordType(baseTestData, "rsmTx", recordType);
+      var uniqueKey = UUID.randomUUID().toString();
+      kafkaStringTemplate.send(asn1CoderTopics.getDecoderOutput(), uniqueKey, inputData);
+
+      var expectedRsm = replaceJSONRecordType(baseExpectedRsm, "rsmTx", recordType);
+
+      OdeMessageFrameData expectedRsmMFrameData =
+          mapper.readValue(expectedRsm, OdeMessageFrameData.class);
+      switch (recordType) {
+        case "rsmTx" -> {
+          expectedRsmMFrameData.getMetadata().setRecordType(RecordType.rsmTx);
+        }
+        case "unsupported" -> {
+          expectedRsmMFrameData.getMetadata().setRecordType(RecordType.unsupported);
+        }
+        default -> throw new IllegalStateException("Unexpected value: " + recordType);
+      }
+
+      var consumedRsm = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getRsm());
+      OdeMessageFrameData consumedRsmMFrameData =
+          mapper.readValue(consumedRsm.value(), OdeMessageFrameData.class);
+
+      assertThat(JsonUtils.toJson(consumedRsmMFrameData, false),
+          jsonEquals(JsonUtils.toJson(expectedRsmMFrameData, false)).withTolerance(0.0001));
+    }
+    testConsumer.close();
+  }
+
+  @Test
   void testAsn1DecodedDataRouterException() {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-failed-encoding.xml");

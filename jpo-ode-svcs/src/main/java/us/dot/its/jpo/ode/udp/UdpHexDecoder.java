@@ -203,6 +203,20 @@ public class UdpHexDecoder {
   }
 
   /**
+   * Converts the data from the given {@link DatagramPacket} into a JSON string representing a RSM
+   * message. It extracts metadata and payload, then structures them into a JSON format.
+   *
+   * @param packet the DatagramPacket containing the RSM data
+   * @return a JSON string representing the RSM message
+   * @throws InvalidPayloadException if the payload extraction fails
+   */
+  public static String buildJsonRsmFromPacket(DatagramPacket packet)
+      throws InvalidPayloadException {
+    return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.RSM,
+        RecordType.rsmTx, Source.RSU, GeneratedBy.RSU, false), false);
+  }
+
+  /**
    * Given a buffer containing the full payload, this method retrieves and returns only the relevant
    * bytes of the message, excluding any padded bytes.
    *
