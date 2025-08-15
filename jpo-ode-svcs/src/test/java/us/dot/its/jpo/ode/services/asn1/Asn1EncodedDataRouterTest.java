@@ -1,16 +1,15 @@
-/*============================================================================
- * Copyright 2018 572682
+/*
+ * ============================================================================ Copyright 2018
+ * 572682
  *
- * Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
 
@@ -74,31 +73,18 @@ import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
 @Slf4j
-@SpringBootTest(
-    properties = {
-        "ode.security-services.is-rsu-signing-enabled=false",
-        "ode.security-services.is-sdw-signing-enabled=false",
-        "ode.kafka.topics.json.tim-cert-expiration=topic.Asn1EncodedDataRouterTestTimCertExpiration",
-        "ode.kafka.topics.json.tim-tmc-filtered=topic.Asn1EncodedDataRouterTestTimTmcFiltered",
-        "ode.kafka.topics.asn1.encoder-input=topic.Asn1EncodedDataRouterTestEncoderInput",
-        "ode.kafka.topics.asn1.encoder-output=topic.Asn1EncodedDataRouterTestEncoderOutput",
-        "ode.kafka.topics.sdx-depositor.input=topic.Asn1EncodedDataRouterTestSDXDepositor"
-    },
-    classes = {
-        OdeKafkaProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        KafkaProperties.class,
-        TestKafkaStreamsConfig.class,
-        Asn1CoderTopics.class,
-        JsonTopics.class,
-        SecurityServicesProperties.class,
-        RsuProperties.class,
-        Asn1EncodedDataRouterTest.MockSecurityServicesClient.class,
-        WebClientConfig.class,
-        TestMetricsConfig.class,
-    }
-)
+@SpringBootTest(properties = {"ode.security-services.is-rsu-signing-enabled=false",
+    "ode.security-services.is-sdw-signing-enabled=false",
+    "ode.kafka.topics.json.tim-cert-expiration=topic.Asn1EncodedDataRouterTestTimCertExpiration",
+    "ode.kafka.topics.json.tim-tmc-filtered=topic.Asn1EncodedDataRouterTestTimTmcFiltered",
+    "ode.kafka.topics.asn1.encoder-input=topic.Asn1EncodedDataRouterTestEncoderInput",
+    "ode.kafka.topics.asn1.encoder-output=topic.Asn1EncodedDataRouterTestEncoderOutput",
+    "ode.kafka.topics.sdx-depositor.input=topic.Asn1EncodedDataRouterTestSDXDepositor"},
+    classes = {OdeKafkaProperties.class, KafkaProducerConfig.class, SerializationConfig.class,
+        KafkaProperties.class, TestKafkaStreamsConfig.class, Asn1CoderTopics.class,
+        JsonTopics.class, SecurityServicesProperties.class, RsuProperties.class,
+        Asn1EncodedDataRouterTest.MockSecurityServicesClient.class, WebClientConfig.class,
+        TestMetricsConfig.class,})
 @EnableConfigurationProperties
 @DirtiesContext
 @ActiveProfiles("test")
@@ -128,8 +114,7 @@ class Asn1EncodedDataRouterTest {
 
 
   private static String stripGeneratedFields(String expectedEncoderInput) {
-    return expectedEncoderInput
-        .replaceAll("<streamId>.*?</streamId>", "")
+    return expectedEncoderInput.replaceAll("<streamId>.*?</streamId>", "")
         .replaceAll("<requestID>.*?</requestID>", "")
         .replaceAll("<odeReceivedAt>.*?</odeReceivedAt>", "")
         .replaceAll("<asdmID>.*?</asdmID>", "");
@@ -139,8 +124,7 @@ class Asn1EncodedDataRouterTest {
     return input.replaceAll("<streamId>.*?</streamId>", "<streamId>" + streamId + "</streamId>");
   }
 
-  private static String loadResourceString(String name)
-      throws IOException {
+  private static String loadResourceString(String name) throws IOException {
     String resourcePackagePath = "us/dot/its/jpo/ode/services/asn1/";
     InputStream inputStream;
     inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
@@ -151,28 +135,16 @@ class Asn1EncodedDataRouterTest {
 
   @Test
   void processDoubleEncodedMessage() throws IOException {
-    String[] topicsForConsumption = {
-        asn1CoderTopics.getEncoderInput(),
-        jsonTopics.getTimTmcFiltered(),
-        sdxDepositorTopic
-    };
+    String[] topicsForConsumption =
+        {asn1CoderTopics.getEncoderInput(), jsonTopics.getTimTmcFiltered(), sdxDepositorTopic};
     EmbeddedKafkaHolder.addTopics(topicsForConsumption);
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
-    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-        asn1CoderTopics,
-        jsonTopics,
-        securityServicesProperties,
-        odeTimJsonTopology,
-        Mockito.mock(RsuDepositor.class),
-        secServicesClient,
-        kafkaTemplate, sdxDepositorTopic,
-        objectMapper,
-        xmlMapper);
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(asn1CoderTopics, jsonTopics,
+        securityServicesProperties, odeTimJsonTopology, Mockito.mock(RsuDepositor.class),
+        secServicesClient, kafkaTemplate, sdxDepositorTopic, objectMapper, xmlMapper);
 
-    final var container = setupListenerContainer(encoderRouter,
-        "processDoubleEncodedMessage"
-    );
+    final var container = setupListenerContainer(encoderRouter, "processDoubleEncodedMessage");
 
     var odeJsonTim = loadResourceString("expected-asn1-encoded-router-tim-json.json");
 
@@ -184,11 +156,11 @@ class Asn1EncodedDataRouterTest {
     var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
     Awaitility.await().until(completableFuture::isDone);
 
-    var testConsumer =
-        createTestConsumer("processDoubleEncodedMessage");
+    var testConsumer = createTestConsumer("processDoubleEncodedMessage");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
-    var expected = objectMapper.readValue(loadResourceString("expected-asn1-encoded-router-sdx-deposit.json"), SDXDeposit.class);
+    var expected = objectMapper.readValue(
+        loadResourceString("expected-asn1-encoded-router-sdx-deposit.json"), SDXDeposit.class);
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records.records(sdxDepositorTopic);
@@ -206,26 +178,16 @@ class Asn1EncodedDataRouterTest {
 
   @Test
   void processUnsignedMessageSDWOnly() throws IOException {
-    String[] topicsForConsumption = {
-        asn1CoderTopics.getEncoderInput(),
-        jsonTopics.getTimCertExpiration(),
-        jsonTopics.getTimTmcFiltered()
-    };
+    String[] topicsForConsumption = {asn1CoderTopics.getEncoderInput(),
+        jsonTopics.getTimCertExpiration(), jsonTopics.getTimTmcFiltered()};
     EmbeddedKafkaHolder.addTopics(topicsForConsumption);
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
     var mockRsuDepositor = Mockito.mock(RsuDepositor.class);
-    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-        asn1CoderTopics,
-        jsonTopics,
-        securityServicesProperties,
-        odeTimJsonTopology,
-        mockRsuDepositor,
-        secServicesClient,
-        kafkaTemplate, sdxDepositorTopic,
-        objectMapper,
-        xmlMapper);
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(asn1CoderTopics, jsonTopics,
+        securityServicesProperties, odeTimJsonTopology, mockRsuDepositor, secServicesClient,
+        kafkaTemplate, sdxDepositorTopic, objectMapper, xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processUnsignedMessage");
 
@@ -242,10 +204,10 @@ class Asn1EncodedDataRouterTest {
     var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
     Awaitility.await().until(completableFuture::isDone);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "processUnsignedMessageSDWOnly", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
-        new StringDeserializer(), new StringDeserializer());
+    var consumerProps =
+        KafkaTestUtils.consumerProps("processUnsignedMessageSDWOnly", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
 
     var timCertConsumer =
         consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessageSDWOnly");
@@ -297,26 +259,16 @@ class Asn1EncodedDataRouterTest {
 
   @Test
   void processUnsignedMessageWithRsus() throws IOException {
-    String[] topicsForConsumption = {
-        asn1CoderTopics.getEncoderInput(),
-        jsonTopics.getTimCertExpiration(),
-        jsonTopics.getTimTmcFiltered()
-    };
+    String[] topicsForConsumption = {asn1CoderTopics.getEncoderInput(),
+        jsonTopics.getTimCertExpiration(), jsonTopics.getTimTmcFiltered()};
     EmbeddedKafkaHolder.addTopics(topicsForConsumption);
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
     var mockRsuDepositor = Mockito.mock(RsuDepositor.class);
-    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(
-        asn1CoderTopics,
-        jsonTopics,
-        securityServicesProperties,
-        odeTimJsonTopology,
-        mockRsuDepositor,
-        secServicesClient,
-        kafkaTemplate, sdxDepositorTopic,
-        objectMapper,
-        xmlMapper);
+    Asn1EncodedDataRouter encoderRouter = new Asn1EncodedDataRouter(asn1CoderTopics, jsonTopics,
+        securityServicesProperties, odeTimJsonTopology, mockRsuDepositor, secServicesClient,
+        kafkaTemplate, sdxDepositorTopic, objectMapper, xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processUnsignedMessageWithRsus");
 
@@ -333,10 +285,10 @@ class Asn1EncodedDataRouterTest {
     var completableFuture = kafkaTemplate.send(asn1CoderTopics.getEncoderOutput(), input);
     Awaitility.await().until(completableFuture::isDone);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "processUnsignedMessage", "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
-        new StringDeserializer(), new StringDeserializer());
+    var consumerProps =
+        KafkaTestUtils.consumerProps("processUnsignedMessage", "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
 
     var timCertConsumer =
         consumerFactory.createConsumer("timCertExpiration", "processUnsignedMessageWithRsus");
@@ -367,7 +319,8 @@ class Asn1EncodedDataRouterTest {
     }
     assertTrue(foundValidRecord);
 
-    Mockito.verify(mockRsuDepositor, Mockito.times(1)).deposit(Mockito.any(ServiceRequest.class), anyString());
+    Mockito.verify(mockRsuDepositor, Mockito.times(1)).deposit(Mockito.any(ServiceRequest.class),
+        anyString());
     timCertConsumer.close();
     timTmcFilteredConsumer.close();
     container.stop();
@@ -375,22 +328,21 @@ class Asn1EncodedDataRouterTest {
   }
 
   private KafkaMessageListenerContainer<String, String> setupListenerContainer(
-      Asn1EncodedDataRouter encoderRouter,
-      String containerName) {
+      Asn1EncodedDataRouter encoderRouter, String containerName) {
     var consumerProps = KafkaTestUtils.consumerProps(containerName, "false", embeddedKafka);
-    DefaultKafkaConsumerFactory<String, String> consumerFactory =
-        new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer());
-    ContainerProperties containerProperties = new ContainerProperties(asn1CoderTopics.getEncoderOutput());
-    KafkaMessageListenerContainer<String, String> container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
-    container.setupMessageListener(
-        (MessageListener<String, String>) consumerRecord -> {
-          try {
-            encoderRouter.listen(consumerRecord);
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
-        }
-    );
+    DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(
+        consumerProps, new StringDeserializer(), new StringDeserializer());
+    ContainerProperties containerProperties =
+        new ContainerProperties(asn1CoderTopics.getEncoderOutput());
+    KafkaMessageListenerContainer<String, String> container =
+        new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
+    container.setupMessageListener((MessageListener<String, String>) consumerRecord -> {
+      try {
+        encoderRouter.listen(consumerRecord);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    });
     container.setBeanName(containerName);
     container.start();
     ContainerTestUtils.waitForAssignment(container, embeddedKafka.getPartitionsPerTopic());
@@ -399,24 +351,26 @@ class Asn1EncodedDataRouterTest {
   }
 
   private Consumer<String, String> createTestConsumer(String group) {
-    var consumerProps = KafkaTestUtils.consumerProps(
-        group, "false", embeddedKafka);
-    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
-        new StringDeserializer(), new StringDeserializer());
+    var consumerProps = KafkaTestUtils.consumerProps(group, "false", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
     return consumerFactory.createConsumer();
   }
 
   @Service
   @Profile("test")
   static class MockSecurityServicesClient extends SecurityServicesClient {
-    private static final Clock clock = Clock.fixed(Instant.parse("2024-03-08T16:37:05.414Z"), ZoneId.of("UTC"));
+    private static final Clock clock =
+        Clock.fixed(Instant.parse("2024-03-08T16:37:05.414Z"), ZoneId.of("UTC"));
 
-    public MockSecurityServicesClient(RestTemplate restTemplate, SecurityServicesProperties securityServicesProperties) {
+    public MockSecurityServicesClient(RestTemplate restTemplate,
+        SecurityServicesProperties securityServicesProperties) {
       super(restTemplate, securityServicesProperties);
     }
 
     @Override
-    public SignatureResultModel signMessage(String message, int sigValidityOverride) throws RestClientException {
+    public SignatureResultModel signMessage(String message, int sigValidityOverride)
+        throws RestClientException {
       var signatureResponse = new SignatureResultModel();
       signatureResponse.setMessageSigned("<%s>".formatted(message));
       signatureResponse.setMessageExpiry(clock.instant().getEpochSecond() + 1000);
