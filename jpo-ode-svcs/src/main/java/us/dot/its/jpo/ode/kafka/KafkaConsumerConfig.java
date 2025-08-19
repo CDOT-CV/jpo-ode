@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -24,28 +25,31 @@ public class KafkaConsumerConfig {
 
   private final KafkaProperties kafkaProperties;
   private final OdeKafkaProperties odeKafkaProperties;
+  private final SslBundles sslBundles;
 
   /**
    * Constructs a new instance of KafkaConsumerConfig with the specified Kafka properties.
    *
-   * @param kafkaProperties    The general Kafka properties used for configuring consumer settings.
+   * @param kafkaProperties The general Kafka properties used for configuring consumer settings.
    * @param odeKafkaProperties The specific Ode Kafka properties which may include custom
-   *                           configurations relevant to the Ode system, possibly including
-   *                           brokers and other kafka-specific settings.
+   *        configurations relevant to the Ode system, possibly including brokers and other
+   *        kafka-specific settings.
+   * @param sslBundles The SSL bundles for secure connections.
    */
-  public KafkaConsumerConfig(KafkaProperties kafkaProperties,
-      OdeKafkaProperties odeKafkaProperties) {
+  public KafkaConsumerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties,
+      SslBundles sslBundles) {
     this.kafkaProperties = kafkaProperties;
     this.odeKafkaProperties = odeKafkaProperties;
+    this.sslBundles = sslBundles;
   }
 
   /**
-   * Creates and configures a {@link ConsumerFactory} for Kafka consumers with String key and
-   * value deserialization. The factory is configured using Kafka consumer properties defined
-   * in the application configuration.
+   * Creates and configures a {@link ConsumerFactory} for Kafka consumers with String key and value
+   * deserialization. The factory is configured using Kafka consumer properties defined in the
+   * application configuration.
    *
-   * @return a {@link ConsumerFactory} instance configured to produce Kafka consumers with
-   *         String key and value serialization.
+   * @return a {@link ConsumerFactory} instance configured to produce Kafka consumers with String
+   *         key and value serialization.
    */
   @Bean
   public ConsumerFactory<String, String> consumerFactory() {
@@ -58,7 +62,7 @@ public class KafkaConsumerConfig {
    * from Kafka topics.
    *
    * @return a ConcurrentKafkaListenerContainerFactory setup with a defined consumer factory that
-   *      determines how Kafka consumers are created and configured.
+   *         determines how Kafka consumers are created and configured.
    */
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
@@ -69,7 +73,7 @@ public class KafkaConsumerConfig {
   }
 
   private Map<String, Object> getKafkaConsumerProperties() {
-    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties(sslBundles));
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
       props.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
     }

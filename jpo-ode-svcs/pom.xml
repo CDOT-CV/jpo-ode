@@ -116,6 +116,7 @@
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>jquery</artifactId>
+      <version>3.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.webjars</groupId>
@@ -195,6 +196,7 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
   <!-- profile to output only source code and not include any spring boot dependencies in published
