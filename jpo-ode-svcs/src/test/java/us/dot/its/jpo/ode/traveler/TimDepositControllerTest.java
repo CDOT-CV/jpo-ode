@@ -1,17 +1,21 @@
 /*******************************************************************************
  * Copyright 2018 572682.
  *
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at</p>
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
+ * </p>
  *
- *   <p>http://www.apache.org/licenses/LICENSE-2.0</p>
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * </p>
  *
- * <p>Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
- * the License.</p>
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
+ * the License.
+ * </p>
  ******************************************************************************/
 
 package us.dot.its.jpo.ode.traveler;
@@ -49,6 +53,7 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -65,13 +70,15 @@ import us.dot.its.jpo.ode.util.XmlUtils;
 
 
 @EnableConfigurationProperties
-@SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
-    OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
-    SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
-    XmlMapper.class, TestMetricsConfig.class}, properties = {"ode.kafka.brokers=localhost:4242"})
+@SpringBootTest(
+    classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class, OdeKafkaProperties.class,
+        Asn1CoderTopics.class, JsonTopics.class, SecurityServicesProperties.class,
+        KafkaProperties.class, TimIngestTrackerProperties.class, XmlMapper.class,
+        TestMetricsConfig.class, TestSslConfig.class},
+    properties = {"ode.kafka.brokers=localhost:4242"})
 @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
-    JsonTopics.class, TimIngestTrackerProperties.class,
-    SecurityServicesProperties.class, OdeKafkaProperties.class})
+    JsonTopics.class, TimIngestTrackerProperties.class, SecurityServicesProperties.class,
+    OdeKafkaProperties.class})
 @DirtiesContext
 class TimDepositControllerTest {
 
@@ -104,42 +111,42 @@ class TimDepositControllerTest {
   int consumerCount = 0;
 
   @Test
-  void nullRequestShouldReturnEmptyError() throws com.fasterxml.jackson.core.JsonProcessingException {
+  void nullRequestShouldReturnEmptyError()
+      throws com.fasterxml.jackson.core.JsonProcessingException {
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(null);
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
 
   @Test
-  void emptyRequestShouldReturnEmptyError() throws com.fasterxml.jackson.core.JsonProcessingException {
+  void emptyRequestShouldReturnEmptyError()
+      throws com.fasterxml.jackson.core.JsonProcessingException {
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim("");
     Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
   }
 
   @Test
-  void invalidJsonSyntaxShouldReturnJsonSyntaxError() throws com.fasterxml.jackson.core.JsonProcessingException {
+  void invalidJsonSyntaxShouldReturnJsonSyntaxError()
+      throws com.fasterxml.jackson.core.JsonProcessingException {
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}");
     Assertions.assertEquals("{\"error\":\"Malformed or non-compliant JSON syntax.\"}",
         actualResponse.getBody());
   }
 
   @Test
-  void missingRequestElementShouldReturnMissingRequestError() throws com.fasterxml.jackson.core.JsonProcessingException {
+  void missingRequestElementShouldReturnMissingRequestError()
+      throws com.fasterxml.jackson.core.JsonProcessingException {
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}");
     Assertions.assertEquals(
         "{\"error\":\"Missing or invalid argument: Request element is required as of version 3.\"}",
@@ -147,11 +154,11 @@ class TimDepositControllerTest {
   }
 
   @Test
-  void invalidTimestampShouldReturnInvalidTimestampError() throws com.fasterxml.jackson.core.JsonProcessingException {
+  void invalidTimestampShouldReturnInvalidTimestampError()
+      throws com.fasterxml.jackson.core.JsonProcessingException {
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     ResponseEntity<String> actualResponse = testTimDepositController.postTim(
         "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}");
     // verify
@@ -165,9 +172,8 @@ class TimDepositControllerTest {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody = "{\"request\":{},\"tim\":{\"timeStamp\":\"2018-03-13T01:07:11-05:00\"}}";
 
     // execute
@@ -181,22 +187,21 @@ class TimDepositControllerTest {
 
   @Test
   void failedObjectNodeConversionShouldReturnConvertingError(
-        @Capturing TravelerMessageFromHumanToAsnConverter capturingTravelerMessageFromHumanToAsnConverter)
+      @Capturing TravelerMessageFromHumanToAsnConverter capturingTravelerMessageFromHumanToAsnConverter)
       throws JsonUtilsException, TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException,
       IOException, TravelerMessageFromHumanToAsnConverter.InvalidNodeLatLonOffsetException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     new Expectations() {
 
       {
-        TravelerMessageFromHumanToAsnConverter.convertTravelerInputDataToEncodableTim(
-            (JsonNode) any);
+        TravelerMessageFromHumanToAsnConverter
+            .convertTravelerInputDataToEncodableTim((JsonNode) any);
         result = new JsonUtilsException("testException123", null);
       }
     };
@@ -221,12 +226,11 @@ class TimDepositControllerTest {
       throws XmlUtils.XmlUtilsException, JsonUtilsException, JsonProcessingException {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
 
     new Expectations() {
       {
@@ -255,12 +259,11 @@ class TimDepositControllerTest {
     jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePost.tim.json");
     asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePost.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
@@ -312,15 +315,14 @@ class TimDepositControllerTest {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     jsonTopics.setTim("test.successfulSdwRequestMessageReturnsSuccessMessagePost.tim.json");
-    asn1CoderTopics.setEncoderInput(
-        "test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
+    asn1CoderTopics
+        .setEncoderInput("test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String file = "/sdwRequest.json";
     String requestBody =
         IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
@@ -373,15 +375,14 @@ class TimDepositControllerTest {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePostWithOde.tim.json");
-    asn1CoderTopics.setEncoderInput(
-        "test.successfulMessageReturnsSuccessMessagePostWithOde.encoderInput");
+    asn1CoderTopics
+        .setEncoderInput("test.successfulMessageReturnsSuccessMessagePostWithOde.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody =
         "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
@@ -435,12 +436,11 @@ class TimDepositControllerTest {
     jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePut.tim.json");
     asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePut.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
 
@@ -494,12 +494,11 @@ class TimDepositControllerTest {
     jsonTopics.setTim("test.depositingTimWithExtraProperties.tim.json");
     asn1CoderTopics.setEncoderInput("test.depositingTimWithExtraProperties.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
 
@@ -553,12 +552,11 @@ class TimDepositControllerTest {
     jsonTopics.setTim("test.successfulTimIngestIsTracked.tim.json");
     asn1CoderTopics.setEncoderInput("test.successfulTimIngestIsTracked.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody =
         "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
     long priorIngestCount = TimIngestTracker.getInstance().getTotalMessagesReceived();
@@ -613,15 +611,14 @@ class TimDepositControllerTest {
     // prepare
     odeKafkaProperties.setDisabledTopics(Set.of());
     jsonTopics.setTim("test.successfulRsuMessageReturnsSuccessMessagePost.tim.json");
-    asn1CoderTopics.setEncoderInput(
-        "test.successfulRsuMessageReturnsSuccessMessagePost.encoderInput");
+    asn1CoderTopics
+        .setEncoderInput("test.successfulRsuMessageReturnsSuccessMessagePost.encoderInput");
     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
     TimDepositController testTimDepositController =
-        new TimDepositController(asn1CoderTopics, jsonTopics,
-            timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-            simpleXmlMapper);
+        new TimDepositController(asn1CoderTopics, jsonTopics, timIngestTrackerProperties,
+            securityServicesProperties, kafkaTemplate, simpleXmlMapper);
     String requestBody =
         "{\"request\": {\"rsus\": [{\"latitude\": 30.123456, \"longitude\": -100.12345, \"rsuId\": 123, \"route\": \"myroute\", \"milepost\": 10, \"rsuTarget\": \"172.0.0.1\", \"rsuRetries\": 3, \"rsuTimeout\": 5000, \"rsuIndex\": 7, \"rsuUsername\": \"myusername\", \"rsuPassword\": \"mypassword\"}], \"snmp\": {\"rsuid\": \"83\", \"msgid\": 31, \"mode\": 1, \"channel\": 183, \"interval\": 2000, \"deliverystart\": \"2024-05-13T14:30:00Z\", \"deliverystop\": \"2024-05-13T22:30:00Z\", \"enable\": 1, \"status\": 4}}, \"tim\": {\"msgCnt\": \"1\", \"timeStamp\": \"2024-05-10T19:01:22Z\", \"packetID\": \"123451234512345123\", \"urlB\": \"null\", \"dataframes\": [{\"startDateTime\": \"2024-05-13T20:30:05.014Z\", \"durationTime\": \"30\", \"doNotUse1\": 0, \"frameType\": \"advisory\", \"msgId\": {\"roadSignID\": {\"mutcdCode\": \"warning\", \"viewAngle\": \"1111111111111111\", \"position\": {\"latitude\": 30.123456, \"longitude\": -100.12345}}}, \"priority\": \"5\", \"doNotUse2\": 0, \"regions\": [{\"name\": \"I_myroute_RSU_172.0.0.1\", \"anchorPosition\": {\"latitude\": 30.123456, \"longitude\": -100.12345}, \"laneWidth\": \"50\", \"directionality\": \"3\", \"closedPath\": \"false\", \"description\": \"path\", \"path\": {\"scale\": 0, \"nodes\": [{\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}, {\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}], \"type\": \"ll\"}, \"direction\": \"0000000000010000\"}], \"doNotUse4\": 0, \"doNotUse3\": 0, \"content\": \"workZone\", \"items\": [\"771\"], \"url\": \"null\"}]}}";
 

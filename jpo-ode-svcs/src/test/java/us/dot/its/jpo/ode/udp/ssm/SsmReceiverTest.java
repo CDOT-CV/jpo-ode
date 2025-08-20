@@ -26,6 +26,7 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
@@ -35,22 +36,12 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
-    properties = {
-        "ode.receivers.ssm.receiver-port=15358",
-        "ode.kafka.topics.raw-encoded-json.ssm=topic.SsmReceiverTest"
-    }
-)
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,},
+    properties = {"ode.receivers.ssm.receiver-port=15358",
+        "ode.kafka.topics.raw-encoded-json.ssm=topic.SsmReceiverTest"})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class SsmReceiverTest {
 
@@ -69,25 +60,23 @@ class SsmReceiverTest {
   void testRun() throws Exception {
     EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getSsm());
 
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
     SsmReceiver ssmReceiver = new SsmReceiver(udpReceiverProperties.getSsm(), kafkaTemplate,
         rawEncodedJsonTopics.getSsm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(ssmReceiver);
 
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
+    String fileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
     String expected = Files.readString(Paths.get(
         "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSsm().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "SsmReceiverTest", "true", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps("SsmReceiverTest", "true", embeddedKafka);
     DefaultKafkaConsumerFactory<Integer, String> cf =
         new DefaultKafkaConsumerFactory<>(consumerProps);
     Consumer<Integer, String> consumer = cf.createConsumer();
@@ -103,9 +92,7 @@ class SsmReceiverTest {
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(
-        expectedJson.toString(2),
-        producedJson.toString(2));
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
 
     DateTimeUtils.setClock(prevClock);
   }

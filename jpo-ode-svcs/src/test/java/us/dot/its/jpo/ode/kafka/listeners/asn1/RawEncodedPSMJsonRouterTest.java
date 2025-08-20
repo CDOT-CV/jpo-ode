@@ -22,6 +22,7 @@ import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedJsonService;
 import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedPSMJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
@@ -39,7 +40,8 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
         RawEncodedJsonService.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
-    },
+    TestSslConfig.class,
+        },
     properties = {
         "ode.kafka.topics.raw-encoded-json.psm=topic.Asn1DecoderTestPSMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderPSMInput"

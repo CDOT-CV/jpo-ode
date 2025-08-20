@@ -27,6 +27,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
@@ -37,22 +38,12 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 @RunWith(SpringRunner.class)
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
-    properties = {
-        "ode.receivers.srm.receiver-port=15459",
-        "ode.kafka.topics.raw-encoded-json.srm=topic.SrmReceiverTest"
-    }
-)
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,},
+    properties = {"ode.receivers.srm.receiver-port=15459",
+        "ode.kafka.topics.raw-encoded-json.srm=topic.SrmReceiverTest"})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class SrmReceiverTest {
 
@@ -71,26 +62,23 @@ class SrmReceiverTest {
   void testRun() throws Exception {
     EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getSrm());
 
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
-    SrmReceiver srmReceiver = new SrmReceiver(
-        udpReceiverProperties.getSrm(),
-        kafkaTemplate, rawEncodedJsonTopics.getSrm()
-    );
+    SrmReceiver srmReceiver = new SrmReceiver(udpReceiverProperties.getSrm(), kafkaTemplate,
+        rawEncodedJsonTopics.getSrm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(srmReceiver);
 
-    String fileContent = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
+    String fileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
+    String expected = Files.readString(Paths
+        .get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "SrmReceiverTest", "true", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps("SrmReceiverTest", "true", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
     var consumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSrm());

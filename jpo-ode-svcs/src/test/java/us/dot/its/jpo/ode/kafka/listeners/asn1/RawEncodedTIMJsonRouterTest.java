@@ -23,6 +23,7 @@ import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedJsonService;
 import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedTIMJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
@@ -40,7 +41,8 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         RawEncodedTIMJsonRouter.class,
         RawEncodedJsonService.class,
         TestMetricsConfig.class,
-    },
+    TestSslConfig.class,
+        },
     properties = {
         "ode.kafka.topics.raw-encoded-json.tim=topic.Asn1DecoderTestTIMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderTIMInput"

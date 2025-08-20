@@ -42,7 +42,8 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 @ExtendWith(SpringExtension.class)
 @DirtiesContext
 @EnableConfigurationProperties({KafkaProperties.class})
-@Import({KafkaProducerConfigTest.KafkaProducerConfigTestConfig.class, SerializationConfig.class})
+@Import({KafkaProducerConfigTest.KafkaProducerConfigTestConfig.class, SerializationConfig.class,
+    TestSslConfig.class})
 class KafkaProducerConfigTest {
 
   @Autowired

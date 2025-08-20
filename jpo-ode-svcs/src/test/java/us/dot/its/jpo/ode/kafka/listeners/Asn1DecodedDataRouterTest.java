@@ -32,6 +32,7 @@ import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.listeners.asn1.Asn1DecodedDataRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
@@ -48,11 +49,11 @@ import us.dot.its.jpo.ode.util.JsonUtils;
     classes = {KafkaProperties.class, JsonTopics.class, Asn1CoderTopics.class,
         KafkaConsumerConfig.class, KafkaProducerConfig.class, RawEncodedJsonTopics.class,
         Asn1CoderTopics.class, OdeKafkaProperties.class, Asn1DecodedDataRouter.class,
-        SerializationConfig.class, TestMetricsConfig.class},
+        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,},
     properties = {"ode.kafka.disabled-topics="})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    KafkaProperties.class})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, OdeKafkaProperties.class, KafkaProperties.class})
 @DirtiesContext
 @TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")
 class Asn1DecodedDataRouterTest {
@@ -83,8 +84,7 @@ class Asn1DecodedDataRouterTest {
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-    String baseExpectedBsm =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
+    String baseExpectedBsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
     for (String recordType : new String[] {"bsmTx", "rxMsg", "bsmLogDuringEvent"}) {
       String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
@@ -488,8 +488,7 @@ class Asn1DecodedDataRouterTest {
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-    String baseExpectedRsm =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-rsm.json");
+    String baseExpectedRsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-rsm.json");
     for (String recordType : new String[] {"rsmTx", "unsupported"}) {
       String inputData = replaceRecordType(baseTestData, "rsmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();

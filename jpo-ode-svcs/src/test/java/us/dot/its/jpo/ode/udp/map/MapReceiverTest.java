@@ -29,6 +29,7 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
@@ -39,21 +40,13 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @Slf4j
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
+    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,},
     properties = {"ode.kafka.topics.raw-encoded-json.map=topic.MapReceiverTestMAPJSON",
-        "ode.receivers.map.receiver-port=12412"}
-)
+        "ode.receivers.map.receiver-port=12412"})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class MapReceiverTest {
 
@@ -72,8 +65,8 @@ class MapReceiverTest {
   void testMapReceiver() throws IOException {
 
     // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
 
     MapReceiver mapReceiver = new MapReceiver(udpReceiverProperties.getMap(), kafkaTemplate,
         rawEncodedJsonTopics.getMap());
@@ -105,7 +98,8 @@ class MapReceiverTest {
       JSONObject producedJson = new JSONObject(produced.value());
       JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
 
-      // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
+      // assert that the UUIDs are different, then remove them so that the rest of the JSON can be
+      // compared
       assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
           producedJson.getJSONObject("metadata").get("serialId"));
       expectedJson.getJSONObject("metadata").remove("serialId");
@@ -114,8 +108,7 @@ class MapReceiverTest {
       String expectedJsonStr = expectedJson.toString();
       String producedJsonStr = producedJson.toString().trim();
 
-      assertEquals(expectedJsonStr, producedJsonStr,
-          approvalTestCase.getDescription());
+      assertEquals(expectedJsonStr, producedJsonStr, approvalTestCase.getDescription());
     }
 
     DateTimeUtils.setClock(prevClock);
