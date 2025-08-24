@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
-import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -25,7 +24,6 @@ public class KafkaConsumerConfig {
 
   private final KafkaProperties kafkaProperties;
   private final OdeKafkaProperties odeKafkaProperties;
-  private final SslBundles sslBundles;
 
   /**
    * Constructs a new instance of KafkaConsumerConfig with the specified Kafka properties.
@@ -34,13 +32,11 @@ public class KafkaConsumerConfig {
    * @param odeKafkaProperties The specific Ode Kafka properties which may include custom
    *        configurations relevant to the Ode system, possibly including brokers and other
    *        kafka-specific settings.
-   * @param sslBundles The SSL bundles for secure connections.
    */
-  public KafkaConsumerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties,
-      SslBundles sslBundles) {
+  public KafkaConsumerConfig(KafkaProperties kafkaProperties,
+      OdeKafkaProperties odeKafkaProperties) {
     this.kafkaProperties = kafkaProperties;
     this.odeKafkaProperties = odeKafkaProperties;
-    this.sslBundles = sslBundles;
   }
 
   /**
@@ -73,7 +69,7 @@ public class KafkaConsumerConfig {
   }
 
   private Map<String, Object> getKafkaConsumerProperties() {
-    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties(sslBundles));
+    Map<String, Object> props = new HashMap<>(kafkaProperties.buildConsumerProperties());
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
       props.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
     }

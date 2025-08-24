@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -42,8 +41,7 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 @ExtendWith(SpringExtension.class)
 @DirtiesContext
 @EnableConfigurationProperties({KafkaProperties.class})
-@Import({KafkaProducerConfigTest.KafkaProducerConfigTestConfig.class, SerializationConfig.class,
-    TestSslConfig.class})
+@Import({KafkaProducerConfigTest.KafkaProducerConfigTestConfig.class, SerializationConfig.class})
 class KafkaProducerConfigTest {
 
   @Autowired
@@ -168,10 +166,8 @@ class KafkaProducerConfigTest {
 
     @Bean
     public KafkaProducerConfig testKafkaProducerConfig(KafkaProperties kafkaProperties,
-        OdeKafkaProperties testOdeKafkaProperties, MeterRegistry meterRegistry,
-        SslBundles sslBundles) {
-      return new KafkaProducerConfig(kafkaProperties, testOdeKafkaProperties, meterRegistry,
-          sslBundles);
+        OdeKafkaProperties testOdeKafkaProperties, MeterRegistry meterRegistry) {
+      return new KafkaProducerConfig(kafkaProperties, testOdeKafkaProperties, meterRegistry);
     }
   }
 }

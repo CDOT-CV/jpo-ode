@@ -32,7 +32,6 @@ import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
-import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.listeners.asn1.Asn1DecodedDataRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
@@ -49,7 +48,7 @@ import us.dot.its.jpo.ode.util.JsonUtils;
     classes = {KafkaProperties.class, JsonTopics.class, Asn1CoderTopics.class,
         KafkaConsumerConfig.class, KafkaProducerConfig.class, RawEncodedJsonTopics.class,
         Asn1CoderTopics.class, OdeKafkaProperties.class, Asn1DecodedDataRouter.class,
-        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,},
+        SerializationConfig.class, TestMetricsConfig.class},
     properties = {"ode.kafka.disabled-topics="})
 @EnableConfigurationProperties
 @ContextConfiguration(

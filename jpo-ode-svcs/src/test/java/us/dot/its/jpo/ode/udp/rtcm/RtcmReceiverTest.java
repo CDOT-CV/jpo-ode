@@ -26,7 +26,6 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
-import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
@@ -38,71 +37,74 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  * Unit test for the RtcmReceiver class, verifying UDP reception, Kafka publishing and output.
  */
 @EnableConfigurationProperties
-@SpringBootTest(
-    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,
-        },
-    properties = {"ode.receivers.rtcm.receiver-port=12753",
-        "ode.kafka.topics.raw-encoded-json.rtcm=topic.RtcmReceiverTest"})
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+@SpringBootTest(classes = {OdeKafkaProperties.class, UDPReceiverProperties.class,
+                KafkaProducerConfig.class, SerializationConfig.class, TestMetricsConfig.class},
+                properties = {"ode.receivers.rtcm.receiver-port=12753",
+                                "ode.kafka.topics.raw-encoded-json.rtcm=topic.RtcmReceiverTest"})
+@ContextConfiguration(classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class,
+                KafkaProperties.class})
 @DirtiesContext
 public class RtcmReceiverTest {
 
-  @Autowired
-  UDPReceiverProperties udpReceiverProperties;
+        @Autowired
+        UDPReceiverProperties udpReceiverProperties;
 
-  @Autowired
-  RawEncodedJsonTopics rawEncodedJsonTopics;
+        @Autowired
+        RawEncodedJsonTopics rawEncodedJsonTopics;
 
-  @Autowired
-  KafkaTemplate<String, String> kafkaTemplate;
+        @Autowired
+        KafkaTemplate<String, String> kafkaTemplate;
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+        EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
-  @Test
-  void testRun() throws Exception {
-    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getRtcm());
+        @Test
+        void testRun() throws Exception {
+                EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getRtcm());
 
-    final Clock prevClock = DateTimeUtils
-        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
-    // create the RtcmReceiver and submit it to a runner
-    RtcmReceiver rtcmReceiver = new RtcmReceiver(udpReceiverProperties.getRtcm(), kafkaTemplate,
-        rawEncodedJsonTopics.getRtcm());
-    ExecutorService executorService = Executors.newCachedThreadPool();
-    executorService.submit(rtcmReceiver);
+                final Clock prevClock = DateTimeUtils.setClock(Clock.fixed(
+                                Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+                // create the RtcmReceiver and submit it to a runner
+                RtcmReceiver rtcmReceiver = new RtcmReceiver(udpReceiverProperties.getRtcm(),
+                                kafkaTemplate, rawEncodedJsonTopics.getRtcm());
+                ExecutorService executorService = Executors.newCachedThreadPool();
+                executorService.submit(rtcmReceiver);
 
-    String fileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC_expected.json"));
+                String fileContent = Files.readString(Paths.get(
+                                "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
+                String expected = Files.readString(Paths.get(
+                                "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC_expected.json"));
 
-    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRtcm().getReceiverPort());
-    udpClient.send(fileContent);
+                TestUDPClient udpClient = new TestUDPClient(
+                                udpReceiverProperties.getRtcm().getReceiverPort());
+                udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps("RtcmReceiverTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> cf =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getRtcm());
+                var consumerProps = KafkaTestUtils.consumerProps("RtcmReceiverTest", "true",
+                                embeddedKafka);
+                DefaultKafkaConsumerFactory<Integer, String> cf =
+                                new DefaultKafkaConsumerFactory<>(consumerProps);
+                Consumer<Integer, String> consumer = cf.createConsumer();
+                embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getRtcm());
 
-    // read record from produce topic
-    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getRtcm());
-    // confirm the stream-id is different, then remove it from both so that we can test equality
-    // of all other fields
-    assertNotEquals(expected, singleRecord.value());
-    JSONObject producedJson = new JSONObject(singleRecord.value());
-    JSONObject expectedJson = new JSONObject(expected);
+                // read record from produce topic
+                var singleRecord = KafkaTestUtils.getSingleRecord(consumer,
+                                rawEncodedJsonTopics.getRtcm());
+                // confirm the stream-id is different, then remove it from both so that we can test
+                // equality
+                // of all other fields
+                assertNotEquals(expected, singleRecord.value());
+                JSONObject producedJson = new JSONObject(singleRecord.value());
+                JSONObject expectedJson = new JSONObject(expected);
 
-    // assert that the UUIDs are different, then remove them so that the rest of the JSON can be
-    // compared
-    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-        producedJson.getJSONObject("metadata").get("serialId"));
-    expectedJson.getJSONObject("metadata").remove("serialId");
-    producedJson.getJSONObject("metadata").remove("serialId");
+                // assert that the UUIDs are different, then remove them so that the rest of the
+                // JSON can be
+                // compared
+                assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+                                producedJson.getJSONObject("metadata").get("serialId"));
+                expectedJson.getJSONObject("metadata").remove("serialId");
+                producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(expectedJson.toString(2), producedJson.toString(2));
+                assertEquals(expectedJson.toString(2), producedJson.toString(2));
 
-    DateTimeUtils.setClock(prevClock);
-  }
+                DateTimeUtils.setClock(prevClock);
+        }
 }

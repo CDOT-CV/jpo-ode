@@ -53,7 +53,6 @@ import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
-import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -70,12 +69,10 @@ import us.dot.its.jpo.ode.util.XmlUtils;
 
 
 @EnableConfigurationProperties
-@SpringBootTest(
-    classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class, OdeKafkaProperties.class,
-        Asn1CoderTopics.class, JsonTopics.class, SecurityServicesProperties.class,
-        KafkaProperties.class, TimIngestTrackerProperties.class, XmlMapper.class,
-        TestMetricsConfig.class, TestSslConfig.class},
-    properties = {"ode.kafka.brokers=localhost:4242"})
+@SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
+    OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
+    SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
+    XmlMapper.class, TestMetricsConfig.class}, properties = {"ode.kafka.brokers=localhost:4242"})
 @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
     JsonTopics.class, TimIngestTrackerProperties.class, SecurityServicesProperties.class,
     OdeKafkaProperties.class})

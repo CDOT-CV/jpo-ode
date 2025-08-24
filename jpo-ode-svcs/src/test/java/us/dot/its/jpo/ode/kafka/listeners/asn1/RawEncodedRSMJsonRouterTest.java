@@ -24,7 +24,6 @@ import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
-import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedJsonService;
 import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedRSMJsonRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
@@ -39,8 +38,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
  */
 @SpringBootTest(
     classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class, RawEncodedRSMJsonRouter.class,
-        RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class,TestSslConfig.class,
-        },
+        RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class},
     properties = {"ode.kafka.topics.raw-encoded-json.rsm=topic.Asn1DecoderTestRSMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderRSMInput"})
 @EnableConfigurationProperties

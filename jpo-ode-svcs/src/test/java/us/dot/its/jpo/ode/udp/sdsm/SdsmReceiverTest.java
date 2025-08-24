@@ -30,7 +30,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
-import us.dot.its.jpo.ode.kafka.TestSslConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
@@ -43,7 +42,7 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 @EnableConfigurationProperties
 @SpringBootTest(
     classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class, TestSslConfig.class,},
+        SerializationConfig.class, TestMetricsConfig.class},
     properties = {"ode.receivers.sdsm.receiver-port=12413",
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.SdsmReceiverTest"})
 @ContextConfiguration(

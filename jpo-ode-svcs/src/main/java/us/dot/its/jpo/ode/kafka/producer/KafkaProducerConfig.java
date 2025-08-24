@@ -7,7 +7,6 @@ import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
-import org.springframework.boot.ssl.SslBundles;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
@@ -39,7 +38,6 @@ public class KafkaProducerConfig {
   private final KafkaProperties kafkaProperties;
   private final OdeKafkaProperties odeKafkaProperties;
   private final MeterRegistry meterRegistry;
-  private final SslBundles sslBundles;
 
   /**
    * Constructor for the KafkaProducerConfig class, which sets up the configuration for Kafka
@@ -51,14 +49,12 @@ public class KafkaProducerConfig {
    *        configurations like Kafka type (e.g., CONFLUENT) and other specialized settings for
    *        integrating with the ODE infrastructure.
    * @param meterRegistry the meter registry for metrics collection.
-   * @param sslBundles the SSL bundles for secure connections.
    */
   public KafkaProducerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties,
-      MeterRegistry meterRegistry, SslBundles sslBundles) {
+      MeterRegistry meterRegistry) {
     this.kafkaProperties = kafkaProperties;
     this.odeKafkaProperties = odeKafkaProperties;
     this.meterRegistry = meterRegistry;
-    this.sslBundles = sslBundles;
   }
 
   /**
@@ -131,7 +127,7 @@ public class KafkaProducerConfig {
   }
 
   private Map<String, Object> buildProducerProperties() {
-    var producerProps = kafkaProperties.buildProducerProperties(sslBundles);
+    var producerProps = kafkaProperties.buildProducerProperties();
     if ("CONFLUENT".equals(this.odeKafkaProperties.getKafkaType())) {
       producerProps.putAll(this.odeKafkaProperties.getConfluent().buildConfluentProperties());
     }
