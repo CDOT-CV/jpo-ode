@@ -18,18 +18,23 @@ import us.dot.its.jpo.ode.kafka.XMLOdeObjectSerializer;
 import us.dot.its.jpo.ode.model.OdeObject;
 
 /**
- * KafkaProducerConfig is a configuration class for setting up Kafka producers with Spring Boot.
- * This class utilizes the KafkaProperties and OdeKafkaProperties to define and construct the
- * necessary producer factories and Kafka templates for producing messages to Kafka topics.
+ * KafkaProducerConfig is a configuration class for setting up Kafka producers
+ * with Spring Boot.
+ * This class utilizes the KafkaProperties and OdeKafkaProperties to define and
+ * construct the
+ * necessary producer factories and Kafka templates for producing messages to
+ * Kafka topics.
  *
  * </p>
- * It provides configuration for two types of Kafka producer factories and templates: one for
- * producing regular String messages and another for producing `OdeObject` messages serialized as
- * XML.
+ * It provides configuration for two types of Kafka producer factories and
+ * templates:
+ * one for producing regular String messages and another for producing
+ * `OdeObject` messages
+ * serialized as XML.
  *
  * </p>
- * This configuration is crucial for integrating with Kafka by providing necessary producer settings
- * and managing producer instances.
+ * This configuration is crucial for integrating with Kafka by providing
+ * necessary producer settings and managing producer instances.
  */
 @EnableKafka
 @Configuration
@@ -40,31 +45,41 @@ public class KafkaProducerConfig {
   private final MeterRegistry meterRegistry;
 
   /**
-   * Constructor for the KafkaProducerConfig class, which sets up the configuration for Kafka
+   * Constructor for the KafkaProducerConfig class, which sets up the
+   * configuration for Kafka
    * producers using provided Kafka properties.
    *
-   * @param kafkaProperties the properties related to Kafka configuration as set up in the Spring
-   *        environment, providing necessary configurations for creating Kafka producers.
-   * @param odeKafkaProperties the properties specific to the ODE Kafka setup, including custom
-   *        configurations like Kafka type (e.g., CONFLUENT) and other specialized settings for
-   *        integrating with the ODE infrastructure.
-   * @param meterRegistry the meter registry for metrics collection.
+   * @param kafkaProperties    the properties related to Kafka configuration as
+   *                           set up in the Spring
+   *                           environment, providing necessary configurations for
+   *                           creating Kafka
+   *                           producers.
+   * @param odeKafkaProperties the properties specific to the ODE Kafka setup,
+   *                           including custom
+   *                           configurations like Kafka type (e.g., CONFLUENT)
+   *                           and other
+   *                           specialized settings for integrating with the ODE
+   *                           infrastructure.
    */
-  public KafkaProducerConfig(KafkaProperties kafkaProperties, OdeKafkaProperties odeKafkaProperties,
-      MeterRegistry meterRegistry) {
+  public KafkaProducerConfig(KafkaProperties kafkaProperties,
+      OdeKafkaProperties odeKafkaProperties, MeterRegistry meterRegistry) {
     this.kafkaProperties = kafkaProperties;
     this.odeKafkaProperties = odeKafkaProperties;
     this.meterRegistry = meterRegistry;
   }
 
   /**
-   * Creates a Kafka ProducerFactory configured for producing messages with String keys and String
-   * values. This factory sets up and manages the configuration needed for producing messages to
+   * Creates a Kafka ProducerFactory configured for producing messages with String
+   * keys and String
+   * values. This factory sets up and manages the configuration needed for
+   * producing messages to
    * Kafka topics using the properties defined in the application configuration.
    *
-   * @return a ProducerFactory instance for creating Kafka producers with String key and value
-   *         serializers. This includes any custom properties defined for Kafka producers, as well
-   *         as additional settings for Confluent-based Kafka setups if applicable.
+   * @return a ProducerFactory instance for creating Kafka producers with String
+   *         key and value
+   *         serializers. This includes any custom properties defined for Kafka
+   *         producers, as well as
+   *         additional settings for Confluent-based Kafka setups if applicable.
    */
   @Bean
   public ProducerFactory<String, String> producerFactory() {
@@ -72,12 +87,17 @@ public class KafkaProducerConfig {
   }
 
   /**
-   * Creates and returns a KafkaTemplate that allows for sending messages with String keys and
-   * String values to Kafka topics. This template is configured using the ProducerFactory instance
-   * provided by the producerFactory() method, ensuring that it is set up with the necessary
-   * serializers and additional properties defined in the application configuration.
+   * Creates and returns a KafkaTemplate that allows for sending messages with
+   * String keys and
+   * String values to Kafka topics. This template is configured using the
+   * ProducerFactory instance
+   * provided by the producerFactory() method, ensuring that it is set up with the
+   * necessary
+   * serializers and additional properties defined in the application
+   * configuration.
    *
-   * @return a KafkaTemplate instance configured for publishing messages to Kafka topics with String
+   * @return a KafkaTemplate instance configured for publishing messages to Kafka
+   *         topics with String
    *         keys and values, facilitating message sending operations in Kafka.
    */
   @Bean
@@ -92,28 +112,38 @@ public class KafkaProducerConfig {
   }
 
   /**
-   * Creates a Kafka ProducerFactory specifically configured for handling messages with String keys
-   * and OdeObject values. This factory utilizes a custom XML serializer for OdeObjects, enabling
+   * Creates a Kafka ProducerFactory specifically configured for handling messages
+   * with String keys
+   * and OdeObject values. This factory utilizes a custom XML serializer for
+   * OdeObjects, enabling
    * proper serialization for Kafka message transmission.
    *
-   * @return a ProducerFactory instance configured with String serializers for keys and a custom
-   *         XMLOdeObjectSerializer for OdeObject values, using producer properties tailored to the
+   * @return a ProducerFactory instance configured with String serializers for
+   *         keys and a custom
+   *         XMLOdeObjectSerializer for OdeObject values, using producer
+   *         properties tailored to the
    *         application's Kafka and ODE settings.
    */
   @Bean
   public ProducerFactory<String, OdeObject> odeDataProducerFactory(XmlMapper xmlMapper) {
-    return new DefaultKafkaProducerFactory<>(buildProducerProperties(), new StringSerializer(),
-        new XMLOdeObjectSerializer(xmlMapper));
+    return new DefaultKafkaProducerFactory<>(buildProducerProperties(),
+        new StringSerializer(), new XMLOdeObjectSerializer(xmlMapper));
   }
 
   /**
-   * Creates and returns a KafkaTemplate for sending messages with String keys and OdeObject values
-   * to Kafka topics. The template is configured using the ProducerFactory provided by the
-   * odeDataProducerFactory() method, ensuring it incorporates the necessary serializers and
-   * properties for proper message handling in the context of ODE and Kafka integration.
+   * Creates and returns a KafkaTemplate for sending messages with String keys and
+   * OdeObject values
+   * to Kafka topics. The template is configured using the ProducerFactory
+   * provided by the
+   * odeDataProducerFactory() method, ensuring it incorporates the necessary
+   * serializers and
+   * properties for proper message handling in the context of ODE and Kafka
+   * integration.
    *
-   * @return a KafkaTemplate instance configured for handling messages with String keys and
-   *         OdeObject values, enabling seamless message publication to Kafka topics within the
+   * @return a KafkaTemplate instance configured for handling messages with String
+   *         keys and
+   *         OdeObject values, enabling seamless message publication to Kafka
+   *         topics within the
    *         application's messaging infrastructure.
    */
   @Bean
@@ -137,8 +167,7 @@ public class KafkaProducerConfig {
     // data size of the batch is less than the
     // batch-size set in the application.yaml. The default is (2^31)-1 millis, which
     // is not suitable for our use case.
-    producerProps.put(ProducerConfig.LINGER_MS_CONFIG,
-        odeKafkaProperties.getProducer().getLingerMs());
+    producerProps.put(ProducerConfig.LINGER_MS_CONFIG, odeKafkaProperties.getProducer().getLingerMs());
     producerProps.put(ProducerConfig.RETRIES_CONFIG, odeKafkaProperties.getProducer().getRetries());
     return producerProps;
   }

@@ -2,7 +2,7 @@ spring:
   application:
     name: "jpo-ode-svcs"
   kafka:
-    bootstrap-servers: ${ODE_KAFKA_BROKERS}
+    # bootstrap-servers: ${ODE_KAFKA_BROKERS}
     consumer:
       enable-auto-commit: true
       auto-commit-interval: 1000

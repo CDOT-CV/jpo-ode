@@ -32,56 +32,65 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 /**
- * Unit test for {@link RawEncodedRTCMJsonRouter}. Tests routing of RTCM JSON messages to the
- * appropriate Kafka topic.
+ * Unit test for {@link RawEncodedRTCMJsonRouter}.
+ * Tests routing of RTCM JSON messages to the appropriate Kafka topic.
  */
-@SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
-                RawEncodedRTCMJsonRouter.class, RawEncodedJsonService.class,
-                SerializationConfig.class, TestMetricsConfig.class,},
-                properties = {"ode.kafka.topics.raw-encoded-json.rtcm=topic.Asn1DecoderTestRTCMJSON",
-                                "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderRTCMInput"})
+@SpringBootTest(
+    classes = {
+        KafkaProducerConfig.class,
+        KafkaConsumerConfig.class,
+        RawEncodedRTCMJsonRouter.class,
+        RawEncodedJsonService.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+    },
+    properties = {
+        "ode.kafka.topics.raw-encoded-json.rtcm=topic.Asn1DecoderTestRTCMJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderRTCMInput"
+    })
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-                RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class})
+@ContextConfiguration(classes = {
+    UDPReceiverProperties.class, OdeKafkaProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
+})
 @DirtiesContext
 public class RawEncodedRTCMJsonRouterTest {
+  
+  @Autowired
+  Asn1CoderTopics asn1CoderTopics;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  private KafkaTemplate<String, String> kafkaTemplate;
 
-        @Autowired
-        Asn1CoderTopics asn1CoderTopics;
-        @Autowired
-        RawEncodedJsonTopics rawEncodedJsonTopics;
-        @Autowired
-        private KafkaTemplate<String, String> kafkaTemplate;
+  @Test
+  void testListen() throws JSONException, IOException {
+    var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(), rawEncodedJsonTopics.getRtcm());
 
-        @Test
-        void testListen() throws JSONException, IOException {
-                var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-                EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(),
-                                rawEncodedJsonTopics.getRtcm());
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps("Asn1DecodeRTCMJSONTestConsumer", "false", embeddedKafka);
+    var cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps,
+            new StringDeserializer(), new StringDeserializer());
+    Consumer<String, String> testConsumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1CoderTopics.getDecoderInput());
 
-                Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
-                                "Asn1DecodeRTCMJSONTestConsumer", "false", embeddedKafka);
-                var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-                                new StringDeserializer());
-                Consumer<String, String> testConsumer = cf.createConsumer();
-                embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer,
-                                asn1CoderTopics.getDecoderInput());
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader
+        .getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rtcm.json");
+    assert inputStream != null;
+    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    kafkaTemplate.send(rawEncodedJsonTopics.getRtcm(), json);
 
-                var classLoader = getClass().getClassLoader();
-                InputStream inputStream = classLoader.getResourceAsStream(
-                                "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rtcm.json");
-                assert inputStream != null;
-                var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                kafkaTemplate.send(rawEncodedJsonTopics.getRtcm(), json);
+    inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rtcm.xml");
+    assert inputStream != null;
+    var expectedRTCM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-                inputStream = classLoader.getResourceAsStream(
-                                "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rtcm.xml");
-                assert inputStream != null;
-                var expectedRTCM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-
-                var consumedRTCM = KafkaTestUtils.getSingleRecord(testConsumer,
-                                asn1CoderTopics.getDecoderInput());
-                assertEquals(expectedRTCM, consumedRTCM.value());
-                testConsumer.close();
-        }
+    var consumedRTCM = KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
+    assertEquals(expectedRTCM, consumedRTCM.value());
+    testConsumer.close();
+  }
 }

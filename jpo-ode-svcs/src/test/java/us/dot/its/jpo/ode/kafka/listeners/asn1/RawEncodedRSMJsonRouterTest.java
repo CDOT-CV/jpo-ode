@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Map;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -33,20 +32,30 @@ import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
 /**
- * Unit test for {@link RawEncodedRSMJsonRouter}. Tests routing of RSM JSON messages to the
- * appropriate Kafka topic.
+ * Unit test for {@link RawEncodedRSMJsonRouter}.
+ * Tests routing of RSM JSON messages to the appropriate Kafka topic.
  */
 @SpringBootTest(
-    classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class, RawEncodedRSMJsonRouter.class,
-        RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class},
-    properties = {"ode.kafka.topics.raw-encoded-json.rsm=topic.Asn1DecoderTestRSMJSON",
-        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderRSMInput"})
+    classes = {
+        KafkaProducerConfig.class,
+        KafkaConsumerConfig.class,
+        RawEncodedRSMJsonRouter.class,
+        RawEncodedJsonService.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+    },
+    properties = {
+        "ode.kafka.topics.raw-encoded-json.rsm=topic.Asn1DecoderTestRSMJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderRSMInput"
+    })
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class})
+@ContextConfiguration(classes = {
+    UDPReceiverProperties.class, OdeKafkaProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
+})
 @DirtiesContext
 public class RawEncodedRSMJsonRouterTest {
-
+  
   @Autowired
   Asn1CoderTopics asn1CoderTopics;
   @Autowired
@@ -61,25 +70,26 @@ public class RawEncodedRSMJsonRouterTest {
 
     Map<String, Object> consumerProps =
         KafkaTestUtils.consumerProps("Asn1DecodeRSMJSONTestConsumer", "false", embeddedKafka);
-    var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-        new StringDeserializer());
+    var cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps,
+            new StringDeserializer(), new StringDeserializer());
     Consumer<String, String> testConsumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1CoderTopics.getDecoderInput());
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rsm.json");
+        .getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rsm.json");
     assert inputStream != null;
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getRsm(), json);
 
-    inputStream =
-        classLoader.getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rsm.xml");
+    inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rsm.xml");
     assert inputStream != null;
     var expectedRSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    var consumedRSM = KafkaTestUtils.getSingleRecord(testConsumer,
-        asn1CoderTopics.getDecoderInput(), Duration.ofSeconds(10));
+    var consumedRSM = KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
     assertEquals(expectedRSM, consumedRSM.value());
     testConsumer.close();
   }

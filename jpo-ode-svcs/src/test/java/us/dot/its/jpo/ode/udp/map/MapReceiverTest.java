@@ -38,84 +38,86 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @Slf4j
-@SpringBootTest(classes = {OdeKafkaProperties.class, UDPReceiverProperties.class,
-                KafkaProducerConfig.class, SerializationConfig.class, TestMetricsConfig.class},
-                properties = {"ode.kafka.topics.raw-encoded-json.map=topic.MapReceiverTestMAPJSON",
-                                "ode.receivers.map.receiver-port=12412"})
+@SpringBootTest(
+    classes = {
+        OdeKafkaProperties.class,
+        UDPReceiverProperties.class,
+        KafkaProducerConfig.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+    },
+    properties = {"ode.kafka.topics.raw-encoded-json.map=topic.MapReceiverTestMAPJSON",
+        "ode.receivers.map.receiver-port=12412"}
+)
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class,
-                KafkaProperties.class})
+@ContextConfiguration(classes = {
+    UDPReceiverProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class
+})
 @DirtiesContext
 class MapReceiverTest {
 
-        private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  private final EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
-        @Autowired
-        UDPReceiverProperties udpReceiverProperties;
+  @Autowired
+  UDPReceiverProperties udpReceiverProperties;
 
-        @Autowired
-        KafkaTemplate<String, String> kafkaTemplate;
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
 
-        @Autowired
-        RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
 
-        @Test
-        void testMapReceiver() throws IOException {
+  @Test
+  void testMapReceiver() throws IOException {
 
-                // Set the clock to a fixed time so that the MapReceiver will produce the same
-                // output every
-                // time
-                final Clock prevClock = DateTimeUtils
-                                .setClock(Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"),
-                                                Clock.systemUTC().getZone()));
+    // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
 
-                MapReceiver mapReceiver = new MapReceiver(udpReceiverProperties.getMap(),
-                                kafkaTemplate, rawEncodedJsonTopics.getMap());
-                ExecutorService executorService = Executors.newCachedThreadPool();
-                executorService.submit(mapReceiver);
+    MapReceiver mapReceiver = new MapReceiver(udpReceiverProperties.getMap(), kafkaTemplate,
+        rawEncodedJsonTopics.getMap());
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    executorService.submit(mapReceiver);
 
-                EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getMap());
+    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getMap());
 
-                // Set up a Kafka consumer
-                Map<String, Object> consumerProps =
-                                KafkaTestUtils.consumerProps("test-group", "false", embeddedKafka);
-                DefaultKafkaConsumerFactory<Integer, String> cf =
-                                new DefaultKafkaConsumerFactory<>(consumerProps);
-                Consumer<Integer, String> consumer = cf.createConsumer();
-                embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
+    // Set up a Kafka consumer
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps("test-group", "false", embeddedKafka);
+    DefaultKafkaConsumerFactory<Integer, String> cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    Consumer<Integer, String> consumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
 
-                TestUDPClient udpClient =
-                                new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
+    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
 
-                String path = "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
-                List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
+    String path =
+        "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
+    List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
-                for (ApprovalTestCase approvalTestCase : approvalTestCases) {
-                        udpClient.send(approvalTestCase.getInput());
+    for (ApprovalTestCase approvalTestCase : approvalTestCases) {
+      udpClient.send(approvalTestCase.getInput());
 
-                        ConsumerRecord<Integer, String> produced = KafkaTestUtils
-                                        .getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
+      ConsumerRecord<Integer, String> produced =
+          KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
 
-                        JSONObject producedJson = new JSONObject(produced.value());
-                        JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
+      JSONObject producedJson = new JSONObject(produced.value());
+      JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
 
-                        // assert that the UUIDs are different, then remove them so that the rest of
-                        // the JSON
-                        // can be
-                        // compared
-                        assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-                                        producedJson.getJSONObject("metadata").get("serialId"));
-                        expectedJson.getJSONObject("metadata").remove("serialId");
-                        producedJson.getJSONObject("metadata").remove("serialId");
+      // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
+      assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+          producedJson.getJSONObject("metadata").get("serialId"));
+      expectedJson.getJSONObject("metadata").remove("serialId");
+      producedJson.getJSONObject("metadata").remove("serialId");
 
-                        String expectedJsonStr = expectedJson.toString();
-                        String producedJsonStr = producedJson.toString().trim();
+      String expectedJsonStr = expectedJson.toString();
+      String producedJsonStr = producedJson.toString().trim();
 
-                        assertEquals(expectedJsonStr, producedJsonStr,
-                                        approvalTestCase.getDescription());
-                }
+      assertEquals(expectedJsonStr, producedJsonStr,
+          approvalTestCase.getDescription());
+    }
 
-                DateTimeUtils.setClock(prevClock);
-        }
+    DateTimeUtils.setClock(prevClock);
+  }
 }
-

@@ -31,53 +31,64 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 
-@SpringBootTest(classes = {KafkaProducerConfig.class, RawEncodedSPATJsonRouter.class,
-                RawEncodedJsonService.class, KafkaConsumerConfig.class, SerializationConfig.class,
-                TestMetricsConfig.class,},
-                properties = {"ode.kafka.topics.raw-encoded-json.spat=topic.Asn1DecoderTestSPATJSON",
-                                "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSPATInput"})
+@SpringBootTest(
+    classes = {
+        KafkaProducerConfig.class,
+        RawEncodedSPATJsonRouter.class,
+        RawEncodedJsonService.class,
+        KafkaConsumerConfig.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+    },
+    properties = {
+        "ode.kafka.topics.raw-encoded-json.spat=topic.Asn1DecoderTestSPATJSON",
+        "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSPATInput"
+    })
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-                RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class})
+@ContextConfiguration(classes = {
+    UDPReceiverProperties.class, OdeKafkaProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
+})
 @DirtiesContext
 class RawEncodedSPATJsonRouterTest {
 
-        @Autowired
-        Asn1CoderTopics asn1CoderTopics;
-        @Autowired
-        RawEncodedJsonTopics rawEncodedJsonTopics;
-        @Autowired
-        KafkaTemplate<String, String> kafkaTemplate;
+  @Autowired
+  Asn1CoderTopics asn1CoderTopics;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
 
-        @Test
-        void testListen() throws JSONException, IOException {
-                var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-                EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(),
-                                rawEncodedJsonTopics.getSpat());
+  @Test
+  void testListen() throws JSONException, IOException {
+    var embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+    EmbeddedKafkaHolder.addTopics(asn1CoderTopics.getDecoderInput(),
+        rawEncodedJsonTopics.getSpat());
 
-                Map<String, Object> consumerProps = KafkaTestUtils.consumerProps(
-                                "Asn1DecodeSPATJSONTestConsumer", "false", embeddedKafka);
-                var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-                                new StringDeserializer());
-                Consumer<String, String> testConsumer = cf.createConsumer();
-                embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer,
-                                asn1CoderTopics.getDecoderInput());
+    Map<String, Object> consumerProps =
+        KafkaTestUtils.consumerProps("Asn1DecodeSPATJSONTestConsumer", "false", embeddedKafka);
+    var cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps,
+            new StringDeserializer(), new StringDeserializer());
+    Consumer<String, String> testConsumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(testConsumer, asn1CoderTopics.getDecoderInput());
 
-                var classLoader = getClass().getClassLoader();
-                InputStream inputStream = classLoader.getResourceAsStream(
-                                "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json");
-                assert inputStream != null;
-                var spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                kafkaTemplate.send(rawEncodedJsonTopics.getSpat(), spatJson);
+    var classLoader = getClass().getClassLoader();
+    InputStream inputStream = classLoader
+        .getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json");
+    assert inputStream != null;
+    var spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    kafkaTemplate.send(rawEncodedJsonTopics.getSpat(), spatJson);
 
-                var consumedSpat = KafkaTestUtils.getSingleRecord(testConsumer,
-                                asn1CoderTopics.getDecoderInput());
+    var consumedSpat =
+        KafkaTestUtils.getSingleRecord(testConsumer, asn1CoderTopics.getDecoderInput());
 
-                inputStream = classLoader.getResourceAsStream(
-                                "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml");
-                assert inputStream != null;
-                var expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-                assertEquals(expectedSpat, consumedSpat.value());
-                testConsumer.close();
-        }
+    inputStream = classLoader
+        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml");
+    assert inputStream != null;
+    var expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    assertEquals(expectedSpat, consumedSpat.value());
+    testConsumer.close();
+  }
 }

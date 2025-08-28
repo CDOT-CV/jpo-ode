@@ -38,12 +38,22 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 @RunWith(SpringRunner.class)
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class},
-    properties = {"ode.receivers.psm.receiver-port=15456",
-        "ode.kafka.topics.raw-encoded-json.psm=topic.PsmReceiverTest"})
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+    classes = {
+        OdeKafkaProperties.class,
+        UDPReceiverProperties.class,
+        KafkaProducerConfig.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+    },
+    properties = {
+        "ode.receivers.psm.receiver-port=15456",
+        "ode.kafka.topics.raw-encoded-json.psm=topic.PsmReceiverTest"
+    }
+)
+@ContextConfiguration(classes = {
+    UDPReceiverProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class
+})
 @DirtiesContext
 class PsmReceiverTest {
 
@@ -66,23 +76,25 @@ class PsmReceiverTest {
       // Ignore as we're only ensuring topics exist
     }
 
-    final Clock prevClock = DateTimeUtils
-        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
     PsmReceiver psmReceiver = new PsmReceiver(udpReceiverProperties.getPsm(), kafkaTemplate,
         rawEncodedJsonTopics.getPsm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(psmReceiver);
 
-    String fileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
+    String fileContent =
+        Files.readString(Paths.get(
+            "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
     String expected = Files.readString(Paths.get(
         "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getPsm().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps("PsmReceiverTest", "true", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "PsmReceiverTest", "true", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps);
     var consumer = cf.createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getPsm());

@@ -36,68 +36,79 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @RunWith(SpringRunner.class)
 @EnableConfigurationProperties
-@SpringBootTest(classes = {OdeKafkaProperties.class, UDPReceiverProperties.class,
-                KafkaProducerConfig.class, SerializationConfig.class, TestMetricsConfig.class},
-                properties = {"ode.receivers.srm.receiver-port=15459",
-                                "ode.kafka.topics.raw-encoded-json.srm=topic.SrmReceiverTest"})
-@ContextConfiguration(classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class,
-                KafkaProperties.class})
+@SpringBootTest(
+    classes = {
+        OdeKafkaProperties.class,
+        UDPReceiverProperties.class,
+        KafkaProducerConfig.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+    },
+    properties = {
+        "ode.receivers.srm.receiver-port=15459",
+        "ode.kafka.topics.raw-encoded-json.srm=topic.SrmReceiverTest"
+    }
+)
+@ContextConfiguration(classes = {
+    UDPReceiverProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class
+})
 @DirtiesContext
 class SrmReceiverTest {
 
-        @Autowired
-        UDPReceiverProperties udpReceiverProperties;
+  @Autowired
+  UDPReceiverProperties udpReceiverProperties;
 
-        @Autowired
-        RawEncodedJsonTopics rawEncodedJsonTopics;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
 
-        @Autowired
-        KafkaTemplate<String, String> kafkaTemplate;
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
 
-        EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
-        @Test
-        void testRun() throws Exception {
-                EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getSrm());
+  @Test
+  void testRun() throws Exception {
+    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getSrm());
 
-                final Clock prevClock = DateTimeUtils.setClock(Clock.fixed(
-                                Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils.setClock(
+        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
-                SrmReceiver srmReceiver = new SrmReceiver(udpReceiverProperties.getSrm(),
-                                kafkaTemplate, rawEncodedJsonTopics.getSrm());
-                ExecutorService executorService = Executors.newCachedThreadPool();
-                executorService.submit(srmReceiver);
+    SrmReceiver srmReceiver = new SrmReceiver(
+        udpReceiverProperties.getSrm(),
+        kafkaTemplate, rawEncodedJsonTopics.getSrm()
+    );
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    executorService.submit(srmReceiver);
 
-                String fileContent = Files.readString(Paths.get(
-                                "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
-                String expected = Files.readString(Paths.get(
-                                "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
+    String fileContent = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
 
-                TestUDPClient udpClient =
-                                new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
-                udpClient.send(fileContent);
+    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
+    udpClient.send(fileContent);
 
-                var consumerProps = KafkaTestUtils.consumerProps("SrmReceiverTest", "true",
-                                embeddedKafka);
-                var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
-                var consumer = cf.createConsumer();
-                embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSrm());
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "SrmReceiverTest", "true", embeddedKafka);
+    var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    var consumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSrm());
 
-                var singleRecord = KafkaTestUtils.getSingleRecord(consumer,
-                                rawEncodedJsonTopics.getSrm());
-                String receivedValue = singleRecord.value();
-                assertNotEquals(expected, receivedValue);
+    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSrm());
+    String receivedValue = singleRecord.value();
+    assertNotEquals(expected, receivedValue);
 
-                JSONObject producedJson = new JSONObject(receivedValue);
-                JSONObject expectedJson = new JSONObject(expected);
+    JSONObject producedJson = new JSONObject(receivedValue);
+    JSONObject expectedJson = new JSONObject(expected);
 
-                assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-                                producedJson.getJSONObject("metadata").get("serialId"));
-                expectedJson.getJSONObject("metadata").remove("serialId");
-                producedJson.getJSONObject("metadata").remove("serialId");
+    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+        producedJson.getJSONObject("metadata").get("serialId"));
+    expectedJson.getJSONObject("metadata").remove("serialId");
+    producedJson.getJSONObject("metadata").remove("serialId");
 
-                assertEquals(expectedJson.toString(2), producedJson.toString(2));
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
 
-                DateTimeUtils.setClock(prevClock);
-        }
+    DateTimeUtils.setClock(prevClock);
+  }
 }

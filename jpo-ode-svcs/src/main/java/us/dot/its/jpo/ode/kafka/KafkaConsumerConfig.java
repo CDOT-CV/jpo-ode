@@ -28,10 +28,10 @@ public class KafkaConsumerConfig {
   /**
    * Constructs a new instance of KafkaConsumerConfig with the specified Kafka properties.
    *
-   * @param kafkaProperties The general Kafka properties used for configuring consumer settings.
+   * @param kafkaProperties    The general Kafka properties used for configuring consumer settings.
    * @param odeKafkaProperties The specific Ode Kafka properties which may include custom
-   *        configurations relevant to the Ode system, possibly including brokers and other
-   *        kafka-specific settings.
+   *                           configurations relevant to the Ode system, possibly including
+   *                           brokers and other kafka-specific settings.
    */
   public KafkaConsumerConfig(KafkaProperties kafkaProperties,
       OdeKafkaProperties odeKafkaProperties) {
@@ -40,12 +40,12 @@ public class KafkaConsumerConfig {
   }
 
   /**
-   * Creates and configures a {@link ConsumerFactory} for Kafka consumers with String key and value
-   * deserialization. The factory is configured using Kafka consumer properties defined in the
-   * application configuration.
+   * Creates and configures a {@link ConsumerFactory} for Kafka consumers with String key and
+   * value deserialization. The factory is configured using Kafka consumer properties defined
+   * in the application configuration.
    *
-   * @return a {@link ConsumerFactory} instance configured to produce Kafka consumers with String
-   *         key and value serialization.
+   * @return a {@link ConsumerFactory} instance configured to produce Kafka consumers with
+   *         String key and value serialization.
    */
   @Bean
   public ConsumerFactory<String, String> consumerFactory() {
@@ -58,7 +58,7 @@ public class KafkaConsumerConfig {
    * from Kafka topics.
    *
    * @return a ConcurrentKafkaListenerContainerFactory setup with a defined consumer factory that
-   *         determines how Kafka consumers are created and configured.
+   *      determines how Kafka consumers are created and configured.
    */
   @Bean
   public ConcurrentKafkaListenerContainerFactory<String, String> kafkaListenerContainerFactory() {
