@@ -20,6 +20,21 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+  test-no-sonar:
+    if: github.event.pull_request.base.repo.owner.login != 'usdot-jpo-ode'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "temurin"
+      - name: Build and test
+        run: mvn clean verify
+
   sonar:
     if: github.event.pull_request.base.repo.owner.login == 'usdot-jpo-ode'
     runs-on: ubuntu-latest
