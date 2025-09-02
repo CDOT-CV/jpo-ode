@@ -42,15 +42,13 @@ public final class EmbeddedKafkaHolder {
   public static EmbeddedKafkaBroker getEmbeddedKafka() {
     if (!started) {
       synchronized (EmbeddedKafkaHolder.class) {
-        if (!started) {
-          try {
-            embeddedKafka.kafkaPorts(4242);
-            embeddedKafka.afterPropertiesSet();
-          } catch (Exception e) {
-            throw new KafkaException("Embedded broker failed to start", e);
-          }
-          started = true;
+        try {
+          embeddedKafka.kafkaPorts(4242);
+          embeddedKafka.afterPropertiesSet();
+        } catch (Exception e) {
+          throw new KafkaException("Embedded broker failed to start", e);
         }
+        started = true;
       }
     }
     return embeddedKafka;
