@@ -51,8 +51,8 @@ import us.dot.its.jpo.ode.util.JsonUtils;
         SerializationConfig.class, TestMetricsConfig.class},
     properties = {"ode.kafka.disabled-topics="})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    KafkaProperties.class})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, OdeKafkaProperties.class, KafkaProperties.class})
 @DirtiesContext
 @TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")
 class Asn1DecodedDataRouterTest {
@@ -83,8 +83,7 @@ class Asn1DecodedDataRouterTest {
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-    String baseExpectedBsm =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
+    String baseExpectedBsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-bsm.json");
     for (String recordType : new String[] {"bsmTx", "rxMsg", "bsmLogDuringEvent"}) {
       String inputData = replaceRecordType(baseTestData, "bsmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
@@ -488,8 +487,7 @@ class Asn1DecodedDataRouterTest {
     var testConsumer = consumerFactory.createConsumer();
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
 
-    String baseExpectedRsm =
-        loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-rsm.json");
+    String baseExpectedRsm = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-rsm.json");
     for (String recordType : new String[] {"rsmTx", "unsupported"}) {
       String inputData = replaceRecordType(baseTestData, "rsmTx", recordType);
       var uniqueKey = UUID.randomUUID().toString();
