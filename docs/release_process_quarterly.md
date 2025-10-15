@@ -11,10 +11,9 @@ The order of project releases is as follows:
 7. [jpo-ode](#jpo-ode)
 8. [jpo-geojsonconverter](#jpo-geojsonconverter)
 9. [jpo-conflictmonitor](#jpo-conflictmonitor)
-10. [jpo-conflictvisualizer](#jpo-conflictvisualizer)
-11. [jpo-deduplicator](#jpo-deduplicator)
-12. [jpo-cvmanager](#jpo-cvmanager)
-13. [jpo-s3-deposit](#jpo-s3-deposit)
+10. [jpo-deduplicator](#jpo-deduplicator)
+11. [jpo-cvmanager](#jpo-cvmanager)
+12. [jpo-s3-deposit](#jpo-s3-deposit)
 
 ## asn1_codec
 ### Prerequisites
@@ -268,6 +267,9 @@ Not applicable
         - [ ] SPaTs
         - [ ] Maps
         - [ ] PSMs
+        - [ ] SDSMs
+        - [ ] RTCMs
+        - [ ] RSMs
     - [ ] TIMs can make it through the entire pipeline successfully (integration)
         - [ ] TIMs can be pushed to http (/tim) endpoint
         - [ ] TIMs can be encoded & re-ingested into the ODE
@@ -283,6 +285,9 @@ Not applicable
             - [ ] SPaTs
             - [ ] Maps
             - [ ] PSMs
+            - [ ] SDSMs
+            - [ ] RTCMs
+            - [ ] RSMs
         - [ ] message processing pipeline functions correctly across instances
         - [ ] encoding/decoding works properly with multiple instances
         - [ ] message signing functions correctly with multiple instances
@@ -323,6 +328,9 @@ Not applicable
         - [ ] SPaTs
         - [ ] Maps
         - [ ] PSMs
+        - [ ] SDSMs
+        - [ ] RTCMs
+        - [ ] RSMs
     - [ ] TIMs can make it through the entire pipeline successfully (integration)
         - [ ] TIMs can be pushed to http (/tim) endpoint
         - [ ] TIMs can be encoded & re-ingested into the ODE
@@ -338,6 +346,9 @@ Not applicable
             - [ ] SPaTs
             - [ ] Maps
             - [ ] PSMs
+            - [ ] SDSMs
+            - [ ] RTCMs
+            - [ ] RSMs
         - [ ] message processing pipeline functions correctly across instances
         - [ ] encoding/decoding works properly with multiple instances
         - [ ] message signing functions correctly with multiple instances
@@ -346,11 +357,13 @@ Not applicable
 ## jpo-geojsonconverter
 ### Prerequisites
     - [ ] jpo-ode release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
 | jpo-ode | Maven, DockerHub |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -362,8 +375,22 @@ Not applicable
     - [ ] unit tests pass
     - [ ] program starts up correctly
     - [ ] program can be configured successfully
-    - [ ] Map, SPaT, & BSM messages are consumed successfully
-    - [ ] valid ProcessedMaps, ProcessedSpats, and ProcessedMaps are outputted
+    - [ ] The following ODE messages are consumed in the GJC:
+      - [ ] BSMs
+      - [ ] PSMs
+      - [ ] MAPs
+      - [ ] SPaTs
+      - [ ] SSMs
+      - [ ] SRMs
+      - [ ] RTCMs
+    - [ ] Valid processed messages are outputted in Kafka on the following topics:  
+      - [ ] Processed BSM - `topic.ProcessedBsm`  
+      - [ ] Processed PSM - `topic.ProcessedPsm`  
+      - [ ] Processed MAP - `topic.ProcessedMap`  
+      - [ ] Processed SPaT - `topic.ProcessedSpat`  
+      - [ ] Processed SSM - `topic.ProcessedSsm`  
+      - [ ] Processed SRM - `topic.ProcessedSrm`  
+      - [ ] Processed RTCM - `topic.ProcessedRtcm`  
 
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml file for the `jpo-geojsonconverter` project if not already done.
@@ -385,20 +412,36 @@ Not applicable
 ### 4. DockerHub Image Testing
     - [ ] image starts up correctly
     - [ ] program can be configured successfully
-    - [ ] Map, SPaT, & BSM messages are consumed successfully  
-    - [ ] valid ProcessedMaps, ProcessedSpats, and ProcessedMaps are outputted
+    - [ ] The following ODE messages are consumed in the GJC:
+      - [ ] BSMs
+      - [ ] PSMs
+      - [ ] MAPs
+      - [ ] SPaTs
+      - [ ] SSMs
+      - [ ] SRMs
+      - [ ] RTCMs
+    - [ ] Valid processed messages are outputted in Kafka on the following topics:  
+      - [ ] Processed BSM - `topic.ProcessedBsm`  
+      - [ ] Processed PSM - `topic.ProcessedPsm`  
+      - [ ] Processed MAP - `topic.ProcessedMap`  
+      - [ ] Processed SPaT - `topic.ProcessedSpat`  
+      - [ ] Processed SSM - `topic.ProcessedSsm`  
+      - [ ] Processed SRM - `topic.ProcessedSrm`  
+      - [ ] Processed RTCM - `topic.ProcessedRtcm`  
 
 
 ## jpo-conflictmonitor
 ### Prerequisites
     - [ ] jpo-ode release completed
     - [ ] jpo-geojsonconverter release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
 | jpo-ode | Maven, DockerHub |
 | jpo-geojsonconverter | Maven, DockerHub |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -461,72 +504,18 @@ Not applicable
         - [ ] test stop line stop events
 
 
-## jpo-conflictvisualizer
-### Prerequisites
-    - [ ] jpo-ode release completed
-    - [ ] jpo-geojsonconverter release completed
-    - [ ] jpo-conflictmonitor release completed
-    - [ ] asn1_codec release completed
-
-#### Dependency Types
-| Dependency | Type |
-| --- | --- |
-| jpo-ode | Maven, DockerHub |
-| jpo-geojsonconverter | Maven, DockerHub |
-| jpo-conflictmonitor | Maven, DockerHub |
-| asn1_codec | Git Submodule |
-
-### 1. Code Ready & Release Notes
-    - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
-    - [ ] Code changes for release are merged into `develop`
-    - [ ] A new branch `release/(year)-(quarter)` is created from `develop`
-
-### 2. Preliminary Testing
-    - [ ] code compiles
-    - [ ] unit tests pass
-    - [ ] program starts up correctly
-    - [ ] GUI functions & can display messages
-
-### 3. Project Reference Updates & Release Creation
-    - [ ] Update version number in pom.xml file for the `jpo-conflictvisualizer` project if not already done. The pom.xml can be found in the `api/jpo-conflictvisualizer-api` directory.
-    - [ ] Update git submodule & artifact references for the 'jpo-conflictvisualizer' project.
-        - [ ] Open the jpo-conflictvisualizer project in an IDE.
-        - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
-        - [ ] Update the version number in the api/jpo-conflictvisualizer-api/pom.xml file for the jpo-geojsonconverter, jpo-ode-*, and jpo-conflictmonitor dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
-        - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
-        - [ ] Ensure these changes pass CI/CD checks before continuing.
-    - [ ] Merge `release/(year)-(quarter)` branch into `master` branch for the jpo-conflictvisualizer project, and create a release with the version number of the release. (e.g. jpo-conflictvisualizer-x.x.x)
-    - [ ] Create docker images
-        - [ ] Use the release for the jpo-conflictmonitor to produce docker images containing the version number.
-            - [ ] One image will be for the API
-            - [ ] One image will be for Keycloak
-        - [ ] Upload docker images to [DockerHub](https://hub.docker.com/u/usdotjpoode)
-        - [ ] Tag docker images with the version number of the app. (e.g. 1.0.0)
-        - [ ] Tag docker images with year and quarter of release. (e.g. 2024-Q2)
-        - [ ] Tag docker images with 'latest' tag for the most recent release.
-    - [ ] Merge master branch into develop branch & verify that CI/CD passes.
-
-### 4. DockerHub Image Testing
-    - [ ] jpo-conflictvisualizer-api
-        - [ ] image starts up correctly
-        - [ ] GUI functions & can display messages
-    - [ ] jpo-conflictvisualizer-keycloak
-        - [ ] image starts up correctly
-        - [ ] authentication verified to work
-
-
 ## jpo-deduplicator
 ### Prerequisites
     - [ ] jpo-ode release completed
     - [ ] jpo-geojsonconverter release completed
-    - [ ] jpo-conflictmonitor release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
 | jpo-ode | Maven |
 | jpo-geojsonconverter | Maven |
-| jpo-conflictmonitor | Maven |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -568,6 +557,7 @@ Not applicable
     - [ ] jpo-conflictmonitor release completed
     - [ ] jpo-geojsonconverter release completed
     - [ ] asn1_codec release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
@@ -576,6 +566,7 @@ Not applicable
 | jpo-geojsonconverter | Maven |
 | jpo-conflictmonitor | Maven |
 | asn1_codec | Git Submodule |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
