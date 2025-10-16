@@ -1,6 +1,37 @@
 JPO-ODE Release Notes
 ----------------------------
 
+Version 5.0.2, released October 2025
+----------------------------------------
+### **Summary**
+This release finishes up the Spring Kafka migration with several classes and data flow diagram updates. Unused code has been removed to reduce 
+maintenance overhead and Docker Compose has been updated with all required ODE variables to ensure smoother builds and testing. Quarterly release 
+and hotfix documentation have been revised, and full Git history is now included in Azure Artifacts for improved traceability. Reliability has 
+been enhanced through fixes to UDP receiver thread management, resolution of a K-Table memory leak, and correction of NodeLL type selection for 
+latitude/longitude offsets to prevent encoding failures. Error handling has been added to the ASN.1 decoded data router. Finally, a custom 
+Micrometer message-count metric has been introduced to provide real-time insights into message volumes.
+
+Enhancements in this release:
+- [USDOT PR 580](https://github.com/usdot-jpo-ode/jpo-ode/pull/580): SDSM Support
+- [USDOT PR 587](https://github.com/usdot-jpo-ode/jpo-ode/pull/587): SDSM Kafka Topic Creation Fix
+- [CDOT PR 201](https://github.com/CDOT-CV/jpo-ode/pull/201): J2735 2024 BSM Pipeline Improvements
+- [CDOT PR 203](https://github.com/CDOT-CV/jpo-ode/pull/203): Modify Sonar CI Job
+- [CDOT PR 204](https://github.com/CDOT-CV/jpo-ode/pull/204): J2735 2024 SPaT Pipeline Improvements
+- [CDOT PR 205](https://github.com/CDOT-CV/jpo-ode/pull/205): J2735 2024 Map Pipeline Improvements
+- [CDOT PR 206](https://github.com/CDOT-CV/jpo-ode/pull/206): Update release process documentation with new validation steps
+- [CDOT PR 207](https://github.com/CDOT-CV/jpo-ode/pull/207): Ensure the artifact publish CI recursively initializes submodules
+- [CDOT PR 208](https://github.com/CDOT-CV/jpo-ode/pull/208): J2735 2024 SRM Pipeline Improvements
+- [CDOT PR 209](https://github.com/CDOT-CV/jpo-ode/pull/209): J2735 2024 SSM Pipeline Improvements
+- [CDOT PR 210](https://github.com/CDOT-CV/jpo-ode/pull/210): J2735 2024 PSM Pipeline Improvements
+- [CDOT PR 211](https://github.com/CDOT-CV/jpo-ode/pull/211): J2735 2024 TIM Pipeline Improvements
+- [CDOT PR 212](https://github.com/CDOT-CV/jpo-ode/pull/212): New RTCM Pipeline
+- [CDOT PR 213](https://github.com/CDOT-CV/jpo-ode/pull/213): Update jpo-asn-pojos commit
+- [CDOT PR 214](https://github.com/CDOT-CV/jpo-ode/pull/214): Update jpo-ode versions and jpo-asn-pojos commit reference
+- [CDOT PR 215](https://github.com/CDOT-CV/jpo-ode/pull/215): Bug Fix: Support open type XML deserialization of special characters
+- [CDOT PR 216](https://github.com/CDOT-CV/jpo-ode/pull/216): New RSM Pipeline
+- [CDOT PR 217](https://github.com/CDOT-CV/jpo-ode/pull/217): Bugfix/spring upgrade
+- [CDOT PR 218](https://github.com/CDOT-CV/jpo-ode/pull/218): Fix: run tests in ci.yml without sonar when not in USDOT-owned branch
+
 Version 4.1.2, released June 2025
 ----------------------------------------
 ### **Summary**
