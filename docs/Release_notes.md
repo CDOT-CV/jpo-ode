@@ -4,12 +4,7 @@ JPO-ODE Release Notes
 Version 5.0.2, released October 2025
 ----------------------------------------
 ### **Summary**
-This release finishes up the Spring Kafka migration with several classes and data flow diagram updates. Unused code has been removed to reduce 
-maintenance overhead and Docker Compose has been updated with all required ODE variables to ensure smoother builds and testing. Quarterly release 
-and hotfix documentation have been revised, and full Git history is now included in Azure Artifacts for improved traceability. Reliability has 
-been enhanced through fixes to UDP receiver thread management, resolution of a K-Table memory leak, and correction of NodeLL type selection for 
-latitude/longitude offsets to prevent encoding failures. Error handling has been added to the ASN.1 decoded data router. Finally, a custom 
-Micrometer message-count metric has been introduced to provide real-time insights into message volumes.
+This release introduces expanded support for the latest J2735 2024 message standards through a breaking rework of the POJO data models, impacting all message types and associated pipelines. This release includes major updates to the BSM, SPaT, MAP, SRM, SSM, PSM, and TIM pipelines, along with new pipelines for RTCM, RSM, and SDSM messages. It also refines CI/CD workflows, enhances release validation procedures, and updates dependencies for improved stability and compatibility. These changes modernize the codebase, improve system reliability, and improve ongoing development and deployment efforts.
 
 Enhancements in this release:
 - [USDOT PR 580](https://github.com/usdot-jpo-ode/jpo-ode/pull/580): SDSM Support
