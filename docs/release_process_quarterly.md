@@ -2,18 +2,26 @@
 The quarterly release process is designed to prepare the code for a new release at the end of each quarter. This process involves several steps: creating a new release branch, stabilizing the code, updating project references, building the release, and testing it. These steps are performed sequentially for each project, starting with those that have no dependencies and progressing outward through the dependency chain.
 
 The order of project releases is as follows:
-1. [asn1_codec](#asn1_codec)
-2. [jpo-cvdp](#jpo-cvdp)
-3. [jpo-security-svcs](#jpo-security-svcs)
-4. [jpo-sdw-depositor](#jpo-sdw-depositor)
-5. [jpo-utils](#jpo-utils)
-6. [jpo-asn-pojos](#jpo-asn-pojos)
-7. [jpo-ode](#jpo-ode)
-8. [jpo-geojsonconverter](#jpo-geojsonconverter)
-9. [jpo-conflictmonitor](#jpo-conflictmonitor)
-10. [jpo-deduplicator](#jpo-deduplicator)
-11. [jpo-cvmanager](#jpo-cvmanager)
-12. [jpo-s3-deposit](#jpo-s3-deposit)
+1. Stage 1:
+   1. [asn1_codec](#asn1_codec)
+   2. [jpo-cvdp](#jpo-cvdp)
+   3. [jpo-s3-deposit](#jpo-s3-deposit)
+   4. [jpo-security-svcs](#jpo-security-svcs)
+   5. [jpo-sdw-depositor](#jpo-sdw-depositor)
+   6. [jpo-utils](#jpo-utils)
+   7. [jpo-asn-pojos](#jpo-asn-pojos)
+2. Stage 2:
+   1. [jpo-ode](#jpo-ode)
+   2. [j2735-ffm-java](#j2735-ffm-java)
+3. Stage 3:
+   1. [jpo-geojsonconverter](#jpo-geojsonconverter)
+   2. jpo-mec-deposit
+4. Stage 4:
+   1. [jpo-conflictmonitor](#jpo-conflictmonitor)
+   2. [jpo-deduplicator](#jpo-deduplicator)
+5. Stage 5:
+   1. [jpo-cvmanager](#jpo-cvmanager)
+
 
 ## asn1_codec
 ### Prerequisites
@@ -353,6 +361,52 @@ Not applicable
         - [ ] encoding/decoding works properly with multiple instances
         - [ ] message signing functions correctly with multiple instances
         - [ ] SDX deposit works correctly with multiple instances
+
+## j2735-ffm-java
+
+### Prerequisites
+
+- [ ] asn1_codec release completed
+
+#### Dependency Types
+
+| Dependency | Type          |
+| --- |---------------|
+| neaeraconsulting/j2735-ffm-java | Upstream |
+| asn1_codec | Git Submodule |
+
+### 1. Code Ready & Release Notes
+
+- [ ] The upstream release branch exists, e.g. 'release/2025-q3'
+- [ ] Release notes have been drafted & added to `RELEASE-NOTES.md` file in the upstream release branch
+- [ ] Use the GitHub 'new branch' GUI to create a new branch with the same name as the upstream release branch, with source being the upstream release branch.
+- [ ] Do "sync fork" on the upstream release branch to pull in upstream updates.
+
+### 2. Preliminary Testing
+
+- [ ] code compiles
+   - [ ] `j2735-2024-ffm-lib` subproject builds via gradle
+   - [ ] `j2735-2024-api` subproject builds via gradle
+- [ ] unit tests in the `j2735-2024-ffm-lib` project pass
+- [ ] integration tests using the http api pass via:
+  - `docker compose -f docker-compose-api.yml up --build -d`
+  - Run .http tests in `j2735-2024-api/http-tests`
+- [ ] rebuilding the native library and FFM generated code succeeds via:
+  - `docker compose -f docker-compose-build.yml up --build -d`
+
+### 3. Project Reference Updates & Release Creation
+- [ ] Make sure the Gradle version number for the Java library has been updated in `j2735-2024-ffm-lib/build.gradle`
+- [ ] Create a tag off of the release branch named 'vX.Y.Z', using the version number from `build.gradle`
+- [ ] Create git tag for the release with the version number of the release. (i.e. vX.Y.Z), using the same version number of the Java library from `build.gradle`
+- [ ] Create a release from the git tag.  
+  - [ ] Copy the release notes into the markdown of the release.  
+  - [ ] Include links to the native libraries in the release notes.
+- [ ] After creating the release, verify the Jar library was published to GitHub Maven.
+
+### 4. DockerHub Image Testing
+Not applicable
+
+
 
 ## jpo-geojsonconverter
 ### Prerequisites
