@@ -618,8 +618,8 @@ Not applicable
 | jpo-ode | Maven |
 | jpo-geojsonconverter | Maven |
 | jpo-conflictmonitor | Maven |
-| asn1_codec | Git Submodule |
 | jpo-utils | Git Submodule |
+| j2735-2024-java | Maven |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
