@@ -396,7 +396,6 @@ Not applicable
 
 ### 3. Project Reference Updates & Release Creation
 - [ ] Make sure the Gradle version number for the Java library has been updated in `j2735-2024-ffm-lib/build.gradle`
-- [ ] Create a tag off of the release branch named 'vX.Y.Z', using the version number from `build.gradle`
 - [ ] Create git tag for the release with the version number of the release. (i.e. vX.Y.Z), using the same version number of the Java library from `build.gradle`
 - [ ] Create a release from the git tag.  
   - [ ] Copy the release notes into the markdown of the release.  
