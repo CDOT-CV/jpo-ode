@@ -2,19 +2,28 @@
 The quarterly release process is designed to prepare the code for a new release at the end of each quarter. This process involves several steps: creating a new release branch, stabilizing the code, updating project references, building the release, and testing it. These steps are performed sequentially for each project, starting with those that have no dependencies and progressing outward through the dependency chain.
 
 The order of project releases is as follows:
-1. [asn1_codec](#asn1_codec)
-2. [jpo-cvdp](#jpo-cvdp)
-3. [jpo-security-svcs](#jpo-security-svcs)
-4. [jpo-sdw-depositor](#jpo-sdw-depositor)
-5. [jpo-utils](#jpo-utils)
-6. [jpo-asn-pojos](#jpo-asn-pojos)
-7. [jpo-ode](#jpo-ode)
-8. [jpo-geojsonconverter](#jpo-geojsonconverter)
-9. [jpo-conflictmonitor](#jpo-conflictmonitor)
-10. [jpo-conflictvisualizer](#jpo-conflictvisualizer)
-11. [jpo-deduplicator](#jpo-deduplicator)
-12. [jpo-cvmanager](#jpo-cvmanager)
-13. [jpo-s3-deposit](#jpo-s3-deposit)
+1. Stage 1:
+   1. [asn1_codec](#asn1_codec)
+   2. [jpo-cvdp](#jpo-cvdp)
+   3. [jpo-security-svcs](#jpo-security-svcs)
+   4. [jpo-sdw-depositor](#jpo-sdw-depositor)
+   5. [jpo-utils](#jpo-utils)
+   6. [jpo-asn-pojos](#jpo-asn-pojos)
+2. Stage 2:
+   1. [jpo-ode](#jpo-ode)
+   2. [j2735-ffm-java](#j2735-ffm-java)
+3. Stage 3:
+   1. [jpo-geojsonconverter](#jpo-geojsonconverter)
+   2. jpo-mec-deposit
+4. Stage 4:
+   1. [jpo-conflictmonitor](#jpo-conflictmonitor)
+   2. [jpo-deduplicator](#jpo-deduplicator)
+5. Stage 5:
+   1. [jpo-cvmanager](#jpo-cvmanager)
+   2. [jpo-s3-deposit](#jpo-s3-deposit)
+
+**Note:** jpo-s3-deposit is placed last in the release order because it is not a dependency for any other project releases. Its completion timing has minimal impact compared to the other projects in the release pipeline.
+
 
 ## asn1_codec
 ### Prerequisites
@@ -268,6 +277,9 @@ Not applicable
         - [ ] SPaTs
         - [ ] Maps
         - [ ] PSMs
+        - [ ] SDSMs
+        - [ ] RTCMs
+        - [ ] RSMs
     - [ ] TIMs can make it through the entire pipeline successfully (integration)
         - [ ] TIMs can be pushed to http (/tim) endpoint
         - [ ] TIMs can be encoded & re-ingested into the ODE
@@ -283,6 +295,9 @@ Not applicable
             - [ ] SPaTs
             - [ ] Maps
             - [ ] PSMs
+            - [ ] SDSMs
+            - [ ] RTCMs
+            - [ ] RSMs
         - [ ] message processing pipeline functions correctly across instances
         - [ ] encoding/decoding works properly with multiple instances
         - [ ] message signing functions correctly with multiple instances
@@ -323,6 +338,9 @@ Not applicable
         - [ ] SPaTs
         - [ ] Maps
         - [ ] PSMs
+        - [ ] SDSMs
+        - [ ] RTCMs
+        - [ ] RSMs
     - [ ] TIMs can make it through the entire pipeline successfully (integration)
         - [ ] TIMs can be pushed to http (/tim) endpoint
         - [ ] TIMs can be encoded & re-ingested into the ODE
@@ -338,19 +356,69 @@ Not applicable
             - [ ] SPaTs
             - [ ] Maps
             - [ ] PSMs
+            - [ ] SDSMs
+            - [ ] RTCMs
+            - [ ] RSMs
         - [ ] message processing pipeline functions correctly across instances
         - [ ] encoding/decoding works properly with multiple instances
         - [ ] message signing functions correctly with multiple instances
         - [ ] SDX deposit works correctly with multiple instances
 
+## j2735-ffm-java
+
+### Prerequisites
+
+- [ ] asn1_codec release completed
+
+#### Dependency Types
+
+| Dependency | Type          |
+| --- |---------------|
+| neaeraconsulting/j2735-ffm-java | Upstream |
+| asn1_codec | Git Submodule |
+
+### 1. Code Ready & Release Notes
+
+- [ ] The upstream release branch exists, e.g. 'release/2025-q3'
+- [ ] Release notes have been drafted & added to `RELEASE-NOTES.md` file in the upstream release branch
+- [ ] Use the GitHub 'new branch' GUI to create a new branch with the same name as the upstream release branch, with source being the upstream release branch.
+- [ ] Do "sync fork" on the upstream release branch to pull in upstream updates.
+
+### 2. Preliminary Testing
+
+- [ ] code compiles
+   - [ ] `j2735-2024-ffm-lib` subproject builds via gradle
+   - [ ] `j2735-2024-api` subproject builds via gradle
+- [ ] unit tests in the `j2735-2024-ffm-lib` project pass
+- [ ] integration tests using the http api pass via:
+  - `docker compose -f docker-compose-api.yml up --build -d`
+  - Run .http tests in `j2735-2024-api/http-tests`
+- [ ] rebuilding the native library and FFM generated code succeeds via:
+  - `docker compose -f docker-compose-build.yml up --build -d`
+
+### 3. Project Reference Updates & Release Creation
+- [ ] Make sure the Gradle version number for the Java library has been updated in `j2735-2024-ffm-lib/build.gradle`
+- [ ] Create git tag for the release with the version number of the release. (i.e. vX.Y.Z), using the same version number of the Java library from `build.gradle`
+- [ ] Create a release from the git tag.  
+  - [ ] Copy the release notes into the markdown of the release.  
+  - [ ] Include links to the native libraries in the release notes.
+- [ ] After creating the release, verify the Jar library was published to GitHub Maven.
+
+### 4. DockerHub Image Testing
+Not applicable
+
+
+
 ## jpo-geojsonconverter
 ### Prerequisites
     - [ ] jpo-ode release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
 | jpo-ode | Maven, DockerHub |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -362,8 +430,22 @@ Not applicable
     - [ ] unit tests pass
     - [ ] program starts up correctly
     - [ ] program can be configured successfully
-    - [ ] Map, SPaT, & BSM messages are consumed successfully
-    - [ ] valid ProcessedMaps, ProcessedSpats, and ProcessedMaps are outputted
+    - [ ] The following ODE messages are consumed in the GJC:
+      - [ ] BSMs
+      - [ ] PSMs
+      - [ ] MAPs
+      - [ ] SPaTs
+      - [ ] SSMs
+      - [ ] SRMs
+      - [ ] RTCMs
+    - [ ] Valid processed messages are outputted in Kafka on the following topics:  
+      - [ ] Processed BSM - `topic.ProcessedBsm`  
+      - [ ] Processed PSM - `topic.ProcessedPsm`  
+      - [ ] Processed MAP - `topic.ProcessedMap`  
+      - [ ] Processed SPaT - `topic.ProcessedSpat`  
+      - [ ] Processed SSM - `topic.ProcessedSsm`  
+      - [ ] Processed SRM - `topic.ProcessedSrm`  
+      - [ ] Processed RTCM - `topic.ProcessedRtcm`  
 
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml file for the `jpo-geojsonconverter` project if not already done.
@@ -385,20 +467,36 @@ Not applicable
 ### 4. DockerHub Image Testing
     - [ ] image starts up correctly
     - [ ] program can be configured successfully
-    - [ ] Map, SPaT, & BSM messages are consumed successfully  
-    - [ ] valid ProcessedMaps, ProcessedSpats, and ProcessedMaps are outputted
+    - [ ] The following ODE messages are consumed in the GJC:
+      - [ ] BSMs
+      - [ ] PSMs
+      - [ ] MAPs
+      - [ ] SPaTs
+      - [ ] SSMs
+      - [ ] SRMs
+      - [ ] RTCMs
+    - [ ] Valid processed messages are outputted in Kafka on the following topics:  
+      - [ ] Processed BSM - `topic.ProcessedBsm`  
+      - [ ] Processed PSM - `topic.ProcessedPsm`  
+      - [ ] Processed MAP - `topic.ProcessedMap`  
+      - [ ] Processed SPaT - `topic.ProcessedSpat`  
+      - [ ] Processed SSM - `topic.ProcessedSsm`  
+      - [ ] Processed SRM - `topic.ProcessedSrm`  
+      - [ ] Processed RTCM - `topic.ProcessedRtcm`  
 
 
 ## jpo-conflictmonitor
 ### Prerequisites
     - [ ] jpo-ode release completed
     - [ ] jpo-geojsonconverter release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
 | jpo-ode | Maven, DockerHub |
 | jpo-geojsonconverter | Maven, DockerHub |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -461,72 +559,18 @@ Not applicable
         - [ ] test stop line stop events
 
 
-## jpo-conflictvisualizer
-### Prerequisites
-    - [ ] jpo-ode release completed
-    - [ ] jpo-geojsonconverter release completed
-    - [ ] jpo-conflictmonitor release completed
-    - [ ] asn1_codec release completed
-
-#### Dependency Types
-| Dependency | Type |
-| --- | --- |
-| jpo-ode | Maven, DockerHub |
-| jpo-geojsonconverter | Maven, DockerHub |
-| jpo-conflictmonitor | Maven, DockerHub |
-| asn1_codec | Git Submodule |
-
-### 1. Code Ready & Release Notes
-    - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
-    - [ ] Code changes for release are merged into `develop`
-    - [ ] A new branch `release/(year)-(quarter)` is created from `develop`
-
-### 2. Preliminary Testing
-    - [ ] code compiles
-    - [ ] unit tests pass
-    - [ ] program starts up correctly
-    - [ ] GUI functions & can display messages
-
-### 3. Project Reference Updates & Release Creation
-    - [ ] Update version number in pom.xml file for the `jpo-conflictvisualizer` project if not already done. The pom.xml can be found in the `api/jpo-conflictvisualizer-api` directory.
-    - [ ] Update git submodule & artifact references for the 'jpo-conflictvisualizer' project.
-        - [ ] Open the jpo-conflictvisualizer project in an IDE.
-        - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
-        - [ ] Update the version number in the api/jpo-conflictvisualizer-api/pom.xml file for the jpo-geojsonconverter, jpo-ode-*, and jpo-conflictmonitor dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
-        - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
-        - [ ] Ensure these changes pass CI/CD checks before continuing.
-    - [ ] Merge `release/(year)-(quarter)` branch into `master` branch for the jpo-conflictvisualizer project, and create a release with the version number of the release. (e.g. jpo-conflictvisualizer-x.x.x)
-    - [ ] Create docker images
-        - [ ] Use the release for the jpo-conflictmonitor to produce docker images containing the version number.
-            - [ ] One image will be for the API
-            - [ ] One image will be for Keycloak
-        - [ ] Upload docker images to [DockerHub](https://hub.docker.com/u/usdotjpoode)
-        - [ ] Tag docker images with the version number of the app. (e.g. 1.0.0)
-        - [ ] Tag docker images with year and quarter of release. (e.g. 2024-Q2)
-        - [ ] Tag docker images with 'latest' tag for the most recent release.
-    - [ ] Merge master branch into develop branch & verify that CI/CD passes.
-
-### 4. DockerHub Image Testing
-    - [ ] jpo-conflictvisualizer-api
-        - [ ] image starts up correctly
-        - [ ] GUI functions & can display messages
-    - [ ] jpo-conflictvisualizer-keycloak
-        - [ ] image starts up correctly
-        - [ ] authentication verified to work
-
-
 ## jpo-deduplicator
 ### Prerequisites
     - [ ] jpo-ode release completed
     - [ ] jpo-geojsonconverter release completed
-    - [ ] jpo-conflictmonitor release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
 | jpo-ode | Maven |
 | jpo-geojsonconverter | Maven |
-| jpo-conflictmonitor | Maven |
+| jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -568,14 +612,16 @@ Not applicable
     - [ ] jpo-conflictmonitor release completed
     - [ ] jpo-geojsonconverter release completed
     - [ ] asn1_codec release completed
+    - [ ] jpo-utils release completed
 
 #### Dependency Types
-| Dependency | Type |
-| --- | --- |
-| jpo-ode | Maven |
+| Dependency           | Type |
+|----------------------| --- |
+| jpo-ode              | Maven |
 | jpo-geojsonconverter | Maven |
-| jpo-conflictmonitor | Maven |
-| asn1_codec | Git Submodule |
+| jpo-conflictmonitor  | Maven |
+| jpo-utils            | Git Submodule |
+| j2735-ffm-java  | Maven |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
