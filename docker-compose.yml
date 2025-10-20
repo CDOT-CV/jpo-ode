@@ -14,7 +14,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2'
+          cpus: "2"
           memory: 4G
     ports:
       - "8080:8080"
@@ -70,7 +70,7 @@ services:
       - ${DOCKER_SHARED_VOLUME}:/jpo-ode
       - ${DOCKER_SHARED_VOLUME}/uploads:/home/uploads
     healthcheck:
-      test: [ "CMD", "wget", "--spider", "http://localhost:8080" ]
+      test: ["CMD", "wget", "--spider", "http://localhost:8080"]
       interval: 5s
       timeout: 30s
       retries: 5
@@ -92,7 +92,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 2G
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP}
@@ -125,7 +125,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 2G
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP}
@@ -159,7 +159,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 2G
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP}
@@ -195,7 +195,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 2G
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP}
@@ -224,7 +224,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 2G
     environment:
       DOCKER_HOST_IP: ${DOCKER_HOST_IP}
@@ -258,7 +258,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 2G
     ports:
       - "8090:8090"
