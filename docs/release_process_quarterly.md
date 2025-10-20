@@ -5,11 +5,10 @@ The order of project releases is as follows:
 1. Stage 1:
    1. [asn1_codec](#asn1_codec)
    2. [jpo-cvdp](#jpo-cvdp)
-   3. [jpo-s3-deposit](#jpo-s3-deposit)
-   4. [jpo-security-svcs](#jpo-security-svcs)
-   5. [jpo-sdw-depositor](#jpo-sdw-depositor)
-   6. [jpo-utils](#jpo-utils)
-   7. [jpo-asn-pojos](#jpo-asn-pojos)
+   3. [jpo-security-svcs](#jpo-security-svcs)
+   4. [jpo-sdw-depositor](#jpo-sdw-depositor)
+   5. [jpo-utils](#jpo-utils)
+   6. [jpo-asn-pojos](#jpo-asn-pojos)
 2. Stage 2:
    1. [jpo-ode](#jpo-ode)
    2. [j2735-ffm-java](#j2735-ffm-java)
@@ -21,6 +20,9 @@ The order of project releases is as follows:
    2. [jpo-deduplicator](#jpo-deduplicator)
 5. Stage 5:
    1. [jpo-cvmanager](#jpo-cvmanager)
+   2. [jpo-s3-deposit](#jpo-s3-deposit)
+
+**Note:** jpo-s3-deposit is placed last in the release order because it is not a dependency for any other project releases. Its completion timing has minimal impact compared to the other projects in the release pipeline.
 
 
 ## asn1_codec
