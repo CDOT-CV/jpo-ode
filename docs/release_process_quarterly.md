@@ -14,7 +14,7 @@ The order of project releases is as follows:
    2. [j2735-ffm-java](#j2735-ffm-java)
 3. Stage 3:
    1. [jpo-geojsonconverter](#jpo-geojsonconverter)
-   2. jpo-mec-deposit
+   2. [jpo-mec-deposit](#jpo-mec-deposit)
 4. Stage 4:
    1. [jpo-conflictmonitor](#jpo-conflictmonitor)
    2. [jpo-deduplicator](#jpo-deduplicator)
@@ -484,6 +484,64 @@ Not applicable
       - [ ] Processed SRM - `topic.ProcessedSrm`  
       - [ ] Processed RTCM - `topic.ProcessedRtcm`  
 
+## jpo-mec-deposit
+### Prerequisites
+    - [ ] jpo-ode release completed
+    - [ ] jpo-utils release completed
+
+#### Dependency Types
+| Dependency | Type |
+| --- | --- |
+| jpo-ode | Maven, DockerHub |
+| jpo-utils | Git Submodule |
+
+### 1. Code Ready & Release Notes
+    - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
+    - [ ] Code changes for release are merged into `develop`
+    - [ ] A new branch `release/(year)-(quarter)` is created from `develop`
+
+### 2. Preliminary Testing
+    - [ ] code compiles
+    - [ ] unit tests pass
+    - [ ] program starts up correctly
+    - [ ] program can be configured successfully
+    - [ ] MQTT depositors are working for the following ODE message types:  
+      - [ ] BSMs
+      - [ ] SDSMs
+      - [ ] SPaTs
+      - [ ] TIMs
+    - [ ] REST API depositors are working for the following ODE message types:  
+      - [ ] MAPs
+      - [ ] TIMs
+
+### 3. Project Reference Updates & Release Creation
+    - [ ] Update version number in pom.xml file for the `jpo-mec-deposit` project if not already done.
+    - [ ] Update git submodule & artifact references for the ‘jpo-mec-deposit’ project.
+        - [ ] Open the jpo-mec-deposit project in an IDE.
+        - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
+        - [ ] Update the version number in the pom.xml for the jpo-ode-core and jpo-ode-plugins dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
+        - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
+        - [ ] Ensure these changes pass CI/CD checks before continuing.
+    - [ ] Merge `release/(year)-(quarter)` branch into `master` branch for the jpo-mec-deposit project, and create a release with the version number of the release. (e.g. jpo-mec-deposit-x.x.x)
+    - [ ] Create docker image
+        - [ ] Use the release for the jpo-mec-deposit to produce docker image with the same tag name, containing the version number.
+        - [ ] Upload docker image to [DockerHub](https://hub.docker.com/u/usdotjpoode)
+        - [ ] Tag docker image with the version number of the app. (e.g. 1.0.0)
+        - [ ] Tag docker image with year and quarter of release. (e.g. 2024-Q2)
+        - [ ] Tag docker image with 'latest' tag for the most recent release.
+    - [ ] Merge master branch into develop branch & verify that CI/CD passes.
+
+### 4. DockerHub Image Testing
+    - [ ] image starts up correctly
+    - [ ] program can be configured successfully
+    - [ ] MQTT depositors are working for the following ODE message types:  
+      - [ ] BSMs
+      - [ ] SDSMs
+      - [ ] SPaTs
+      - [ ] TIMs
+    - [ ] REST API depositors are working for the following ODE message types:  
+      - [ ] MAPs
+      - [ ] TIMs
 
 ## jpo-conflictmonitor
 ### Prerequisites
