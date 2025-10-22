@@ -1,7 +1,7 @@
 JPO-ODE Release Notes
 ----------------------------
 
-Version 5.0.2, released October 2025
+Version 5.1.0, released October 2025
 ----------------------------------------
 ### **Summary**
 This release introduces expanded support for the latest J2735 2024 message standards through a breaking rework of the POJO data models, impacting all message types and associated pipelines. This release includes major updates to the BSM, SPaT, MAP, SRM, SSM, PSM, and TIM pipelines, along with new pipelines for RTCM, RSM, and SDSM messages. It also refines CI/CD workflows, enhances release validation procedures, and updates dependencies for improved stability and compatibility. These changes modernize the codebase, improve system reliability, and improve ongoing development and deployment efforts.

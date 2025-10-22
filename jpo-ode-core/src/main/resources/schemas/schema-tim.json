@@ -9,7 +9,7 @@
             "type": "object",
             "properties": {
                 "data": {
-                    "$ref": "https://raw.githubusercontent.com/CDOT-CV/jpo-asn-pojos/refs/heads/develop/jpo-asn-jsonschema-generator/src/main/resources/schemas/TravelerInformation/TravelerInformationMessageFrame.schema.json"
+                    "$ref": "https://raw.githubusercontent.com/usdot-jpo-ode/jpo-asn-pojos/refs/heads/master/jpo-asn-jsonschema-generator/src/main/resources/schemas/TravelerInformation/TravelerInformationMessageFrame.schema.json"
                 },
                 "dataType": {
                     "type": "string"

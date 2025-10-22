@@ -254,7 +254,7 @@
         "payload": {
             "properties": {
                 "data": {
-                    "$ref": "https://raw.githubusercontent.com/CDOT-CV/jpo-asn-pojos/refs/heads/develop/jpo-asn-jsonschema-generator/src/main/resources/schemas/SPAT/SPATMessageFrame.schema.json"
+                    "$ref": "https://raw.githubusercontent.com/usdot-jpo-ode/jpo-asn-pojos/refs/heads/master/jpo-asn-jsonschema-generator/src/main/resources/schemas/SPAT/SPATMessageFrame.schema.json"
                 },
                 "dataType": {
                     "type": "string"
