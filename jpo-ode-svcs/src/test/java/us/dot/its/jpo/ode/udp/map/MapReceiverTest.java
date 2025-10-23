@@ -111,11 +111,13 @@ class MapReceiverTest {
       expectedJson.getJSONObject("metadata").remove("serialId");
       producedJson.getJSONObject("metadata").remove("serialId");
 
-      assertEquals(expectedJson.toString(), producedJson.toString(),
+      String expectedJsonStr = expectedJson.toString();
+      String producedJsonStr = producedJson.toString().trim();
+
+      assertEquals(expectedJsonStr, producedJsonStr,
           approvalTestCase.getDescription());
     }
 
     DateTimeUtils.setClock(prevClock);
   }
 }
-

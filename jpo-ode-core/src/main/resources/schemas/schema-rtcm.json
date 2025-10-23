@@ -1,0 +1,262 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema",
+    "properties": {
+        "metadata": {
+            "properties": {
+                "source": {
+                    "enum": [
+                        "RSU",
+                        "UNKNOWN"
+                    ],
+                    "type": "string"
+                },
+                "encodings": {
+                    "items": {
+                        "properties": {
+                            "elementName": {
+                                "type": "string"
+                            },
+                            "elementType": {
+                                "type": "string"
+                            },
+                            "encodingRule": {
+                                "enum": [
+                                    "UPER",
+                                    "COER"
+                                ],
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "elementName",
+                            "elementType",
+                            "encodingRule"
+                        ],
+                        "type": "object"
+                    },
+                    "type": [
+                        "array",
+                        "null"
+                    ]
+                },
+                "logFileName": {
+                    "type": "string"
+                },
+                "maxDurationTime": {
+                    "type": [
+                        "integer",
+                        "null"
+                    ]
+                },
+                "odePacketID": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "odeReceivedAt": {
+                    "type": "string"
+                },
+                "odeTimStartDateTime": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "originIp": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "payloadType": {
+                    "type": "string"
+                },
+                "receivedMessageDetails": {
+                    "properties": {
+                        "locationData": {
+                            "properties": {
+                                "elevation": {
+                                    "type": "string"
+                                },
+                                "heading": {
+                                    "type": "string"
+                                },
+                                "latitude": {
+                                    "type": "string"
+                                },
+                                "longitude": {
+                                    "type": "string"
+                                },
+                                "speed": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "latitude",
+                                "longitude",
+                                "elevation",
+                                "speed",
+                                "heading"
+                            ],
+                            "type": "object"
+                        },
+                        "rxSource": {
+                            "enum": [
+                                "RSU",
+                                "NA",
+                                "UNKNOWN"
+                            ],
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "rxSource"
+                    ],
+                    "type": "object"
+                },
+                "recordGeneratedAt": {
+                    "type": "string"
+                },
+                "recordGeneratedBy": {
+                    "enum": [
+                        "RSU",
+                        "UNKNOWN",
+                        null
+                    ],
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "recordType": {
+                    "enum": [
+                        "rtcmTx",
+                        "unsupported"
+                    ],
+                    "type": "string"
+                },
+                "sanitized": {
+                    "type": "boolean"
+                },
+                "schemaVersion": {
+                    "const": 9,
+                    "type": "integer"
+                },
+                "securityResultCode": {
+                    "enum": [
+                        "success",
+                        "unknown",
+                        "inconsistentInputParameters",
+                        "spduParsingInvalidInput",
+                        "spduParsingUnsupportedCriticalInformationField",
+                        "spduParsingCertificateNotFound",
+                        "spduParsingGenerationTimeNotAvailable",
+                        "spduParsingGenerationLocationNotAvailable",
+                        "spduCertificateChainNotEnoughInformationToConstructChain",
+                        "spduCertificateChainChainEndedAtUntrustedRoot",
+                        "spduCertificateChainChainWasTooLongForImplementation",
+                        "spduCertificateChainCertificateRevoked",
+                        "spduCertificateChainOverdueCRL",
+                        "spduCertificateChainInconsistentExpiryTimes",
+                        "spduCertificateChainInconsistentStartTimes",
+                        "spduCertificateChainInconsistentChainPermissions",
+                        "spduCryptoVerificationFailure",
+                        "spduConsistencyFutureCertificateAtGenerationTime",
+                        "spduConsistencyExpiredCertificateAtGenerationTime",
+                        "spduConsistencyExpiryDateTooEarly",
+                        "spduConsistencyExpiryDateTooLate",
+                        "spduConsistencyGenerationLocationOutsideValidityRegion",
+                        "spduConsistencyNoGenerationLocation",
+                        "spduConsistencyUnauthorizedPSID",
+                        "spduInternalConsistencyExpiryTimeBeforeGenerationTime",
+                        "spduInternalConsistencyextDataHashDoesntMatch",
+                        "spduInternalConsistencynoExtDataHashProvided",
+                        "spduInternalConsistencynoExtDataHashPresent",
+                        "spduLocalConsistencyPSIDsDontMatch",
+                        "spduLocalConsistencyChainWasTooLongForSDEE",
+                        "spduRelevanceGenerationTimeTooFarInPast",
+                        "spduRelevanceGenerationTimeTooFarInFuture",
+                        "spduRelevanceExpiryTimeInPast",
+                        "spduRelevanceGenerationLocationTooDistant",
+                        "spduRelevanceReplayedSpdu",
+                        "spduCertificateExpired"
+                    ],
+                    "type": "string"
+                },
+                "serialId": {
+                    "properties": {
+                        "bundleId": {
+                            "type": "integer"
+                        },
+                        "bundleSize": {
+                            "type": "integer"
+                        },
+                        "recordId": {
+                            "type": "integer"
+                        },
+                        "serialNumber": {
+                            "type": "integer"
+                        },
+                        "streamId": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "streamId",
+                        "bundleSize",
+                        "bundleId",
+                        "recordId",
+                        "serialNumber"
+                    ],
+                    "type": "object"
+                },
+                "asn1": {
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                "isCertPresent": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "source",
+                "logFileName",
+                "recordType",
+                "securityResultCode",
+                "receivedMessageDetails",
+                "payloadType",
+                "serialId",
+                "odeReceivedAt",
+                "schemaVersion",
+                "recordGeneratedAt",
+                "sanitized",
+                "asn1",
+                "isCertPresent"
+            ],
+            "type": "object"
+        },
+        "payload": {
+            "properties": {
+                "data": {
+                    "$ref": "https://raw.githubusercontent.com/usdot-jpo-ode/jpo-asn-pojos/refs/heads/master/jpo-asn-jsonschema-generator/src/main/resources/schemas/RTCMcorrections/RTCMcorrectionsMessageFrame.schema.json"
+                },
+                "dataType": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "dataType",
+                "data"
+            ],
+            "type": "object"
+        }
+    },
+    "required": [
+        "metadata",
+        "payload"
+    ],
+    "type": "object"
+}

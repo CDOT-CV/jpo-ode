@@ -43,10 +43,7 @@ ode:
       value-serializer: "org.apache.kafka.common.serialization.ByteArraySerializer"
       partitioner-class: "org.apache.kafka.clients.producer.internals.DefaultPartitioner"
     disabled-topics:
-      - "topic.OdeBsmRxPojo"
-      - "topic.OdeBsmTxPojo"
-      - "topic.OdeBsmDuringEventPojo"
-      - "topic.OdeTimBroadcastPojo"
+      - ""
     topics:
       asn1:
         decoder-input: "topic.Asn1DecoderInput"
@@ -62,31 +59,15 @@ ode:
         ssm: "topic.OdeSsmJson"
         tim: "topic.OdeTimJson"
         sdsm: "topic.OdeSdsmJson"
+        rtcm: "topic.OdeRtcmJson"
+        rsm: "topic.OdeRsmJson"
         driver-alert: "topic.OdeDriverAlertJson"
-        tim-broadcast: "topic.OdeTimBroadcastJson"
         bsm-filtered: "topic.FilteredOdeBsmJson"
         spat-filtered: "topic.FilteredOdeSpatJson"
         tim-filtered: "topic.FilteredOdeTimJson"
         tim-tmc-filtered: "topic.OdeTimJsonTMCFiltered"
         tim-cert-expiration: "topic.OdeTIMCertExpirationTimeJson"
         tim-ktable: "topic.OdeTimKTableJson"
-        dn-message: "topic.OdeDNMsgJson"
-        rx-tim: "topic.OdeTimRxJson"
-        rx-spat: "topic.OdeSpatRxJson"
-        j2735-tim-broadcast: "topic.J2735TimBroadcastJson"
-      pojo:
-        bsm: "topic.OdeBsmPojo"
-        spat: "topic.OdeSpatPojo"
-        ssm: "topic.OdeSsmPojo"
-        tim-broadcast: "topic.OdeTimBroadcastPojo"
-        bsm-during-event: "topic.OdeBsmDuringEventPojo"
-        rx-bsm: "topic.OdeBsmRxPojo"
-        rx-spat: "topic.OdeSpatRxPojo"
-        tx-bsm: "topic.OdeBsmTxPojo"
-        tx-map: "topic.OdeMapTxPojo"
-        tx-psm: "topic.OdePsmTxPojo"
-        tx-spat: "topic.OdeSpatTxPojo"
-        tx-srm: "topic.OdeSrmTxPojo"
       raw-encoded-json:
         bsm: "topic.OdeRawEncodedBSMJson"
         map: "topic.OdeRawEncodedMAPJson"
@@ -96,6 +77,8 @@ ode:
         ssm: "topic.OdeRawEncodedSSMJson"
         tim: "topic.OdeRawEncodedTIMJson"
         sdsm: "topic.OdeRawEncodedSDSMJson"
+        rtcm: "topic.OdeRawEncodedRTCMJson"
+        rsm: "topic.OdeRawEncodedRSMJson"
       sdx-depositor:
         input: "topic.SDWDepositorInput"
   receivers:
@@ -126,6 +109,12 @@ ode:
     sdsm:
       buffer-size: 500
       receiver-port: 44950
+    rtcm:
+      buffer-size: 500
+      receiver-port: 44960
+    rsm:
+      buffer-size: 2000
+      receiver-port: 44970
   file-importer:
     buffer-size: 500
     backup-dir: "backup"

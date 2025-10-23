@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-ode</artifactId>
-    <version>4.1.2</version>
+    <version>5.1.0</version>
   </parent>
 
   <artifactId>jpo-ode-core</artifactId>
@@ -23,12 +25,12 @@
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-common</artifactId>
-      <version>4.1.2</version>
+      <version>5.1.0</version>
     </dependency>
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-plugins</artifactId>
-      <version>4.1.2</version>
+      <version>5.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
@@ -37,19 +39,13 @@
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpclient</artifactId>
+      <version>4.5.14</version>
     </dependency>
 
     <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.dropwizard.metrics</groupId>
-      <artifactId>metrics-graphite</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-core</artifactId>
+      <version>1.19.4</version>
     </dependency>
     <dependency>
       <groupId>org.apache.kafka</groupId>
@@ -89,6 +85,7 @@
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
+      <version>2.15.1</version>
     </dependency>
     <dependency>
       <groupId>com.networknt</groupId>
@@ -99,7 +96,7 @@
     <dependency>
       <groupId>usdot.jpo.asn</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
     </dependency>
   </dependencies>
 

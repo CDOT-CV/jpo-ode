@@ -22,6 +22,8 @@ public class UDPReceiverProperties {
   private ReceiverProperties ssm;
   private ReceiverProperties tim;
   private ReceiverProperties sdsm;
+  private ReceiverProperties rtcm;
+  private ReceiverProperties rsm;
 
   /**
    * Configuration properties for a specific receiver.

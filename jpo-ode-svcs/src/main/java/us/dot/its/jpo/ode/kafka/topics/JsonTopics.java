@@ -19,10 +19,10 @@ public class JsonTopics {
   private String ssm;
   private String tim;
   private String sdsm;
+  private String rtcm;
+  private String rsm;
 
   private String driverAlert;
-
-  private String timBroadcast;
 
   private String bsmFiltered;
   private String spatFiltered;
@@ -30,11 +30,4 @@ public class JsonTopics {
   private String timTmcFiltered;
 
   private String timCertExpiration;
-
-  private String dnMessage;
-
-  private String rxTim;
-  private String rxSpat;
-
-  private String j2735TimBroadcast;
 }

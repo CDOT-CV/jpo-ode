@@ -10,7 +10,6 @@ sleep 2s
 # add topics
 
 # BSM
-bin/kafka-topics.sh --create --topic "topic.OdeBsmPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeBsmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.FilteredOdeBsmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedBSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
@@ -18,8 +17,6 @@ bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedBSMJson" --bootstrap-se
 # TIM
 bin/kafka-topics.sh --create --topic "topic.OdeTimJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeTimJsonTMCFiltered" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeTimBroadcastJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.J2735TimBroadcastJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeTIMCertExpirationTimeJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedTIMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
@@ -29,7 +26,6 @@ bin/kafka-topics.sh --create --topic "topic.OdePsmJson" --bootstrap-server local
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedPSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # SSM
-bin/kafka-topics.sh --create --topic "topic.OdeSsmPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeSsmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedSSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
@@ -40,16 +36,19 @@ bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedSRMJson" --bootstrap-se
 
 # MAP
 bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedMAPJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeMapTxPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeMapJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # SPaT
-bin/kafka-topics.sh --create --topic "topic.OdeSpatTxPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeSpatPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.OdeSpatJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 bin/kafka-topics.sh --create --topic "topic.FilteredOdeSpatJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeSpatRxJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
-bin/kafka-topics.sh --create --topic "topic.OdeSpatRxPojo" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+
+# SDSM
+bin/kafka-topics.sh --create --topic "topic.OdeSdsmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedSDSMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+
+# RTCM
+bin/kafka-topics.sh --create --topic "topic.OdeRtcmJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
+bin/kafka-topics.sh --create --topic "topic.OdeRawEncodedRTCMJson" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
 # ASN1
 bin/kafka-topics.sh --create --topic "topic.Asn1DecoderInput" --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1

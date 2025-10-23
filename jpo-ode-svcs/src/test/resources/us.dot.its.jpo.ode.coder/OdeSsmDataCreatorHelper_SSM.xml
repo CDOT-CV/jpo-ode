@@ -21,7 +21,7 @@
       <serialNumber>0</serialNumber>
     </serialId>
     <odeReceivedAt>2024-11-11T21:42:11.755Z</odeReceivedAt>
-    <schemaVersion>7</schemaVersion>
+    <schemaVersion>9</schemaVersion>
     <maxDurationTime>0</maxDurationTime>
     <recordGeneratedAt />
     <recordGeneratedBy>RSU</recordGeneratedBy>

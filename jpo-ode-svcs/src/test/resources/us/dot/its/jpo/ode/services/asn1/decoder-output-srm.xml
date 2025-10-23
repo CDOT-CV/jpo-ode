@@ -14,14 +14,14 @@
     </encodings>
     <payloadType>us.dot.its.jpo.ode.model.OdeAsn1Payload</payloadType>
     <serialId>
-      <streamId>48e23a19-c438-4e97-a54e-150cdf10afe1</streamId>
+      <streamId>0e67caec-2774-4bb5-99b3-35bba42fa0a6</streamId>
       <bundleSize>1</bundleSize>
       <bundleId>0</bundleId>
       <recordId>0</recordId>
       <serialNumber>0</serialNumber>
     </serialId>
-    <odeReceivedAt>2024-12-10T17:35:36.923Z</odeReceivedAt>
-    <schemaVersion>8</schemaVersion>
+    <odeReceivedAt>2025-06-25T07:20:45.835Z</odeReceivedAt>
+    <schemaVersion>9</schemaVersion>
     <maxDurationTime>0</maxDurationTime>
     <recordGeneratedAt/>
     <recordGeneratedBy>OBU</recordGeneratedBy>
@@ -29,8 +29,9 @@
     <odePacketID/>
     <odeTimStartDateTime/>
     <asn1>001D2130000010090BD341080D00855C6C0C6899853000A534F7C24CB29897694759B7C000</asn1>
+    <source>RSU</source>
     <originIp>172.18.0.1</originIp>
-    <srmSource>RSU</srmSource>
+    <isCertPresent>false</isCertPresent>
   </metadata>
   <payload>
     <dataType>MessageFrame</dataType>

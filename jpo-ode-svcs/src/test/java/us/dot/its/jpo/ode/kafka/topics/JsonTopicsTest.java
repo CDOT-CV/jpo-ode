@@ -54,13 +54,23 @@ class JsonTopicsTest {
     }
 
     @Test
-    void getDriverAlert() {
-        assertEquals("topic.OdeDriverAlertJson", jsonTopics.getDriverAlert());
+    void getSdsm() {
+        assertEquals("topic.OdeSdsmJson", jsonTopics.getSdsm());
     }
 
     @Test
-    void getTimBroadcast() {
-        assertEquals("topic.OdeTimBroadcastJson", jsonTopics.getTimBroadcast());
+    void getRtcm() {
+        assertEquals("topic.OdeRtcmJson", jsonTopics.getRtcm());
+    }
+
+    @Test
+    void getRsm() {
+        assertEquals("topic.OdeRsmJson", jsonTopics.getRsm());
+    }
+
+    @Test
+    void getDriverAlert() {
+        assertEquals("topic.OdeDriverAlertJson", jsonTopics.getDriverAlert());
     }
 
     @Test
@@ -86,25 +96,5 @@ class JsonTopicsTest {
     @Test
     void getTimCertExpiration() {
         assertEquals("topic.OdeTIMCertExpirationTimeJson", jsonTopics.getTimCertExpiration());
-    }
-
-    @Test
-    void getDnMessage() {
-        assertEquals("topic.OdeDNMsgJson", jsonTopics.getDnMessage());
-    }
-
-    @Test
-    void getRxTim() {
-        assertEquals("topic.OdeTimRxJson", jsonTopics.getRxTim());
-    }
-
-    @Test
-    void getRxSpat() {
-        assertEquals("topic.OdeSpatRxJson", jsonTopics.getRxSpat());
-    }
-
-    @Test
-    void getJ2735TimBroadcast() {
-        assertEquals("topic.J2735TimBroadcastJson", jsonTopics.getJ2735TimBroadcast());
     }
 }

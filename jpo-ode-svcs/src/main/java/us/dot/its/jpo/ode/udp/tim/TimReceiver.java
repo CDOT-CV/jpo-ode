@@ -43,19 +43,15 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
     log.debug("TIM UDP Receiver Service started.");
 
     byte[] buffer = new byte[bufferSize];
-
     DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
-
     do {
       try {
         log.debug("Waiting for UDP TIM packets...");
         socket.receive(packet);
         if (packet.getLength() > 0) {
-
-          var tim = UdpHexDecoder.buildTimFromPacket(packet);
-          var timJson = tim.toJson();
-          if (timJson != null) {
-            timPublisher.send(publishTopic, tim.getMetadata().getSerialId().toString(), timJson);
+          String timData = UdpHexDecoder.buildJsonTimFromPacket(packet);
+          if (timData != null) {
+            timPublisher.send(publishTopic, timData);
           }
         }
       } catch (InvalidPayloadException e) {

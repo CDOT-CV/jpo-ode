@@ -16,11 +16,7 @@
 
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage;
-import us.dot.its.jpo.ode.plugin.j2735.travelerinformation.TravelerInformation;
 
 /**
  * ODE TIM payload class for both J2735 TravelerInformation and ODE 
@@ -35,12 +31,6 @@ public class OdeTimPayload extends OdeMsgPayload<OdeObject> {
   }
 
   public OdeTimPayload(OdeTravelerInformationMessage tim) {
-    super(tim);
-    this.setData(tim);
-  }
-
-  @JsonCreator
-  public OdeTimPayload(@JsonProperty("data") TravelerInformation tim) {
     super(tim);
     this.setData(tim);
   }

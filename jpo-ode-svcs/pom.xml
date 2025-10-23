@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-ode</artifactId>
-    <version>4.1.2</version>
+    <version>5.1.0</version>
   </parent>
   <artifactId>jpo-ode-svcs</artifactId>
   <packaging>jar</packaging>
@@ -32,10 +34,10 @@
       <scope>test</scope>
       <exclusions>
         <exclusion>
-            <groupId>com.vaadin.external.google</groupId>
-            <artifactId>android-json</artifactId>
+          <groupId>com.vaadin.external.google</groupId>
+          <artifactId>android-json</artifactId>
         </exclusion>
-    </exclusions>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -46,9 +48,9 @@
       <artifactId>spring-boot-starter-data-rest</artifactId>
     </dependency>
     <dependency>
-    <groupId>jakarta.xml.bind</groupId>
-    <artifactId>jakarta.xml.bind-api</artifactId>
-    <version>4.0.0</version>
+      <groupId>jakarta.xml.bind</groupId>
+      <artifactId>jakarta.xml.bind-api</artifactId>
+      <version>4.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -90,10 +92,6 @@
       <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <version>3.0.0</version>
@@ -103,7 +101,7 @@
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>webjars-locator</artifactId>
-       <version>0.40</version>
+      <version>0.40</version>
     </dependency>
     <dependency>
       <groupId>org.webjars</groupId>
@@ -118,6 +116,7 @@
     <dependency>
       <groupId>org.webjars</groupId>
       <artifactId>jquery</artifactId>
+      <version>3.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.webjars</groupId>
@@ -128,12 +127,12 @@
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-core</artifactId>
-      <version>4.1.2</version>
+      <version>5.1.0</version>
     </dependency>
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-plugins</artifactId>
-      <version>4.1.2</version>
+      <version>5.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -150,9 +149,9 @@
       <version>2.1.1</version>
     </dependency>
     <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId>
-        <version>1.3.2</version>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>1.3.2</version>
     </dependency>
     <dependency>
       <groupId>com.networknt</groupId>
@@ -163,13 +162,23 @@
     <dependency>
       <groupId>usdot.jpo.asn</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.0</version>
     </dependency>
     <dependency>
       <groupId>net.javacrumbs.json-unit</groupId>
       <artifactId>json-unit</artifactId>
       <version>4.1.0</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.18.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.14.0</version>
     </dependency>
   </dependencies>
   <build>
@@ -179,17 +188,19 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <executions>
-                <execution>
-                    <id>build-info</id>
-                    <goals>
-                        <goal>build-info</goal>
-                    </goals>
-                </execution>
-            </executions>
+          <execution>
+            <id>build-info</id>
+            <goals>
+              <goal>build-info</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
+
     </plugins>
   </build>
-  <!-- profile to output only source code and not include any spring boot dependencies in published jar -->
+  <!-- profile to output only source code and not include any spring boot dependencies in published
+  jar -->
   <profiles>
     <profile>
       <id>package-jar</id>

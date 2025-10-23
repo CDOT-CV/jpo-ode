@@ -11,7 +11,9 @@ public enum SupportedMessageType {
     SRM("001d"),
     MAP("0012"),
     PSM("0020"),
-    SDSM("0029");
+    SDSM("0029"),
+    RTCM("001c"),
+    RSM("0021");
 
     private final String startFlag;
 

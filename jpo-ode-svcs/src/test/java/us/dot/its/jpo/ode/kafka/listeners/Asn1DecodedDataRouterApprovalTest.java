@@ -1,7 +1,5 @@
 package us.dot.its.jpo.ode.kafka.listeners;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,13 +27,11 @@ import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.listeners.asn1.Asn1DecodedDataRouter;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
-import us.dot.its.jpo.ode.kafka.topics.PojoTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.model.OdeMapData;
+import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
-import us.dot.its.jpo.ode.util.JsonUtils;
 
 @Slf4j
 @SpringBootTest(
@@ -49,23 +45,18 @@ import us.dot.its.jpo.ode.util.JsonUtils;
     },
     properties = {
         "ode.kafka.topics.asn1.decoder-output=topic.Asn1DecoderOutputRouterApprovalTest",
-        "ode.kafka.topics.pojo.tx-map=topic.OdeMapTxPojoRouterApprovalTest",
         "ode.kafka.topics.json.map=topic.OdeMapJsonRouterApprovalTest"
     })
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
     UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class,
-    PojoTopics.class, JsonTopics.class
+    RawEncodedJsonTopics.class, KafkaProperties.class, JsonTopics.class
 })
 @DirtiesContext
 class Asn1DecodedDataRouterApprovalTest {
 
   @Value("${ode.kafka.topics.asn1.decoder-output}")
   private String decoderOutputTopic;
-
-  @Value("${ode.kafka.topics.pojo.tx-map}")
-  private String txMapTopic;
 
   @Value("${ode.kafka.topics.json.map}")
   private String jsonMapTopic;
@@ -77,12 +68,8 @@ class Asn1DecodedDataRouterApprovalTest {
 
   @Test
   void testAsn1DecodedDataRouter_MAPDataFlow() throws IOException {
-    String[] topics = {decoderOutputTopic, txMapTopic, jsonMapTopic};
+    String[] topics = {decoderOutputTopic, jsonMapTopic};
     EmbeddedKafkaHolder.addTopics(topics);
-
-    @SuppressWarnings("checkstyle:linelength")
-    List<ApprovalTestCase> testCases = ApprovalTestCase.deserializeTestCases(
-        "src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapTxPojo.json");
 
     Map<String, Object> consumerProps =
         KafkaTestUtils.consumerProps("testT", "false", embeddedKafka);
@@ -90,24 +77,7 @@ class Asn1DecodedDataRouterApprovalTest {
         new DefaultKafkaConsumerFactory<>(consumerProps);
 
     Consumer<Integer, String> consumer = cf.createConsumer();
-    embeddedKafka.consumeFromEmbeddedTopics(consumer, txMapTopic, jsonMapTopic);
-
-    for (ApprovalTestCase testCase : testCases) {
-      producer.send(decoderOutputTopic, testCase.getInput());
-
-      String received = KafkaTestUtils.getSingleRecord(consumer, txMapTopic).value();
-      ObjectMapper mapper = new ObjectMapper();
-      OdeMapData receivedMapData = mapper.readValue(received, OdeMapData.class);
-      OdeMapData expectedMapData = mapper.readValue(testCase.getExpected(), OdeMapData.class);
-
-      assertThat("Failed test case: " + testCase.getDescription(),
-          JsonUtils.toJson(receivedMapData, false), 
-          jsonEquals(JsonUtils.toJson(expectedMapData, false))
-          .withTolerance(0.0001));
-      
-      // discard the JSON output
-      KafkaTestUtils.getSingleRecord(consumer, jsonMapTopic);
-    }
+    embeddedKafka.consumeFromEmbeddedTopics(consumer, jsonMapTopic);
 
     @SuppressWarnings("checkstyle:linelength")
     List<ApprovalTestCase> jsonTestCases = ApprovalTestCase.deserializeTestCases(
@@ -118,8 +88,8 @@ class Asn1DecodedDataRouterApprovalTest {
 
       String received = KafkaTestUtils.getSingleRecord(consumer, jsonMapTopic).value();
       ObjectMapper mapper = new ObjectMapper();
-      OdeMapData receivedMapData = mapper.readValue(received, OdeMapData.class);
-      OdeMapData expectedMapData = mapper.readValue(testCase.getExpected(), OdeMapData.class);
+      OdeMessageFrameData receivedMapData = mapper.readValue(received, OdeMessageFrameData.class);
+      OdeMessageFrameData expectedMapData = mapper.readValue(testCase.getExpected(), OdeMessageFrameData.class);
       assertEquals(expectedMapData.toJson(), receivedMapData.toJson(),
           "Failed test case: " + testCase.getDescription());
     }

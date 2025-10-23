@@ -1,22 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.1.3</version>
+    <version>3.5.4</version>
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
 
   <scm>
     <developerConnection>scm:git:https://github.com/usdot-jpo-ode/jpo-ode.git</developerConnection>
-    <tag>jpo-ode-4.1.1</tag>
+    <tag>jpo-ode-5.1.0</tag>
   </scm>
 
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>4.1.2</version>
+  <version>5.1.0</version>
   <packaging>pom</packaging>
   <modules>
     <module>jpo-ode-common</module>
@@ -79,10 +81,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter-api</artifactId>
-        <version>5.9.3</version>
-        <scope>test</scope>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter-api</artifactId>
+      <version>5.12.2</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.projectlombok</groupId>
@@ -107,7 +109,7 @@
       <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-dependencies</artifactId>
-        <version>Camden.SR1</version>
+        <version>2025.0.0</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -149,7 +151,8 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.2.5</version>
           <configuration>
-            <argLine>-javaagent:${user.home}/.m2/repository/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar -Xshare:off</argLine>
+            <argLine>-javaagent:${user.home}/.m2/repository/org/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+              -Xshare:off</argLine>
             <!-- <testFailureIgnore>true</testFailureIgnore> -->
             <systemPropertyVariables>
               <loader.path>${loader.path}</loader.path>
@@ -161,7 +164,7 @@
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-surefire-plugin</artifactId>
               <version>3.2.5</version>
-          </dependency>
+            </dependency>
           </dependencies>
         </plugin>
         <plugin>
@@ -192,6 +195,7 @@
             </execution>
           </executions>
         </plugin>
+
       </plugins>
     </pluginManagement>
   </build>

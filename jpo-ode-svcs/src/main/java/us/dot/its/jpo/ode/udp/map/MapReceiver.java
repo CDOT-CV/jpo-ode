@@ -20,7 +20,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @Slf4j
 public class MapReceiver extends AbstractUdpReceiverPublisher {
 
-  KafkaTemplate<String, String> kafkaTemplate;
+  private final KafkaTemplate<String, String> mapPublisher;
   private final String publishTopic;
 
   /**
@@ -36,7 +36,8 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
   public MapReceiver(UDPReceiverProperties.ReceiverProperties receiverProperties,
       KafkaTemplate<String, String> kafkaTemplate, String publishTopic) {
     super(receiverProperties.getReceiverPort(), receiverProperties.getBufferSize());
-    this.kafkaTemplate = kafkaTemplate;
+
+    this.mapPublisher = kafkaTemplate;
     this.publishTopic = publishTopic;
   }
 
@@ -51,12 +52,10 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
         log.debug("Waiting for UDP Map packets...");
         socket.receive(packet);
         if (packet.getLength() > 0) {
-          String mapJson = UdpHexDecoder.buildJsonMapFromPacket(packet);
-          if (mapJson != null) {
-            kafkaTemplate.send(publishTopic, mapJson);
+          String mapData = UdpHexDecoder.buildJsonMapFromPacket(packet);
+          if (mapData != null) {
+            mapPublisher.send(publishTopic, mapData);
           }
-        } else {
-          log.debug("Ignoring empty packet from {}", packet.getSocketAddress());
         }
       } catch (InvalidPayloadException e) {
         log.error("Error decoding packet", e);
