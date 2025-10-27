@@ -60,7 +60,7 @@ public class InterceptingKafkaTemplate<K, V> extends KafkaTemplate<K, V> {
   protected CompletableFuture<SendResult<K, V>> doSend(
       final ProducerRecord<K, V> producerRecord,
       @NonNull Observation observation) {
-    if (disabledTopics.contains(producerRecord.topic())) {
+    if (disabledTopics != null && disabledTopics.contains(producerRecord.topic())) {
       log.debug("Blocked attempt to send data to disabled topic {}", producerRecord.topic());
       return new CompletableFuture<>();
     }

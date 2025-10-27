@@ -35,22 +35,12 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
-    properties = {
-        "ode.receivers.bsm.receiver-port=15352",
-        "ode.kafka.topics.raw-encoded-json.bsm=topic.BsmReceiverTest"
-    }
-)
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, },
+    properties = {"ode.receivers.bsm.receiver-port=15352",
+        "ode.kafka.topics.raw-encoded-json.bsm=topic.BsmReceiverTest"})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class BsmReceiverTest {
 
@@ -69,25 +59,23 @@ class BsmReceiverTest {
   void testRun() throws Exception {
     EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getBsm());
 
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
     // create the BsmReceiver and submit it to a runner
     BsmReceiver bsmReceiver = new BsmReceiver(udpReceiverProperties.getBsm(), kafkaTemplate,
         rawEncodedJsonTopics.getBsm());
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(bsmReceiver);
 
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
+    String fileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
     String expected = Files.readString(Paths.get(
         "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getBsm().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "BsmReceiverTest", "true", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps("BsmReceiverTest", "true", embeddedKafka);
     DefaultKafkaConsumerFactory<Integer, String> cf =
         new DefaultKafkaConsumerFactory<>(consumerProps);
     Consumer<Integer, String> consumer = cf.createConsumer();
@@ -95,20 +83,20 @@ class BsmReceiverTest {
 
     // read record from produce topic
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
-    // confirm the stream-id is different, then remove it from both so that we can test equality of all other fields
+    // confirm the stream-id is different, then remove it from both so that we can test equality
+    // of all other fields
     assertNotEquals(expected, singleRecord.value());
     JSONObject producedJson = new JSONObject(singleRecord.value());
     JSONObject expectedJson = new JSONObject(expected);
 
-    // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
+    // assert that the UUIDs are different, then remove them so that the rest of the JSON can be
+    // compared
     assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
         producedJson.getJSONObject("metadata").get("serialId"));
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(
-        expectedJson.toString(2),
-        producedJson.toString(2));
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
 
     DateTimeUtils.setClock(prevClock);
   }

@@ -157,9 +157,6 @@ class KafkaProducerConfigTest {
       odeKafkaProperties.setProducer(new Producer());
       var uniqueSuffix = UUID.randomUUID().toString().substring(0, 4);
       odeKafkaProperties.setDisabledTopics(Set.of(
-          "topic.OdeBsmRxPojo" + uniqueSuffix,
-          "topic.OdeBsmTxPojo" + uniqueSuffix,
-          "topic.OdeBsmDuringEventPojo" + uniqueSuffix,
           "topic.OdeTimBroadcastPojo" + uniqueSuffix));
 
       return odeKafkaProperties;

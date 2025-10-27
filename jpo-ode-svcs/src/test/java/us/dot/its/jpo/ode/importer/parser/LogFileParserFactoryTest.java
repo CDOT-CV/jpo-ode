@@ -88,10 +88,11 @@ class LogFileParserFactoryTest {
     // Act
     LogFileParser result = LogFileParserFactory.getLogFileParser(fileName);
 
-    // Assert
+    // Assert is a SpatLogFileParser but with record type set to rxMsg
+    // since all SPaT message logs are OBU recorded received messages and not recorded transmitted messages.
     assertNotNull(result);
     assertInstanceOf(SpatLogFileParser.class, result);
-    assertEquals(OdeLogMetadata.RecordType.spatTx, result.getRecordType());
+    assertEquals(OdeLogMetadata.RecordType.rxMsg, result.getRecordType());
   }
 
   @Test

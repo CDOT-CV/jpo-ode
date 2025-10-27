@@ -26,9 +26,9 @@ import java.io.IOException;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import us.dot.its.jpo.ode.importer.parser.BsmLogFileParser.BsmSource;
 import us.dot.its.jpo.ode.importer.parser.FileParser.FileParserException;
 import us.dot.its.jpo.ode.importer.parser.FileParser.ParserStatus;
-import us.dot.its.jpo.ode.model.OdeBsmMetadata.BsmSource;
 import us.dot.its.jpo.ode.model.OdeLogMetadata;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.SecurityResultCode;
 import us.dot.its.jpo.ode.util.CodecUtils;
@@ -184,7 +184,7 @@ class BsmFileParserTest {
 
     int testDirection = 111;
     ParserStatus expectedStatus = ParserStatus.FILE_PARSING_COMPLETE;
-    BsmSource expectedDirection = BsmSource.unknown;
+    BsmSource expectedDirection = BsmSource.UNKNOWN;
     int expectedStep = 2;
 
     BufferedInputStream testInputStream = new BufferedInputStream(

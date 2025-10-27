@@ -1,0 +1,106 @@
+package us.dot.its.jpo.ode.udp.rsm;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.json.JSONObject;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
+import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
+import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
+import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
+import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
+import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
+import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
+import us.dot.its.jpo.ode.util.DateTimeUtils;
+
+/**
+ * Unit test for the RsmReceiver class, verifying UDP reception, Kafka publishing and output.
+ */
+@EnableConfigurationProperties
+@SpringBootTest(
+    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class, },
+    properties = {"ode.receivers.rsm.receiver-port=12759",
+        "ode.kafka.topics.raw-encoded-json.rsm=topic.RsmReceiverTest"})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+@DirtiesContext
+public class RsmReceiverTest {
+
+  @Autowired
+  UDPReceiverProperties udpReceiverProperties;
+
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
+
+  @Autowired
+  KafkaTemplate<String, String> kafkaTemplate;
+
+  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+
+  @Test
+  void testRun() throws Exception {
+    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getRsm());
+
+    final Clock prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    // create the RsmReceiver and submit it to a runner
+    RsmReceiver rsmReceiver = new RsmReceiver(udpReceiverProperties.getRsm(), kafkaTemplate,
+        rawEncodedJsonTopics.getRsm());
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    executorService.submit(rsmReceiver);
+
+    String fileContent = Files.readString(
+        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM.txt"));
+    String expected = Files.readString(Paths.get(
+        "src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM_expected.json"));
+
+    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRsm().getReceiverPort());
+    udpClient.send(fileContent);
+
+    var consumerProps = KafkaTestUtils.consumerProps("RsmReceiverTest", "true", embeddedKafka);
+    DefaultKafkaConsumerFactory<Integer, String> cf =
+        new DefaultKafkaConsumerFactory<>(consumerProps);
+    Consumer<Integer, String> consumer = cf.createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getRsm());
+
+    // read record from produce topic
+    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getRsm());
+    // confirm the stream-id is different, then remove it from both so that we can test equality
+    // of all other fields
+    assertNotEquals(expected, singleRecord.value());
+    JSONObject producedJson = new JSONObject(singleRecord.value());
+    JSONObject expectedJson = new JSONObject(expected);
+
+    // assert that the UUIDs are different, then remove them so that the rest of the JSON can be
+    // compared
+    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+        producedJson.getJSONObject("metadata").get("serialId"));
+    expectedJson.getJSONObject("metadata").remove("serialId");
+    producedJson.getJSONObject("metadata").remove("serialId");
+
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
+
+    DateTimeUtils.setClock(prevClock);
+  }
+}

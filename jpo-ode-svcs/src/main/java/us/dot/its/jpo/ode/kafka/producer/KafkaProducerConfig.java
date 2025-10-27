@@ -15,9 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.XMLOdeObjectSerializer;
-import us.dot.its.jpo.ode.model.OdeBsmData;
 import us.dot.its.jpo.ode.model.OdeObject;
-import us.dot.its.jpo.ode.wrapper.serdes.MessagingSerializer;
 
 /**
  * KafkaProducerConfig is a configuration class for setting up Kafka producers
@@ -155,52 +153,6 @@ public class KafkaProducerConfig {
         this.odeKafkaProperties.getDisabledTopics(), meterRegistry, objectMapper);
     template.setProducerListener(new LoggingProducerListener<>());
 
-    return template;
-  }
-
-  /**
-   * Creates a Kafka ProducerFactory configured for producing messages with String
-   * keys and
-   * OdeBsmData values. This factory utilizes the provided producer properties,
-   * along with specific
-   * serializers for the key and value types.
-   *
-   * @return a ProducerFactory instance configured for handling String keys and
-   *         OdeBsmData values
-   *         with the necessary serialization settings and application-specific
-   *         properties.
-   */
-  @Bean
-  public ProducerFactory<String, OdeBsmData> odeBsmProducerFactory() {
-    return new DefaultKafkaProducerFactory<>(buildProducerProperties(),
-        new StringSerializer(), new MessagingSerializer<>());
-  }
-
-  /**
-   * Creates a KafkaTemplate specifically configured for handling messages with
-   * String keys and
-   * OdeBsmData values. This KafkaTemplate incorporates a
-   * {@link InterceptingKafkaTemplate} to block
-   * messages being sent to disabled topics and a LoggingProducerListener for
-   * logging producer
-   * activity.
-   *
-   * @param producerFactory the ProducerFactory used to create Kafka producers for
-   *                        sending messages
-   *                        with String keys and OdeBsmData values. Configures the
-   *                        necessary
-   *                        serializers and properties.
-   * @return a KafkaTemplate instance configured for publishing messages to Kafka
-   *         topics with String
-   *         keys and OdeBsmData values, ensuring proper handling of disabled
-   *         topics and logging.
-   */
-  @Bean
-  public KafkaTemplate<String, OdeBsmData> odeBsmKafkaTemplate(
-      ProducerFactory<String, OdeBsmData> producerFactory, ObjectMapper objectMapper) {
-    var template = new InterceptingKafkaTemplate<>(producerFactory,
-        this.odeKafkaProperties.getDisabledTopics(), meterRegistry, objectMapper);
-    template.setProducerListener(new LoggingProducerListener<>());
     return template;
   }
 
