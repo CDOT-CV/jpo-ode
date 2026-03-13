@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735HumanPropelledType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735AnimalPropelledType;
@@ -19,17 +19,17 @@ public class PropelledInformationBuilder {
 
         JsonNode human = propelledInformation.get("human");
         if (human != null){
-			pi.setHuman(J2735HumanPropelledType.valueOf(human.asText().toUpperCase()));
+			pi.setHuman(J2735HumanPropelledType.valueOf(human.asString().toUpperCase()));
         }
 
         JsonNode animal = propelledInformation.get("animal");
         if (animal != null){
-			pi.setAnimal(J2735AnimalPropelledType.valueOf(animal.asText().toUpperCase()));
+			pi.setAnimal(J2735AnimalPropelledType.valueOf(animal.asString().toUpperCase()));
         }
 
         JsonNode motor = propelledInformation.get("motor");
         if (motor != null){
-			pi.setMotor(J2735MotorizedPropelledType.valueOf(motor.asText().toUpperCase()));
+			pi.setMotor(J2735MotorizedPropelledType.valueOf(motor.asString().toUpperCase()));
         }
 
         return pi;

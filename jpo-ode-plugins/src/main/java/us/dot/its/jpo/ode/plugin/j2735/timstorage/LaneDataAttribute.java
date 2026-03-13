@@ -4,13 +4,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * LaneDataAttribute.
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class LaneDataAttribute extends Asn1Object {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   //-- adjusts final point/width slant
   //-- of the lane to align with the stop line

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735PositionConfidenceSet;
 import us.dot.its.jpo.ode.plugin.j2735.J2735PositionConfidenceSet.J2735ElevationConfidence;
@@ -48,8 +48,8 @@ public class PositionConfidenceSetBuilder {
 
         J2735PositionConfidenceSet pc = new J2735PositionConfidenceSet();
         
-        pc.setPos(J2735PositionConfidence.valueOf(posConfidence.get(POS).asText().replaceAll("-", "_").toUpperCase()));
-        pc.setElevation(J2735ElevationConfidence.valueOf(posConfidence.get(ELEVATION).asText().replaceAll("-", "_").toUpperCase()));
+        pc.setPos(J2735PositionConfidence.valueOf(posConfidence.get(POS).asString().replaceAll("-", "_").toUpperCase()));
+        pc.setElevation(J2735ElevationConfidence.valueOf(posConfidence.get(ELEVATION).asString().replaceAll("-", "_").toUpperCase()));
         
         return pc;
     }

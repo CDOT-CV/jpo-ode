@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BasicVehicleRole;
 import us.dot.its.jpo.ode.plugin.j2735.J2735FuelType;
@@ -44,7 +44,7 @@ public class VehicleClassificationBuilder {
          int keyType = kt.asInt();
 
          if (keyType < VEH_CLASS_LOWER_BOUND || VEH_CLASS_UPPER_BOUND < keyType) {
-            throw new IllegalArgumentException(String.format("Basic vehicle classification out of bounds [%d..%d]",
+            throw new IllegalArgumentException("Basic vehicle classification out of bounds [%d..%d]".formatted(
                   VEH_CLASS_LOWER_BOUND, VEH_CLASS_UPPER_BOUND));
          }
 
@@ -53,7 +53,7 @@ public class VehicleClassificationBuilder {
 
       JsonNode role = vc.get("role");
       if (role != null) {
-         gvc.setRole(J2735BasicVehicleRole.valueOf(role.fieldNames().next()));
+         gvc.setRole(J2735BasicVehicleRole.valueOf(role.propertyNames().iterator().next()));
       }
 
       JsonNode iso3883 = vc.get("iso3883");
@@ -63,7 +63,7 @@ public class VehicleClassificationBuilder {
 
       JsonNode hpmsType = vc.get("hpmsType");
       if (hpmsType != null) {
-         gvc.setHpmsType(J2735VehicleType.valueOf(hpmsType.fieldNames().next()));
+         gvc.setHpmsType(J2735VehicleType.valueOf(hpmsType.propertyNames().iterator().next()));
       }
 
       JsonNode vehicleType = vc.get("vehicleType");
@@ -79,7 +79,7 @@ public class VehicleClassificationBuilder {
       JsonNode responderType = vc.get("responderType");
       if (responderType != null) {
          gvc.setResponderType(J2735ResponderGroupAffected
-               .valueOf(responderType.fieldNames().next().toLowerCase().replaceAll("-", "_")));
+               .valueOf(responderType.propertyNames().iterator().next().toLowerCase().replaceAll("-", "_")));
       }
 
       JsonNode ft = vc.get("fuelType");
@@ -88,7 +88,7 @@ public class VehicleClassificationBuilder {
          int fuelType = ft.asInt();
 
          if (fuelType < FUEL_TYPE_LOWER_BOUND || FUEL_TYPE_UPPER_BOUND < fuelType) {
-            throw new IllegalArgumentException(String.format("Fuel type value out of bounds [%d..%d]",
+            throw new IllegalArgumentException("Fuel type value out of bounds [%d..%d]".formatted(
                   FUEL_TYPE_LOWER_BOUND, FUEL_TYPE_UPPER_BOUND));
          }
 

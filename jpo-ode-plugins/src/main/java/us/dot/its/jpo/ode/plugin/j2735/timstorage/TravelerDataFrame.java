@@ -23,6 +23,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * Traveler data frame.
  */
@@ -32,7 +34,7 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class TravelerDataFrame extends Asn1Object {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
   @JsonAlias({"sspTimRights", "notUsed"})
   private String doNotUse1;
   private FrameType frameType;

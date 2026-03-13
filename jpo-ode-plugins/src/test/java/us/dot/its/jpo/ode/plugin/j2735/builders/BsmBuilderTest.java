@@ -16,7 +16,7 @@
 
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735DisabledVehicle;
 
@@ -36,14 +36,14 @@ public class DisabledVehicleBuilder {
       if (STATUS_DETAILS_LOWER_BOUND <= status && status <= STATUS_DETAILS_UPPER_BOUND) {
          gstatus.setStatusDetails(status);
       } else {
-         throw new IllegalArgumentException(String.format("Status Details out of bounds [%d,%d], %d",
+         throw new IllegalArgumentException("Status Details out of bounds [%d,%d], %d".formatted(
                STATUS_DETAILS_LOWER_BOUND, STATUS_DETAILS_UPPER_BOUND, status));
       }
 
       // Optional element
       JsonNode locationDetails = disabledVehicle.get("locationDetails");
       if (locationDetails != null) {
-         gstatus.setLocationDetails(NamedNumberBuilder.genericNamedNumber(locationDetails.asText()));
+         gstatus.setLocationDetails(NamedNumberBuilder.genericNamedNumber(locationDetails.asString()));
       }
 
       return gstatus;

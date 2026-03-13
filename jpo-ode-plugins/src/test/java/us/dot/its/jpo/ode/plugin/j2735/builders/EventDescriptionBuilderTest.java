@@ -26,8 +26,8 @@ import java.lang.reflect.Modifier;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import mockit.Capturing;
 import us.dot.its.jpo.ode.plugin.j2735.J2735BitString;

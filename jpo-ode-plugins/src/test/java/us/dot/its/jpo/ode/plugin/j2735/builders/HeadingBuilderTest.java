@@ -22,11 +22,11 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.util.JsonUtils;
 
@@ -41,7 +41,7 @@ public class HeadingBuilderTest {
     * Test that minimum coarse heading (0) returns correct heading angle (0.0)
     */
    @Test
-   public void shouldReturnCoarseHeadingMin() throws JsonProcessingException, IOException{
+   public void shouldReturnCoarseHeadingMin() throws JacksonException, IOException{
       
        BigDecimal expectedValue = BigDecimal.ZERO.setScale(1);
 
@@ -55,7 +55,7 @@ public class HeadingBuilderTest {
     * Test that maximum coarse heading (239) returns correct heading angle (358.5)
     */
    @Test
-   public void shouldReturnCoarseHeadingMax() throws JsonProcessingException, IOException{
+   public void shouldReturnCoarseHeadingMax() throws JacksonException, IOException{
        ObjectMapper mapper = new ObjectMapper();
        
        BigDecimal expectedValue = BigDecimal.valueOf(358.5);
@@ -70,7 +70,7 @@ public class HeadingBuilderTest {
     * Test that undefined coarse heading flag (240) returns (null)
     */
    @Test
-   public void shouldReturnCoarseHeadingUndefined() throws JsonProcessingException, IOException{
+   public void shouldReturnCoarseHeadingUndefined() throws JacksonException, IOException{
        ObjectMapper mapper = new ObjectMapper();
        BigDecimal expectedValue = null;
 
@@ -85,7 +85,7 @@ public class HeadingBuilderTest {
     * Test that known coarse heading (11) returns (16.5)
     */
    @Test
-   public void shouldReturnCoarseHeadingKnown() throws JsonProcessingException, IOException{
+   public void shouldReturnCoarseHeadingKnown() throws JacksonException, IOException{
       ObjectMapper mapper = new ObjectMapper();
        
        BigDecimal expectedValue = BigDecimal.valueOf(16.5);
@@ -101,7 +101,7 @@ public class HeadingBuilderTest {
     * Test that a coarse heading greater than 240 throws exception
     */
    @Test
-   public void shouldThrowExceptionHeadingOutOfBoundsHigh() throws JsonProcessingException, IOException{
+   public void shouldThrowExceptionHeadingOutOfBoundsHigh() throws JacksonException, IOException{
       ObjectMapper mapper = new ObjectMapper();
       
        JsonNode testHeading = mapper.readTree("241");
@@ -119,7 +119,7 @@ public class HeadingBuilderTest {
     * Test that a coarse heading less than 0 throws exception
     */
    @Test
-   public void shouldThrowExceptionHeadingOutOfBoundsLow() throws JsonProcessingException, IOException{
+   public void shouldThrowExceptionHeadingOutOfBoundsLow() throws JacksonException, IOException{
       ObjectMapper mapper = new ObjectMapper();
       
        JsonNode testHeading = mapper.readTree("-1");

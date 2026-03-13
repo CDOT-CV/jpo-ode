@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BitString;
 import us.dot.its.jpo.ode.plugin.j2735.J2735EventDescription;
@@ -52,7 +52,7 @@ public class EventDescriptionBuilder {
       
       JsonNode p = description.get("priority");
       if (p != null) {
-         desc.setPriority(p.asText());
+         desc.setPriority(p.asString());
       }
       
       JsonNode h = description.get("heading");
@@ -63,18 +63,18 @@ public class EventDescriptionBuilder {
       
       JsonNode e = description.get("extent");
       if (e != null) {
-         desc.setExtent(J2735Extent.valueOf(e.asText().replaceAll("-", "_").toUpperCase()));
+         desc.setExtent(J2735Extent.valueOf(e.asString().replaceAll("-", "_").toUpperCase()));
       }
 
       JsonNode regional = description.get("regional");
       if (regional != null && regional.isArray()) {
-          Iterator<JsonNode> elements = regional.elements();
+          Iterator<JsonNode> elements = regional.values().iterator();
 
           while (elements.hasNext()) {
              JsonNode element = elements.next();
 
              desc.getRegional().add(new J2735RegionalContent().setId(element.get("regionId").asInt())
-                   .setValue(CodecUtils.fromHex(element.get("regExtValue").asText())));
+                   .setValue(CodecUtils.fromHex(element.get("regExtValue").asString())));
           }
       }
 
@@ -87,7 +87,7 @@ public class EventDescriptionBuilder {
 
       if (description.isArray()) {
 
-         Iterator<JsonNode> iter = description.elements();
+         Iterator<JsonNode> iter = description.values().iterator();
 
          while (iter.hasNext()) {
             desc.add(iter.next().asInt());

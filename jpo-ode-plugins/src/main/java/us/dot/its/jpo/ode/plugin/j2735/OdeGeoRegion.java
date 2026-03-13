@@ -16,6 +16,7 @@
 package us.dot.its.jpo.ode.plugin.j2735;
 
 import java.awt.geom.Point2D;
+import java.io.Serial;
 import java.math.BigDecimal;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -25,7 +26,7 @@ import us.dot.its.jpo.ode.model.OdeObject;
 public class OdeGeoRegion extends OdeObject{
    public class GeoRegionException extends Exception {
 
-      private static final long serialVersionUID = 1L;
+      @Serial private static final long serialVersionUID = 1L;
 
       public GeoRegionException(String string) {
          super(string);
@@ -33,7 +34,7 @@ public class OdeGeoRegion extends OdeObject{
 
    }
 
-   private static final long serialVersionUID = 6646494196808253598L;
+   @Serial private static final long serialVersionUID = 6646494196808253598L;
 
    private OdePosition3D nwCorner;
    private OdePosition3D seCorner;

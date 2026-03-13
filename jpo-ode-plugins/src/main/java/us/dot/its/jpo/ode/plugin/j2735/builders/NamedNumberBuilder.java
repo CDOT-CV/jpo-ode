@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735NamedNumber;
 
@@ -37,7 +37,7 @@ public class NamedNumberBuilder {
     public static J2735NamedNumber genericGenericLocations(JsonNode genericLocations) {
         J2735NamedNumber gnn = new J2735NamedNumber();
 
-        gnn.setName(genericLocations.fieldNames().next());
+        gnn.setName(genericLocations.propertyNames().iterator().next());
         // value not needed for ASN1c encoder
         gnn.setValue(null);
         return gnn;
@@ -46,7 +46,7 @@ public class NamedNumberBuilder {
     public static J2735NamedNumber genericIncidentResponseEquipment(JsonNode incidentResponseEquipment) {
         J2735NamedNumber gnn = new J2735NamedNumber();
 
-        gnn.setName(incidentResponseEquipment.fieldNames().next());
+        gnn.setName(incidentResponseEquipment.propertyNames().iterator().next());
         // value not needed for ASN1c encoder
         gnn.setValue(null);
         return gnn;
@@ -55,7 +55,7 @@ public class NamedNumberBuilder {
     public static J2735NamedNumber genericVehicleGroupAffected(JsonNode vehicleGroupAffected) {
         J2735NamedNumber gnn = new J2735NamedNumber();
 
-        gnn.setName(vehicleGroupAffected.fieldNames().next());
+        gnn.setName(vehicleGroupAffected.propertyNames().iterator().next());
         // value not needed for ASN1c encoder
         gnn.setValue(null);
         return gnn;

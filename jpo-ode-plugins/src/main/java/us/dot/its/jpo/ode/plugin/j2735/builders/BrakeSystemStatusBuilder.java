@@ -15,8 +15,8 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BrakeAppliedStatusNames;
 import us.dot.its.jpo.ode.plugin.j2735.J2735BrakeSystemStatus;
@@ -33,7 +33,7 @@ public class BrakeSystemStatusBuilder {
 
       JsonNode wheelBrakes = brakesStatus.get("wheelBrakes");
       // Check if wheelBrakes was not set (00000), if it wasn't set it to unavailable
-      if (wheelBrakes.asText().trim().equals("00000")) {
+      if (wheelBrakes.asString().trim().equals("00000")) {
          ObjectNode wheelBrakesUnavailable = JsonUtils.newNode();
          wheelBrakesUnavailable.put("wheelBrakes", "10000");
          wheelBrakes = wheelBrakesUnavailable.get("wheelBrakes");
@@ -42,11 +42,11 @@ public class BrakeSystemStatusBuilder {
       genericBrakesStatus.setWheelBrakes(BitStringBuilder.genericBitString(wheelBrakes, 
             J2735BrakeAppliedStatusNames.values()));
       
-      genericBrakesStatus.setTraction(brakesStatus.get("traction").fieldNames().next());
-      genericBrakesStatus.setAbs(brakesStatus.get("abs").fieldNames().next());
-      genericBrakesStatus.setScs(brakesStatus.get("scs").fieldNames().next());
-      genericBrakesStatus.setBrakeBoost(brakesStatus.get("brakeBoost").fieldNames().next());
-      genericBrakesStatus.setAuxBrakes(brakesStatus.get("auxBrakes").fieldNames().next());
+      genericBrakesStatus.setTraction(brakesStatus.get("traction").propertyNames().iterator().next());
+      genericBrakesStatus.setAbs(brakesStatus.get("abs").propertyNames().iterator().next());
+      genericBrakesStatus.setScs(brakesStatus.get("scs").propertyNames().iterator().next());
+      genericBrakesStatus.setBrakeBoost(brakesStatus.get("brakeBoost").propertyNames().iterator().next());
+      genericBrakesStatus.setAuxBrakes(brakesStatus.get("auxBrakes").propertyNames().iterator().next());
 
       return genericBrakesStatus;
    }

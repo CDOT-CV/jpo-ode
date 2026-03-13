@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionGeometryList;
 
@@ -16,7 +16,7 @@ public class IntersectionGeometryListBuilder {
 		
 		JsonNode intersectionGeometry = intersections.get("IntersectionGeometry");
 		if (intersectionGeometry != null && intersectionGeometry.isArray()) {
-			Iterator<JsonNode> elements = intersectionGeometry.elements();
+			Iterator<JsonNode> elements = intersectionGeometry.values().iterator();
 
 			while (elements.hasNext()) {
 				genericIntersectionGeometryList.getIntersections()

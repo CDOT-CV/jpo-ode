@@ -15,6 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
 import java.text.ParseException;
 import java.time.ZonedDateTime;
 import java.util.Random;
@@ -27,7 +28,7 @@ import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 public class DdsAdvisorySituationData extends Asn1Object {
-   private static final long serialVersionUID = 2755274323293805425L;
+   @Serial private static final long serialVersionUID = 2755274323293805425L;
    
    // Distribution Type field values
    public static final byte NONE = (byte) 0x00;

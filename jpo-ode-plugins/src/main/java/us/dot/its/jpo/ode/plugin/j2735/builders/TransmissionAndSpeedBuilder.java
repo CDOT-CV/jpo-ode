@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735TransmissionAndSpeed;
 import us.dot.its.jpo.ode.plugin.j2735.J2735TransmissionState;
@@ -39,7 +39,7 @@ public class TransmissionAndSpeedBuilder {
         JsonNode transmisson = ts.get("transmisson");
 		if(transmisson != null)
 		{
-            gts.setTransmisson(J2735TransmissionState.valueOf(transmisson.fieldNames().next().toUpperCase()));	
+            gts.setTransmisson(J2735TransmissionState.valueOf(transmisson.propertyNames().iterator().next().toUpperCase()));	
 		}
 
         return gts;

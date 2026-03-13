@@ -15,12 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 
 import us.dot.its.jpo.ode.model.OdeObject;
 
 public class OdePosition3D extends OdeObject {
-   private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
    private BigDecimal latitude;  // in degrees
    private BigDecimal longitude; // in degrees

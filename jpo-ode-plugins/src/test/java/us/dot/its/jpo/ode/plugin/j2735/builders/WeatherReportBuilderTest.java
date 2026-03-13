@@ -27,7 +27,7 @@ import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735EssPrecipSituation;
 import us.dot.its.jpo.ode.plugin.j2735.J2735EssPrecipYesNo;

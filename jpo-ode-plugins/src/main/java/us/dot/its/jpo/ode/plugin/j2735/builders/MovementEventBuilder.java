@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 import org.json.JSONObject;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735AdvisorySpeedList;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MovementEvent;
@@ -84,7 +84,7 @@ public class MovementEventBuilder {
 				&& movementEventJson.get("speeds").get("AdvisorySpeed") != null) {
 			J2735AdvisorySpeedList speeds = new J2735AdvisorySpeedList();
 			if (movementEventJson.get("speeds").get("AdvisorySpeed").isArray()) {
-				Iterator<JsonNode> elements = movementEventJson.get("speeds").get("AdvisorySpeed").elements();
+				Iterator<JsonNode> elements = movementEventJson.get("speeds").get("AdvisorySpeed").values().iterator();
 				while (elements.hasNext()) {
 					speeds.getAdvisorySpeedList().add(AdvisorySpeedBuilder.genericAdvisorySpeed(elements.next()));
 				}

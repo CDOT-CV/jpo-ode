@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.timstorage.Content;
 import us.dot.its.jpo.ode.plugin.j2735.timstorage.ITIS_CodesAndText;
@@ -25,12 +25,12 @@ public class ContentBuilder {
 
             JsonNode itis = item.get("itis");
             if (itis != null) {
-                itemObj.setItis(itis.asText());
+                itemObj.setItis(itis.asString());
             }
 
             JsonNode text = item.get("text");
             if (text != null) {
-                itemObj.setText(text.asText());
+                itemObj.setText(text.asString());
             }
 
             itemsObj.setItem(itemObj);
@@ -47,7 +47,7 @@ public class ContentBuilder {
             List<Items> iList = new ArrayList<>();
 
             if (sequence.isArray()) {
-                Iterator<JsonNode> elements = sequence.elements();
+                Iterator<JsonNode> elements = sequence.values().iterator();
 
                 while (elements.hasNext()) {
                     iList.add(genericItems(elements.next()));

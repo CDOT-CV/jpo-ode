@@ -22,6 +22,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * Anchor point for a path.
  */
@@ -29,7 +31,7 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class Anchor extends Asn1Object {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
   @JsonProperty("lat")
   private String lat;
   @JsonProperty("long")

@@ -23,9 +23,9 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735AccelerationSet4Way;
 import us.dot.its.jpo.ode.util.XmlUtils;
@@ -130,7 +130,7 @@ public class AccelerationSet4WayBuilderTest {
    }
 
    @Test
-   public void shouldThrowExceptionAboveUpperYawBound() throws JsonProcessingException, IOException {
+   public void shouldThrowExceptionAboveUpperYawBound() throws JacksonException, IOException {
 
 	      JsonNode jsonAccelSet = null;
 	      try {
@@ -150,7 +150,7 @@ public class AccelerationSet4WayBuilderTest {
    }
    
    @Test
-   public void shouldThrowExceptionAboveLowerYawBound() throws JsonProcessingException, IOException {
+   public void shouldThrowExceptionAboveLowerYawBound() throws JacksonException, IOException {
 
 	      JsonNode jsonAccelSet = null;
 	      try {

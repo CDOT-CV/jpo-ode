@@ -1,13 +1,15 @@
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
 public class J2735LaneTypeAttributes  extends Asn1Object {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+   /**
+    * 
+    */
+   @Serial private static final long serialVersionUID = 1L;
 	private   J2735BitString vehicle;        // motor vehicle lanes - J2735LaneAttributesVehicle
 	private   J2735BitString crosswalk;   // pedestrian crosswalks - J2735LaneAttributesCrosswalk
 	private   J2735BitString  bikeLane;        // bike lanes - J2735LaneAttributesBike

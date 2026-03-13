@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RestrictionClassList;
 
@@ -16,7 +16,7 @@ public class RestrictionClassListBuilder {
 
 		JsonNode restrictionClassAssignment = restrictionClassListNode.get("RestrictionClassAssignment");
 		if (restrictionClassAssignment != null && restrictionClassAssignment.isArray()) {
-			Iterator<JsonNode> elements = restrictionClassAssignment.elements();
+			Iterator<JsonNode> elements = restrictionClassAssignment.values().iterator();
 
 			while (elements.hasNext()) {
 				restrictionClassList.getRestrictionList()

@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * A list of lane data attributes.
  */
@@ -12,7 +14,7 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 @Data
 public class LaneDataAttributeList extends Asn1Object {
 
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   @JsonProperty("LaneDataAttribute")
   private LaneDataAttribute laneDataAttribute;

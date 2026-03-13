@@ -1,19 +1,19 @@
 package us.dot.its.jpo.ode.plugin.j2735.timstorage;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 class TravelerDataFrameTest {
   ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void deserializePreJ2735_2016() throws IOException {
-    String json = new String(Files.readAllBytes(Paths.get(
+    String json = new String(Files.readAllBytes(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/plugin/j2735/timstorage/travelerDataFrame_pre-J2735-2016.json")));
     TravelerDataFrame expectedFrame = getExpectedTravelerDataFrame();
 
@@ -24,7 +24,7 @@ class TravelerDataFrameTest {
 
   @Test
   void deserializeJ2735_2016() throws IOException {
-    String json = new String(Files.readAllBytes(Paths.get(
+    String json = new String(Files.readAllBytes(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/plugin/j2735/timstorage/travelerDataFrame_J2735-2016.json")));
     TravelerDataFrame expectedFrame = getExpectedTravelerDataFrame();
 
@@ -35,7 +35,7 @@ class TravelerDataFrameTest {
 
   @Test
   void deserializeJ2735_2020() throws IOException {
-    String json = new String(Files.readAllBytes(Paths.get(
+    String json = new String(Files.readAllBytes(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/plugin/j2735/timstorage/travelerDataFrame_J2735-2020.json")));
     TravelerDataFrame expectedFrame = getExpectedTravelerDataFrame();
 

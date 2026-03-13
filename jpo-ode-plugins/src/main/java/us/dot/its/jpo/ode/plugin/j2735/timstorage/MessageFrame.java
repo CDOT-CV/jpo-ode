@@ -19,13 +19,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
+
+import java.io.Serial;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MessageFrame;
 
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class MessageFrame extends Asn1Object {
 
-   private static final long serialVersionUID = 3450586016818874906L;
+   @Serial private static final long serialVersionUID = 3450586016818874906L;
 
    @JsonProperty("MessageFrame")
    private J2735MessageFrame MessageFrame;

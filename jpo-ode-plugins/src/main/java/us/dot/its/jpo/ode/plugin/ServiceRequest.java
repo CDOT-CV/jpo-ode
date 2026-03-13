@@ -16,6 +16,7 @@
 
 package us.dot.its.jpo.ode.plugin;
 
+import java.io.Serial;
 import java.util.Arrays;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
@@ -30,7 +31,7 @@ public class ServiceRequest extends OdeObject {
    */
   public static class OdeInternal extends OdeObject {
 
-    private static final long serialVersionUID = 1L;
+     @Serial private static final long serialVersionUID = 1L;
 
     /**
      * Enum representing HTTP request verbs for ODE internal requests.
@@ -116,7 +117,7 @@ public class ServiceRequest extends OdeObject {
 
   }
 
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
   private OdeInternal ode;
   private SituationDataWarehouse.SDW sdw;
   private RSU[] rsus;

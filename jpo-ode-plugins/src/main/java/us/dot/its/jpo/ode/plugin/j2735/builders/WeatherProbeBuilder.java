@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735WeatherProbe;
 
@@ -39,7 +39,7 @@ public class WeatherProbeBuilder {
 
          if (airTemp < TEMP_LOWER_BOUND || airTemp > TEMP_UPPER_BOUND) {
             throw new IllegalArgumentException(
-                  String.format("Ambient air temperature out of bounds [%d..%d]", TEMP_LOWER_BOUND, TEMP_UPPER_BOUND));
+                  "Ambient air temperature out of bounds [%d..%d]".formatted(TEMP_LOWER_BOUND, TEMP_UPPER_BOUND));
          }
 
          if (airTemp != 191) {
@@ -52,7 +52,7 @@ public class WeatherProbeBuilder {
 
          if (airPressure < PRESSURE_LOWER_BOUND || airPressure > PRESSURE_UPPER_BOUND) {
             throw new IllegalArgumentException(
-                  String.format("Ambient air pressure out of bounds [%d..%d]", PRESSURE_LOWER_BOUND, PRESSURE_UPPER_BOUND));
+                  "Ambient air pressure out of bounds [%d..%d]".formatted(PRESSURE_LOWER_BOUND, PRESSURE_UPPER_BOUND));
          }
 
          if (airPressure != 0) {

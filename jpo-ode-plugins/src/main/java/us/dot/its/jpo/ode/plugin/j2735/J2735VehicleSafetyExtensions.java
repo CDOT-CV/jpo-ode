@@ -15,8 +15,10 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 public class J2735VehicleSafetyExtensions extends J2735BsmPart2ExtensionBase {
-   private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
    private J2735BitString events;
    private J2735PathHistory pathHistory;

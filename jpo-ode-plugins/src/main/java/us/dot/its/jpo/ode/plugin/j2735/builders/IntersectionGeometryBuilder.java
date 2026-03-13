@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionGeometry;
 import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionReferenceID;
@@ -16,7 +16,7 @@ public class IntersectionGeometryBuilder {
 		
 		JsonNode name = intersectionNode.get("name");
 		if (name != null) {
-			intersection.setName(name.asText());
+			intersection.setName(name.asString());
 		}
 		
 		JsonNode RefID = intersectionNode.get("id");

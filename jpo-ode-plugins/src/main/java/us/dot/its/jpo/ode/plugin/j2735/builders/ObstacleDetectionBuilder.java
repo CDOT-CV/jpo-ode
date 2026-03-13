@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735ObstacleDetection;
 
@@ -38,7 +38,7 @@ public class ObstacleDetectionBuilder {
       int obDist = obstacleDetection.get("obDist").asInt();
       if (obDist < DIST_LOWER_BOUND || DIST_UPPER_BOUND < obDist) {
          throw new IllegalArgumentException(
-               String.format("Distance out of bounds [%d..%d]", DIST_LOWER_BOUND, DIST_UPPER_BOUND));
+               "Distance out of bounds [%d..%d]".formatted(DIST_LOWER_BOUND, DIST_UPPER_BOUND));
       }
 
       // Required elements

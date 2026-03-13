@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.DsrcPosition3D;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MutcdCode;
@@ -22,18 +22,18 @@ public class RoadSignIdBuilder {
 
         JsonNode viewAngle = roadSignId.get("viewAngle");
         if (viewAngle != null) {
-            genericRoadSignId.setViewAngle(viewAngle.asText());
+            genericRoadSignId.setViewAngle(viewAngle.asString());
         }
 
         JsonNode mutcdCode = roadSignId.get("mutcdCode");
         if (mutcdCode != null) {
-            String mutcdCodeValue = mutcdCode.fields().next().getKey();
+            String mutcdCodeValue = mutcdCode.properties().iterator().next().getKey();
             genericRoadSignId.setMutcdCode(J2735MutcdCode.valueOf(mutcdCodeValue));
         }
 
         JsonNode crc = roadSignId.get("crc");
         if (crc != null) {
-            genericRoadSignId.setCrc(crc.asText());
+            genericRoadSignId.setCrc(crc.asString());
         }
 
         return genericRoadSignId;

@@ -17,7 +17,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RTCMPackage;
 
@@ -33,10 +33,10 @@ public class RTCMPackageBuilder {
     public static J2735RTCMPackage genericRTCMPackage(JsonNode rtcmPackage) {
         J2735RTCMPackage rtcm = new J2735RTCMPackage();
 
-        Iterator<JsonNode> iter = rtcmPackage.get(MSGS).elements();
+        Iterator<JsonNode> iter = rtcmPackage.get(MSGS).values().iterator();
 
         while (iter.hasNext()) {
-            rtcm.getMsgs().add(iter.next().asText());
+            rtcm.getMsgs().add(iter.next().asString());
         }
         // Optional element
         if (rtcmPackage.get(RTCM_HEADER) != null) {

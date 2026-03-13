@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735NodeLLmD64b;
 import us.dot.its.jpo.ode.plugin.j2735.J2735NodeOffsetPointXY;
@@ -90,14 +90,14 @@ public class NodeXYBuilder {
                     List<J2735NodeAttribute> naList = new ArrayList<>();
 
                     if (nodeAttributeXY.isArray()) {
-                        Iterator<JsonNode> elements = nodeAttributeXY.elements();
+                        Iterator<JsonNode> elements = nodeAttributeXY.values().iterator();
         
                         while (elements.hasNext()) {
-                            String nodeAttributeValue = elements.next().fields().next().getKey();
+                            String nodeAttributeValue = elements.next().properties().iterator().next().getKey();
                             naList.add(J2735NodeAttribute.valueOf(nodeAttributeValue));
                         }
                     } else {
-                        String nodeAttributeValue = nodeAttributeXY.fields().next().getKey();
+                        String nodeAttributeValue = nodeAttributeXY.properties().iterator().next().getKey();
                         naList.add(J2735NodeAttribute.valueOf(nodeAttributeValue));
                     }
 
@@ -112,14 +112,14 @@ public class NodeXYBuilder {
                     List<J2735SegmentAttribute> saList = new ArrayList<>();
 
                     if (segmentAttributeXY.isArray()) {
-                        Iterator<JsonNode> elements = segmentAttributeXY.elements();
+                        Iterator<JsonNode> elements = segmentAttributeXY.values().iterator();
         
                         while (elements.hasNext()) {
-                            String segmentAttributeValue = elements.next().fields().next().getKey();
+                            String segmentAttributeValue = elements.next().properties().iterator().next().getKey();
                             saList.add(J2735SegmentAttribute.valueOf(segmentAttributeValue));
                         }
                     } else {
-                        String segmentAttributeValue = segmentAttributeXY.fields().next().getKey();
+                        String segmentAttributeValue = segmentAttributeXY.properties().iterator().next().getKey();
                         saList.add(J2735SegmentAttribute.valueOf(segmentAttributeValue));
                     }
 
@@ -134,14 +134,14 @@ public class NodeXYBuilder {
                     List<J2735SegmentAttribute> saList = new ArrayList<>();
 
                     if (segmentAttributeXY.isArray()) {
-                        Iterator<JsonNode> elements = segmentAttributeXY.elements();
+                        Iterator<JsonNode> elements = segmentAttributeXY.values().iterator();
         
                         while (elements.hasNext()) {
-                            String segmentAttributeValue = elements.next().fields().next().getKey();
+                            String segmentAttributeValue = elements.next().properties().iterator().next().getKey();
                             saList.add(J2735SegmentAttribute.valueOf(segmentAttributeValue));
                         }
                     } else {
-                        String segmentAttributeValue = segmentAttributeXY.fields().next().getKey();
+                        String segmentAttributeValue = segmentAttributeXY.properties().iterator().next().getKey();
                         saList.add(J2735SegmentAttribute.valueOf(segmentAttributeValue));
                     }
 
@@ -156,7 +156,7 @@ public class NodeXYBuilder {
                     List<J2735LaneDataAttribute> ldaList = new ArrayList<>();
 
                     if (laneDataAttribute.isArray()) {
-                        Iterator<JsonNode> elements = laneDataAttribute.elements();
+                        Iterator<JsonNode> elements = laneDataAttribute.values().iterator();
         
                         while (elements.hasNext()) {
                             ldaList.add(LaneDataAttributeBuilder.genericLaneDataAttribute(elements.next()));

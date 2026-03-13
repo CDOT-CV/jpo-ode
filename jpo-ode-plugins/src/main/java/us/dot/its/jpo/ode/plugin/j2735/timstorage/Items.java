@@ -20,11 +20,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class Items extends Asn1Object {
 
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
   
   @JsonProperty("item")
   private Item item;

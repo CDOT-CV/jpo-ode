@@ -23,13 +23,12 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 
 public class RoadwayCrownAngleBuilderTest {
 
    @Test
-   public void testInZeroNegitive() throws JsonProcessingException, IOException {
+   public void testInZeroNegitive() throws JacksonException, IOException {
       BigDecimal testInput = BigDecimal.valueOf(-0.14);
       int expectedValue = 0;
 
@@ -37,7 +36,7 @@ public class RoadwayCrownAngleBuilderTest {
    }
 
    @Test
-   public void testInZeroPositive() throws JsonProcessingException, IOException {
+   public void testInZeroPositive() throws JacksonException, IOException {
       BigDecimal testInput = BigDecimal.valueOf(0.14);
       int expectedValue = 0;
 
@@ -45,7 +44,7 @@ public class RoadwayCrownAngleBuilderTest {
    }
 
    @Test
-   public void testNull() throws JsonProcessingException, IOException {
+   public void testNull() throws JacksonException, IOException {
       BigDecimal testInput = null;
       int expectedValue = 128;
 
@@ -53,7 +52,7 @@ public class RoadwayCrownAngleBuilderTest {
    }
 
    @Test
-   public void testInBoundUpper() throws JsonProcessingException, IOException {
+   public void testInBoundUpper() throws JacksonException, IOException {
       BigDecimal testInput = BigDecimal.valueOf(38.1);
       int expectedValue = 127;
 
@@ -61,7 +60,7 @@ public class RoadwayCrownAngleBuilderTest {
    }
 
    @Test
-   public void testInBoundLower() throws JsonProcessingException, IOException {
+   public void testInBoundLower() throws JacksonException, IOException {
       BigDecimal testInput = BigDecimal.valueOf(-38.1);
       int expectedValue = -127;
 
@@ -69,7 +68,7 @@ public class RoadwayCrownAngleBuilderTest {
    }
 
    @Test
-   public void testOutOfBoundAbove() throws JsonProcessingException, IOException {
+   public void testOutOfBoundAbove() throws JacksonException, IOException {
       BigDecimal testInput = BigDecimal.valueOf(39.1);
 
       try {
@@ -81,7 +80,7 @@ public class RoadwayCrownAngleBuilderTest {
    }
 
    @Test
-   public void testOutOfBoundBelow() throws JsonProcessingException, IOException {
+   public void testOutOfBoundBelow() throws JacksonException, IOException {
       BigDecimal testInput = BigDecimal.valueOf(-39.1);
 
       try {

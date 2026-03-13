@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735SpeedLimitList;
 
@@ -16,7 +16,7 @@ public class SpeedLimitListBuilder {
 
 		JsonNode regulatorySpeedLimit = speedLimits.get("RegulatorySpeedLimit");
 		if (regulatorySpeedLimit != null && regulatorySpeedLimit.isArray()) {
-			Iterator<JsonNode> elements = regulatorySpeedLimit.elements();
+			Iterator<JsonNode> elements = regulatorySpeedLimit.values().iterator();
 
 			while (elements.hasNext()) {
 				genericSpeedLimitList.getSpeedLimits()

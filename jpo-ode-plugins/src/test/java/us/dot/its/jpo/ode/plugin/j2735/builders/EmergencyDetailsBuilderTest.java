@@ -18,7 +18,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import static org.junit.Assert.assertThrows;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;

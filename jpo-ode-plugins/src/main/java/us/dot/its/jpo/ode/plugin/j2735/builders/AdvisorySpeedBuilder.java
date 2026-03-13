@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import org.json.JSONObject;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735AdvisorySpeed;
 import us.dot.its.jpo.ode.plugin.j2735.J2735AdvisorySpeedType;

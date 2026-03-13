@@ -27,10 +27,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 import us.dot.its.jpo.ode.util.JsonUtils;
 
@@ -41,10 +41,10 @@ public class AngleBuilderTest {
     * (0)
     * 
     * @throws IOException
-    * @throws JsonProcessingException
+    * @throws JacksonException
     */
    @Test
-   public void shouldReturnZeroAngle() throws JsonProcessingException, IOException {
+   public void shouldReturnZeroAngle() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("0");
@@ -62,10 +62,10 @@ public class AngleBuilderTest {
     * (359.9875)
     * 
     * @throws IOException
-    * @throws JsonProcessingException
+    * @throws JacksonException
     */
    @Test
-   public void shouldReturnMaxAngle() throws JsonProcessingException, IOException {
+   public void shouldReturnMaxAngle() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("28799");
@@ -82,10 +82,10 @@ public class AngleBuilderTest {
     * Tests that known input angle (14400) returns the max decimal value (180.0)
     * 
     * @throws IOException
-    * @throws JsonProcessingException
+    * @throws JacksonException
     */
    @Test
-   public void shouldReturnKnownAngle() throws JsonProcessingException, IOException {
+   public void shouldReturnKnownAngle() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("14400");
@@ -103,10 +103,10 @@ public class AngleBuilderTest {
     * value of 28800 shall be used when Angle is unavailable"
     * 
     * @throws IOException
-    * @throws JsonProcessingException
+    * @throws JacksonException
     */
    @Test
-   public void shouldReturnNullAngle() throws JsonProcessingException, IOException {
+   public void shouldReturnNullAngle() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("28800");
@@ -122,10 +122,10 @@ public class AngleBuilderTest {
     * Test that an input angle greater than 28800 throws exception
     * 
     * @throws IOException
-    * @throws JsonProcessingException
+    * @throws JacksonException
     */
    @Test
-   public void shouldThrowExceptionAboveUpperBound() throws JsonProcessingException, IOException {
+   public void shouldThrowExceptionAboveUpperBound() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("28801");
@@ -142,10 +142,10 @@ public class AngleBuilderTest {
     * Test that an input angle less than 0 throws exception
     * 
     * @throws IOException
-    * @throws JsonProcessingException
+    * @throws JacksonException
     */
    @Test
-   public void shouldThrowExceptionBelowLowerBound() throws JsonProcessingException, IOException {
+   public void shouldThrowExceptionBelowLowerBound() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("-1");
@@ -173,7 +173,7 @@ public class AngleBuilderTest {
    }
    
    @Test
-   public void testJsonNode() throws JsonProcessingException, IOException {
+   public void testJsonNode() throws JacksonException, IOException {
 
       
 
@@ -187,7 +187,7 @@ public class AngleBuilderTest {
    }
    
    @Test
-   public void testlongToDecimalNull() throws JsonProcessingException, IOException {
+   public void testlongToDecimalNull() throws JacksonException, IOException {
 
       
 

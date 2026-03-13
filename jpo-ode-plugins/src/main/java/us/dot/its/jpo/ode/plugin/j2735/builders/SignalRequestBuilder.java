@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735SignalRequest;
 import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionReferenceID;
@@ -45,7 +45,7 @@ public class SignalRequestBuilder {
         JsonNode requestType = request.get("requestType");
 		if(requestType != null)
 		{
-            signalRequest.setRequestType(J2735PriorityRequestType.valueOf(requestType.fieldNames().next()));
+            signalRequest.setRequestType(J2735PriorityRequestType.valueOf(requestType.propertyNames().iterator().next()));
         }
 
         JsonNode inBoundLane = request.get("inBoundLane");

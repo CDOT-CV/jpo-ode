@@ -23,6 +23,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * Position given by latitude, longitude, and elevation.
  */
@@ -31,7 +33,7 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class Position extends Asn1Object {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   @JsonProperty("lat")
   private String lat;

@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.util.Iterator;
 import us.dot.its.jpo.ode.plugin.j2735.J2735TrailerData;
 
@@ -31,7 +31,7 @@ public class TrailerDataBuilder {
         td.setConnection(PivotPointDescriptionBuilder.genericPivotPointDescription(trailers.get("connection")));
         td.setDoNotUse(trailers.get("doNotUse").asInt());
 
-        Iterator<JsonNode> iter = trailers.get("units").elements();
+        Iterator<JsonNode> iter = trailers.get("units").values().iterator();
 
         while (iter.hasNext()) {
             td.getUnits().add(TrailerUnitDescriptionBuilder.genericTrailerUnitDescription(iter.next()));

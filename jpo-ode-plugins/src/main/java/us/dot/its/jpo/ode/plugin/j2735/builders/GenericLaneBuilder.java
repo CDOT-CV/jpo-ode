@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735AllowedManeuvers;
 import us.dot.its.jpo.ode.plugin.j2735.J2735GenericLane;
@@ -33,7 +33,7 @@ public class GenericLaneBuilder {
 
 		JsonNode name = laneSetNode.get("name");
 		if (name != null) {
-			genericLane.setName(name.asText());
+			genericLane.setName(name.asString());
 		}
 
 		JsonNode ingressApproach = laneSetNode.get("ingressApproach");
@@ -118,7 +118,7 @@ public class GenericLaneBuilder {
 		if (overlays != null) {
 			J2735OverlayLaneList overlayList = new J2735OverlayLaneList();
 			if (overlays.isArray()) {
-				Iterator<JsonNode> elements = overlays.elements();
+				Iterator<JsonNode> elements = overlays.values().iterator();
 				while (elements.hasNext()) {
 					overlayList.getLaneIds().add(elements.next().asInt());
 				}

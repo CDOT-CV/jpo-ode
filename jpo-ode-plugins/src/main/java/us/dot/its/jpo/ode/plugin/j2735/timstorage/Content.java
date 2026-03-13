@@ -20,13 +20,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * Content.
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class Content extends Asn1Object {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
   private ITIS_CodesAndText advisory;
   private ITIS_CodesAndText workZone;
   private ITIS_CodesAndText genericSign;

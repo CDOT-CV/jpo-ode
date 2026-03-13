@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735PathHistoryPoint;
 
@@ -35,7 +35,7 @@ public class PathHistoryPointListBuilder {
 
       JsonNode php = crumbData.get("PathHistoryPoint");
       if (php.isArray()) {
-         Iterator<JsonNode> iter = php.elements();
+         Iterator<JsonNode> iter = php.values().iterator();
    
          while (iter.hasNext() && phpl.size() < 23) {
             phpl.add(PathHistoryPointBuilder.genericPathHistoryPoint(iter.next()));

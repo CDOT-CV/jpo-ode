@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RoadLaneSetList;
 
@@ -16,7 +16,7 @@ public class RoadLaneSetListBuilder {
 
 		JsonNode genericLane = roadLaneSetNode.get("GenericLane");
 		if (genericLane != null && genericLane.isArray()) {
-			Iterator<JsonNode> elements = genericLane.elements();
+			Iterator<JsonNode> elements = genericLane.values().iterator();
 
 			while (elements.hasNext()) {
 				roadLaneSetList.getRoadLanes()

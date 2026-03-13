@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735SignalStatusPackage;
 import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionAccessPoint;
@@ -93,7 +93,7 @@ public class SignalStatusPackageBuilder {
         JsonNode status = sigStatusNode.get("status");
 		if(status != null)
 		{
-            J2735PrioritizationResponseStatus enumStatus = J2735PrioritizationResponseStatus.valueOf(status.fieldNames().next());
+            J2735PrioritizationResponseStatus enumStatus = J2735PrioritizationResponseStatus.valueOf(status.propertyNames().iterator().next());
 			signalStatusPackage.setStatus(enumStatus);
 		}
 

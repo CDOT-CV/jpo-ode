@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735SignalRequesterInfo;
 import us.dot.its.jpo.ode.plugin.j2735.J2735VehicleID;
@@ -22,7 +22,7 @@ public class SignalRequesterInfoBuilder {
             JsonNode entityID = id.get("entityID");
 			if(entityID != null)
 			{
-				objVehicleId.setEntityID(entityID.asText());
+				objVehicleId.setEntityID(entityID.asString());
 			}
 
 			JsonNode stationID = id.get("stationID");
@@ -49,7 +49,7 @@ public class SignalRequesterInfoBuilder {
 		JsonNode role = requester.get("role");
 		if(role != null)
 		{
-            J2735BasicVehicleRole enumRole = J2735BasicVehicleRole.valueOf(role.fieldNames().next());
+            J2735BasicVehicleRole enumRole = J2735BasicVehicleRole.valueOf(role.propertyNames().iterator().next());
 			signalRequesterInfo.setRole(enumRole);
 		}
 

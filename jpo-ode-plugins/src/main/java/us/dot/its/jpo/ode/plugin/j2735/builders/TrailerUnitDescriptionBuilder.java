@@ -17,7 +17,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735TrailerUnitDescription;
 
@@ -86,7 +86,7 @@ public class TrailerUnitDescriptionBuilder {
             gtud.setElevationOffset(OffsetBuilder.genericVertOffset_B07(tud.get(ELEVATION_OFFSET)));
         }
         if (tud.get(CRUMB_DATA) != null ) {
-            Iterator<JsonNode> iter = tud.get(CRUMB_DATA).elements();
+            Iterator<JsonNode> iter = tud.get(CRUMB_DATA).values().iterator();
             while (iter.hasNext()) {
                 gtud.getCrumbData().add(TrailerHistoryPointBuilder.genericTrailerHistoryPoint(iter.next()));
             }

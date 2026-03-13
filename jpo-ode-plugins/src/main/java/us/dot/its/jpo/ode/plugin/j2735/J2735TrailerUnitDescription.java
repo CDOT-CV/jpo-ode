@@ -15,6 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ import java.util.List;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
 public class J2735TrailerUnitDescription extends Asn1Object {
-   private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
    private Boolean isDolly;
    private Integer width;

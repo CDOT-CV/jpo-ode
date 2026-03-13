@@ -15,6 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import lombok.Data;
@@ -23,7 +24,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class J2735VehicleData implements Serializable{
-	private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 	private J2735BumperHeights bumpers;
 	private BigDecimal height;
 	private Integer mass;

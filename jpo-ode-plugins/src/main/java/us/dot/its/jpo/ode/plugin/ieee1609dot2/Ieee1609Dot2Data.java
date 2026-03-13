@@ -15,10 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.ieee1609dot2;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
 public class Ieee1609Dot2Data extends Asn1Object {
-   private static final long serialVersionUID = -228377851758092505L;
+   @Serial private static final long serialVersionUID = -228377851758092505L;
 
    private Byte protocolVersion;
    private Ieee1609Dot2Content content;

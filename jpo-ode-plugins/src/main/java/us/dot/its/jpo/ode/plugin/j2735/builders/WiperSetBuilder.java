@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735WiperSet;
 import us.dot.its.jpo.ode.plugin.j2735.J2735WiperStatus;
@@ -41,7 +41,7 @@ public class WiperSetBuilder {
       // statusFront and rateFront are required elements
       J2735WiperStatus enumStatusFront;
       try {
-         enumStatusFront = J2735WiperStatus.valueOf(wiperSet.get("statusFront").fieldNames().next().toUpperCase());
+         enumStatusFront = J2735WiperStatus.valueOf(wiperSet.get("statusFront").propertyNames().iterator().next().toUpperCase());
       } catch (IllegalArgumentException e) {
          enumStatusFront = J2735WiperStatus.UNAVAILABLE;
       }
@@ -50,7 +50,7 @@ public class WiperSetBuilder {
       int rateFront = wiperSet.get("rateFront").asInt();
       if (rateFront < RATE_LOWER_BOUND || RATE_UPPER_BOUND < rateFront) {
          throw new IllegalArgumentException(
-               String.format("Front wiper rate out of bounds [%d,%d]", RATE_LOWER_BOUND, RATE_UPPER_BOUND));
+               "Front wiper rate out of bounds [%d,%d]".formatted(RATE_LOWER_BOUND, RATE_UPPER_BOUND));
       }
       gws.setRateFront(rateFront);
 
@@ -59,7 +59,7 @@ public class WiperSetBuilder {
       if (statusRearNode != null) {
          J2735WiperStatus enumStatusRear;
          try {
-            enumStatusRear = J2735WiperStatus.valueOf(statusRearNode.fieldNames().next().toUpperCase());
+            enumStatusRear = J2735WiperStatus.valueOf(statusRearNode.propertyNames().iterator().next().toUpperCase());
          } catch (IllegalArgumentException e) {
             enumStatusRear = J2735WiperStatus.UNAVAILABLE;
          }
@@ -72,7 +72,7 @@ public class WiperSetBuilder {
 
          if (rateRear < RATE_LOWER_BOUND || RATE_UPPER_BOUND < rateRear) {
             throw new IllegalArgumentException(
-                  String.format("Rear wiper rate out of bounds [%d,%d]", RATE_LOWER_BOUND, RATE_UPPER_BOUND));
+                  "Rear wiper rate out of bounds [%d,%d]".formatted(RATE_LOWER_BOUND, RATE_UPPER_BOUND));
          }
 
          gws.setRateRear(rateRear);

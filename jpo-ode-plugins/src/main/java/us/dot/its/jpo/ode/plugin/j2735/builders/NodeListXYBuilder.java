@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735ComputedLane;
 import us.dot.its.jpo.ode.plugin.j2735.J2735NodeListXY;
@@ -24,7 +24,7 @@ public class NodeListXYBuilder {
                 List<J2735NodeXY> nxyList = new ArrayList<>();
 
                 if (nodeXY.isArray()) {
-                    Iterator<JsonNode> elements = nodeXY.elements();
+                    Iterator<JsonNode> elements = nodeXY.values().iterator();
     
                     while (elements.hasNext()) {
                         nxyList.add(NodeXYBuilder.genericNodeXY(elements.next()));

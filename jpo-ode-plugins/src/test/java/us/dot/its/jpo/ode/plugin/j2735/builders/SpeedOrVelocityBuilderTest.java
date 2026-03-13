@@ -23,16 +23,16 @@ import java.io.IOException;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class SpeedOrVelocityBuilderTest {
 
    
    @Test
-   public void testInZeroPositive() throws JsonProcessingException, IOException {
+   public void testInZeroPositive() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("1234");
       
@@ -43,7 +43,7 @@ public class SpeedOrVelocityBuilderTest {
    }
    
    @Test
-   public void testOutOfBoundAbove() throws JsonProcessingException, IOException {
+   public void testOutOfBoundAbove() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("8192");
 
@@ -56,7 +56,7 @@ public class SpeedOrVelocityBuilderTest {
    }
    
    @Test
-   public void testOutOfBoundBelow() throws JsonProcessingException, IOException {
+   public void testOutOfBoundBelow() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("-1");
 
@@ -68,7 +68,7 @@ public class SpeedOrVelocityBuilderTest {
       }
    }
    @Test
-   public void testEightOneNineOne() throws JsonProcessingException, IOException {
+   public void testEightOneNineOne() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("8191");
 

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -24,7 +25,7 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class J2735TrailerData extends Asn1Object {
-	private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
 	private J2735PivotPointDescription connection;
 	private Integer doNotUse;

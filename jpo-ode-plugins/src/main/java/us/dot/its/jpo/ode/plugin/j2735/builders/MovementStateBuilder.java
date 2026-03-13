@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735ManeuverAssistList;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MovementEventList;
@@ -16,13 +16,13 @@ public class MovementStateBuilder {
 	public static J2735MovementState genericMovementState(JsonNode movementStatesJson) {
 		J2735MovementState state = new J2735MovementState();
 		if (movementStatesJson.get("movementName") != null)
-			state.setMovementName(movementStatesJson.get("movementName").asText());
+			state.setMovementName(movementStatesJson.get("movementName").asString());
 
 		if (movementStatesJson.get("signalGroup") != null)
 			state.setSignalGroup(movementStatesJson.get("signalGroup").asInt());
 
 		if (movementStatesJson.get("state-time-speed")!= null && movementStatesJson.get("state-time-speed").get("MovementEvent").isArray()) {
-			Iterator<JsonNode> nestElements = movementStatesJson.get("state-time-speed").get("MovementEvent").elements();
+			Iterator<JsonNode> nestElements = movementStatesJson.get("state-time-speed").get("MovementEvent").values().iterator();
 			J2735MovementEventList state_time_speed = new J2735MovementEventList();
 			while (nestElements.hasNext()) {
 				state_time_speed.getMovementEventList()
@@ -42,7 +42,7 @@ public class MovementStateBuilder {
 		{
 			J2735ManeuverAssistList maneuverAssistList = new J2735ManeuverAssistList();
 			if (movementStatesJson.get("maneuverAssistList").get("ConnectionManeuverAssist").isArray()) {
-				Iterator<JsonNode> elements = movementStatesJson.get("maneuverAssistList").get("ConnectionManeuverAssist").elements();
+				Iterator<JsonNode> elements = movementStatesJson.get("maneuverAssistList").get("ConnectionManeuverAssist").values().iterator();
 				while (elements.hasNext()) {
 					maneuverAssistList.getManeuverAssistList()
 							.add(ManeuverAssistBuilder.genericManeuverAssist(elements.next()));

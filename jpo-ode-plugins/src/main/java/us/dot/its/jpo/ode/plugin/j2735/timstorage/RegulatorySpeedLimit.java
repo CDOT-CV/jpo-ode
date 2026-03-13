@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * The speed limit for a given section of roadway.
  */
@@ -11,7 +13,7 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 @Data
 public class RegulatorySpeedLimit extends Asn1Object {
 
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   private SpeedLimitType type;
   private int speed;

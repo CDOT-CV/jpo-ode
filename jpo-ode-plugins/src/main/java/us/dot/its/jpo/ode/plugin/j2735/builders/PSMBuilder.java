@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735NumberOfParticipantsInCluster;
 import us.dot.its.jpo.ode.plugin.j2735.J2735PSM;
@@ -25,7 +25,7 @@ public class PSMBuilder {
 		J2735PSM genericPSM = new J2735PSM();
 		JsonNode basicType = PSMMessage.get("basicType");
 		if (basicType != null) {
-			genericPSM.setBasicType(J2735PersonalDeviceUserType.valueOf(basicType.fields().next().getKey()));
+			genericPSM.setBasicType(J2735PersonalDeviceUserType.valueOf(basicType.properties().iterator().next().getKey()));
 		}
 
 		JsonNode secMark = PSMMessage.get("secMark");
@@ -40,7 +40,7 @@ public class PSMBuilder {
 
 		JsonNode id = PSMMessage.get("id");
 		if (id != null) {
-			genericPSM.setId(id.asText().replaceAll("\\s", ""));
+			genericPSM.setId(id.asString().replaceAll("\\s", ""));
 		}
 
 		JsonNode position = PSMMessage.get("position");
@@ -111,7 +111,7 @@ public class PSMBuilder {
 
 		JsonNode clusterSize = PSMMessage.get("clusterSize");
 		if (crossState != null) {
-			genericPSM.setClusterSize(J2735NumberOfParticipantsInCluster.valueOf(clusterSize.fields().next().getKey().toUpperCase()));
+			genericPSM.setClusterSize(J2735NumberOfParticipantsInCluster.valueOf(clusterSize.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode clusterRadius = PSMMessage.get("clusterRadius");
@@ -121,32 +121,32 @@ public class PSMBuilder {
 
 		JsonNode eventResponderType = PSMMessage.get("eventResponderType");
 		if (eventResponderType != null) {
-			genericPSM.setEventResponderType(J2735PublicSafetyEventResponderWorkerType.valueOf(eventResponderType.fields().next().getKey().toUpperCase()));
+			genericPSM.setEventResponderType(J2735PublicSafetyEventResponderWorkerType.valueOf(eventResponderType.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode activityType = PSMMessage.get("activityType");
 		if (activityType != null) {
-			genericPSM.setActivityType(J2735PublicSafetyAndRoadWorkerActivity.valueOf(activityType.fields().next().getKey().toUpperCase()));
+			genericPSM.setActivityType(J2735PublicSafetyAndRoadWorkerActivity.valueOf(activityType.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode activitySubType = PSMMessage.get("activitySubType");
 		if (activitySubType != null) {
-			genericPSM.setActivitySubType(J2735PublicSafetyDirectingTrafficSubType.valueOf(activitySubType.fields().next().getKey().toUpperCase()));
+			genericPSM.setActivitySubType(J2735PublicSafetyDirectingTrafficSubType.valueOf(activitySubType.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode assistType = PSMMessage.get("assistType");
 		if (assistType != null) {
-			genericPSM.setAssistType(J2735PersonalAssistive.valueOf(assistType.fields().next().getKey().toUpperCase()));
+			genericPSM.setAssistType(J2735PersonalAssistive.valueOf(assistType.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode sizing = PSMMessage.get("sizing");
 		if (sizing != null) {
-			genericPSM.setSizing(J2735UserSizeAndBehaviour.valueOf(assistType.fields().next().getKey().toUpperCase()));
+			genericPSM.setSizing(J2735UserSizeAndBehaviour.valueOf(assistType.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode attachment = PSMMessage.get("attachment");
 		if (attachment != null) {
-			genericPSM.setAttachment(J2735Attachment.valueOf(attachment.fields().next().getKey().toUpperCase()));
+			genericPSM.setAttachment(J2735Attachment.valueOf(attachment.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		JsonNode attachmentRadius = PSMMessage.get("attachmentRadius");
@@ -156,7 +156,7 @@ public class PSMBuilder {
 
 		JsonNode animalType = PSMMessage.get("animalType");
 		if (animalType != null) {
-			genericPSM.setAnimalType(J2735AnimalType.valueOf(animalType.fields().next().getKey().toUpperCase()));
+			genericPSM.setAnimalType(J2735AnimalType.valueOf(animalType.properties().iterator().next().getKey().toUpperCase()));
 		}
 
 		return genericPSM;

@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RequestorDescription;
 import us.dot.its.jpo.ode.plugin.j2735.J2735VehicleID;
@@ -25,7 +25,7 @@ public class RequestorDescriptionBuilder {
             JsonNode entityID = id.get("entityID");
 			if(entityID != null)
 			{
-				objVehicleId.setEntityID(entityID.asText());
+				objVehicleId.setEntityID(entityID.asString());
 			}
 
 			JsonNode stationID = id.get("stationID");
@@ -52,13 +52,13 @@ public class RequestorDescriptionBuilder {
         JsonNode name = requestor.get("name");
 		if(name != null)
 		{
-            requestorDescription.setName(name.asText());
+            requestorDescription.setName(name.asString());
         }
 
         JsonNode routeName = requestor.get("routeName");
 		if(routeName != null)
 		{
-            requestorDescription.setRouteName(routeName.asText());
+            requestorDescription.setRouteName(routeName.asString());
         }
 
         JsonNode transitStatus = requestor.get("transitStatus");
@@ -71,7 +71,7 @@ public class RequestorDescriptionBuilder {
         JsonNode transitOccupancy = requestor.get("transitOccupancy");
 		if(transitOccupancy != null)
 		{
-            requestorDescription.setTransitOccupancy(J2735TransitVehicleOccupancy.valueOf(transitOccupancy.fieldNames().next()));
+            requestorDescription.setTransitOccupancy(J2735TransitVehicleOccupancy.valueOf(transitOccupancy.propertyNames().iterator().next()));
         }
 
         JsonNode transitSchedule = requestor.get("transitSchedule");

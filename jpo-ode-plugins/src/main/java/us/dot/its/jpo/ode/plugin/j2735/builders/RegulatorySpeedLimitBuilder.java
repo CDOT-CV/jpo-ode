@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RegulatorySpeedLimit;
 import us.dot.its.jpo.ode.plugin.j2735.J2735SpeedLimitType;
@@ -15,7 +15,7 @@ public class RegulatorySpeedLimitBuilder {
 
         JsonNode type = regSpeedLimitNode.get("type");
 		if (type != null) {
-			J2735SpeedLimitType enumType = J2735SpeedLimitType.valueOf(type.fieldNames().next());
+			J2735SpeedLimitType enumType = J2735SpeedLimitType.valueOf(type.propertyNames().iterator().next());
 			genericRegulatorySpeedLimit.setType(enumType);
 		}
 

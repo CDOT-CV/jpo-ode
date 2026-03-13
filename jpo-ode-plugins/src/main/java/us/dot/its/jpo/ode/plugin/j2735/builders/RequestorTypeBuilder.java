@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RequestorType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735BasicVehicleRole;
@@ -19,21 +19,21 @@ public class RequestorTypeBuilder {
         JsonNode role = typeData.get("role");
 		if(role != null)
 		{
-            J2735BasicVehicleRole enumRole = J2735BasicVehicleRole.valueOf(role.fieldNames().next());
+            J2735BasicVehicleRole enumRole = J2735BasicVehicleRole.valueOf(role.propertyNames().iterator().next());
 			requestorType.setRole(enumRole);
 		}
 
         JsonNode subrole = typeData.get("subrole");
 		if(subrole != null)
 		{
-            J2735RequestSubRole enumSubrole = J2735RequestSubRole.valueOf(subrole.fieldNames().next());
+            J2735RequestSubRole enumSubrole = J2735RequestSubRole.valueOf(subrole.propertyNames().iterator().next());
 			requestorType.setSubrole(enumSubrole);
 		}
 
         JsonNode request = typeData.get("request");
 		if(request != null)
 		{
-            J2735RequestImportanceLevel enumRequest = J2735RequestImportanceLevel.valueOf(request.fieldNames().next());
+            J2735RequestImportanceLevel enumRequest = J2735RequestImportanceLevel.valueOf(request.propertyNames().iterator().next());
 			requestorType.setRequest(enumRequest);
 		}
 
@@ -46,7 +46,7 @@ public class RequestorTypeBuilder {
         JsonNode hpmsType = typeData.get("hpmsType");
 		if(hpmsType != null)
 		{
-            J2735VehicleType enumVehicleType = J2735VehicleType.valueOf(hpmsType.fieldNames().next());
+            J2735VehicleType enumVehicleType = J2735VehicleType.valueOf(hpmsType.propertyNames().iterator().next());
 			requestorType.setHpmsType(enumVehicleType);
 		}
 

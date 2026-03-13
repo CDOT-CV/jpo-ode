@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735ConnectsToList;
 
@@ -16,7 +16,7 @@ public class ConnectsToListBuilder {
 
 		JsonNode connection = connectsToNode.get("Connection");
 		if (connection != null && connection.isArray()) {
-			Iterator<JsonNode> elements = connection.elements();
+			Iterator<JsonNode> elements = connection.values().iterator();
 
 			while (elements.hasNext()) {
 				connectsToList.getConnectsTo()

@@ -26,15 +26,15 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class LongitudeBuilderTest {
 
    @Test
-   public void testConversion() throws JsonProcessingException, IOException {
+   public void testConversion() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("251234567");
       BigDecimal expectedValue = BigDecimal.valueOf(25.1234567);
@@ -43,7 +43,7 @@ public class LongitudeBuilderTest {
    }
 
    @Test
-   public void testConversionDeticatedNullValue() throws JsonProcessingException, IOException {
+   public void testConversionDeticatedNullValue() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("1800000001");
       BigDecimal expectedValue = null;
@@ -52,7 +52,7 @@ public class LongitudeBuilderTest {
    }
 
    @Test
-   public void testBigDecimal() throws JsonProcessingException, IOException {
+   public void testBigDecimal() throws JacksonException, IOException {
 
       BigDecimal testInput = new BigDecimal(1.0);
 

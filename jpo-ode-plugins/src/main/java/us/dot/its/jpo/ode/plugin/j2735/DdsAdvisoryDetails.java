@@ -15,11 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 import us.dot.its.jpo.ode.plugin.ieee1609dot2.Ieee1609Dot2DataTag;
 
 public class DdsAdvisoryDetails extends Asn1Object {
-   private static final long serialVersionUID = 8964772115424427026L;
+   @Serial private static final long serialVersionUID = 8964772115424427026L;
 
    public enum AdvisoryBroadcastType {
       spatAggregate, //  (0),

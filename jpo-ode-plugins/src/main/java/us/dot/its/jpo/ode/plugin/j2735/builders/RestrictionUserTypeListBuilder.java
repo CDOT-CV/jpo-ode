@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.util.Iterator;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RestrictionUserTypeList;
 
@@ -16,7 +16,7 @@ public class RestrictionUserTypeListBuilder {
 
 		JsonNode restrictionUserType = restrictionUserTypeListNode.get("RestrictionUserType");
 		if (restrictionUserType != null && restrictionUserType.isArray()) {
-			Iterator<JsonNode> elements = restrictionUserType.elements();
+			Iterator<JsonNode> elements = restrictionUserType.values().iterator();
 
 			while (elements.hasNext()) {
 				restrictionUserTypeList.getRestrictionUserType()

@@ -3,7 +3,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MAP;
 import us.dot.its.jpo.ode.util.XmlUtils;

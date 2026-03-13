@@ -26,10 +26,10 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * -- Summary -- Test class for TimeOffsetBuilder
@@ -53,7 +53,7 @@ public class TimeOffsetBuilderTest {
     * Test that an undefined time offset flag value 65535 returns null
     */
    @Test
-   public void shouldReturnUndefinedTimeOffset() throws JsonProcessingException, IOException {
+   public void shouldReturnUndefinedTimeOffset() throws JacksonException, IOException {
 
       BigDecimal expectedValue = null;
 
@@ -70,7 +70,7 @@ public class TimeOffsetBuilderTest {
     * Test that a minimum time offset of (1) returns (0.01)
     */
    @Test
-   public void shouldReturnMinimumTimeOffset() throws JsonProcessingException, IOException {
+   public void shouldReturnMinimumTimeOffset() throws JacksonException, IOException {
 
       BigDecimal expectedValue = BigDecimal.valueOf(0.01);
       ObjectMapper mapper = new ObjectMapper();
@@ -86,7 +86,7 @@ public class TimeOffsetBuilderTest {
     * Test that a maximum time offset of (65534) returns (655.34)
     */
    @Test
-   public void shouldReturnMaximumTimeOffset() throws JsonProcessingException, IOException {
+   public void shouldReturnMaximumTimeOffset() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testTimeOffset = mapper.readTree("65534");
@@ -102,7 +102,7 @@ public class TimeOffsetBuilderTest {
     * Test that a known time offset of (15234) returns (152.34)
     */
    @Test
-   public void shouldReturnKnownTimeOffset() throws JsonProcessingException, IOException {
+   public void shouldReturnKnownTimeOffset() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       BigDecimal expectedValue = BigDecimal.valueOf(152.34);
@@ -118,7 +118,7 @@ public class TimeOffsetBuilderTest {
     * IllegalArgumentException
     */
    @Test
-   public void shouldThrowExceptionTimeOffsetBelowLowerBound() throws JsonProcessingException, IOException {
+   public void shouldThrowExceptionTimeOffsetBelowLowerBound() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testTimeOffset = mapper.readTree("0");
@@ -137,7 +137,7 @@ public class TimeOffsetBuilderTest {
     * reduced and returned as (655.34)
     */
    @Test
-   public void shouldReduceTimeOffsetAboveUpperBound() throws JsonProcessingException, IOException {
+   public void shouldReduceTimeOffsetAboveUpperBound() throws JacksonException, IOException {
 
       ObjectMapper mapper = new ObjectMapper();
       BigDecimal expectedValue = BigDecimal.valueOf(655.34);

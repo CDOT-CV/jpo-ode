@@ -20,9 +20,11 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 @JsonPropertyOrder({ "lat", "long", "elevation" })
 public class DsrcPosition3D extends Asn1Object {
-   private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
    private Long latitude; // in degrees
    private Long longitude; // in degrees
    private Long elevation; // in meters

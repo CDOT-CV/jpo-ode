@@ -16,7 +16,7 @@
 
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.util.Iterator;
 import us.dot.its.jpo.ode.plugin.j2735.J2735Bsm;
 
@@ -45,7 +45,7 @@ public class BsmBuilder {
       JsonNode part2Content = partII.get(PARTII_EXTENSION_SECTION_INDICATOR_TAG);
       if (null != part2Content) {
         if (part2Content.isArray()) {
-          Iterator<JsonNode> elements = part2Content.elements();
+          Iterator<JsonNode> elements = part2Content.values().iterator();
           while (elements.hasNext()) {
             genericBsm.getPartII().add(BsmPart2ContentBuilder.genericPart2Content(elements.next()));
           }

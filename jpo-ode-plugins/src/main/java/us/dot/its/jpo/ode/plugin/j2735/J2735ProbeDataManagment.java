@@ -15,11 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.model.OdeObject;
 
 public class J2735ProbeDataManagment extends OdeObject {
 
-    private static final long serialVersionUID = 6638057737585466892L;
+   @Serial private static final long serialVersionUID = 6638057737585466892L;
     
     private int sampleStart;
     private int sampleEnd;

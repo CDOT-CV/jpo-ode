@@ -24,15 +24,15 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 
 public class ElevationBuilderTest {
 
    @Test
-   public void testConversion() throws JsonProcessingException, IOException {
+   public void testConversion() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("32834");
       BigDecimal expectedValue = BigDecimal.valueOf(3283.4);
@@ -54,7 +54,7 @@ public class ElevationBuilderTest {
       }
    }
    @Test
-   public void testConversionReturnNull() throws JsonProcessingException, IOException {
+   public void testConversionReturnNull() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("-4096");
       BigDecimal expectedValue = null;
@@ -63,7 +63,7 @@ public class ElevationBuilderTest {
    }
    
    @Test
-   public void testConversionWithinBounds() throws JsonProcessingException, IOException {
+   public void testConversionWithinBounds() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("-4095");
       BigDecimal expectedValue = BigDecimal.valueOf(-409.5);
@@ -71,7 +71,7 @@ public class ElevationBuilderTest {
       assertEquals(expectedValue, ElevationBuilder.genericElevation(testInput));
    }
    @Test
-   public void testConversionOutOfBoundsLower() throws JsonProcessingException, IOException {
+   public void testConversionOutOfBoundsLower() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("-4097");
       BigDecimal expectedValue = BigDecimal.valueOf(-409.5);
@@ -79,7 +79,7 @@ public class ElevationBuilderTest {
       assertEquals(expectedValue, ElevationBuilder.genericElevation(testInput));
    }
    @Test
-   public void testConversionOutOfBoundsLowerTwo() throws JsonProcessingException, IOException {
+   public void testConversionOutOfBoundsLowerTwo() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("-5097");
       BigDecimal expectedValue = BigDecimal.valueOf(-409.5);
@@ -89,7 +89,7 @@ public class ElevationBuilderTest {
    
    
    @Test
-   public void testConversionOutOfBoundsUpper() throws JsonProcessingException, IOException {
+   public void testConversionOutOfBoundsUpper() throws JacksonException, IOException {
       ObjectMapper mapper = new ObjectMapper();
       JsonNode testInput = mapper.readTree("61440");
       BigDecimal expectedValue = BigDecimal.valueOf(6143.9);

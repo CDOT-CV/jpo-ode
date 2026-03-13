@@ -1,10 +1,12 @@
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
 public class J2735RequestorType extends Asn1Object {
 
-    private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
     private J2735BasicVehicleRole role;
     private J2735RequestSubRole subrole;
     private J2735RequestImportanceLevel request;

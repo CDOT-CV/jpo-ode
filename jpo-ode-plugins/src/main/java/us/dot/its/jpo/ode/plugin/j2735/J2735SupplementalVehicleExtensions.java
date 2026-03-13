@@ -19,10 +19,12 @@ package us.dot.its.jpo.ode.plugin.j2735;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.io.Serial;
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class J2735SupplementalVehicleExtensions extends J2735BsmPart2ExtensionBase {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   private Integer classification;
   private J2735VehicleClassification classDetails;

@@ -21,11 +21,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.model.OdeObject;
 
+import java.io.Serial;
+
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class DataFrames extends OdeObject {
 
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   @JsonProperty("TravelerDataFrame")
   private TravelerDataFrame[] TravelerDataFrame;

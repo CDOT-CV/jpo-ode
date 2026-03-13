@@ -5,7 +5,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735ConnectionManueverAssist;
 import us.dot.its.jpo.ode.util.XmlUtils;

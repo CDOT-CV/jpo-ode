@@ -2,7 +2,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import org.json.JSONObject;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735LayerType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MAP;
@@ -71,22 +71,22 @@ public class MAPBuilder {
 
 			JsonNode processMethod = dataParameters.get("processMethod");
 			if (processMethod != null) {
-				dataParametersObj.setProcessMethod(processMethod.asText());
+				dataParametersObj.setProcessMethod(processMethod.asString());
 			}
 
 			JsonNode processAgency = dataParameters.get("processAgency");
 			if (processAgency != null) {
-				dataParametersObj.setProcessAgency(processAgency.asText());
+				dataParametersObj.setProcessAgency(processAgency.asString());
 			}
 
 			JsonNode lastCheckedDate = dataParameters.get("lastCheckedDate");
 			if (lastCheckedDate != null) {
-				dataParametersObj.setLastCheckedDate(lastCheckedDate.asText());
+				dataParametersObj.setLastCheckedDate(lastCheckedDate.asString());
 			}
 
 			JsonNode geoidUsed = dataParameters.get("geoidUsed");
 			if (geoidUsed != null) {
-				dataParametersObj.setGeoidUsed(geoidUsed.asText());
+				dataParametersObj.setGeoidUsed(geoidUsed.asString());
 			}
 
 			genericMAP.setDataParameters(dataParametersObj);

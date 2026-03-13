@@ -4,13 +4,15 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 /**
  * NodeAttributeSetXY.
  */
 @EqualsAndHashCode(callSuper = false)
 @Data
 public class NodeAttributeSetXY extends Asn1Object {
-  private static final long serialVersionUID = 1L;
+   @Serial private static final long serialVersionUID = 1L;
 
   //  localNode NodeAttributeXYList OPTIONAL,
   //  -- Attribute states which pertain to this node point

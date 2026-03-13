@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735RestrictionUserType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735RestrictionAppliesTo;
@@ -16,7 +16,7 @@ public class RestrictionUserTypeBuilder {
 		JsonNode basicType = restrictionUserTypeNode.get("basicType");
 		if(basicType != null)
 		{
-            restrictionUserType.setBasicType(J2735RestrictionAppliesTo.valueOf(basicType.fieldNames().next()));
+            restrictionUserType.setBasicType(J2735RestrictionAppliesTo.valueOf(basicType.propertyNames().iterator().next()));
         }
 
 		return restrictionUserType;

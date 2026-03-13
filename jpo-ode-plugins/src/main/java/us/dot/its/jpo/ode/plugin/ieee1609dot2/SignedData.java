@@ -15,10 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.ieee1609dot2;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
 public class SignedData extends Asn1Object {
-   private static final long serialVersionUID = -7271795367676711500L;
+   @Serial private static final long serialVersionUID = -7271795367676711500L;
 
    private HashAlgorithm hashId;
    private ToBeSignedData tbsData;

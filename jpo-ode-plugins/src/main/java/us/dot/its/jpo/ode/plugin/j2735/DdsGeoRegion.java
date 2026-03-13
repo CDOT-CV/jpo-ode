@@ -15,10 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
 public class DdsGeoRegion extends Asn1Object {
-   private static final long serialVersionUID = -8496515705143160656L;
+   @Serial private static final long serialVersionUID = -8496515705143160656L;
    private DsrcPosition3D nwCorner;
    private DsrcPosition3D seCorner;
    

@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BitString;
 import org.slf4j.Logger;
@@ -18,7 +18,7 @@ public class BitStringBuilder {
 
       J2735BitString bitString = new J2735BitString();
 
-      char[] chars = jsonNode.asText().trim().toCharArray();
+      char[] chars = jsonNode.asString().trim().toCharArray();
 
       for (char i = 0; i < chars.length; i++) {
          if (i >= enumValues.length) {

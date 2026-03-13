@@ -15,11 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.model.OdeObject;
 
 public class J2735VehicleStatusRequest extends OdeObject {
 
-    private static final long serialVersionUID = 2137805895544104045L;
+   @Serial private static final long serialVersionUID = 2137805895544104045L;
     
     private int tag;
     private int subTag;

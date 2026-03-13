@@ -17,7 +17,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735EssPrecipSituation;
 import us.dot.its.jpo.ode.plugin.j2735.J2735EssPrecipYesNo;
@@ -47,7 +47,7 @@ public class WeatherReportBuilder {
       // Required element
       J2735EssPrecipYesNo enumIsRaining;
       try {
-         enumIsRaining = J2735EssPrecipYesNo.valueOf(weatherReport.get("isRaining").fieldNames().next().toUpperCase());
+         enumIsRaining = J2735EssPrecipYesNo.valueOf(weatherReport.get("isRaining").propertyNames().iterator().next().toUpperCase());
       } catch (IllegalArgumentException e) {
          enumIsRaining = J2735EssPrecipYesNo.NA;
       }
@@ -60,7 +60,7 @@ public class WeatherReportBuilder {
 
          if (friction < FRICTION_LOWER_BOUND || FRICTION_UPPER_BOUND < friction) {
             throw new IllegalArgumentException(
-                  String.format("Friction value out of bounds [%d..%d]", FRICTION_LOWER_BOUND, FRICTION_UPPER_BOUND));
+                  "Friction value out of bounds [%d..%d]".formatted(FRICTION_LOWER_BOUND, FRICTION_UPPER_BOUND));
          }
 
          if (friction != FRICTION_UNDEFINED_VALUE) {
@@ -71,7 +71,7 @@ public class WeatherReportBuilder {
       if (weatherReport.get("precipSituation") != null) {
          J2735EssPrecipSituation enumPrecipSituation;
          try {
-            enumPrecipSituation = J2735EssPrecipSituation.valueOf(weatherReport.get("precipSituation").fieldNames().next().toUpperCase());
+            enumPrecipSituation = J2735EssPrecipSituation.valueOf(weatherReport.get("precipSituation").propertyNames().iterator().next().toUpperCase());
          } catch (IllegalArgumentException e) {
             enumPrecipSituation = J2735EssPrecipSituation.UNKNOWN;
          }
@@ -84,7 +84,7 @@ public class WeatherReportBuilder {
 
          if (rainRate < RAIN_RATE_LOWER_BOUND || RAIN_RATE_UPPER_BOUND < rainRate) {
             throw new IllegalArgumentException(
-                  String.format("Rain rate out of bounds [%d..%d]", RAIN_RATE_LOWER_BOUND, RAIN_RATE_UPPER_BOUND));
+                  "Rain rate out of bounds [%d..%d]".formatted(RAIN_RATE_LOWER_BOUND, RAIN_RATE_UPPER_BOUND));
          }
 
          if (rainRate != RAIN_RATE_UNDEFINED_VALUE) {
@@ -109,7 +109,7 @@ public class WeatherReportBuilder {
          int solarRadiation = weatherReport.get("solarRadiation").asInt();
 
          if (solarRadiation < SOLAR_RAD_LOWER_BOUND || SOLAR_RAD_UPPER_BOUND < solarRadiation) {
-            throw new IllegalArgumentException(String.format("Solar radiation value out of bounds [%d..%d]",
+            throw new IllegalArgumentException("Solar radiation value out of bounds [%d..%d]".formatted(
                   SOLAR_RAD_LOWER_BOUND, SOLAR_RAD_UPPER_BOUND));
          }
 

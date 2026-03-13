@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.DsrcPosition3D;
 import us.dot.its.jpo.ode.plugin.j2735.J2735FullPositionVector;
@@ -106,7 +106,7 @@ public class FullPositionVectorBuilder {
         }
 
         if (initialPosition.get(TIME_CONFIDENCE) != null) {
-            fpv.setTimeConfidence(J2735TimeConfidence.valueOf(initialPosition.get(TIME_CONFIDENCE).asText().replaceAll("-", "_").toUpperCase()));
+            fpv.setTimeConfidence(J2735TimeConfidence.valueOf(initialPosition.get(TIME_CONFIDENCE).asString().replaceAll("-", "_").toUpperCase()));
         }
 
         if (initialPosition.get(UTC_TIME) != null) {

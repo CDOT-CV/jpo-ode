@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735HeadingConfidence;
 import us.dot.its.jpo.ode.plugin.j2735.J2735SpeedConfidence;
@@ -58,9 +58,9 @@ public class SpeedandHeadingandThrottleConfidenceBuilder {
 
         J2735SpeedandHeadingandThrottleConfidence shtc = new J2735SpeedandHeadingandThrottleConfidence();
 
-        shtc.setHeading(J2735HeadingConfidence.valueOf(speedConfidence.get(HEADING).asText().replaceAll("-", "_").toUpperCase()));
-        shtc.setSpeed(J2735SpeedConfidence.valueOf(speedConfidence.get(SPEED).asText().replaceAll("-", "_").toUpperCase()));
-        shtc.setThrottle(J2735ThrottleConfidence.valueOf(speedConfidence.get(THROTTLE).asText().replaceAll("-", "_").toUpperCase()));
+        shtc.setHeading(J2735HeadingConfidence.valueOf(speedConfidence.get(HEADING).asString().replaceAll("-", "_").toUpperCase()));
+        shtc.setSpeed(J2735SpeedConfidence.valueOf(speedConfidence.get(SPEED).asString().replaceAll("-", "_").toUpperCase()));
+        shtc.setThrottle(J2735ThrottleConfidence.valueOf(speedConfidence.get(THROTTLE).asString().replaceAll("-", "_").toUpperCase()));
 
         return shtc;
     }

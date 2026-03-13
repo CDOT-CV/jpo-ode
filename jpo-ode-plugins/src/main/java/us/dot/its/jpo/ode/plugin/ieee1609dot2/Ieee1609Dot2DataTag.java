@@ -19,9 +19,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
+import java.io.Serial;
+
 public class Ieee1609Dot2DataTag extends Asn1Object {
 
-   private static final long serialVersionUID = 6855732310695479036L;
+   @Serial private static final long serialVersionUID = 6855732310695479036L;
 
    private Ieee1609Dot2Data Ieee1609Dot2Data;
 

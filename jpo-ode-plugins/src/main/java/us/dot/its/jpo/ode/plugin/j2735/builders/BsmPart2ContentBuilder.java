@@ -18,7 +18,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 import java.util.Iterator;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BsmPart2Content;
 

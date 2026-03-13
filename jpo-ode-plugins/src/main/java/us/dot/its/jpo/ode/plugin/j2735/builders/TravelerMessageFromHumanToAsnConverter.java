@@ -16,9 +16,9 @@
 
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.ZonedDateTime;
@@ -152,7 +152,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     // timeStamp is optional
     if (timDataObjectNode.get(TIME_STAMP) != null) {
-      timDataObjectNode.put(TIME_STAMP, translateISOTimeStampToMinuteOfYear(timDataObjectNode.get(TIME_STAMP).asText()));
+      timDataObjectNode.put(TIME_STAMP, translateISOTimeStampToMinuteOfYear(timDataObjectNode.get(TIME_STAMP).asString()));
     }
 
     // urlB is optional but does not need replacement
@@ -179,7 +179,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     ArrayNode replacedDataFrames = JsonUtils.newNode().arrayNode();
     if (dataFrames.isArray()) {
-      Iterator<JsonNode> dataFramesIter = dataFrames.elements();
+      Iterator<JsonNode> dataFramesIter = dataFrames.values().iterator();
 
       while (dataFramesIter.hasNext()) {
         ObjectNode oldFrame = (ObjectNode) dataFramesIter.next();
@@ -239,7 +239,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // </dataFrames>
 
     // set frameType value
-    dataFrame.set("frameType", JsonUtils.newNode().put(dataFrame.get("frameType").asText(), EMPTY_FIELD_FLAG));
+    dataFrame.set("frameType", JsonUtils.newNode().put(dataFrame.get("frameType").asString(), EMPTY_FIELD_FLAG));
 
     ensureComplianceWithJ2735Revision2024(dataFrame);
 
@@ -296,7 +296,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // unknown minuteofyear = 527040
     int startYear = 0;
     int startMinute = 527040;
-    String startDateTime = dataFrame.get(START_DATE_TIME).asText();
+    String startDateTime = dataFrame.get(START_DATE_TIME).asString();
     try {
       ZonedDateTime zonedDateTime = DateTimeUtils.isoDateTime(startDateTime);
       startYear = zonedDateTime.getYear();
@@ -345,7 +345,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
       while (itemsIter.hasNext()) {
         JsonNode curItem = itemsIter.next();
-        newItems.add(buildItem(curItem.asText()));
+        newItems.add(buildItem(curItem.asString()));
       }
     }
 
@@ -354,7 +354,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     dataFrame.remove("items");
 
     // step 2, set the content CHOICE
-    String replacedContentName = dataFrame.get("content").asText();
+    String replacedContentName = dataFrame.get("content").asString();
     if (replacedContentName.equals("Advisory")) {
       replacedContentName = "advisory";
     }
@@ -424,7 +424,7 @@ public class TravelerMessageFromHumanToAsnConverter {
         // mutcdCode is optional
         JsonNode mutcdNode = roadSignID.get("mutcdCode");
         if (mutcdNode != null) {
-          roadSignID.set("mutcdCode", JsonUtils.newNode().put(mutcdNode.asText(), EMPTY_FIELD_FLAG));
+          roadSignID.set("mutcdCode", JsonUtils.newNode().put(mutcdNode.asString(), EMPTY_FIELD_FLAG));
         }
       }
     }
@@ -441,7 +441,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     ArrayNode replacedRegions = JsonUtils.newNode().arrayNode();
 
     if (regions.isArray()) {
-      Iterator<JsonNode> regionsIter = regions.elements();
+      Iterator<JsonNode> regionsIter = regions.values().iterator();
 
       while (regionsIter.hasNext()) {
         JsonNode curRegion = regionsIter.next();
@@ -538,7 +538,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // directionality (optional)
     if (region.has(DIRECTIONALITY)) {
       JsonNode directionality = region.get(DIRECTIONALITY);
-      String enumString = enumToString(DirectionOfUseEnum.class, directionality.asText());
+      String enumString = enumToString(DirectionOfUseEnum.class, directionality.asString());
       if (enumString != null) {
         region.set(DIRECTIONALITY, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
@@ -553,7 +553,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // description (optional)
     JsonNode descriptionNode = region.get(DESCRIPTION);
     if (descriptionNode != null) {
-      String descriptionType = descriptionNode.asText();
+      String descriptionType = descriptionNode.asString();
       if (PATH.equals(descriptionType)) {
         ObjectNode pathNode = (ObjectNode) region.get(PATH);
         replacePath(pathNode);
@@ -591,7 +591,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // </path>
 
     // zoom does not need to be replaced
-    String nodeType = pathNode.get(TYPE).asText();
+    String nodeType = pathNode.get(TYPE).asString();
     JsonNode nodes = pathNode.get(NODES);
     JsonNode nodeList;
     if (LL.equals(nodeType)) {
@@ -622,7 +622,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     ArrayNode outputNodeList = JsonUtils.newNode().arrayNode();
 
     if (nodes.isArray()) {
-      Iterator<JsonNode> nodeListIter = nodes.elements();
+      Iterator<JsonNode> nodeListIter = nodes.values().iterator();
 
       while (nodeListIter.hasNext()) {
         JsonNode inputNode = nodeListIter.next();
@@ -659,7 +659,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     ObjectNode innerNode = JsonUtils.newNode();
     ObjectNode latLong = JsonUtils.newNode();
-    String deltaText = delta.asText();
+    String deltaText = delta.asString();
     if (deltaText.startsWith("node-LL")) {
       transformedLat = OffsetLLBuilder.offsetLL(latOffset);
       transformedLong = OffsetLLBuilder.offsetLL(longOffset);
@@ -766,7 +766,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     // extent - no changes
     JsonNode extentNode = oldRegion.get(EXTENT);
-    String extent = enumToString(Extent.ExtentEnum.class, extentNode.asText());
+    String extent = enumToString(Extent.ExtentEnum.class, extentNode.asString());
     oldRegion.set(EXTENT, JsonUtils.newNode().put(extent, EMPTY_FIELD_FLAG));
 
     // area - needs changes
@@ -846,7 +846,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // replace units
     if (updatedNode.has(UNITS)) {
       JsonNode units = updatedNode.get(UNITS);
-      String enumString = enumToString(DistanceUnitsEnum.class, units.asText());
+      String enumString = enumToString(DistanceUnitsEnum.class, units.asString());
       if (enumString != null) {
         updatedNode.set(UNITS, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
@@ -880,7 +880,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // replace directionality
     if (updatedNode.has(DIRECTIONALITY)) {
       JsonNode directionality = updatedNode.get(DIRECTIONALITY);
-      String enumString = enumToString(DirectionOfUseEnum.class, directionality.asText());
+      String enumString = enumToString(DirectionOfUseEnum.class, directionality.asString());
       if (enumString != null) {
         updatedNode.set(DIRECTIONALITY, JsonUtils.newNode().put(enumString, EMPTY_FIELD_FLAG));
       }
@@ -978,7 +978,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     ArrayNode outputNodeList = JsonUtils.newNode().arrayNode();
 
     if (inputNodeList.isArray()) {
-      Iterator<JsonNode> nodeListIter = inputNodeList.elements();
+      Iterator<JsonNode> nodeListIter = inputNodeList.values().iterator();
 
       while (nodeListIter.hasNext()) {
         JsonNode inputNode = nodeListIter.next();
@@ -1043,7 +1043,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     ArrayNode updatedLaneDataAttributeList = JsonUtils.newNode().arrayNode();
 
     if (laneDataAttribute.isArray()) {
-      Iterator<JsonNode> laneDataAttributeListIter = laneDataAttribute.elements();
+      Iterator<JsonNode> laneDataAttributeListIter = laneDataAttribute.values().iterator();
 
       while (laneDataAttributeListIter.hasNext()) {
         JsonNode oldNode = laneDataAttributeListIter.next();
@@ -1092,7 +1092,7 @@ public class TravelerMessageFromHumanToAsnConverter {
   private static void replaceSpeedLimitList(JsonNode speedLimitList) {
 
     if (speedLimitList.isArray()) {
-      Iterator<JsonNode> speedLimitListIter = speedLimitList.elements();
+      Iterator<JsonNode> speedLimitListIter = speedLimitList.values().iterator();
 
       while (speedLimitListIter.hasNext()) {
         JsonNode oldNode = speedLimitListIter.next();
@@ -1110,7 +1110,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     // type
     JsonNode typeNode = regulatorySpeedLimitNode.get(TYPE);
-    String type = enumToString(SpeedLimitTypeEnum.class, typeNode.asText());
+    String type = enumToString(SpeedLimitTypeEnum.class, typeNode.asString());
     if (type != null) {
       updatedNode.set(TYPE, JsonUtils.newNode().put(type, EMPTY_FIELD_FLAG));
     }
@@ -1162,7 +1162,7 @@ public class TravelerMessageFromHumanToAsnConverter {
 
     ObjectNode innerNode = JsonUtils.newNode();
     ObjectNode deltaNode = JsonUtils.newNode();
-    String deltaText = delta.asText();
+    String deltaText = delta.asString();
     if (deltaText.startsWith(NODE_XY)) {
       BigDecimal offsetX = JsonUtils.decimalValue(oldNode.get(X));
       BigDecimal offsetY = JsonUtils.decimalValue(oldNode.get(Y));

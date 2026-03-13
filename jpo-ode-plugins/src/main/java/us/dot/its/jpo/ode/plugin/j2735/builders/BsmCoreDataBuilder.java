@@ -17,7 +17,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 
 import java.math.BigDecimal;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BsmCoreData;
 import us.dot.its.jpo.ode.plugin.j2735.OdePosition3D;
@@ -34,7 +34,7 @@ public class BsmCoreDataBuilder {
 
         genericBsmCoreData.setMsgCnt(coreData.get("msgCnt").asInt());
 
-        genericBsmCoreData.setId(coreData.get("id").asText());
+        genericBsmCoreData.setId(coreData.get("id").asString());
 
         if (coreData.get("secMark").asInt() != 65535) {
             genericBsmCoreData.setSecMark(coreData.get("secMark").asInt());
@@ -54,7 +54,7 @@ public class BsmCoreDataBuilder {
         if (transmission != null) {
             J2735TransmissionState enumTransmission; 
             try {
-                enumTransmission = J2735TransmissionState.valueOf(transmission.fieldNames().next().toUpperCase());
+                enumTransmission = J2735TransmissionState.valueOf(transmission.propertyNames().iterator().next().toUpperCase());
             } catch (IllegalArgumentException e) {
                 enumTransmission = J2735TransmissionState.UNAVAILABLE;
             }

@@ -15,6 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin;
 
+import java.io.Serial;
 import java.text.ParseException;
 import java.time.ZonedDateTime;
 
@@ -22,7 +23,7 @@ import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 public class SNMP extends OdeObject {
-   private static final long serialVersionUID = 6622977652181526235L;
+   @Serial private static final long serialVersionUID = 6622977652181526235L;
 
    private String rsuid;
    private int msgid;
@@ -130,13 +131,13 @@ public class SNMP extends OdeObject {
       
       StringBuilder sb = new StringBuilder();
 
-      sb.append(String.format("%04X", zdt.getYear()));
-      sb.append(String.format("%02X", zdt.getMonthValue()));
-      sb.append(String.format("%02X", zdt.getDayOfMonth()));
-      sb.append(String.format("%02X", zdt.getHour()));
-      sb.append(String.format("%02X", zdt.getMinute()));
-      sb.append(String.format("%02X", zdt.getSecond()));
-      sb.append(String.format("%02X", zdt.getNano()).substring(0, 2));
+      sb.append("%04X".formatted(zdt.getYear()));
+      sb.append("%02X".formatted(zdt.getMonthValue()));
+      sb.append("%02X".formatted(zdt.getDayOfMonth()));
+      sb.append("%02X".formatted(zdt.getHour()));
+      sb.append("%02X".formatted(zdt.getMinute()));
+      sb.append("%02X".formatted(zdt.getSecond()));
+      sb.append("%02X".formatted(zdt.getNano()).substring(0, 2));
 
       return sb.toString();
    }
@@ -145,11 +146,11 @@ public class SNMP extends OdeObject {
       ZonedDateTime zdt = DateTimeUtils.isoDateTime(isoTimestamp);
       StringBuilder sb = new StringBuilder();
 
-      sb.append(String.format("%04X", zdt.getYear()));
-      sb.append(String.format("%02X", zdt.getMonthValue()));
-      sb.append(String.format("%02X", zdt.getDayOfMonth()));
-      sb.append(String.format("%02X", zdt.getHour()));
-      sb.append(String.format("%02X", zdt.getMinute()));
+      sb.append("%04X".formatted(zdt.getYear()));
+      sb.append("%02X".formatted(zdt.getMonthValue()));
+      sb.append("%02X".formatted(zdt.getDayOfMonth()));
+      sb.append("%02X".formatted(zdt.getHour()));
+      sb.append("%02X".formatted(zdt.getMinute()));
       return sb.toString();
    }
 
