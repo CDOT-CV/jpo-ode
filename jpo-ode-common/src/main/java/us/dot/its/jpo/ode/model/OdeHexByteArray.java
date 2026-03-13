@@ -15,10 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 import us.dot.its.jpo.ode.util.CodecUtils;
 
 public class OdeHexByteArray extends OdeObject {
 
+   @Serial
    private static final long serialVersionUID = 6106562581659367345L;
    
    private String bytes;

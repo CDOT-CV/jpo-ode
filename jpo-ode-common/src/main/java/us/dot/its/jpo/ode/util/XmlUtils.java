@@ -16,14 +16,13 @@
 
 package us.dot.its.jpo.ode.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlMapper.Builder;
 import org.json.JSONObject;
 import org.json.XML;
+import tools.jackson.core.JacksonException;
 
 /**
  * Utility class for XML manipulation.
@@ -51,7 +50,6 @@ public class XmlUtils {
 
   static {
     var builder = new Builder(staticXmlMapper);
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
     staticXmlMapper = builder.build();
   }
@@ -62,12 +60,11 @@ public class XmlUtils {
   public XmlUtils() {
     super();
     var builder = new Builder(xmlMapper);
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
     xmlMapper = builder.build();
   }
 
-  public String toXml(Object o) throws JsonProcessingException {
+  public String toXml(Object o) throws JacksonException {
     String xml = xmlMapper.writeValueAsString(o);
     return xml;
   }

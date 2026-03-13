@@ -17,15 +17,14 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.CoercionAction;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.type.LogicalType;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.CoercionAction;
+import tools.jackson.databind.cfg.CoercionInputShape;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.type.LogicalType;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -33,6 +32,7 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import tools.jackson.core.JacksonException;
 
 /**
  * Utility class for JSON operations using Jackson ObjectMapper.
@@ -51,7 +51,7 @@ public class JsonUtils {
 
     mapper_noNulls = new ObjectMapper();
     mapper_noNulls.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-    mapper_noNulls.setSerializationInclusion(Include.NON_NULL);
+     mapper_noNulls.setDefaultPropertyInclusion(Include.NON_NULL);
 
     // Ensure BigDecimals are serialized consistently as numbers not strings
     mapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
@@ -74,7 +74,7 @@ public class JsonUtils {
     // and returned as JSON formatted string
     try {
       return verbose ? mapper.writeValueAsString(o) : mapper_noNulls.writeValueAsString(o);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Error converting object to JSON", e);
       return "";
     }
@@ -250,7 +250,7 @@ public class JsonUtils {
     try {
       ObjectNode jsonNode = (ObjectNode) mapper.readTree(tree);
       return jsonNode != null;
-    } catch (JsonProcessingException jpe) {
+    } catch (JacksonException jpe) {
       return false;
     }
   }
@@ -263,7 +263,7 @@ public class JsonUtils {
    */
   public static HashMap<String, JsonNode> jsonNodeToHashMap(JsonNode jsonNode) {
     HashMap<String, JsonNode> nodeProps = new HashMap<String, JsonNode>();
-    Iterator<Entry<String, JsonNode>> iter = jsonNode.fields();
+    Iterator<Entry<String, JsonNode>> iter = jsonNode.properties().iterator();
 
     while (iter.hasNext()) {
       Entry<String, JsonNode> element = iter.next();
@@ -292,8 +292,8 @@ public class JsonUtils {
    */
   public static BigDecimal decimalValue(JsonNode v) {
     BigDecimal result;
-    if (v.isTextual()) {
-      result = new BigDecimal(v.textValue());
+    if (v.isString()) {
+      result = new BigDecimal(v.asString());
     } else {
       result = v.decimalValue();
     }

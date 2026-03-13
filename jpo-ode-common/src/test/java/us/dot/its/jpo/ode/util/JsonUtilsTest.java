@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
@@ -171,29 +171,29 @@ public class JsonUtilsTest {
     public void testJsonNodeToHashMap() {
         ObjectNode on = JsonUtils.newObjectNode("key", "value");
         HashMap<String, JsonNode> hm = JsonUtils.jsonNodeToHashMap(on);
-        assertEquals("value", hm.get("key").asText());
+        assertEquals("value", hm.get("key").asString());
 
         JsonNode jsonNode = JsonUtils.getJsonNode(ODM, "payload");
         HashMap<String, JsonNode> hashMap = JsonUtils.jsonNodeToHashMap(jsonNode);
-        Iterator<Entry<String, JsonNode>> fieldsIter = jsonNode.fields();
+        Iterator<Entry<String, JsonNode>> fieldsIter = jsonNode.properties().iterator();
 
         while (fieldsIter.hasNext()) {
             Entry<String, JsonNode> field = fieldsIter.next();
             JsonNode node = hashMap.get(field.getKey());
             assertNotNull(node);
-            assertEquals(node.asText(), field.getValue().asText());
+            assertEquals(node.asString(), field.getValue().asString());
         }
 
         for (Entry<String, JsonNode> entry : hashMap.entrySet()) {
             JsonNode node = jsonNode.get(entry.getKey());
             assertNotNull(node);
-            assertEquals(node.asText(), entry.getValue().asText());
+            assertEquals(node.asString(), entry.getValue().asString());
         }
     }
 
     @Test
     public void testGetJson() {
-        assertEquals("10817812-036b-4d7b-867b-ae0bc62a2b3e.0", JsonUtils.getJsonNode(OVDF, "serialId").textValue());
+        assertEquals("10817812-036b-4d7b-867b-ae0bc62a2b3e.0", JsonUtils.getJsonNode(OVDF, "serialId").asString());
     }
 
     @Test
