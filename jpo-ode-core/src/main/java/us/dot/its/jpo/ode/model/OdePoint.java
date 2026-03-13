@@ -15,10 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 
 public class OdePoint extends OdeObject {
 
+   @Serial
    private static final long serialVersionUID = 6030294798158488311L;
 
    private BigDecimal latitude;

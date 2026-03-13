@@ -15,8 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 public class OdeLogMsgMetadataLocation extends OdeObject {
 
+   @Serial
    private static final long serialVersionUID = 3174683494132372801L;
 
    String latitude;

@@ -1,8 +1,7 @@
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
-import lombok.val;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit;
@@ -16,7 +15,7 @@ import us.dot.its.jpo.ode.plugin.j2735.timstorage.MutcdCode;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 
 class OdeTravelerInputDataTest {
 
@@ -33,12 +32,12 @@ class OdeTravelerInputDataTest {
   void testConvertPreJ2735_2016ToJ2735_2024() throws IOException {
     // prepare
     String timRequestPreJ2735_2016 = new String(Files.readAllBytes(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/model/timRequest_pre-J2735-2016.json")));
+        Path.of("src/test/resources/us/dot/its/jpo/ode/model/timRequest_pre-J2735-2016.json")));
     ObjectMapper mapper = new ObjectMapper();
     OdeTravelerInputData expectedTID = getExpectedDeserializedObject();
 
-    // execute
-    val deserializedTID = mapper.readValue(timRequestPreJ2735_2016, OdeTravelerInputData.class);
+     // execute
+     final var deserializedTID = mapper.readValue(timRequestPreJ2735_2016, OdeTravelerInputData.class);
 
     // verify (compare inputTID to an expected OdeTravelerInputData object)
     Assertions.assertEquals(expectedTID, deserializedTID);
@@ -57,12 +56,12 @@ class OdeTravelerInputDataTest {
   void testConvertJ2735_2016ToJ2735_2024() throws IOException {
     // prepare
     String timRequestJ2735_2016 = new String(Files.readAllBytes(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/model/timRequest_J2735-2016.json")));
+        Path.of("src/test/resources/us/dot/its/jpo/ode/model/timRequest_J2735-2016.json")));
     ObjectMapper mapper = new ObjectMapper();
     OdeTravelerInputData expectedTID = getExpectedDeserializedObject();
 
-    // execute
-    val deserializedTID = mapper.readValue(timRequestJ2735_2016, OdeTravelerInputData.class);
+     // execute
+     final var deserializedTID = mapper.readValue(timRequestJ2735_2016, OdeTravelerInputData.class);
 
     // verify (compare inputTID to an expected OdeTravelerInputData object)
     Assertions.assertEquals(expectedTID, deserializedTID);
@@ -80,12 +79,12 @@ class OdeTravelerInputDataTest {
   void testConvertJ2735_2020ToJ2735_2024() throws IOException {
     // prepare
     String timRequestJ2735_2020 = new String(Files.readAllBytes(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/model/timRequest_J2735-2020.json")));
+        Path.of("src/test/resources/us/dot/its/jpo/ode/model/timRequest_J2735-2020.json")));
     ObjectMapper mapper = new ObjectMapper();
     OdeTravelerInputData expectedTID = getExpectedDeserializedObject();
 
-    // execute
-    val deserializedTID = mapper.readValue(timRequestJ2735_2020, OdeTravelerInputData.class);
+     // execute
+     final var deserializedTID = mapper.readValue(timRequestJ2735_2020, OdeTravelerInputData.class);
 
     // verify (compare inputTID to an expected OdeTravelerInputData object)
     Assertions.assertEquals(expectedTID, deserializedTID);

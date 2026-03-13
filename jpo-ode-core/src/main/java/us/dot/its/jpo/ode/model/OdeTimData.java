@@ -16,10 +16,13 @@
 package us.dot.its.jpo.ode.model;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import java.io.Serial;
 import static com.fasterxml.jackson.annotation.JsonTypeInfo.*;
 
 public class OdeTimData extends OdeData {
-   
+
+   @Serial
    private static final long serialVersionUID = 2057040404896561615L;
 
 

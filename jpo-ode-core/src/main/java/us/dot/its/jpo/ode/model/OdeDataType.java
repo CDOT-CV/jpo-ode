@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735Bsm;
 
@@ -101,7 +101,7 @@ public enum OdeDataType {
       if (data != null) {
          JsonNode dataType = data.get(name);
          if (dataType != null) { 
-            odeDataType = OdeDataType.getByShortName(dataType.textValue());
+            odeDataType = OdeDataType.getByShortName(dataType.asString());
          }
       }
       return odeDataType;

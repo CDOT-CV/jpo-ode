@@ -15,15 +15,18 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.util.JsonUtils;
 
+import java.io.Serial;
+
 public class OdeException extends Exception {
 
-	/**
-	 * 
-	 */
+   /**
+    * 
+    */
+   @Serial
    private static final long serialVersionUID = -4133732677963262764L;
    
    OdeStatus.Code code;

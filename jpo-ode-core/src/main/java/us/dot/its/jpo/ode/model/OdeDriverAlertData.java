@@ -11,6 +11,8 @@
 
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 /**
  * Class that encapsulates driver alert data when processing Driver Alert Log Files.
 
@@ -18,7 +20,8 @@ package us.dot.its.jpo.ode.model;
  */
 public class OdeDriverAlertData extends OdeData<OdeLogMetadata, OdeMsgPayload<OdeObject>> {
 
-  private static final long serialVersionUID = 2057040404896561615L;
+   @Serial
+   private static final long serialVersionUID = 2057040404896561615L;
 
   public OdeDriverAlertData() {
     super();

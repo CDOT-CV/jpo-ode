@@ -21,12 +21,14 @@
 package us.dot.its.jpo.ode.model;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.ValueDeserializer;
+
 import java.io.IOException;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +42,8 @@ import java.util.List;
     "recordGeneratedBy", "sanitized"})
 public class OdeLogMetadata extends OdeMsgMetadata {
 
-  private static final long serialVersionUID = -8601265839394150140L;
+   @Serial
+   private static final long serialVersionUID = -8601265839394150140L;
 
   /**
    * Enum representing the possible record types for log metadata.
@@ -198,11 +201,11 @@ public class OdeLogMetadata extends OdeMsgMetadata {
   /**
    * Custom deserializer for the list of Asn1Encoding objects used in OdeLogMetadata.
    */
-  public static class EncodingsDeserializer extends JsonDeserializer<List<Asn1Encoding>> {
+  public static class EncodingsDeserializer extends ValueDeserializer<List<Asn1Encoding>> {
     @Override
     public List<Asn1Encoding> deserialize(JsonParser p, DeserializationContext ctxt)
         throws IOException {
-      JsonNode node = p.getCodec().readTree(p);
+      JsonNode node = p.objectReadContext().readTree(p);
       List<Asn1Encoding> result = new ArrayList<>();
 
       if (node != null && node.has("encodings")) {
@@ -211,14 +214,14 @@ public class OdeLogMetadata extends OdeMsgMetadata {
         // Create an Asn1Encoding object manually from the nested structure
         Asn1Encoding encoding = new Asn1Encoding();
         if (encodingsNode.has("elementName")) {
-          encoding.setElementName(encodingsNode.get("elementName").asText());
+          encoding.setElementName(encodingsNode.get("elementName").asString());
         }
         if (encodingsNode.has("elementType")) {
-          encoding.setElementType(encodingsNode.get("elementType").asText());
+          encoding.setElementType(encodingsNode.get("elementType").asString());
         }
         if (encodingsNode.has("encodingRule")) {
           encoding.setEncodingRule(
-              Asn1Encoding.EncodingRule.valueOf(encodingsNode.get("encodingRule").asText()));
+              Asn1Encoding.EncodingRule.valueOf(encodingsNode.get("encodingRule").asString()));
         }
 
         result.add(encoding);

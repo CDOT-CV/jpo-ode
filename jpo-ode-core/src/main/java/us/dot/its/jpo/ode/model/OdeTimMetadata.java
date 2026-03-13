@@ -15,9 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 public class OdeTimMetadata extends OdeLogMetadata {
 
-    private static final long serialVersionUID = 2057040404896561615L;
+   @Serial
+   private static final long serialVersionUID = 2057040404896561615L;
 
     private String originIp;
     

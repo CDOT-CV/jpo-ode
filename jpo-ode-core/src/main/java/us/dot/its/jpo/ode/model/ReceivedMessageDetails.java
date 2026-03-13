@@ -15,8 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 public class ReceivedMessageDetails extends OdeObject {
 
+   @Serial
    private static final long serialVersionUID = -122988228561853841L;
 
    private OdeLogMsgMetadataLocation locationData;

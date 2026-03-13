@@ -15,8 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 public class OdeDepRequest extends OdeRequest {
 
+   @Serial
    private static final long serialVersionUID = -6766743372518752149L;
    
    private String encodeType;

@@ -17,8 +17,11 @@ package us.dot.its.jpo.ode.model;
 
 import us.dot.its.jpo.ode.dds.DdsStatusMessage;
 
+import java.io.Serial;
+
 public class OdeControlData extends OdeMessage {
 
+   @Serial
    private static final long serialVersionUID = 1L;
    
    private Long dataSourceBundleCount; 

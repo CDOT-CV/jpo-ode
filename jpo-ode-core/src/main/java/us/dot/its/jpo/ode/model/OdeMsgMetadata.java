@@ -21,6 +21,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
+import java.io.Serial;
+
 /**
  * Base ODE Metadata class.
  */
@@ -40,7 +42,8 @@ public class OdeMsgMetadata extends OdeObject {
     TMC, OBU, RSU, TMC_VIA_SAT, TMC_VIA_SNMP, UNKNOWN
   }
 
-  private static final long serialVersionUID = 3979762143291085955L;
+   @Serial
+   private static final long serialVersionUID = 3979762143291085955L;
   private static final int staticSchemaVersion = 9;
 
   private String payloadType;
@@ -205,7 +208,7 @@ public class OdeMsgMetadata extends OdeObject {
   public void setAsn1(OdeMsgPayload payload) {
     if (payload != null && payload.getData() != null) {
       if (JsonUtils.getJsonNode(payload.getData().toString(), "bytes") != null) {
-        this.asn1 = JsonUtils.getJsonNode(payload.getData().toString(), "bytes").asText();
+        this.asn1 = JsonUtils.getJsonNode(payload.getData().toString(), "bytes").asString();
       }
     }
   }

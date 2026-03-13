@@ -20,7 +20,7 @@
 
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.util.UUID;
 
 /**
@@ -111,7 +111,7 @@ public class SerialId {
    * @param jsonNode the JsonNode containing the serial id fields
    */
   public SerialId(JsonNode jsonNode) {
-    this(jsonNode.get("streamId").asText(), jsonNode.get("bundleSize").asInt(),
+    this(jsonNode.get("streamId").asString(), jsonNode.get("bundleSize").asInt(),
         jsonNode.get("bundleId").asLong(), jsonNode.get("recordId").asInt(),
         jsonNode.get("serialNumber").asLong());
   }

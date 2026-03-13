@@ -17,12 +17,15 @@ package us.dot.its.jpo.ode.model;
 
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 
+import java.io.Serial;
+
 public class OdeRequestMsgMetadata extends OdeMsgMetadata {
 
-  /**
-   * 
-   */
-  private static final long serialVersionUID = 1L;
+   /**
+    * 
+    */
+   @Serial
+   private static final long serialVersionUID = 1L;
   
   ServiceRequest request;
 

@@ -15,8 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 public class OdeAuthorization extends OdeMessage{
 
+   @Serial
    private static final long serialVersionUID = -8496344900381434672L;
 
    private String token;

@@ -15,12 +15,15 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
+
+import java.io.Serial;
 
 public class Asn1Encoding extends OdeObject {
 
    public enum EncodingRule {UPER, COER}
-   
+
+   @Serial
    private static final long serialVersionUID = 411367830731507211L;
    
    private String elementName;
@@ -41,7 +44,7 @@ public class Asn1Encoding extends OdeObject {
    }
 
    public Asn1Encoding (JsonNode encoding) {
-      this(encoding.get("elementName").asText(), encoding.get("elementType").asText(), EncodingRule.valueOf(encoding.get("encodingRule").asText()));
+      this(encoding.get("elementName").asString(), encoding.get("elementType").asString(), EncodingRule.valueOf(encoding.get("encodingRule").asString()));
    }
 
    public String getElementName() {

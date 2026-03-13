@@ -14,6 +14,8 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.Serial;
+
 /**
  * Base class for ODE data objects containing metadata and payload.
  *
@@ -26,7 +28,8 @@ import lombok.Setter;
 @JsonPropertyOrder({"metadata", "payload"})
 public class OdeData<MetadataT extends OdeMsgMetadata, PayloadT extends OdeMsgPayload<?>>
     extends OdeObject implements OdeFilterable {
-  private static final long serialVersionUID = -7711340868799607662L;
+   @Serial
+   private static final long serialVersionUID = -7711340868799607662L;
 
   private MetadataT metadata;
   private PayloadT payload;

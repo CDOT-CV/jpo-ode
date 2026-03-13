@@ -3,11 +3,12 @@ package us.dot.its.jpo.ode.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,7 +27,7 @@ public class OdeMessageFrameDataTest {
   @Test
   public void testSdsmSerializationDeserialization() throws IOException {
     // Read the sample JSON file
-    String jsonContent = new String(Files.readAllBytes(Paths.get(SAMPLE_SDSM_FILE)));
+    String jsonContent = new String(Files.readAllBytes(Path.of(SAMPLE_SDSM_FILE)));
 
     // Deserialize JSON to OdeMessageFrameData
     OdeMessageFrameData messageFrame =
@@ -49,7 +50,7 @@ public class OdeMessageFrameDataTest {
     JsonNode sdsm = data.get("value").get("SensorDataSharingMessage");
     assertNotNull(sdsm);
     assertEquals(10, sdsm.get("msgCnt").asInt());
-    assertEquals("010C0C0A", sdsm.get("sourceID").asText());
+    assertEquals("010C0C0A", sdsm.get("sourceID").asString());
   }
 
 }

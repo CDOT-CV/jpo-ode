@@ -15,9 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
+
 public class OdeMessage extends OdeObject {
 
-    private static final long serialVersionUID = 6381260328835278701L;
+   @Serial
+   private static final long serialVersionUID = 6381260328835278701L;
 
     private Integer schemaVersion;
 

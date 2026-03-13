@@ -21,10 +21,13 @@ import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage;
 
+import java.io.Serial;
+
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class OdeTravelerInputData extends OdeObject {
-  private static final long serialVersionUID = 8769107278440796699L;
+   @Serial
+   private static final long serialVersionUID = 8769107278440796699L;
   private ServiceRequest request;
   private OdeTravelerInformationMessage tim;
 }

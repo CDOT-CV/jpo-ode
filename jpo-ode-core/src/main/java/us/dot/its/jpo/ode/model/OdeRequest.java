@@ -61,8 +61,8 @@ public class OdeRequest extends BaseRequest {
 //      } else if (requestType == OdeRequestType.Test) {
 //         odeRequest = (OdeRequest) JsonUtils.fromJson(message, OdeTstRequest.class);
       } else {
-         OdeStatus status = new OdeStatus().setCode(OdeStatus.Code.INVALID_REQUEST_TYPE_ERROR).setMessage(String
-               .format("Invalid request type %s. Valid request types are %s.", rtype, OdeRequestType.shortNames()));
+         OdeStatus status = new OdeStatus().setCode(OdeStatus.Code.INVALID_REQUEST_TYPE_ERROR).setMessage("Invalid request type %s. Valid request types are %s."
+      .formatted(rtype, OdeRequestType.shortNames()));
          throw new OdeRequestException(status.toString());
       }
       odeRequest.setRequestType(requestType);
@@ -70,7 +70,7 @@ public class OdeRequest extends BaseRequest {
       OdeDataType dataType = OdeDataType.getByShortName(dtype);
       if (dataType == null) {
          OdeStatus status = new OdeStatus().setCode(OdeStatus.Code.INVALID_DATA_TYPE_ERROR).setMessage(
-               String.format("Invalid data type %s. Valid data types are %s.", dtype, OdeDataType.shortNames()));
+      "Invalid data type %s. Valid data types are %s.".formatted(dtype, OdeDataType.shortNames()));
          throw new OdeRequestException(status.toString());
       }
       odeRequest.setDataType(dataType);

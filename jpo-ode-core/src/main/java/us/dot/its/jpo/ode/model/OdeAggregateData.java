@@ -15,10 +15,12 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
+import java.io.Serial;
 import java.math.BigDecimal;
 
 public final class OdeAggregateData extends OdeData implements HasKey {
 
+   @Serial
    private static final long serialVersionUID = 1595406822366147861L;
 
    private String     key;
