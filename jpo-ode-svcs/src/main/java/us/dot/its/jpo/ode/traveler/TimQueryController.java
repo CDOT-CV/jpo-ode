@@ -20,7 +20,6 @@ import org.snmp4j.PDU;
 import org.snmp4j.ScopedPDU;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.smi.VariableBinding;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -46,7 +45,6 @@ public class TimQueryController {
 
     private final RsuProperties rsuProperties;
 
-    @Autowired
     public TimQueryController(RsuProperties rsuProperties) {
         this.rsuProperties = rsuProperties;
     }

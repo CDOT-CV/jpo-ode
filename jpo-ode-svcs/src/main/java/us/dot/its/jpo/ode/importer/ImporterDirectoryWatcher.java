@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.importer;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -62,13 +61,13 @@ public class ImporterDirectoryWatcher {
                                   KafkaTemplate<String, String> kafkaTemplate) {
     this.props = fileImporterProperties;
 
-    this.inboxPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getObuLogUploadLocation());
+    this.inboxPath = Path.of(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getObuLogUploadLocation());
     log.debug("UPLOADER - BSM log file upload directory: {}", inboxPath);
 
-    this.failuresPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getFailedDir());
+    this.failuresPath = Path.of(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getFailedDir());
     log.debug("UPLOADER - Failure directory: {}", failuresPath);
 
-    this.backupPath = Paths.get(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getBackupDir());
+    this.backupPath = Path.of(fileImporterProperties.getUploadLocationRoot(), fileImporterProperties.getBackupDir());
     log.debug("UPLOADER - Backup directory: {}", backupPath);
 
     try {

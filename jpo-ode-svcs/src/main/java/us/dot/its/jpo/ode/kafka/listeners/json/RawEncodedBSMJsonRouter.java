@@ -1,11 +1,11 @@
 package us.dot.its.jpo.ode.kafka.listeners.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.uper.StartFlagNotFoundException;
@@ -46,12 +46,12 @@ public class RawEncodedBSMJsonRouter {
    *                       includes the raw ASN.1 encoded JSON BSM data to be processed.
    * @throws StartFlagNotFoundException If the start flag for the BSM message type is not found
    *                                    during payload processing.
-   * @throws JsonProcessingException    If there's an error while processing or deserializing JSON
+   * @throws JacksonException    If there's an error while processing or deserializing JSON
    *                                    data.
    */
   @KafkaListener(id = "RawEncodedBSMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.bsm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws StartFlagNotFoundException, JsonProcessingException {
+      throws StartFlagNotFoundException, JacksonException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.BSM,

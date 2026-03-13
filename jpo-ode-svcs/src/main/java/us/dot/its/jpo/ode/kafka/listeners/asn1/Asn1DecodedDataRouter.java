@@ -1,8 +1,6 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -11,6 +9,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DatabindException;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -72,8 +72,8 @@ public class Asn1DecodedDataRouter {
    */
   @KafkaListener(id = "Asn1DecodedDataRouter", topics = "${ode.kafka.topics.asn1.decoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws XmlUtilsException, JsonProcessingException, Asn1DecodedDataRouterException,
-      JsonMappingException, JsonProcessingException, IOException {
+      throws XmlUtilsException, JacksonException, Asn1DecodedDataRouterException,
+      DatabindException, JacksonException, IOException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
@@ -84,7 +84,7 @@ public class Asn1DecodedDataRouter {
 
     if (payloadData.has("code")) {
       throw new Asn1DecodedDataRouterException(
-          String.format("Error processing decoded message with code %s and message %s",
+          "Error processing decoded message with code %s and message %s".formatted(
               payloadData.getString("code"),
               payloadData.has("message") ? payloadData.getString("message") : "NULL"));
     }

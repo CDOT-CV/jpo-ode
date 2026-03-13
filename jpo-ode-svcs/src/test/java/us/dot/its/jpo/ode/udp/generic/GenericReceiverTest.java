@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -92,8 +92,8 @@ class GenericReceiverTest {
 
     // Test the PSM path
     String psmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
-    String expectedPsm = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
+    String expectedPsm = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
 
     udpClient.send(psmFileContent);
@@ -102,8 +102,8 @@ class GenericReceiverTest {
 
     // Test the BSM path
     String bsmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
-    String expectedBsm = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt"));
+    String expectedBsm = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM_expected.json"));
     udpClient.send(bsmFileContent);
 
@@ -112,8 +112,8 @@ class GenericReceiverTest {
 
     // Test the MAP path
     String mapFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP.txt"));
-    String expectedMap = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP.txt"));
+    String expectedMap = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/map/MapReceiverTest_ValidMAP_expected.json"));
     udpClient.send(mapFileContent);
 
@@ -122,8 +122,8 @@ class GenericReceiverTest {
 
     // Test the SPAT path
     String spatFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
-    String expectedSpat = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
+    String expectedSpat = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
     udpClient.send(spatFileContent);
 
@@ -133,8 +133,8 @@ class GenericReceiverTest {
 
     // Test the SSM path
     String ssmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
-    String expectedSsm = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM.txt"));
+    String expectedSsm = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/ssm/SsmReceiverTest_ValidSSM_expected.json"));
     udpClient.send(ssmFileContent);
 
@@ -143,8 +143,8 @@ class GenericReceiverTest {
 
     // Test the TIM path
     String timFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
-    String expectedTim = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
+    String expectedTim = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
     udpClient.send(timFileContent);
 
@@ -153,9 +153,9 @@ class GenericReceiverTest {
 
     // Test the SRM path
     String srmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
-    String expectedSrm = Files.readString(Paths
-        .get("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
+    String expectedSrm = Files.readString(Path
+        .of("src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
     udpClient.send(srmFileContent);
 
     var srmRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSrm());
@@ -163,8 +163,8 @@ class GenericReceiverTest {
 
     // Test the SDSM path
     String sdsmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM.txt"));
-    String expectedSdsm = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM.txt"));
+    String expectedSdsm = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/sdsm/SdsmReceiverTest_ValidSDSM_expected.json"));
     udpClient.send(sdsmFileContent);
 
@@ -174,8 +174,8 @@ class GenericReceiverTest {
 
     // Test the RTCM path
     String rtcmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
-    String expectedRtcm = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
+    String expectedRtcm = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC_expected.json"));
     udpClient.send(rtcmFileContent);
 
@@ -185,8 +185,8 @@ class GenericReceiverTest {
 
     // Test the RSM path
     String rsmFileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM.txt"));
-    String expectedRsm = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM.txt"));
+    String expectedRsm = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/rsm/RsmReceiverTest_ValidRSM_expected.json"));
     udpClient.send(rsmFileContent);
 

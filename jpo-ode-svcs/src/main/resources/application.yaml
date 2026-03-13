@@ -17,7 +17,7 @@ spring:
         attempts: 0
     listener:
       log-container-config: true
-  http:
+  servlet:
     multipart:
       max-file-size: 1MB
       max-request-size: 1MB

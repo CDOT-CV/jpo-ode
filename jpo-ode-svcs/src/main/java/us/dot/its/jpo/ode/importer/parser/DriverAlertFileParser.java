@@ -82,7 +82,7 @@ public class DriverAlertFileParser extends LogFileParser {
       status = ParserStatus.ENTRY_PARSING_COMPLETE;
 
     } catch (Exception e) {
-      throw new FileParserException(String.format("Error parsing %s on step %d", getFilename(), getStep()), e);
+      throw new FileParserException("Error parsing %s on step %d".formatted(getFilename(), getStep()), e);
     }
 
     return status;

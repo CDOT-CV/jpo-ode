@@ -6,14 +6,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Clock;
@@ -22,12 +22,10 @@ import java.time.ZoneId;
 import java.util.Date;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata;
 import us.dot.its.jpo.ode.model.OdeMsgPayload;
 import us.dot.its.jpo.ode.model.OdeRequestMsgMetadata;
@@ -50,8 +48,7 @@ import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
+@SpringJUnitConfig(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = RsuProperties.class)
 class TimTransmogrifierTest {
 
@@ -226,8 +223,7 @@ class TimTransmogrifierTest {
 
     String actualXML = TimTransmogrifier.convertToXml(actualASD, encodableTID, staticOdeMsgMetadata,
         staticSerialId);
-    String expected = String.format(
-        "<OdeAsn1Data><metadata><payloadType>us.dot.its.jpo.ode.model.OdeAsdPayload</payloadType><serialId><streamId>6c33f802-418d-4b67-89d1-326b4fc8b1e3</streamId><bundleSize>1</bundleSize><bundleId>0</bundleId><recordId>0</recordId><serialNumber>0</serialNumber></serialId><odeReceivedAt>%s</odeReceivedAt><schemaVersion>%s</schemaVersion><maxDurationTime>0</maxDurationTime><sanitized>false</sanitized><request><sdw><serviceRegion><nwCorner><latitude>42.537903</latitude><longitude>-83.477903</longitude></nwCorner><seCorner><latitude>42.305753</latitude><longitude>-82.842753</longitude></seCorner></serviceRegion><ttl>thirtyminutes</ttl><deliverystart>2017-06-01T17:47:11-05:00</deliverystart><deliverystop>2018-03-01T17:47:11-05:15</deliverystop></sdw><rsus/></request><encodings><encodings><elementName>MessageFrame</elementName><elementType>MessageFrame</elementType><encodingRule>UPER</encodingRule></encodings><encodings><elementName>Ieee1609Dot2Data</elementName><elementType>Ieee1609Dot2Data</elementType><encodingRule>COER</encodingRule></encodings><encodings><elementName>AdvisorySituationData</elementName><elementType>AdvisorySituationData</elementType><encodingRule>UPER</encodingRule></encodings></encodings></metadata><payload><dataType>us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData</dataType><data><AdvisorySituationData><dialogID>156</dialogID><seqID>5</seqID><groupID>00000000</groupID><requestID>7876BA7F</requestID><recordID>00000000</recordID><timeToLive>1</timeToLive><serviceRegion><nwCorner><lat>425379030</lat><long>-834779030</long></nwCorner><seCorner><lat>423057530</lat><long>-828427530</long></seCorner></serviceRegion><asdmDetails><asdmID>7876BA7F</asdmID><asdmType>2</asdmType><distType>03</distType><startTime><year>2017</year><month>6</month><day>1</day><hour>17</hour><minute>47</minute></startTime><stopTime><year>2018</year><month>3</month><day>1</day><hour>17</hour><minute>47</minute></stopTime><advisoryMessage><Ieee1609Dot2Data><protocolVersion>3</protocolVersion><content><unsecuredData><MessageFrame><messageId>31</messageId><value><TravelerInformation/></value></MessageFrame></unsecuredData></content></Ieee1609Dot2Data></advisoryMessage></asdmDetails></AdvisorySituationData></data></payload></OdeAsn1Data>",
+    String expected = "<OdeAsn1Data><metadata><payloadType>us.dot.its.jpo.ode.model.OdeAsdPayload</payloadType><serialId><streamId>6c33f802-418d-4b67-89d1-326b4fc8b1e3</streamId><bundleSize>1</bundleSize><bundleId>0</bundleId><recordId>0</recordId><serialNumber>0</serialNumber></serialId><odeReceivedAt>%s</odeReceivedAt><schemaVersion>%s</schemaVersion><maxDurationTime>0</maxDurationTime><sanitized>false</sanitized><request><sdw><serviceRegion><nwCorner><latitude>42.537903</latitude><longitude>-83.477903</longitude></nwCorner><seCorner><latitude>42.305753</latitude><longitude>-82.842753</longitude></seCorner></serviceRegion><ttl>thirtyminutes</ttl><deliverystart>2017-06-01T17:47:11-05:00</deliverystart><deliverystop>2018-03-01T17:47:11-05:15</deliverystop></sdw><rsus/></request><encodings><encodings><elementName>MessageFrame</elementName><elementType>MessageFrame</elementType><encodingRule>UPER</encodingRule></encodings><encodings><elementName>Ieee1609Dot2Data</elementName><elementType>Ieee1609Dot2Data</elementType><encodingRule>COER</encodingRule></encodings><encodings><elementName>AdvisorySituationData</elementName><elementType>AdvisorySituationData</elementType><encodingRule>UPER</encodingRule></encodings></encodings></metadata><payload><dataType>us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData</dataType><data><AdvisorySituationData><dialogID>156</dialogID><seqID>5</seqID><groupID>00000000</groupID><requestID>7876BA7F</requestID><recordID>00000000</recordID><timeToLive>1</timeToLive><serviceRegion><nwCorner><lat>425379030</lat><long>-834779030</long></nwCorner><seCorner><lat>423057530</lat><long>-828427530</long></seCorner></serviceRegion><asdmDetails><asdmID>7876BA7F</asdmID><asdmType>2</asdmType><distType>03</distType><startTime><year>2017</year><month>6</month><day>1</day><hour>17</hour><minute>47</minute></startTime><stopTime><year>2018</year><month>3</month><day>1</day><hour>17</hour><minute>47</minute></stopTime><advisoryMessage><Ieee1609Dot2Data><protocolVersion>3</protocolVersion><content><unsecuredData><MessageFrame><messageId>31</messageId><value><TravelerInformation/></value></MessageFrame></unsecuredData></content></Ieee1609Dot2Data></advisoryMessage></asdmDetails></AdvisorySituationData></data></payload></OdeAsn1Data>".formatted(
         DateTimeUtils.now(), schemaVersion);
     assertEquals(expected, actualXML);
 
@@ -267,8 +263,7 @@ class TimTransmogrifierTest {
     staticOdeMsgMetadata.setSchemaVersion(Integer.parseInt(schemaVersion));
 
     String actualXML = TimTransmogrifier.convertToXml(null, encodableTID, staticOdeMsgMetadata, staticSerialId);
-    var expected = String.format(
-        "<OdeAsn1Data><metadata><payloadType>us.dot.its.jpo.ode.model.OdeTimPayload</payloadType><serialId><streamId>6c33f802-418d-4b67-89d1-326b4fc8b1e3</streamId><bundleSize>1</bundleSize><bundleId>0</bundleId><recordId>0</recordId><serialNumber>0</serialNumber></serialId><odeReceivedAt>%s</odeReceivedAt><schemaVersion>%s</schemaVersion><maxDurationTime>0</maxDurationTime><sanitized>false</sanitized><request><sdw><serviceRegion><nwCorner><latitude>42.537903</latitude><longitude>-83.477903</longitude></nwCorner><seCorner><latitude>42.305753</latitude><longitude>-82.842753</longitude></seCorner></serviceRegion><ttl>thirtyminutes</ttl><deliverystart>2017-06-01T17:47:11-05:00</deliverystart><deliverystop>2018-03-01T17:47:11-05:15</deliverystop></sdw><rsus/></request><encodings><encodings><elementName>MessageFrame</elementName><elementType>MessageFrame</elementType><encodingRule>UPER</encodingRule></encodings></encodings></metadata><payload><dataType>MessageFrame</dataType><data><MessageFrame><messageId>31</messageId><value><TravelerInformation/></value></MessageFrame></data></payload></OdeAsn1Data>",
+    var expected = "<OdeAsn1Data><metadata><payloadType>us.dot.its.jpo.ode.model.OdeTimPayload</payloadType><serialId><streamId>6c33f802-418d-4b67-89d1-326b4fc8b1e3</streamId><bundleSize>1</bundleSize><bundleId>0</bundleId><recordId>0</recordId><serialNumber>0</serialNumber></serialId><odeReceivedAt>%s</odeReceivedAt><schemaVersion>%s</schemaVersion><maxDurationTime>0</maxDurationTime><sanitized>false</sanitized><request><sdw><serviceRegion><nwCorner><latitude>42.537903</latitude><longitude>-83.477903</longitude></nwCorner><seCorner><latitude>42.305753</latitude><longitude>-82.842753</longitude></seCorner></serviceRegion><ttl>thirtyminutes</ttl><deliverystart>2017-06-01T17:47:11-05:00</deliverystart><deliverystop>2018-03-01T17:47:11-05:15</deliverystop></sdw><rsus/></request><encodings><encodings><elementName>MessageFrame</elementName><elementType>MessageFrame</elementType><encodingRule>UPER</encodingRule></encodings></encodings></metadata><payload><dataType>MessageFrame</dataType><data><MessageFrame><messageId>31</messageId><value><TravelerInformation/></value></MessageFrame></data></payload></OdeAsn1Data>".formatted(
         DateTimeUtils.now(), schemaVersion);
     assertEquals(expected, actualXML);
 
@@ -288,7 +283,7 @@ class TimTransmogrifierTest {
       throws IOException, JsonUtilsException, XmlUtilsException, ParseException,
       TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException, TravelerMessageFromHumanToAsnConverter.InvalidNodeLatLonOffsetException {
     // prepare
-    String timRequestContainingCircleGeometry = new String(Files.readAllBytes(Paths.get(
+    String timRequestContainingCircleGeometry = new String(Files.readAllBytes(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/traveler/timRequestContainingCircleGeometry.json")));
 
     SerialId serialId = prepareSerialId();
@@ -306,7 +301,7 @@ class TimTransmogrifierTest {
     String actualXML = TimTransmogrifier.convertToXml(null, encodableTid, timMetadata, serialId);
 
     // verify
-    String expectedXml = new String(Files.readAllBytes(Paths.get(
+    String expectedXml = new String(Files.readAllBytes(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/traveler/aemInputContainingCircleGeometry.xml"))).replaceAll(
             "\\s", "") // remove all whitespace
         .replaceAll("<false/>", "<false />"); // add space before closing tag

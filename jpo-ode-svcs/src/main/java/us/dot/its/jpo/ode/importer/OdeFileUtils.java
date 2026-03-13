@@ -19,7 +19,6 @@ package us.dot.its.jpo.ode.importer;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 /**
@@ -71,7 +70,7 @@ public class OdeFileUtils {
     // Prepend file name with time and change extension to 'pbo'
     String processedFileName = Integer.toString((int) System.currentTimeMillis()) + "-"
         + file.getFileName().toString().replaceFirst("uper", "pbo");
-    Path targetPath = Paths.get(backupDir.toString(), processedFileName);
+    Path targetPath = Path.of(backupDir.toString(), processedFileName);
 
     // Attempt to move the file to the backup directory
     try {
@@ -96,7 +95,7 @@ public class OdeFileUtils {
       throw new IOException("Directory does not exist: " + destination);
     }
 
-    Path targetPath = Paths.get(destination.toString(), file.getFileName().toString());
+    Path targetPath = Path.of(destination.toString(), file.getFileName().toString());
 
     // Attempt to move the file to the backup directory
     try {

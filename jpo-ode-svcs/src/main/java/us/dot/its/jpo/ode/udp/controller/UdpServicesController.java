@@ -5,9 +5,8 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Controller;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
@@ -41,7 +40,6 @@ public class UdpServicesController {
    * @param rawEncodedJsonTopics Topics to which the decoded messages will be published via Kafka.
    * @param kafkaTemplate        Template to facilitate sending messages to Kafka topics.
    */
-  @Autowired
   public UdpServicesController(UDPReceiverProperties udpProps,
                                RawEncodedJsonTopics rawEncodedJsonTopics,
                                KafkaTemplate<String, String> kafkaTemplate) {

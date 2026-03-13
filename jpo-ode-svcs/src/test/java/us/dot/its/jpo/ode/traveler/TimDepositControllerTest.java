@@ -16,14 +16,13 @@
 
  package us.dot.its.jpo.ode.traveler;
 
- import com.fasterxml.jackson.core.JsonProcessingException;
- import com.fasterxml.jackson.databind.JsonNode;
- import com.fasterxml.jackson.databind.node.ObjectNode;
- import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+ import tools.jackson.databind.JsonNode;
+ import tools.jackson.databind.node.ObjectNode;
+ import tools.jackson.dataformat.xml.XmlMapper;
  import java.io.IOException;
  import java.nio.file.Files;
- import java.nio.file.Paths;
- import java.time.Clock;
+import java.nio.file.Path;
+import java.time.Clock;
  import java.time.Instant;
  import java.time.ZoneId;
  import java.util.Set;
@@ -36,7 +35,7 @@
  import org.junit.jupiter.api.Assertions;
  import org.junit.jupiter.api.Test;
  import org.springframework.beans.factory.annotation.Autowired;
- import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+ import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
  import org.springframework.boot.context.properties.EnableConfigurationProperties;
  import org.springframework.boot.test.context.SpringBootTest;
  import org.springframework.http.ResponseEntity;
@@ -46,7 +45,8 @@
  import org.springframework.kafka.test.utils.KafkaTestUtils;
  import org.springframework.test.annotation.DirtiesContext;
  import org.springframework.test.context.ContextConfiguration;
- import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
+import tools.jackson.core.JacksonException;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
  import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
  import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
  import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
@@ -62,8 +62,8 @@
  import us.dot.its.jpo.ode.util.DateTimeUtils;
  import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
  import us.dot.its.jpo.ode.util.XmlUtils;
- 
- 
+
+
  @EnableConfigurationProperties
  @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
      OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
@@ -104,7 +104,7 @@
    int consumerCount = 0;
  
    @Test
-   void nullRequestShouldReturnEmptyError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void nullRequestShouldReturnEmptyError() throws JacksonException {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -114,7 +114,7 @@
    }
  
    @Test
-   void emptyRequestShouldReturnEmptyError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void emptyRequestShouldReturnEmptyError() throws JacksonException {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -124,7 +124,7 @@
    }
  
    @Test
-   void invalidJsonSyntaxShouldReturnJsonSyntaxError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void invalidJsonSyntaxShouldReturnJsonSyntaxError() throws JacksonException {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -135,7 +135,7 @@
    }
  
    @Test
-   void missingRequestElementShouldReturnMissingRequestError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void missingRequestElementShouldReturnMissingRequestError() throws JacksonException {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -147,7 +147,7 @@
    }
  
    @Test
-   void invalidTimestampShouldReturnInvalidTimestampError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void invalidTimestampShouldReturnInvalidTimestampError() throws JacksonException {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -218,7 +218,7 @@
    @Test
    void failedXmlConversionShouldReturnConversionError(
        @Capturing TimTransmogrifier capturingTimTransmogrifier)
-       throws XmlUtils.XmlUtilsException, JsonUtilsException, JsonProcessingException {
+       throws XmlUtils.XmlUtilsException, JsonUtilsException, JacksonException {
      // prepare
      odeKafkaProperties.setDisabledTopics(Set.of());
      final Clock prevClock = DateTimeUtils.setClock(
@@ -676,8 +676,8 @@
      DefaultKafkaConsumerFactory<String, String> stringConsumerFactory =
          new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
              new StringDeserializer());
-     return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
-         String.format("clientidsuffix%d", consumerCount));
+     return stringConsumerFactory.createConsumer("groupid%d".formatted(consumerCount),
+         "clientidsuffix%d".formatted(consumerCount));
    }
  
    /**
@@ -689,7 +689,7 @@
     */
    private String loadTestResource(String resourceName) throws IOException {
      String baseDirectory = "src/test/resources/us/dot/its/jpo/ode/traveler/";
-     return new String(Files.readAllBytes(Paths.get(baseDirectory + resourceName)));
+     return new String(Files.readAllBytes(Path.of(baseDirectory + resourceName)));
    }
  
    /**

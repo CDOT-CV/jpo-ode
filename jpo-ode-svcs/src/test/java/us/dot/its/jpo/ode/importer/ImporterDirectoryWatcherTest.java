@@ -22,19 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(
+@SpringJUnitConfig(
     initializers = ConfigDataApplicationContextInitializer.class,
     classes = {OdeKafkaProperties.class, FileImporterProperties.class, JsonTopics.class, RawEncodedJsonTopics.class}
 )

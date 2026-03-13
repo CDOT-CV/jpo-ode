@@ -15,7 +15,7 @@ spring:
       client-id: "ode-svcs-consumer"
     admin:
       auto-create: false
-  http:
+  servlet:
     multipart:
       max-file-size: 1MB
       max-request-size: 1MB

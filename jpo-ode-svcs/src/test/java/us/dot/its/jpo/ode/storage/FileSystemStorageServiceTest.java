@@ -28,13 +28,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.ConfigDataApplicationContextInitializer;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
 
 @ExtendWith(value = {SpringExtension.class, MockitoExtension.class})
-@ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class, classes = FileImporterProperties.class)
+@SpringJUnitConfig(initializers = ConfigDataApplicationContextInitializer.class, classes = FileImporterProperties.class)
 @EnableConfigurationProperties
 class FileSystemStorageServiceTest {
 

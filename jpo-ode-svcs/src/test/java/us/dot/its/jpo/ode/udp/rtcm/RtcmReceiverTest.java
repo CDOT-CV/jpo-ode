@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -14,7 +14,7 @@ import org.apache.kafka.clients.consumer.Consumer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -71,8 +71,8 @@ public class RtcmReceiverTest {
     executorService.submit(rtcmReceiver);
 
     String fileContent = Files.readString(
-        Paths.get("src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
-    String expected = Files.readString(Paths.get(
+        Path.of("src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC.txt"));
+    String expected = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/RtcmReceiverTest_ValidRTC_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRtcm().getReceiverPort());

@@ -16,11 +16,10 @@
 
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -35,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -140,15 +140,14 @@ public class Asn1EncodedDataRouter {
    */
   @KafkaListener(id = "Asn1EncodedDataRouter", topics = "${ode.kafka.topics.asn1.encoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws XmlUtilsException, JsonProcessingException, Asn1EncodedDataRouterException {
+      throws XmlUtilsException, JacksonException, Asn1EncodedDataRouterException {
     JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
     JSONObject metadata = consumedObj.getJSONObject(OdeMsgMetadata.METADATA_STRING);
 
     if (!metadata.has(TimTransmogrifier.REQUEST_STRING)) {
-      throw new Asn1EncodedDataRouterException(String.format(
-          "Invalid or missing '%s' object in the encoder response. Unable to process record with offset '%s'",
+      throw new Asn1EncodedDataRouterException("Invalid or missing '%s' object in the encoder response. Unable to process record with offset '%s'".formatted(
           TimTransmogrifier.REQUEST_STRING, consumerRecord.offset()));
     }
 
@@ -177,7 +176,7 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-  private ServiceRequest getServiceRequest(JSONObject metadataJson) throws JsonProcessingException {
+  private ServiceRequest getServiceRequest(JSONObject metadataJson) throws JacksonException {
     if (metadataJson.has(TimTransmogrifier.REQUEST_STRING)) {
       JSONObject request = metadataJson.getJSONObject(TimTransmogrifier.REQUEST_STRING);
       processRsusIfPresent(request);
@@ -235,7 +234,7 @@ public class Asn1EncodedDataRouter {
 
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
   private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj)
-      throws JsonProcessingException {
+      throws JacksonException {
     depositToSdx(request, dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING).getString(BYTES));
   }
 
@@ -290,7 +289,7 @@ public class Asn1EncodedDataRouter {
   }
 
   private void depositToSdx(ServiceRequest request, String asdBytes)
-      throws JsonProcessingException {
+      throws JacksonException {
     SDXDeposit sdxDeposit = new SDXDeposit(request.getSdw().getEstimatedRemovalDate(), asdBytes);
     kafkaTemplate.send(this.sdxDepositTopic, mapper.writeValueAsString(sdxDeposit));
   }
@@ -312,7 +311,7 @@ public class Asn1EncodedDataRouter {
    *         exceptions.
    */
   private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg)
-      throws JsonProcessingException, ParseException {
+      throws JacksonException, ParseException {
     SDW sdw = request.getSdw();
     DdsAdvisorySituationData asd;
 
@@ -363,7 +362,7 @@ public class Asn1EncodedDataRouter {
     return outputXml;
   }
 
-  private ArrayNode buildEncodings() throws JsonProcessingException {
+  private ArrayNode buildEncodings() throws JacksonException {
     ArrayNode encodings = mapper.createArrayNode();
     var encoding = new Asn1Encoding(ADVISORY_SITUATION_DATA_STRING, ADVISORY_SITUATION_DATA_STRING,
         EncodingRule.UPER);

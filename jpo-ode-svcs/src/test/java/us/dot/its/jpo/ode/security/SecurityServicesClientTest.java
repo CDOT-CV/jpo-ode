@@ -7,29 +7,26 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.http.WebClientConfig;
 import us.dot.its.jpo.ode.security.models.SignatureRequestModel;
 import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(
     classes = {
         SerializationConfig.class,
@@ -59,7 +56,7 @@ class SecurityServicesClientTest {
   }
 
   @Test
-  void testSignMessage_WithMockServerSuccessfulResponse() throws JsonProcessingException {
+  void testSignMessage_WithMockServerSuccessfulResponse() throws JacksonException {
     // Arrange
     String message = "TestMessage";
     SignatureResultModel expectedResult = new SignatureResultModel();

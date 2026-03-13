@@ -159,7 +159,7 @@ class LogFileToAsn1CodecPublisherTest {
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION, asn1String, asn1String);
+      var expected = expectedStringToFormat.formatted(SCHEMA_VERSION, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }
@@ -198,7 +198,7 @@ class LogFileToAsn1CodecPublisherTest {
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
-      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION);
+      var expected = expectedStringToFormat.formatted(SCHEMA_VERSION);
       assertEquals(expected, data.toJson());
     }
   }
@@ -237,7 +237,7 @@ class LogFileToAsn1CodecPublisherTest {
           DateTimeUtils.nowZDT()) > 0);
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
-      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION);
+      var expected = expectedStringToFormat.formatted(SCHEMA_VERSION);
       assertEquals(expected, data.toJson());
     }
   }
@@ -278,7 +278,7 @@ class LogFileToAsn1CodecPublisherTest {
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION, asn1String, asn1String);
+      var expected = expectedStringToFormat.formatted(SCHEMA_VERSION, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }
@@ -319,7 +319,7 @@ class LogFileToAsn1CodecPublisherTest {
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION, asn1String, asn1String);
+      var expected = expectedStringToFormat.formatted(SCHEMA_VERSION, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }
@@ -383,7 +383,7 @@ class LogFileToAsn1CodecPublisherTest {
       data.getMetadata().setOdeReceivedAt("2019-03-05T20:31:17.579Z");
       data.getMetadata().getSerialId().setStreamId("c7bbb42e-1e39-442d-98ac-62740ca50f92");
       String asn1String = data.getMetadata().getAsn1();
-      var expected = String.format(expectedStringToFormat, SCHEMA_VERSION, asn1String, asn1String);
+      var expected = expectedStringToFormat.formatted(SCHEMA_VERSION, asn1String, asn1String);
       assertEquals(expected, data.toJson());
     }
   }

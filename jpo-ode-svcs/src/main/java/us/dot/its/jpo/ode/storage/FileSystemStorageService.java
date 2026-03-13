@@ -19,10 +19,8 @@ package us.dot.its.jpo.ode.storage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import us.dot.its.jpo.ode.coder.stream.FileImporterProperties;
@@ -44,10 +42,9 @@ public class FileSystemStorageService implements StorageService {
    *
    * @param properties The configuration properties used to determine the root and OBU log file upload locations.
    */
-  @Autowired
   public FileSystemStorageService(FileImporterProperties properties) {
 
-    this.logFileLocation = Paths.get(properties.getUploadLocationRoot(),
+    this.logFileLocation = Path.of(properties.getUploadLocationRoot(),
         properties.getObuLogUploadLocation());
 
     log.info("Upload location (OBU log file): {}", this.logFileLocation);

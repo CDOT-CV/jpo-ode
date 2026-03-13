@@ -1,9 +1,9 @@
 package us.dot.its.jpo.ode.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
 import org.apache.kafka.common.errors.SerializationException;
 import org.apache.kafka.common.serialization.Serializer;
+import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.ode.model.OdeObject;
 
 /**
@@ -27,7 +27,7 @@ public class XMLOdeObjectSerializer implements Serializer<OdeObject> {
       } else {
         return xmlMapper.writeValueAsBytes(data);
       }
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       throw new SerializationException("Error when serializing object to XML byte[]", e);
     }
   }

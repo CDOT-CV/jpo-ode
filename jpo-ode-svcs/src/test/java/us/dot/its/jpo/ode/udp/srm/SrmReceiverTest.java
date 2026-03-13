@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -12,9 +12,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -23,7 +22,6 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
@@ -34,7 +32,6 @@ import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
-@RunWith(SpringRunner.class)
 @EnableConfigurationProperties
 @SpringBootTest(
     classes = {
@@ -81,9 +78,9 @@ class SrmReceiverTest {
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(srmReceiver);
 
-    String fileContent = Files.readString(Paths.get(
+    String fileContent = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
-    String expected = Files.readString(Paths.get(
+    String expected = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());

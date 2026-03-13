@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -15,7 +15,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -79,9 +79,9 @@ class TimReceiverTest {
     executorService.submit(timReceiver);
 
     String fileContent =
-        Files.readString(Paths.get(
+        Files.readString(Path.of(
             "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
-    String expected = Files.readString(Paths.get(
+    String expected = Files.readString(Path.of(
         "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getTim().getReceiverPort());

@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.snmp4j.PDU;
 import org.snmp4j.ScopedPDU;
 import org.snmp4j.event.ResponseEvent;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -48,7 +47,6 @@ public class TimDeleteController {
 
    private RsuProperties rsuProperties;
    
-   @Autowired
    public TimDeleteController(RsuProperties rsuProperties) {
       super();
       this.rsuProperties = rsuProperties;

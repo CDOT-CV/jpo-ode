@@ -4,13 +4,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.CoercionAction;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
-import com.fasterxml.jackson.databind.type.LogicalType;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.CoercionAction;
+import tools.jackson.databind.cfg.CoercionInputShape;
+import tools.jackson.databind.type.LogicalType;
+import tools.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlMapper.Builder;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -39,7 +38,7 @@ public class SerializationConfig {
     // Ensure BigDecimals are serialized consistently as numbers not strings
     mapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
     // Only serialize non-null fields
-    mapper.setSerializationInclusion(Include.NON_NULL);
+    mapper.setDefaultPropertyInclusion(Include.NON_NULL);
     return mapper;
   }
 
@@ -54,7 +53,6 @@ public class SerializationConfig {
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
     var builder = new Builder(xmlMapper);
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
     return builder.build();
   }
