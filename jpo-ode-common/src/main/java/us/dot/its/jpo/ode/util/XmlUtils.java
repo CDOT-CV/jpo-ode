@@ -49,7 +49,7 @@ public class XmlUtils {
   private static XmlMapper staticXmlMapper = new XmlMapper();
 
   static {
-    var builder = new Builder(staticXmlMapper);
+    var builder = XmlMapper.builder();
     builder.defaultUseWrapper(true);
     staticXmlMapper = builder.build();
   }
@@ -58,10 +58,11 @@ public class XmlUtils {
    * Instantiates the XML utility as an object instead of using static methods.
    */
   public XmlUtils() {
-    super();
-    var builder = new Builder(xmlMapper);
-    builder.defaultUseWrapper(true);
-    xmlMapper = builder.build();
+      super();
+
+      xmlMapper = XmlMapper.builder()
+              .defaultUseWrapper(true)
+              .build();
   }
 
   public String toXml(Object o) throws JacksonException {

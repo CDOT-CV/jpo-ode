@@ -101,11 +101,11 @@ public class JsonUtilsTest {
     }
 
     private A a = new A(11, 2.2f, 33333.33333333333d, "hello");
-    private String aJsonString = "{\"i\":11,\"f\":2.2,\"d\":33333.33333333333,\"s\":\"hello\"}";
+    private String aJsonString = "{\"d\":33333.33333333333,\"f\":2.2,\"i\":11,\"s\":\"hello\"}";
 
     private A a2 = new A(11, 2.2f, 33333.33333333333d, null);
-    private String a2Compact = "{\"i\":11,\"f\":2.2,\"d\":33333.33333333333}";
-    private String a2Verbose = "{\"i\":11,\"f\":2.2,\"d\":33333.33333333333,\"s\":null}";
+    private String a2Compact = "{\"d\":33333.33333333333,\"f\":2.2,\"i\":11}";
+    private String a2Verbose = "{\"d\":33333.33333333333,\"f\":2.2,\"i\":11,\"s\":null}";
 
     @Test
     public void testToJson() {
