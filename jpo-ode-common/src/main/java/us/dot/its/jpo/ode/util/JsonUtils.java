@@ -27,6 +27,7 @@ import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.type.LogicalType;
 import java.io.IOException;
+import java.io.Serial;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -256,9 +257,9 @@ public class JsonUtils {
      *
      * @param tree the string to validate
      * @return true if valid JSON, false otherwise
-     * @throws IOException if an I/O error occurs
+     * @throws JacksonException if an Jackson error occurs
      */
-    public static boolean isValid(String tree) throws IOException {
+    public static boolean isValid(String tree) throws JacksonException {
         try {
             ObjectNode jsonNode = (ObjectNode) mapper.readTree(tree);
             return jsonNode != null;
@@ -274,7 +275,7 @@ public class JsonUtils {
      * @return HashMap containing the JsonNode's fields
      */
     public static HashMap<String, JsonNode> jsonNodeToHashMap(JsonNode jsonNode) {
-        HashMap<String, JsonNode> nodeProps = new HashMap<String, JsonNode>();
+        HashMap<String, JsonNode> nodeProps = new HashMap<>();
         Iterator<Entry<String, JsonNode>> iter = jsonNode.properties().iterator();
 
         while (iter.hasNext()) {
@@ -317,6 +318,7 @@ public class JsonUtils {
      */
     public static class JsonUtilsException extends Exception {
 
+        @Serial
         private static final long serialVersionUID = 1L;
 
         /**

@@ -19,7 +19,6 @@ package us.dot.its.jpo.ode.util;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.dataformat.xml.XmlMapper;
-import tools.jackson.dataformat.xml.XmlMapper.Builder;
 import org.json.JSONObject;
 import org.json.XML;
 import tools.jackson.core.JacksonException;
