@@ -341,7 +341,7 @@ public class TravelerMessageFromHumanToAsnConverter {
       // take the array of ITIScodesAndText items and transform it into
       // schema-appropriate array
 
-      Iterator<JsonNode> itemsIter = items.elements();
+      Iterator<JsonNode> itemsIter = items.values().iterator();
 
       while (itemsIter.hasNext()) {
         JsonNode curItem = itemsIter.next();
