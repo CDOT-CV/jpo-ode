@@ -203,8 +203,7 @@ public class OdeLogMetadata extends OdeMsgMetadata {
    */
   public static class EncodingsDeserializer extends ValueDeserializer<List<Asn1Encoding>> {
     @Override
-    public List<Asn1Encoding> deserialize(JsonParser p, DeserializationContext ctxt)
-        throws IOException {
+    public List<Asn1Encoding> deserialize(JsonParser p, DeserializationContext ctxt) {
       JsonNode node = p.objectReadContext().readTree(p);
       List<Asn1Encoding> result = new ArrayList<>();
 
