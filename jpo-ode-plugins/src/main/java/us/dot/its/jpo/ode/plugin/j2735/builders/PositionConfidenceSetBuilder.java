@@ -36,13 +36,13 @@ public class PositionConfidenceSetBuilder {
 
     public static J2735PositionConfidenceSet genericPositionConfidenceSet(JsonNode posConfidence) {
         
-        if (posConfidence.get(POS).asLong() < POS_LOWER_BOUND || 
-                posConfidence.get(POS).asLong() > POS_UPPER_BOUND) {
+        if (posConfidence.get(POS).asLong(0L) < POS_LOWER_BOUND ||
+                posConfidence.get(POS).asLong(0L) > POS_UPPER_BOUND) {
             throw new IllegalArgumentException("PositionConfidence value out of bounds");
         }
 
-        if (posConfidence.get(ELEVATION).asLong() < ELEV_LOWER_BOUND || 
-                posConfidence.get(ELEVATION).asLong() > ELEV_UPPER_BOUND) {
+        if (posConfidence.get(ELEVATION).asLong(0L) < ELEV_LOWER_BOUND ||
+                posConfidence.get(ELEVATION).asLong(0L) > ELEV_UPPER_BOUND) {
             throw new IllegalArgumentException("ElevationConfidence value out of bounds");
         }
 

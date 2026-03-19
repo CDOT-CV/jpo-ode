@@ -41,18 +41,18 @@ public class SpeedandHeadingandThrottleConfidenceBuilder {
     public static J2735SpeedandHeadingandThrottleConfidence genericSpeedandHeadingandThrottleConfidence(
             JsonNode speedConfidence) {
 
-        if (speedConfidence.get(HEADING).asLong() < HEADING_LOWER_BOUND
-                || speedConfidence.get(HEADING).asLong() > HEADING_UPPER_BOUND) {
+        if (speedConfidence.get(HEADING).asLong(0L) < HEADING_LOWER_BOUND
+                || speedConfidence.get(HEADING).asLong(0L) > HEADING_UPPER_BOUND) {
             throw new IllegalArgumentException("HeadingConfidence out of bounds [0..7]");
         }
 
-        if (speedConfidence.get(SPEED).asLong() < SPEED_LOWER_BOUND
-                || speedConfidence.get(SPEED).asLong() > SPEED_UPPER_BOUND) {
+        if (speedConfidence.get(SPEED).asLong(0L) < SPEED_LOWER_BOUND
+                || speedConfidence.get(SPEED).asLong(0L) > SPEED_UPPER_BOUND) {
             throw new IllegalArgumentException("SpeedConfidence out of bounds [0..7]");
         }
 
-        if (speedConfidence.get(THROTTLE).asLong() < THROTTLE_LOWER_BOUND
-                || speedConfidence.get(THROTTLE).asLong() > THROTTLE_UPPER_BOUND) {
+        if (speedConfidence.get(THROTTLE).asLong(0L) < THROTTLE_LOWER_BOUND
+                || speedConfidence.get(THROTTLE).asLong(0L) > THROTTLE_UPPER_BOUND) {
             throw new IllegalArgumentException("ThrottleConfidence out of bounds [0..3]");
         }
 

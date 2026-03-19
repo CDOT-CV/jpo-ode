@@ -43,17 +43,17 @@ public class FullPositionVectorBuilder {
     
     public static J2735FullPositionVector genericFullPositionVector(JsonNode initialPosition) {
        
-       long longitude = initialPosition.get("long").asLong();
-       long latitude = initialPosition.get("lat").asLong();
+       long longitude = initialPosition.get("long").asLong(0L);
+       long latitude = initialPosition.get("lat").asLong(0L);
        
        Long elevation = null;
        if (initialPosition.get("elevation") != null) {
-          elevation = initialPosition.get("elevation").asLong();
+          elevation = initialPosition.get("elevation").asLong(0L);
        }
        
        Long timeConfidence = null;
        if (initialPosition.get(TIME_CONFIDENCE) != null) {
-          timeConfidence = initialPosition.get(TIME_CONFIDENCE).asLong();
+          timeConfidence = initialPosition.get(TIME_CONFIDENCE).asLong(0L);
        }
        
         // Bounds checks
