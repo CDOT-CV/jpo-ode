@@ -547,7 +547,7 @@ public class TravelerMessageFromHumanToAsnConverter {
     // closed path (optional)
     JsonNode closedPath = region.get(CLOSED_PATH);
     if (closedPath != null) {
-      region.put(CLOSED_PATH, (closedPath.asBoolean() ? BOOLEAN_OBJECT_TRUE : BOOLEAN_OBJECT_FALSE));
+      region.put(CLOSED_PATH, (closedPath.asBoolean(false) ? BOOLEAN_OBJECT_TRUE : BOOLEAN_OBJECT_FALSE));
     }
 
     // description (optional)

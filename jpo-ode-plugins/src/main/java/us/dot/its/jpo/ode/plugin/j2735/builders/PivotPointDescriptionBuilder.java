@@ -44,7 +44,7 @@ public class PivotPointDescriptionBuilder {
         }
 
         gppd.setPivotAngle(AngleBuilder.genericAngle(ppd.get("pivotAngle")));
-        gppd.setPivots(ppd.get("pivots").asBoolean());
+        gppd.setPivots(ppd.get("pivots").asBoolean(false));
 
         return gppd;
     }

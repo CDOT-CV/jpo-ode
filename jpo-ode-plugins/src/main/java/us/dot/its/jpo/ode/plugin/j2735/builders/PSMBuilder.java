@@ -101,12 +101,12 @@ public class PSMBuilder {
 
 		JsonNode crossRequest = PSMMessage.get("crossRequest");
 		if (crossRequest != null) {
-			genericPSM.setCrossRequest(crossRequest.asBoolean());
+			genericPSM.setCrossRequest(crossRequest.asBoolean(false));
 		}
 
 		JsonNode crossState = PSMMessage.get("crossState");
 		if (crossState != null) {
-			genericPSM.setCrossState(crossState.asBoolean());
+			genericPSM.setCrossState(crossState.asBoolean(false));
 		}
 
 		JsonNode clusterSize = PSMMessage.get("clusterSize");

@@ -42,7 +42,7 @@ public class TrailerUnitDescriptionBuilder {
         J2735TrailerUnitDescription gtud = new J2735TrailerUnitDescription();
 
         // Required elements
-        gtud.setIsDolly(tud.get("isDolly").asBoolean());
+        gtud.setIsDolly(tud.get("isDolly").asBoolean(false));
 
         if (tud.get(WIDTH).asInt() < 0 || tud.get(WIDTH).asInt() > 1023) {
             throw new IllegalArgumentException("Trailer width value out of bounds [0..1023]");
