@@ -66,10 +66,10 @@ public class FullPositionVectorBuilder {
                 || latitude > LAT_UPPER_BOUND) {
             throw new IllegalArgumentException("Latitude value out of bounds [-900000000..900000001]");
         }
-        
-        if (null == elevation 
-              || elevation.longValue() < ELEV_LOWER_BOUND 
-              || elevation.longValue() > ELEV_UPPER_BOUND) {
+
+        if (null == elevation
+                || elevation < ELEV_LOWER_BOUND
+                || elevation > ELEV_UPPER_BOUND) {
             throw new IllegalArgumentException("Elevation value out of bounds [-4096..61439]");
         }
         
