@@ -1,9 +1,10 @@
 package us.dot.its.jpo.ode.http;
 
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -21,22 +22,23 @@ import org.springframework.web.client.RestTemplate;
 @Configuration
 public class WebClientConfig {
 
-  /**
-   * Creates and configures a {@link RestTemplate} bean with a custom
-   * {@link MappingJackson2HttpMessageConverter} to use the provided
-   * {@link ObjectMapper} for JSON serialization and deserialization.
-   *
-   * @param mapper the {@link ObjectMapper} to be used for configuring
-   *               JSON message conversion.
-   * @return a configured {@link RestTemplate} instance that includes
-   *         the custom JSON message converter.
-   */
-  @Bean
-  public RestTemplate restTemplate(ObjectMapper mapper) {
-    var template = new RestTemplate();
-    MappingJackson2HttpMessageConverter customConverter = new MappingJackson2HttpMessageConverter();
-    customConverter.setObjectMapper(mapper);
-    template.getMessageConverters().add(customConverter);
-    return template;
-  }
+    /**
+     * Creates and configures a {@link RestTemplate} bean with a custom
+     * {@link JacksonJsonHttpMessageConverter} to use the provided
+     * {@link ObjectMapper} for JSON serialization and deserialization.
+     *
+     * @param jsonMapper the {@link JsonMapper} to be used for configuring
+     *               JSON message conversion.
+     * @return a configured {@link RestTemplate} instance that includes
+     *         the custom JSON message converter.
+     */
+    @Bean
+    public RestTemplate restTemplate(JsonMapper jsonMapper) {
+        RestTemplate restTemplate = new RestTemplate();
+
+        JacksonJsonHttpMessageConverter converter = new JacksonJsonHttpMessageConverter(jsonMapper);
+        restTemplate.getMessageConverters().add(converter);
+
+        return restTemplate;
+    }
 }
