@@ -8,6 +8,7 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735ManeuverAssistList;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MovementEventList;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MovementState;
 
+@Deprecated(forRemoval = true)
 public class MovementStateBuilder {
 	private MovementStateBuilder() {
 		throw new UnsupportedOperationException();

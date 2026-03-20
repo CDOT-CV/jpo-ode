@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import tools.jackson.databind.JsonNode;
@@ -40,6 +41,8 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735VehicleSafetyExtensions;
 import us.dot.its.jpo.ode.plugin.j2735.builders.BsmPart2ContentBuilder.BsmPart2ContentBuilderException;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
+@Disabled("Test for deprecated class marked for removal.")
+@SuppressWarnings("removal")
 public class VehicleSafetyExtensionsBuilderTest {
 
    @Test

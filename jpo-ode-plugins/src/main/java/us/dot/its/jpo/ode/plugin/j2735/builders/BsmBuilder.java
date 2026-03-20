@@ -20,6 +20,7 @@ import tools.jackson.databind.JsonNode;
 import java.util.Iterator;
 import us.dot.its.jpo.ode.plugin.j2735.J2735Bsm;
 
+@Deprecated(forRemoval = true)
 public class BsmBuilder {
 
   private BsmBuilder() {

@@ -12,6 +12,7 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionStatusObject;
 import us.dot.its.jpo.ode.plugin.j2735.J2735ManeuverAssistList;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MovementList;
 
+@Deprecated(forRemoval = true)
 public class IntersectionStateBuilder {
 	private IntersectionStateBuilder() {
 		throw new UnsupportedOperationException();

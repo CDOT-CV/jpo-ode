@@ -8,6 +8,7 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735LayerType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MAP;
 import us.dot.its.jpo.ode.plugin.j2735.J2735DataParameters;
 
+@Deprecated(forRemoval = true)
 public class MAPBuilder {
 	private MAPBuilder() {
 		throw new UnsupportedOperationException();

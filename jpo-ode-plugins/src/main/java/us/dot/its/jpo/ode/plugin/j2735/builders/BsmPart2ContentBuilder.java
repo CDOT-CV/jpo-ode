@@ -22,6 +22,7 @@ import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735BsmPart2Content;
 
+@Deprecated(forRemoval = true)
 public class BsmPart2ContentBuilder {
 
    private BsmPart2ContentBuilder() {

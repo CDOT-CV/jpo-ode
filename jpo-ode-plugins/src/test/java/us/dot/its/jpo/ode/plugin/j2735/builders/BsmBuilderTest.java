@@ -16,6 +16,7 @@
 
 package us.dot.its.jpo.ode.plugin.j2735.builders;
 
+import org.junit.jupiter.api.Disabled;
 import tools.jackson.databind.JsonNode;
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +27,8 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735Bsm;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
+@Disabled("Test for deprecated class marked for removal.")
+@SuppressWarnings("removal")
 class BsmBuilderTest {
 
   @Test

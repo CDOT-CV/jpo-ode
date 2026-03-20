@@ -5,6 +5,7 @@ import tools.jackson.databind.JsonNode;
 import us.dot.its.jpo.ode.plugin.j2735.J2735SRM;
 import us.dot.its.jpo.ode.plugin.j2735.J2735SignalRequestList;
 
+@Deprecated(forRemoval = true)
 public class SRMBuilder {
 
     private SRMBuilder()

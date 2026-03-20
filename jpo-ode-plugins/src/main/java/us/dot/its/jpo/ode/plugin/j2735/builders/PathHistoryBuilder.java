@@ -21,6 +21,7 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735BitString;
 import us.dot.its.jpo.ode.plugin.j2735.J2735GNSSstatusNames;
 import us.dot.its.jpo.ode.plugin.j2735.J2735PathHistory;
 
+@Deprecated(forRemoval = true)
 public class PathHistoryBuilder {
 
    private PathHistoryBuilder() {

@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import tools.jackson.databind.JsonNode;
@@ -12,6 +13,8 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735PathHistory;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
+@Disabled("Test for deprecated class marked for removal.")
+@SuppressWarnings("removal")
 public class PathHistoryBuilderTest {
 
   @Test

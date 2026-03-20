@@ -20,6 +20,7 @@ import tools.jackson.databind.JsonNode;
 import us.dot.its.jpo.ode.plugin.j2735.J2735BsmPart2Content;
 import us.dot.its.jpo.ode.plugin.j2735.J2735VehicleSafetyExtensions;
 
+@Deprecated(forRemoval = true)
 public class VehicleSafetyExtensionsBuilder {
 
    private VehicleSafetyExtensionsBuilder() {

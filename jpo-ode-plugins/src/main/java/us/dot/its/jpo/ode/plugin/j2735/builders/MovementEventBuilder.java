@@ -11,6 +11,7 @@ import us.dot.its.jpo.ode.plugin.j2735.J2735MovementEvent;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MovementPhaseState;
 import us.dot.its.jpo.ode.plugin.j2735.J2735TimeChangeDetails;
 
+@Deprecated(forRemoval = true)
 public class MovementEventBuilder {
 	private MovementEventBuilder() {
 		throw new UnsupportedOperationException();

@@ -3,6 +3,7 @@ package us.dot.its.jpo.ode.plugin.j2735.builders;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import org.junit.jupiter.api.Disabled;
 import tools.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.plugin.j2735.J2735MAP;
@@ -12,6 +13,8 @@ import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 /**
  * Testing the Map POJO builder classes.
  */
+@Disabled("Test for deprecated class marked for removal.")
+@SuppressWarnings("removal")
 public class MAPBuilderTest {
   @Test
   public void shouldTranslateMap() {

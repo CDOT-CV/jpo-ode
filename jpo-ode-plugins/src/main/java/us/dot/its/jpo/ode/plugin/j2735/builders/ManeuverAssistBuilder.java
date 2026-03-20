@@ -4,6 +4,7 @@ import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735ConnectionManueverAssist;
 
+@Deprecated(forRemoval = true)
 public class ManeuverAssistBuilder {
 	private ManeuverAssistBuilder() {
 		throw new UnsupportedOperationException();

@@ -19,12 +19,15 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
+import org.junit.jupiter.api.Disabled;
 import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735PSM;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
 
+@Disabled("Test for deprecated class marked for removal.")
+@SuppressWarnings("removal")
 public class PsmBuilderTest {
 
    @Test

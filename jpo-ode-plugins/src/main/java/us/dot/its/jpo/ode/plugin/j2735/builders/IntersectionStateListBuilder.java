@@ -6,6 +6,7 @@ import tools.jackson.databind.JsonNode;
 
 import us.dot.its.jpo.ode.plugin.j2735.J2735IntersectionStateList;
 
+@Deprecated(forRemoval = true)
 public class IntersectionStateListBuilder {
 	private IntersectionStateListBuilder() {
 		throw new UnsupportedOperationException();

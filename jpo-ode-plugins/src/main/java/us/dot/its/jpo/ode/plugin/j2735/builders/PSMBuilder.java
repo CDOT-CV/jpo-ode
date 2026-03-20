@@ -15,6 +15,7 @@ import us.dot.its.jpo.ode.plugin.j2735.OdePosition3D;
 import us.dot.its.jpo.ode.plugin.j2735.J2735AnimalType;
 import us.dot.its.jpo.ode.plugin.j2735.J2735Attachment;
 
+@Deprecated(forRemoval = true)
 public class PSMBuilder {
 	
 	private PSMBuilder() {
