@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectReader;
 import tools.jackson.databind.cfg.CoercionAction;
 import tools.jackson.databind.cfg.CoercionInputShape;
@@ -49,6 +50,11 @@ public class JsonUtils {
 
     static {
         mapper = JsonMapper.builder()
+                // Temporarily disable this feature until we can ensure no external consumers rely on property ordering in the JSON output
+                // In Jackson 2, there was no guarantee that the order of properties in the JSON output would be the same as the order of fields in the Java class.
+                // However, we have existing test cases that rely on this behavior, so we need to preserve it while we migrate to Jackson 3
+                // to reduce the risk of breaking existing consumers.
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                 .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
                 .withCoercionConfig(LogicalType.Enum,
                         cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
@@ -58,6 +64,11 @@ public class JsonUtils {
                 .build();
 
         mapper_noNulls = JsonMapper.builder()
+                // Temporarily disable this feature until we can ensure no external consumers rely on property ordering in the JSON output
+                // In Jackson 2, there was no guarantee that the order of properties in the JSON output would be the same as the order of fields in the Java class.
+                // However, we have existing test cases that rely on this behavior, so we need to preserve it while we migrate to Jackson 3
+                // to reduce the risk of breaking existing consumers.
+                .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
                 .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
                 .changeDefaultPropertyInclusion(incl ->
                         incl.withValueInclusion(JsonInclude.Include.NON_NULL)
