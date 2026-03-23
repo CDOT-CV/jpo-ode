@@ -2,14 +2,15 @@ package us.dot.its.jpo.ode.config;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.cfg.CoercionAction;
 import tools.jackson.databind.cfg.CoercionInputShape;
+import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.type.LogicalType;
 import tools.jackson.dataformat.xml.XmlMapper;
-import tools.jackson.dataformat.xml.XmlMapper.Builder;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,15 +32,17 @@ public class SerializationConfig {
   @Bean
   @Primary
   public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-    mapper.coercionConfigFor(LogicalType.Enum)
-        .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
-    // Ensure BigDecimals are serialized consistently as numbers not strings
-    mapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
-    // Only serialize non-null fields
-    mapper.setDefaultPropertyInclusion(Include.NON_NULL);
-    return mapper;
+    return JsonMapper.builder()
+              .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
+              .withCoercionConfig(LogicalType.Enum,
+                      cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
+              .changeDefaultPropertyInclusion(incl ->
+                      incl.withValueInclusion(JsonInclude.Include.NON_NULL)
+              )
+              // Ensure BigDecimals are serialized consistently as numbers, not strings
+              .withConfigOverride(BigDecimal.class,
+                      cfg -> cfg.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
+              .build();
   }
 
   /**
@@ -51,10 +54,9 @@ public class SerializationConfig {
    */
   @Bean
   public XmlMapper xmlMapper() {
-    XmlMapper xmlMapper = new XmlMapper();
-    var builder = new Builder(xmlMapper);
-    builder.defaultUseWrapper(true);
-    return builder.build();
+    return XmlMapper.builder()
+            .defaultUseWrapper(true)
+            .build();
   }
 
 
