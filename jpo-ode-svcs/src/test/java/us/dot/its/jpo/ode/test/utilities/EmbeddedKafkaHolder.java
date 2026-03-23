@@ -62,20 +62,22 @@ public final class EmbeddedKafkaHolder {
    * @param topics one or more topic names to be added to the embedded Kafka broker
    */
   public static void addTopics(String... topics) {
-    var existingTopics = embeddedKafka.getTopics();
-    for (String topic : topics) {
-      if (existingTopics.contains(topic)) {
-        log.debug("topic {} already exists in embedded kafka broker. Skipping creation", topic);
-        continue;
+      // Ensure broker is started before attempting to add topics
+      var broker = getEmbeddedKafka();
+
+      var existingTopics = broker.getTopics();
+      for (String topic : topics) {
+          if (existingTopics.contains(topic)) {
+              log.debug("topic {} already exists in embedded kafka broker. Skipping creation", topic);
+              continue;
+          }
+          NewTopic newTopic = new NewTopic(topic, 1, (short) 1);
+          try {
+              broker.addTopics(newTopic);
+          } catch (Exception e) {
+              log.debug("exception adding topic {} to embedded kafka broker", topic, e);
+          }
       }
-      NewTopic newTopic = new NewTopic(topic, 1, (short) 1);
-      try {
-        embeddedKafka.addTopics(newTopic);
-      } catch (Exception e) {
-        // Ignore because we only care they are created not that they weren't created prior
-        log.debug("exception adding topic {} to embedded kafka broker", topic, e);
-      }
-    }
   }
 
   private EmbeddedKafkaHolder() {

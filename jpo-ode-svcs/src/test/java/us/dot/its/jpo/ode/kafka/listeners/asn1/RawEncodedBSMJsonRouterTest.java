@@ -9,6 +9,7 @@ import java.util.Map;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONException;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +42,14 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class RawEncodedBSMJsonRouterTest {
+
+    @BeforeAll
+    static void setup() {
+        EmbeddedKafkaHolder.addTopics(
+                "topic.Asn1DecoderBSMInput",
+                "topic.Asn1DecoderTestBSMJSON"
+        );
+    }
 
   @Value(value = "${ode.kafka.topics.raw-encoded-json.bsm}")
   private String rawEncodedBsmJson;
