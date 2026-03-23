@@ -38,7 +38,9 @@ import tools.jackson.core.JacksonException;
 
 /**
  * Utility class for JSON operations using Jackson ObjectMapper.
+ * This class is deprecated. Please use the object/json mapper from the Spring application context instead.
  */
+@Deprecated(forRemoval = true)
 @Slf4j
 public class JsonUtils {
 
