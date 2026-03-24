@@ -103,13 +103,13 @@ public class JsonUtilsTest {
     @Test
     public void testToJson() {
         String aj = JsonUtils.toJson(a, false);
-        String aJsonString = "{\"d\":33333.33333333333,\"f\":2.2,\"i\":11,\"s\":\"hello\"}";
+        String aJsonString = "{\"i\":11,\"f\":2.2,\"d\":33333.33333333333,\"s\":\"hello\"}";
         Assertions.assertEquals(aJsonString, aj);
         String aj2Compact = JsonUtils.toJson(a2, false);
-        String a2Compact = "{\"d\":33333.33333333333,\"f\":2.2,\"i\":11}";
+        String a2Compact = "{\"i\":11,\"f\":2.2,\"d\":33333.33333333333}";
         Assertions.assertEquals(a2Compact, aj2Compact);
         String aj2Verbose = JsonUtils.toJson(a2, true);
-        String a2Verbose = "{\"d\":33333.33333333333,\"f\":2.2,\"i\":11,\"s\":null}";
+        String a2Verbose = "{\"i\":11,\"f\":2.2,\"d\":33333.33333333333,\"s\":null}";
         Assertions.assertEquals(a2Verbose, aj2Verbose);
     }
 
