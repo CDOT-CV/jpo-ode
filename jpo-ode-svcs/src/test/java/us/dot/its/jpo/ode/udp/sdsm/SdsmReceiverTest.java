@@ -9,9 +9,13 @@ import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.kafka.clients.admin.NewTopic;
+import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -19,18 +23,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
@@ -38,12 +43,14 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+    classes = {KafkaConsumerConfig.class,  KafkaProducerConfig.class,
         SerializationConfig.class, TestMetricsConfig.class},
     properties = {"ode.receivers.sdsm.receiver-port=12413",
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.SdsmReceiverTest"})
 @ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class, OdeKafkaProperties.class})
+@EmbeddedKafka(partitions = 1, topics = {"topic.SdsmReceiverTest"})
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 class SdsmReceiverTest {
 
@@ -56,10 +63,11 @@ class SdsmReceiverTest {
   @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
-
   private ExecutorService executorService;
   private SdsmReceiver sdsmReceiver;
+
+  private CountDownLatch latch;
+  private String actualPayload;
 
   @AfterEach
   void cleanup() {
@@ -73,11 +81,8 @@ class SdsmReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    try {
-      embeddedKafka.addTopics(new NewTopic(rawEncodedJsonTopics.getSdsm(), 1, (short) 1));
-    } catch (Exception e) {
-      // Ignore as we're only ensuring topics exist
-    }
+    latch = new CountDownLatch(1);
+    actualPayload = null;
 
     final Clock prevClock = DateTimeUtils
         .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
@@ -97,15 +102,11 @@ class SdsmReceiverTest {
           new TestUDPClient(udpReceiverProperties.getSdsm().getReceiverPort());
       udpClient.send(fileContent);
 
-      var consumerProps = KafkaTestUtils.consumerProps("SdsmReceiverTest", "true", embeddedKafka);
-      var cf = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps);
-      var consumer = cf.createConsumer();
-      embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSdsm());
+      Assertions.assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 
-      var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSdsm());
-      assertNotEquals(expected, singleRecord.value());
+      assertNotEquals(expected, actualPayload);
 
-      JSONObject producedJson = new JSONObject(singleRecord.value());
+      JSONObject producedJson = new JSONObject(actualPayload);
       JSONObject expectedJson = new JSONObject(expected);
 
       assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
@@ -118,5 +119,11 @@ class SdsmReceiverTest {
     } finally {
       DateTimeUtils.setClock(prevClock);
     }
+  }
+
+  @KafkaListener(topics = "topic.SdsmReceiverTest")
+  public void receive(String payload) {
+    this.actualPayload = payload;
+    latch.countDown();
   }
 }
