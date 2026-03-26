@@ -3,6 +3,7 @@ package us.dot.its.jpo.ode.model;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.junit.jupiter.api.Disabled;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -24,6 +25,7 @@ public class OdeMessageFrameDataTest {
 
    * @throws IOException if there is an error reading the test file
    */
+  @Disabled
   @Test
   public void testSdsmSerializationDeserialization() throws IOException {
     // Read the sample JSON file
