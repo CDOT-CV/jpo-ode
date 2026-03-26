@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.udp.rtcm;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -8,27 +9,29 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.apache.kafka.clients.consumer.Consumer;
+import java.util.concurrent.TimeUnit;
+
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.test.EmbeddedKafkaBroker;
-import org.springframework.kafka.test.utils.KafkaTestUtils;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
@@ -38,12 +41,14 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  */
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+    classes = { KafkaConsumerConfig.class, KafkaProducerConfig.class,
         SerializationConfig.class, TestMetricsConfig.class, },
     properties = {"ode.receivers.rtcm.receiver-port=12753",
         "ode.kafka.topics.raw-encoded-json.rtcm=topic.RtcmReceiverTest"})
 @ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class,  OdeKafkaProperties.class})
+@EmbeddedKafka(partitions = 1, topics = {"topic.RtcmReceiverTest"})
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 public class RtcmReceiverTest {
 
@@ -56,11 +61,13 @@ public class RtcmReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  private CountDownLatch latch;
+  private String actualPayload;
 
   @Test
   void testRun() throws Exception {
-    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getRtcm());
+    latch = new CountDownLatch(1);
+    actualPayload = null;
 
     final Clock prevClock = DateTimeUtils
         .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
@@ -78,18 +85,12 @@ public class RtcmReceiverTest {
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRtcm().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps("RtcmReceiverTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> cf =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getRtcm());
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
 
-    // read record from produce topic
-    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getRtcm());
-    // confirm the stream-id is different, then remove it from both so that we can test equality
+      // confirm the stream-id is different, then remove it from both so that we can test equality
     // of all other fields
-    assertNotEquals(expected, singleRecord.value());
-    JSONObject producedJson = new JSONObject(singleRecord.value());
+    assertNotEquals(expected, actualPayload);
+    JSONObject producedJson = new JSONObject(actualPayload);
     JSONObject expectedJson = new JSONObject(expected);
 
     // assert that the UUIDs are different, then remove them so that the rest of the JSON can be
@@ -102,5 +103,11 @@ public class RtcmReceiverTest {
     assertEquals(expectedJson.toString(2), producedJson.toString(2));
 
     DateTimeUtils.setClock(prevClock);
+  }
+
+  @KafkaListener(topics = "topic.RtcmReceiverTest")
+  public void receive(String payload) {
+    this.actualPayload = payload;
+    latch.countDown();
   }
 }
