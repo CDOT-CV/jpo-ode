@@ -3,13 +3,12 @@ package us.dot.its.jpo.ode.config;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.cfg.CoercionAction;
-import tools.jackson.databind.cfg.CoercionInputShape;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.LogicalType;
+import com.fasterxml.jackson.databind.cfg.CoercionAction;
+import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.type.LogicalType;
 import tools.jackson.dataformat.xml.XmlMapper;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
@@ -31,11 +30,12 @@ public class SerializationConfig {
    */
   @Bean
   @Primary
-  public ObjectMapper objectMapper() {
+  public JsonMapper jsonMapper() {
     return JsonMapper.builder()
               .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
-              .withCoercionConfig(LogicalType.Enum,
-                      cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
+              .withCoercionConfig(tools.jackson.databind.type.LogicalType.Enum,
+                      cfg -> cfg.setCoercion(
+                              tools.jackson.databind.cfg.CoercionInputShape.EmptyString, tools.jackson.databind.cfg.CoercionAction.AsNull))
               .changeDefaultPropertyInclusion(incl ->
                       incl.withValueInclusion(JsonInclude.Include.NON_NULL)
               )
@@ -44,6 +44,19 @@ public class SerializationConfig {
                       cfg -> cfg.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
               .build();
   }
+
+    @Bean
+    public com.fasterxml.jackson.databind.ObjectMapper legacyObjectMapper() {
+        com.fasterxml.jackson.databind.ObjectMapper mapper =
+                new com.fasterxml.jackson.databind.ObjectMapper();
+        mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+        mapper.coercionConfigFor(LogicalType.Enum)
+                .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
+        mapper.configOverride(BigDecimal.class)
+                .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
+        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
+        return mapper;
+    }
 
   /**
    * Configures and returns an {@link XmlMapper} instance with customized serialization
