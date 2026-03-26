@@ -36,7 +36,6 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
@@ -79,7 +78,6 @@ class SpatReceiverTest {
   void testRun() throws Exception {
     latch = new CountDownLatch(1);
     actualPayload = null;
-    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getSpat());
 
     final Clock prevClock = DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
