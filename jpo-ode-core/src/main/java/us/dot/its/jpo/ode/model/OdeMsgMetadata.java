@@ -1,16 +1,17 @@
 /*******************************************************************************
  * Copyright 2018 572682
  * 
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not
- * use this file except in compliance with the License.  You may obtain a copy
- * of the License at
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ * in compliance with the License. You may obtain a copy of the License at
  * 
- *   <p>http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
  * 
- * <p>Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
- * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
- * License for the specific language governing permissions and limitations under
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software distributed under the License
+ * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+ * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
 
@@ -24,9 +25,9 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 /**
  * Base ODE Metadata class.
  */
-@JsonPropertyOrder({ "logFileName", "recordType", "receivedMessageDetails", "payloadType", "serialId",
-    "odeReceivedAt", "schemaVersion", "maxDurationTime", "recordGeneratedAt", "recordGeneratedBy", "sanitized",
-    "asn1" })
+@JsonPropertyOrder({"logFileName", "recordType", "receivedMessageDetails", "payloadType",
+    "serialId", "odeReceivedAt", "schemaVersion", "maxDurationTime", "recordGeneratedAt",
+    "recordGeneratedBy", "sanitized", "asn1"})
 public class OdeMsgMetadata extends OdeObject {
 
   public static final String METADATA_STRING = "metadata";
@@ -71,11 +72,10 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   /**
-   * Constructs an OdeMsgMetadata object with the specified payload, serial ID,
-   * and received time.
+   * Constructs an OdeMsgMetadata object with the specified payload, serial ID, and received time.
    *
-   * @param payload    the payload to be set
-   * @param serialId   the serial ID to be set
+   * @param payload the payload to be set
+   * @param serialId the serial ID to be set
    * @param receivedAt the time the message was received
    */
   private OdeMsgMetadata(OdeMsgPayload payload, SerialId serialId, String receivedAt) {
@@ -84,12 +84,12 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   /**
-   * Constructs an OdeMsgMetadata object with the specified payload type, serial
-   * ID, and received time.
+   * Constructs an OdeMsgMetadata object with the specified payload type, serial ID, and received
+   * time.
    *
    * @param payloadType the type of the payload
-   * @param serialId    the serial ID to be set
-   * @param receivedAt  the time the message was received
+   * @param serialId the serial ID to be set
+   * @param receivedAt the time the message was received
    */
   public OdeMsgMetadata(String payloadType, SerialId serialId, String receivedAt) {
     super();
@@ -198,9 +198,12 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   /**
-   * Sets the ASN1 value for the metadata object.
+   * Sets {@code asn1} from the serialized {@code bytes} field of the payload (typically the
+   * header-stripped ASN.1 used for decoding). For UDP ingress, prefer
+   * {@link OdeMessageFrameMetadata#OdeMessageFrameMetadata(OdeMsgPayload, String)} or
+   * {@link #setAsn1(String)} with the full received hex.
    *
-   * @param payload the ASN1 payload hex string
+   * @param payload the payload whose bytes are copied into {@code asn1}
    */
   public void setAsn1(OdeMsgPayload payload) {
     if (payload != null && payload.getData() != null) {
