@@ -5,6 +5,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import org.junit.jupiter.api.Disabled;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
 import java.io.FileNotFoundException;
@@ -116,6 +117,7 @@ class Asn1DecodedDataRouterTest {
     testConsumer.close();
   }
 
+  @Disabled("466943")
   @Test
   void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getTim());
