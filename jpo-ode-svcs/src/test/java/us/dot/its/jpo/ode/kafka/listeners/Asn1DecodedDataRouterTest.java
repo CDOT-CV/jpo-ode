@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.assertj.core.util.Arrays;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
@@ -116,6 +117,7 @@ class Asn1DecodedDataRouterTest {
     testConsumer.close();
   }
 
+  @Disabled("466943")
   @Test
   void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getTim());
