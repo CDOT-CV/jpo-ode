@@ -18,7 +18,7 @@
 
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>5.1.0</version>
+  <version>5.2.0-alpha4</version>
   <packaging>pom</packaging>
   <modules>
     <module>jpo-ode-common</module>
