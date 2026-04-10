@@ -17,10 +17,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectReader;
+
 import tools.jackson.databind.cfg.CoercionAction;
 import tools.jackson.databind.cfg.CoercionInputShape;
 import tools.jackson.databind.json.JsonMapper;
@@ -47,6 +49,9 @@ public class JsonUtils {
 
     private static final JsonMapper mapper;
     private static final JsonMapper mapper_noNulls;
+
+    private static final ObjectMapper legacyMapper;
+    private static final ObjectMapper legacyMapper_noNulls;
 
     static {
         mapper = JsonMapper.builder()
@@ -77,6 +82,24 @@ public class JsonUtils {
                 .withConfigOverride(BigDecimal.class,
                         cfg -> cfg.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
                 .build();
+
+        legacyMapper = new ObjectMapper();
+        legacyMapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+        legacyMapper.coercionConfigFor(
+                        com.fasterxml.jackson.databind.type.LogicalType.Enum
+                )
+                .setCoercion(
+                        com.fasterxml.jackson.databind.cfg.CoercionInputShape.EmptyString,
+                        com.fasterxml.jackson.databind.cfg.CoercionAction.AsNull
+                );
+
+        legacyMapper_noNulls = new ObjectMapper();
+        legacyMapper_noNulls.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
+        legacyMapper_noNulls.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        // Ensure BigDecimals are serialized consistently as numbers not strings
+        legacyMapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
+        legacyMapper_noNulls.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
     }
 
     private JsonUtils() {
@@ -134,6 +157,22 @@ public class JsonUtils {
     }
 
     /**
+     * Converts a JSON string to an object using Jackson's ObjectMapper.
+     *
+     * @param s     the JSON string
+     * @param clazz the target class
+     * @return the deserialized object
+     * @throws JsonUtilsException if deserialization fails
+     */
+    public static Object legacyJacksonFromJson(String s, Class<?> clazz) throws JsonUtilsException {
+        try {
+            return legacyMapper.readValue(s, clazz);
+        } catch (IOException e) {
+            throw new JsonUtilsException("Error deserializing JSON tree to " + clazz.getName(), e);
+        }
+    }
+
+    /**
      * Converts a JSON string to an object with control over unknown properties.
      *
      * @param s                      the JSON string
@@ -156,6 +195,33 @@ public class JsonUtils {
             return reader.readValue(s);
         } catch (Exception e) {
             throw new JsonUtilsException("Error deserializing JSON tree to " + clazz.getName(), e);
+        }
+    }
+
+    /**
+     * Converts a JSON string to an object with control over unknown properties.
+     *
+     * @param s                      the JSON string
+     * @param clazz                  the target class
+     * @param allowUnknownProperties whether to allow unknown properties
+     * @return the deserialized object
+     * @throws JsonUtilsException if deserialization fails
+     */
+    public static Object legacyJacksonFromJson(String s, Class<?> clazz, boolean allowUnknownProperties)
+            throws JsonUtilsException {
+        try {
+            legacyMapper.configure(
+                    com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                    !allowUnknownProperties
+            );
+            return legacyMapper.readValue(s, clazz);
+        } catch (IOException e) {
+            throw new JsonUtilsException("Error deserializing JSON tree to " + clazz.getName(), e);
+        } finally {
+            legacyMapper.configure(
+                    com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                    allowUnknownProperties
+            );
         }
     }
 
