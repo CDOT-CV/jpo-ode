@@ -20,8 +20,9 @@
 
 package us.dot.its.jpo.ode.traveler;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeParseException;
@@ -73,7 +74,7 @@ public class TimDepositController {
 
   private final Asn1CoderTopics asn1CoderTopics;
   private final JsonTopics jsonTopics;
-  private final XmlMapper simpleXmlMapper;
+  private final XmlMapper simpleLegacyXmlMapper;
   private final KafkaTemplate<String, String> kafkaTemplate;
 
   private SerialId serialIdJ2735;
@@ -98,12 +99,12 @@ public class TimDepositController {
       TimIngestTrackerProperties ingestTrackerProperties,
       SecurityServicesProperties securityServicesProperties,
       KafkaTemplate<String, String> kafkaTemplate,
-      XmlMapper simpleXmlMapper) {
+      XmlMapper simpleLegacyXmlMapper) {
     super();
 
     this.asn1CoderTopics = asn1CoderTopics;
     this.jsonTopics = jsonTopics;
-    this.simpleXmlMapper = simpleXmlMapper;
+    this.simpleLegacyXmlMapper = simpleLegacyXmlMapper;
     this.kafkaTemplate = kafkaTemplate;
     serialIdJ2735 = new SerialId();
 
@@ -144,7 +145,7 @@ public class TimDepositController {
     ServiceRequest request;
     try {
       // Convert JSON to POJO
-      odeTID = (OdeTravelerInputData) JsonUtils.jacksonFromJson(jsonString,
+      odeTID = (OdeTravelerInputData) JsonUtils.legacyJacksonFromJson(jsonString,
           OdeTravelerInputData.class, true);
       if (odeTID == null) {
         String errMsg = "Malformed or non-compliant JSON syntax.";
@@ -257,17 +258,17 @@ public class TimDepositController {
 
       // Convert XML into ODE TIM JSON object and obfuscate RSU password
       OdeMessageFrameData odeTimMessageFrameData = OdeMessageFrameDataCreatorHelper
-          .createOdeMessageFrameData(xmlMsg, simpleXmlMapper);
+          .createOdeMessageFrameData(xmlMsg, simpleLegacyXmlMapper);
 
       // Create the TIM string and obfuscate the RSU password
-      String j2735Tim = JsonUtils.toJson(odeTimMessageFrameData, false);
+      String j2735Tim = JsonUtils.legacyToJson(odeTimMessageFrameData, false);
       String obfuscatedJ2735Tim = TimTransmogrifier.obfuscateRsuPassword(j2735Tim);
 
       // Publish TIM JSON to the OdeTimJson topic for the TIM topology KTable
       kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
       // Publish TIM XML to the Asn1EncoderInput topic to be encoded by the ASN.1 Encoder module
       kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), serialIdJ2735.getStreamId(), xmlMsg);
-    } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException | JacksonException e) {
+    } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException | JsonProcessingException e) {
       String errMsg = "Error sending data to ASN.1 Encoder module: " + e.getMessage();
       log.error(errMsg, e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)

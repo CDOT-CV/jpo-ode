@@ -16,9 +16,9 @@
 
  package us.dot.its.jpo.ode.traveler;
 
+ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
  import tools.jackson.databind.JsonNode;
  import tools.jackson.databind.node.ObjectNode;
- import tools.jackson.dataformat.xml.XmlMapper;
  import java.io.IOException;
  import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,7 +97,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
    KafkaTemplate<String, OdeObject> timDataKafkaTemplate;
  
    @Autowired
-   private XmlMapper simpleXmlMapper;
+   private XmlMapper simpleLegacyXmlMapper;
  
    EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
  
@@ -108,7 +108,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      ResponseEntity<String> actualResponse = testTimDepositController.postTim(null);
      Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
    }
@@ -118,7 +118,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      ResponseEntity<String> actualResponse = testTimDepositController.postTim("");
      Assertions.assertEquals("{\"error\":\"Empty request.\"}", actualResponse.getBody());
    }
@@ -128,7 +128,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"in\"va}}}on\"}}");
      Assertions.assertEquals("{\"error\":\"Malformed or non-compliant JSON syntax.\"}",
          actualResponse.getBody());
@@ -139,7 +139,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      ResponseEntity<String> actualResponse = testTimDepositController.postTim("{\"tim\":{}}");
      Assertions.assertEquals(
          "{\"error\":\"Missing or invalid argument: Request element is required as of version 3.\"}",
@@ -151,7 +151,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      ResponseEntity<String> actualResponse = testTimDepositController.postTim(
          "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"201-03-13T01:07:11-05:00\"}}");
      // verify
@@ -167,7 +167,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody = "{\"request\":{},\"tim\":{\"timeStamp\":\"2018-03-13T01:07:11-05:00\"}}";
  
      // execute
@@ -191,7 +191,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      new Expectations() {
  
        {
@@ -226,7 +226,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
  
      new Expectations() {
        {
@@ -260,7 +260,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody =
          "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
  
@@ -320,7 +320,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String file = "/sdwRequest.json";
      String requestBody =
          IOUtils.toString(TimDepositControllerTest.class.getResourceAsStream(file), "UTF-8");
@@ -381,7 +381,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody =
          "{\"request\":{\"ode\":{},\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
  
@@ -440,7 +440,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody =
          "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
  
@@ -499,7 +499,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody =
          "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
  
@@ -558,7 +558,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody =
          "{\"request\":{\"rsus\":[],\"snmp\":{},\"randomProp1\":true,\"randomProp2\":\"hello world\"},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\",\"randomProp3\":123,\"randomProp4\":{\"nestedProp1\":\"foo\",\"nestedProp2\":\"bar\"}}}";
      long priorIngestCount = TimIngestTracker.getInstance().getTotalMessagesReceived();
@@ -621,7 +621,7 @@ import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
+             simpleLegacyXmlMapper);
      String requestBody =
          "{\"request\": {\"rsus\": [{\"latitude\": 30.123456, \"longitude\": -100.12345, \"rsuId\": 123, \"route\": \"myroute\", \"milepost\": 10, \"rsuTarget\": \"172.0.0.1\", \"rsuRetries\": 3, \"rsuTimeout\": 5000, \"rsuIndex\": 7, \"rsuUsername\": \"myusername\", \"rsuPassword\": \"mypassword\"}], \"snmp\": {\"rsuid\": \"83\", \"msgid\": 31, \"mode\": 1, \"channel\": 183, \"interval\": 2000, \"deliverystart\": \"2024-05-13T14:30:00Z\", \"deliverystop\": \"2024-05-13T22:30:00Z\", \"enable\": 1, \"status\": 4}}, \"tim\": {\"msgCnt\": \"1\", \"timeStamp\": \"2024-05-10T19:01:22Z\", \"packetID\": \"123451234512345123\", \"urlB\": \"null\", \"dataframes\": [{\"startDateTime\": \"2024-05-13T20:30:05.014Z\", \"durationTime\": \"30\", \"doNotUse1\": 0, \"frameType\": \"advisory\", \"msgId\": {\"roadSignID\": {\"mutcdCode\": \"warning\", \"viewAngle\": \"1111111111111111\", \"position\": {\"latitude\": 30.123456, \"longitude\": -100.12345}}}, \"priority\": \"5\", \"doNotUse2\": 0, \"regions\": [{\"name\": \"I_myroute_RSU_172.0.0.1\", \"anchorPosition\": {\"latitude\": 30.123456, \"longitude\": -100.12345}, \"laneWidth\": \"50\", \"directionality\": \"3\", \"closedPath\": \"false\", \"description\": \"path\", \"path\": {\"scale\": 0, \"nodes\": [{\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}, {\"delta\": \"node-LL\", \"nodeLat\": 0.0, \"nodeLong\": 0.0}], \"type\": \"ll\"}, \"direction\": \"0000000000010000\"}], \"doNotUse4\": 0, \"doNotUse3\": 0, \"content\": \"workZone\", \"items\": [\"771\"], \"url\": \"null\"}]}}";
  
