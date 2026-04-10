@@ -52,9 +52,10 @@ public class SerializationConfig {
         mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
         mapper.coercionConfigFor(LogicalType.Enum)
                 .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
-        mapper.configOverride(BigDecimal.class)
-                .setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
-        mapper.setDefaultPropertyInclusion(JsonInclude.Include.NON_NULL);
+        // Ensure BigDecimals are serialized consistently as numbers not strings
+        mapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
+        // Only serialize non-null fields
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return mapper;
     }
 
@@ -82,4 +83,9 @@ public class SerializationConfig {
   public XmlMapper simpleXmlMapper() {
     return new XmlMapper();
   }
+
+    @Bean("simpleLegacyXmlMapper")
+    public com.fasterxml.jackson.dataformat.xml.XmlMapper simpleLegacyXmlMapper() {
+        return new com.fasterxml.jackson.dataformat.xml.XmlMapper();
+    }
 }
