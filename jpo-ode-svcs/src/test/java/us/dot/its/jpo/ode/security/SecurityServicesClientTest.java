@@ -48,7 +48,7 @@ class SecurityServicesClientTest {
   private MockRestServiceServer mockServer;
   private final Clock clock = Clock.fixed(Instant.parse("2024-12-26T23:53:21.120Z"), ZoneId.of("UTC"));
   @Autowired
-  private ObjectMapper objectMapper;
+  private ObjectMapper legacyObjectMapper;
 
   @BeforeEach
   void beforeEach() {
@@ -69,7 +69,7 @@ class SecurityServicesClientTest {
     signatureRequestModel.setSigValidityOverride(expiryTimeInSeconds);
 
     mockServer.expect(ExpectedCount.once(), requestTo(securityServicesProperties.getSignatureEndpoint()))
-        .andRespond(withSuccess(objectMapper.writeValueAsString(expectedResult), MediaType.APPLICATION_JSON));
+        .andRespond(withSuccess(legacyObjectMapper.writeValueAsString(expectedResult), MediaType.APPLICATION_JSON));
 
     SignatureResultModel result = securityServicesClient.signMessage(message, expiryTimeInSeconds);
     assertEquals(expectedResult, result);

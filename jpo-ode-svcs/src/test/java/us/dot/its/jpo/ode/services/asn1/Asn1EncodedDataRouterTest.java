@@ -116,7 +116,7 @@ class Asn1EncodedDataRouterTest {
   @Autowired
   OdeTimJsonTopology odeTimJsonTopology;
   @Autowired
-  ObjectMapper objectMapper;
+  ObjectMapper legacyObjectMapper;
   @Autowired
   MockSecurityServicesClient secServicesClient;
 
@@ -167,7 +167,7 @@ class Asn1EncodedDataRouterTest {
         Mockito.mock(RsuDepositor.class),
         secServicesClient,
         kafkaTemplate, sdxDepositorTopic,
-        objectMapper,
+        legacyObjectMapper,
         xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter,
@@ -188,13 +188,13 @@ class Asn1EncodedDataRouterTest {
         createTestConsumer("processDoubleEncodedMessage");
     embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topicsForConsumption);
 
-    var expected = objectMapper.readValue(loadResourceString("expected-asn1-encoded-router-sdx-deposit.json"), SDXDeposit.class);
+    var expected = legacyObjectMapper.readValue(loadResourceString("expected-asn1-encoded-router-sdx-deposit.json"), SDXDeposit.class);
 
     var records = KafkaTestUtils.getRecords(testConsumer);
     var sdxDepositorRecord = records.records(sdxDepositorTopic);
     var foundValidRecord = false;
     for (var consumerRecord : sdxDepositorRecord) {
-      var actual = objectMapper.readValue(consumerRecord.value(), SDXDeposit.class);
+      var actual = legacyObjectMapper.readValue(consumerRecord.value(), SDXDeposit.class);
       if (actual.equals(expected)) {
         foundValidRecord = true;
       }
@@ -224,7 +224,7 @@ class Asn1EncodedDataRouterTest {
         mockRsuDepositor,
         secServicesClient,
         kafkaTemplate, sdxDepositorTopic,
-        objectMapper,
+        legacyObjectMapper,
         xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processUnsignedMessage");
@@ -315,7 +315,7 @@ class Asn1EncodedDataRouterTest {
         mockRsuDepositor,
         secServicesClient,
         kafkaTemplate, sdxDepositorTopic,
-        objectMapper,
+        legacyObjectMapper,
         xmlMapper);
 
     final var container = setupListenerContainer(encoderRouter, "processUnsignedMessageWithRsus");
