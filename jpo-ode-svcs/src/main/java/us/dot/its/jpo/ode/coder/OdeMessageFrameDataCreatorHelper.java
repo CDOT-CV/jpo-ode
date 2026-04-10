@@ -1,10 +1,10 @@
 package us.dot.its.jpo.ode.coder;
 
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.extern.slf4j.Slf4j;
-import tools.jackson.core.JacksonException;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
@@ -26,14 +26,14 @@ public class OdeMessageFrameDataCreatorHelper {
    * Creates an OdeMessageFrameData object from consumed XML data.
    *
    * @param consumedData The XML data string to be processed
-   * @param simpleXmlMapper The XmlMapper for XML operations
+   * @param simpleLegacyXmlMapper The XmlMapper for XML operations using legacy Jackson
    * @return OdeMessageFrameData object containing the processed data
-   * @throws JacksonException if there is an error processing the JSON data
+   * @throws JsonProcessingException if there is an error processing the JSON data
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
-      XmlMapper simpleXmlMapper) throws JacksonException {
+      XmlMapper simpleLegacyXmlMapper) throws JsonProcessingException {
     // Parse the XML into a tree structure first
-    JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
+    JsonNode rootNode = simpleLegacyXmlMapper.readTree(consumedData);
     
     // Extract and deserialize metadata separately
     JsonNode metadataNode = rootNode.get("metadata");
@@ -43,13 +43,13 @@ public class OdeMessageFrameDataCreatorHelper {
         JsonNode requestNode = object.get("request");
         // Check if "request" is present and not an empty object
         if (requestNode != null && requestNode.isObject() && requestNode.size() > 0) {
-          String xmlBack = simpleXmlMapper.writeValueAsString(requestNode);
-          request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
+          String xmlBack = simpleLegacyXmlMapper.writeValueAsString(requestNode);
+          request = simpleLegacyXmlMapper.readValue(xmlBack, ServiceRequest.class);
         }
         object.remove("request");
       }
     }
-    OdeMessageFrameMetadata metadata = simpleXmlMapper.treeToValue(metadataNode, OdeMessageFrameMetadata.class);
+    OdeMessageFrameMetadata metadata = simpleLegacyXmlMapper.treeToValue(metadataNode, OdeMessageFrameMetadata.class);
     metadata.setRequest(request);
     // Setting encodings to null as per the original code logic but is technically supportable
     metadata.setEncodings(null);
@@ -64,7 +64,7 @@ public class OdeMessageFrameDataCreatorHelper {
     }
 
     JsonNode messageFrameNode = rootNode.get("payload").get("data").get("MessageFrame");
-    MessageFrame<?> messageFrame = simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
+    MessageFrame<?> messageFrame = simpleLegacyXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
     OdeMessageFramePayload payload = new OdeMessageFramePayload(messageFrame);
     return new OdeMessageFrameData(metadata, payload);
   }
