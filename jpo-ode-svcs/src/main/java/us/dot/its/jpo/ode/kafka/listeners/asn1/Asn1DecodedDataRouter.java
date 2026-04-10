@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import tools.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -43,7 +43,7 @@ public class Asn1DecodedDataRouter {
 
   private final JsonTopics jsonTopics;
   private final KafkaTemplate<String, String> kafkaTemplate;
-  private final XmlMapper simpleXmlMapper;
+  private final XmlMapper simpleLegacyXmlMapper;
 
   /**
    * Exception for Asn1DecodedDataRouter specific failures.
@@ -60,10 +60,10 @@ public class Asn1DecodedDataRouter {
    * @param kafkaTemplate the KafkaTemplate used for sending messages to Kafka topics.
    */
   public Asn1DecodedDataRouter(KafkaTemplate<String, String> kafkaTemplate,
-      JsonTopics jsonTopics, @Qualifier("simpleXmlMapper") XmlMapper simpleXmlMapper) {
+      JsonTopics jsonTopics, @Qualifier("simpleLegacyXmlMapper") XmlMapper simpleLegacyXmlMapper) {
     this.kafkaTemplate = kafkaTemplate;
     this.jsonTopics = jsonTopics;
-    this.simpleXmlMapper = simpleXmlMapper;
+    this.simpleLegacyXmlMapper = simpleLegacyXmlMapper;
   }
 
   /**
@@ -109,12 +109,12 @@ public class Asn1DecodedDataRouter {
   }
 
   private void routeMessageFrame(ConsumerRecord<String, String> consumerRecord, String... topics)
-      throws XmlUtils.XmlUtilsException, IOException {
+      throws IOException {
     log.debug("routeMessageFrame to topics: {}", String.join(", ", topics));
     OdeMessageFrameData odeMessageFrameData =
         OdeMessageFrameDataCreatorHelper.createOdeMessageFrameData(
-            consumerRecord.value(), 
-            simpleXmlMapper);
+            consumerRecord.value(),
+            simpleLegacyXmlMapper);
     String dataStr = JsonUtils.toJson(odeMessageFrameData, false);
     for (String topic : topics) {
       kafkaTemplate.send(topic, consumerRecord.key(), dataStr);
