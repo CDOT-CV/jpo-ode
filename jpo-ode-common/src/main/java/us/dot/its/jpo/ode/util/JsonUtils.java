@@ -17,6 +17,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
@@ -119,6 +120,24 @@ public class JsonUtils {
         try {
             return verbose ? mapper.writeValueAsString(o) : mapper_noNulls.writeValueAsString(o);
         } catch (JacksonException e) {
+            log.error("Error converting object to JSON", e);
+            return "";
+        }
+    }
+
+    /**
+     * Converts an object to JSON string.
+     *
+     * @param o       the object to convert
+     * @param verbose if true, includes null values in output
+     * @return JSON string representation of the object
+     */
+    public static String legacyToJson(Object o, boolean verbose) {
+        // convert java object to JSON format,
+        // and returned as JSON formatted string
+        try {
+            return verbose ? legacyMapper.writeValueAsString(o) : legacyMapper_noNulls.writeValueAsString(o);
+        } catch (JsonProcessingException e) {
             log.error("Error converting object to JSON", e);
             return "";
         }
