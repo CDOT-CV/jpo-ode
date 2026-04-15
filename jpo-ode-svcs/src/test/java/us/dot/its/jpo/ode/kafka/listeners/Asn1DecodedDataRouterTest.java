@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -40,7 +41,6 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
@@ -55,10 +55,12 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 @ContextConfiguration(
     classes = {UDPReceiverProperties.class, OdeKafkaProperties.class, KafkaProperties.class})
 @DirtiesContext
+@EmbeddedKafka(ports = 4242, brokerProperties = {"auto.create.topics.enable=true"})
 @TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")
 class Asn1DecodedDataRouterTest {
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
   @Autowired
   KafkaTemplate<String, String> kafkaStringTemplate;
   @Autowired
@@ -73,7 +75,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getBsm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
@@ -121,7 +123,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouterTIMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getTim());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
@@ -167,7 +169,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_SPaTDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getSpat());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-spat.xml");
@@ -212,7 +214,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_SSMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getSsm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-ssm.xml");
@@ -256,7 +258,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_SRMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getSrm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-srm.xml");
@@ -300,7 +302,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_PSMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getPsm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-psm.xml");
@@ -344,7 +346,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_MAPDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getMap());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-map.xml");
@@ -388,7 +390,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_SDSMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getSdsm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-sdsm.xml");
@@ -433,7 +435,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_RTCMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getRtcm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-rtcm.xml");
@@ -478,7 +480,7 @@ class Asn1DecodedDataRouterTest {
   @Test
   void testAsn1DecodedDataRouter_RSMDataFlow() throws IOException {
     String[] topics = Arrays.array(jsonTopics.getRsm());
-    EmbeddedKafkaHolder.addTopics(topics);
+    embeddedKafka.addTopics(topics);
 
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-rsm.xml");
