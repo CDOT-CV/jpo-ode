@@ -43,9 +43,11 @@
  import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
  import org.springframework.kafka.core.KafkaTemplate;
  import org.springframework.kafka.test.EmbeddedKafkaBroker;
+ import org.springframework.kafka.test.context.EmbeddedKafka;
  import org.springframework.kafka.test.utils.KafkaTestUtils;
  import org.springframework.test.annotation.DirtiesContext;
  import org.springframework.test.context.ContextConfiguration;
+ import org.springframework.test.context.TestPropertySource;
  import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
  import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
  import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
@@ -58,12 +60,11 @@
  import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
  import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
  import us.dot.its.jpo.ode.security.SecurityServicesProperties;
- import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
  import us.dot.its.jpo.ode.util.DateTimeUtils;
  import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
  import us.dot.its.jpo.ode.util.XmlUtils;
- 
- 
+
+
  @EnableConfigurationProperties
  @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
      OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
@@ -72,6 +73,9 @@
  @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
      JsonTopics.class, TimIngestTrackerProperties.class,
      SecurityServicesProperties.class, OdeKafkaProperties.class})
+@EmbeddedKafka(brokerProperties = {"auto.create.topics.enable=true"})
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
+        "ode.kafka.brokers=${spring.embedded.kafka.brokers}"})
  @DirtiesContext
  class TimDepositControllerTest {
  
@@ -98,9 +102,10 @@
  
    @Autowired
    private XmlMapper simpleXmlMapper;
- 
-   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
- 
+
+   @Autowired
+   EmbeddedKafkaBroker embeddedKafka;
+
    int consumerCount = 0;
  
    @Test
@@ -254,7 +259,15 @@
      odeKafkaProperties.setDisabledTopics(Set.of());
      jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePost.tim.json");
      asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePost.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+     String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+     embeddedKafka.addTopics(topics);
+
+     // Subscribe consumers
+     var jsonTimConsumer = createConsumer("postSuccessJsonTimGroup");
+     var asn1CoderEncoderInputConsumer = createConsumer("postSuccessEncoderInputGroup");
+     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -272,8 +285,6 @@
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson = new JSONObject(
@@ -286,9 +297,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -314,7 +322,14 @@
      jsonTopics.setTim("test.successfulSdwRequestMessageReturnsSuccessMessagePost.tim.json");
      asn1CoderTopics.setEncoderInput(
          "test.successfulSdwRequestMessageReturnsSuccessMessagePost.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+    embeddedKafka.addTopics(topics);
+
+    var jsonTimConsumer = createConsumer("sdwPostSuccessJsonTimGroup");
+    var asn1CoderEncoderInputConsumer = createConsumer("sdwPostSuccessEncoderInputGroup");
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -333,8 +348,6 @@
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson = new JSONObject(
@@ -347,9 +360,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -375,7 +385,14 @@
      jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePostWithOde.tim.json");
      asn1CoderTopics.setEncoderInput(
          "test.successfulMessageReturnsSuccessMessagePostWithOde.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+    String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+    embeddedKafka.addTopics(topics);
+
+    var jsonTimConsumer = createConsumer("postWithOdeJsonTimGroup");
+    var asn1CoderEncoderInputConsumer = createConsumer("postWithOdeEncoderInputGroup");
+    embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+    embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -393,8 +410,6 @@
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson = new JSONObject(
@@ -407,9 +422,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -434,7 +446,14 @@
      odeKafkaProperties.setDisabledTopics(Set.of());
      jsonTopics.setTim("test.successfulMessageReturnsSuccessMessagePut.tim.json");
      asn1CoderTopics.setEncoderInput("test.successfulMessageReturnsSuccessMessagePut.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+     String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+     embeddedKafka.addTopics(topics);
+
+     var jsonTimConsumer = createConsumer("putSuccessJsonTimGroup");
+     var asn1CoderEncoderInputConsumer = createConsumer("putSuccessEncoderInputGroup");
+     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -452,8 +471,6 @@
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson = new JSONObject(
@@ -466,9 +483,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -493,7 +507,14 @@
      odeKafkaProperties.setDisabledTopics(Set.of());
      jsonTopics.setTim("test.depositingTimWithExtraProperties.tim.json");
      asn1CoderTopics.setEncoderInput("test.depositingTimWithExtraProperties.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+     String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+     embeddedKafka.addTopics(topics);
+
+     var jsonTimConsumer = createConsumer("extraPropsJsonTimGroup");
+     var asn1CoderEncoderInputConsumer = createConsumer("extraPropsEncoderInputGroup");
+     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -511,8 +532,6 @@
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson =
@@ -525,9 +544,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -552,7 +568,14 @@
      odeKafkaProperties.setDisabledTopics(Set.of());
      jsonTopics.setTim("test.successfulTimIngestIsTracked.tim.json");
      asn1CoderTopics.setEncoderInput("test.successfulTimIngestIsTracked.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+     String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+     embeddedKafka.addTopics(topics);
+
+     var jsonTimConsumer = createConsumer("ingestTrackedJsonTimGroup");
+     var asn1CoderEncoderInputConsumer = createConsumer("ingestTrackedEncoderInputGroup");
+     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -573,8 +596,6 @@
          TimIngestTracker.getInstance().getTotalMessagesReceived());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson =
@@ -587,9 +608,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -615,7 +633,14 @@
      jsonTopics.setTim("test.successfulRsuMessageReturnsSuccessMessagePost.tim.json");
      asn1CoderTopics.setEncoderInput(
          "test.successfulRsuMessageReturnsSuccessMessagePost.encoderInput");
-     EmbeddedKafkaHolder.addTopics(jsonTopics.getTim(), asn1CoderTopics.getEncoderInput());
+     String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
+     embeddedKafka.addTopics(topics);
+
+     var jsonTimConsumer = createConsumer("rsuPostSuccessJsonTimGroup");
+     var asn1CoderEncoderInputConsumer = createConsumer("rsuPostSuccessEncoderInputGroup");
+     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
+     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer, asn1CoderTopics.getEncoderInput());
+
      final Clock prevClock = DateTimeUtils.setClock(
          Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
      TimDepositController testTimDepositController =
@@ -633,8 +658,6 @@
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
  
      // verify JSON tim message
-     var jsonTimConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());
      var jsonTimRecord = KafkaTestUtils.getSingleRecord(jsonTimConsumer, jsonTopics.getTim());
      var actualTimJson = new JSONObject(jsonTimRecord.value());
      var expectedTimJson = new JSONObject(
@@ -647,9 +670,6 @@
      Assertions.assertEquals(expectedTimJson.toString(2), actualTimJson.toString(2));
  
      // verify ASN.1 coder encoder input message
-     var asn1CoderEncoderInputConsumer = createStr2StrConsumer();
-     embeddedKafka.consumeFromAnEmbeddedTopic(asn1CoderEncoderInputConsumer,
-         asn1CoderTopics.getEncoderInput());
      var asn1CoderEncoderInputRecord = KafkaTestUtils.getSingleRecord(asn1CoderEncoderInputConsumer,
          asn1CoderTopics.getEncoderInput());
      var actualXml = asn1CoderEncoderInputRecord.value();
@@ -665,19 +685,14 @@
      asn1CoderEncoderInputConsumer.close();
      DateTimeUtils.setClock(prevClock);
    }
- 
-   /**
-    * Helper method to create a consumer for String messages with String keys.
-    */
-   private Consumer<String, String> createStr2StrConsumer() {
-     consumerCount++;
-     var consumerProps =
-         KafkaTestUtils.consumerProps("TimDepositControllerTest", "true", embeddedKafka);
-     DefaultKafkaConsumerFactory<String, String> stringConsumerFactory =
-         new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-             new StringDeserializer());
-     return stringConsumerFactory.createConsumer(String.format("groupid%d", consumerCount),
-         String.format("clientidsuffix%d", consumerCount));
+
+  /**
+   * Helper method to create a consumer with an explicit, stable group ID for String messages with String keys.
+   */
+  private Consumer<String, String> createConsumer(String groupId) {
+    java.util.Map<String, Object> consumerProps =
+         KafkaTestUtils.consumerProps(groupId, "true", embeddedKafka);
+    return new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer()).createConsumer();
    }
  
    /**
@@ -721,7 +736,7 @@
    private static void removeStreamId(JSONObject jsonObject) {
      jsonObject.getJSONObject("metadata").getJSONObject("serialId").remove("streamId");
    }
- 
+
    /**
     * Helper method to remove the stream id from an XML string.
     *
@@ -731,5 +746,5 @@
    private static String removeStreamId(String xmlString, String streamId) {
      return xmlString.replace(streamId, "");
    }
- 
+
  }
