@@ -27,6 +27,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -35,11 +36,11 @@ import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties.Producer;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.model.OdeObject;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @DirtiesContext
+@EmbeddedKafka()
 @EnableConfigurationProperties({ KafkaProperties.class })
 @Import({ KafkaProducerConfigTest.KafkaProducerConfigTestConfig.class, SerializationConfig.class })
 class KafkaProducerConfigTest {
@@ -56,7 +57,8 @@ class KafkaProducerConfigTest {
   XmlMapper xmlMapper;
   ObjectMapper objectMapper = new ObjectMapper();
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
 
   @Test
   void odeDataProducerFactory_shouldReturnNonNull() {
@@ -73,7 +75,11 @@ class KafkaProducerConfigTest {
 
   @Test
   void kafkaTemplateInterceptorPreventsSendingToDisabledTopics() {
-    EmbeddedKafkaHolder.addTopics(odeKafkaProperties.getDisabledTopics().toArray(new String[0]));
+    for (String topic : odeKafkaProperties.getDisabledTopics()) {
+      if (!Set.of(embeddedKafka.getTopics()).contains(topic)) {
+        embeddedKafka.addTopics(topic);
+      }
+    }
     var consumerProps = KafkaTestUtils.consumerProps("interceptor-disabled",
         "false",
         embeddedKafka);
@@ -102,7 +108,9 @@ class KafkaProducerConfigTest {
   @Test
   void kafkaTemplateInterceptorAllowsSendingToTopicsNotInDisabledSet() {
     String enabledTopic = "topic.enabled" + this.getClass().getSimpleName();
-    EmbeddedKafkaHolder.addTopics(enabledTopic);
+    if (!Set.of(embeddedKafka.getTopics()).contains(enabledTopic)) {
+      embeddedKafka.addTopics(enabledTopic);
+    }
 
     var consumerProps = KafkaTestUtils.consumerProps("interceptor-enabled", "false", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
@@ -124,8 +132,10 @@ class KafkaProducerConfigTest {
 
   @Test
   void kafkaTemplateInterceptorCanSendAfterAttemptToSendToDisabledTopic() {
-    String enabledTopic = "topic.enabled" + this.getClass().getSimpleName();
-    EmbeddedKafkaHolder.addTopics(enabledTopic);
+    String enabledTopic = "topic.enabled" + this.getClass().getSimpleName() + "2";
+    if (!Set.of(embeddedKafka.getTopics()).contains(enabledTopic)) {
+      embeddedKafka.addTopics(enabledTopic);
+    }
 
     var consumerProps = KafkaTestUtils.consumerProps("send-after", "false", embeddedKafka);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
