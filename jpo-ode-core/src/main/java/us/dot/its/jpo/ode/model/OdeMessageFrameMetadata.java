@@ -3,7 +3,6 @@ package us.dot.its.jpo.ode.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 
@@ -31,8 +30,6 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
 
   // otherwise it will deserialize as "certPresent"
   @JsonProperty("isCertPresent")
-  // otherwise it will serialize as both "certPresent" and "isCertPresent"
-  @Getter(onMethod_ = {@JsonProperty("isCertPresent")})
   private boolean isCertPresent;
 
   public OdeMessageFrameMetadata(OdeMsgPayload<?> payload) {
