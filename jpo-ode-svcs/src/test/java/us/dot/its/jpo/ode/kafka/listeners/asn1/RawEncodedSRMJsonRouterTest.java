@@ -88,9 +88,9 @@ class RawEncodedSRMJsonRouterTest {
     assertEquals(expectedSrm, odeRsmData);
   }
 
-    @KafkaListener(topics = {"topic.Asn1DecoderSRMInput", "topic.Asn1DecoderTestRSMJSON"} , groupId = "test-group")
+    @KafkaListener(topics = {"topic.Asn1DecoderSRMInput"} , groupId = "test-group")
     public void receive(String payload) {
-        odeRsmData = payload;
-        latch.countDown(); // Decrement the latch once the message is received
+      odeRsmData = payload;
+      latch.countDown();
     }
 }

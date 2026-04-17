@@ -92,7 +92,7 @@ public class RawEncodedRTCMJsonRouterTest {
     assertEquals(expectedRTCM, actualPayload);
   }
 
-  @KafkaListener(topics = "topic.Asn1DecoderPSMInput")
+  @KafkaListener(topics = "topic.Asn1DecoderRTCMInput")
   public void receive(String payload) {
     this.actualPayload = payload;
     latch.countDown();

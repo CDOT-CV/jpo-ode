@@ -72,13 +72,14 @@ class RawEncodedBSMJsonRouterTest {
     assert inputStream != null;
     var expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-      assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
     assertEquals(expectedBsm, odeBsmData);
   }
 
-    @KafkaListener(topics = {"topic.Asn1DecoderBSMInput", "topic.Asn1DecoderTestBSMJSON"} , groupId = "test-group")
+    @KafkaListener(topics = {"topic.Asn1DecoderBSMInput"} , groupId = "test-group")
     public void receive(String payload) {
         odeBsmData = payload;
-        latch.countDown(); // Decrement the latch once the message is received
+        latch.countDown();
     }
 }

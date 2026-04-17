@@ -78,19 +78,19 @@ class RawEncodedSSMJsonRouterTest {
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getSsm(), json);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-
     inputStream = classLoader
         .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-ssm.xml");
     assert inputStream != null;
     var expectedSSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
     assertEquals(expectedSSM, odeSsmData);
   }
 
-    @KafkaListener(topics = {"topic.Asn1DecoderSSMInput", "topic.Asn1DecoderTestSSMJSON"} , groupId = "test-group")
+    @KafkaListener(topics = {"topic.Asn1DecoderSSMInput"} , groupId = "test-group")
     public void receive(String payload) {
       odeSsmData = payload;
-      latch.countDown(); // Decrement the latch once the message is received
+      latch.countDown();
     }
 }

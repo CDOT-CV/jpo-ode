@@ -79,19 +79,19 @@ class RawEncodedTIMJsonRouterTest {
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getTim(), json);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
-
     inputStream = classLoader
         .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-tim.xml");
     assert inputStream != null;
     var expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
+    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
     assertEquals(expectedTim, odeTimData);
   }
 
-  @KafkaListener(topics = {"topic.Asn1DecoderTIMInput", "topic.Asn1DecoderTestTIMJSON"} , groupId = "test-group")
+  @KafkaListener(topics = {"topic.Asn1DecoderTIMInput"} , groupId = "test-group")
   public void receive(String payload) {
     odeTimData = payload;
-    latch.countDown(); // Decrement the latch once the message is received
+    latch.countDown();
   }
 }
