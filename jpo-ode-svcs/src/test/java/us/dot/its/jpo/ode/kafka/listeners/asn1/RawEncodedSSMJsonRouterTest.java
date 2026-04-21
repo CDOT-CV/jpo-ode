@@ -45,7 +45,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         "ode.kafka.topics.raw-encoded-json.ssm=topic.Asn1DecoderTestSSMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSSMInput"
     })
-@EmbeddedKafka(partitions = 1, topics = {"topic.Asn1DecoderTestSSMJSON", "topic.Asn1DecoderSSMInput"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {

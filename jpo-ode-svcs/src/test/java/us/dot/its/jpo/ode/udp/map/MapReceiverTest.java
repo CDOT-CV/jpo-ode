@@ -54,7 +54,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
     UDPReceiverProperties.class, OdeKafkaProperties.class,
     RawEncodedJsonTopics.class, KafkaProperties.class
 })
-@EmbeddedKafka(partitions = 1, topics = {"topic.MapReceiverTestMAPJSON"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 class MapReceiverTest {

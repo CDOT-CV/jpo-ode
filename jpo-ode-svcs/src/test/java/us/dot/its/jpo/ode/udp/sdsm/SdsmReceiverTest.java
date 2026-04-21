@@ -49,7 +49,7 @@ import us.dot.its.jpo.ode.util.JsonUtils;
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.SdsmReceiverTest"})
 @ContextConfiguration(
     classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class, OdeKafkaProperties.class})
-@EmbeddedKafka(partitions = 1, topics = {"topic.SdsmReceiverTest"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 class SdsmReceiverTest {

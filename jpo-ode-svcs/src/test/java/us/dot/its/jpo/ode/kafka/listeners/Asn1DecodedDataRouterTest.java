@@ -55,7 +55,7 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 @ContextConfiguration(
     classes = {UDPReceiverProperties.class, OdeKafkaProperties.class, KafkaProperties.class})
 @DirtiesContext
-@EmbeddedKafka(ports = 4242, brokerProperties = {"auto.create.topics.enable=true"})
+@EmbeddedKafka
 @TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")
 class Asn1DecodedDataRouterTest {
 
@@ -80,7 +80,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-bsm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("bsmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "bsmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -128,7 +128,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "timDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();

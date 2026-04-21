@@ -47,7 +47,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.rtcm=topic.RtcmReceiverTest"})
 @ContextConfiguration(
     classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class,  OdeKafkaProperties.class})
-@EmbeddedKafka(partitions = 1, topics = {"topic.RtcmReceiverTest"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 public class RtcmReceiverTest {

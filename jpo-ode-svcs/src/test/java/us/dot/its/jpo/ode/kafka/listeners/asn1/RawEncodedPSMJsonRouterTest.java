@@ -48,7 +48,7 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
         "ode.kafka.topics.raw-encoded-json.psm=topic.Asn1DecoderTestPSMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderPSMInput"
     })
-@EmbeddedKafka(partitions = 1, topics = {"topic.Asn1DecoderTestPSMJSON", "topic.Asn1DecoderPSMInput"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @ContextConfiguration(initializers = ConfigDataApplicationContextInitializer.class)
 @EnableConfigurationProperties(value = {

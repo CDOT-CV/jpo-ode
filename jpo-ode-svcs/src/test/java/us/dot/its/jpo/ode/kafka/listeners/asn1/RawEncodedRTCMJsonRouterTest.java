@@ -54,7 +54,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
     UDPReceiverProperties.class, OdeKafkaProperties.class,
     RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
 })
-@EmbeddedKafka(partitions = 1, topics = {"topic.Asn1DecoderTestRTCMJSON", "topic.Asn1DecoderRTCMInput"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 public class RawEncodedRTCMJsonRouterTest {

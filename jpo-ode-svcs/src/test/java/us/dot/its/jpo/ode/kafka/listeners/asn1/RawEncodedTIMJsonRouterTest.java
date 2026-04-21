@@ -46,7 +46,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         "ode.kafka.topics.raw-encoded-json.tim=topic.Asn1DecoderTestTIMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderTIMInput"
     })
-@EmbeddedKafka(partitions = 1, topics = {"topic.Asn1DecoderTestTIMJSON", "topic.Asn1DecoderTIMInput"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {

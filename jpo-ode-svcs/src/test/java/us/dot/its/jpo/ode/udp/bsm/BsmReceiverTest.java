@@ -42,7 +42,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
        KafkaConsumerConfig.class, SerializationConfig.class, TestMetricsConfig.class, },
     properties = {"ode.receivers.bsm.receiver-port=15352",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.BsmReceiverTest"})
-@EmbeddedKafka(partitions = 1, topics = "topic.BsmReceiverTest")
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @ContextConfiguration(
     classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})

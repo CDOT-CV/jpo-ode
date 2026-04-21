@@ -52,7 +52,7 @@ import static org.assertj.core.api.Assertions.assertThat;
     UDPReceiverProperties.class, OdeKafkaProperties.class,
     RawEncodedJsonTopics.class, KafkaProperties.class
 })
-@EmbeddedKafka(partitions = 1, topics = {"topic.TimReceiverTest"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 class TimReceiverTest {

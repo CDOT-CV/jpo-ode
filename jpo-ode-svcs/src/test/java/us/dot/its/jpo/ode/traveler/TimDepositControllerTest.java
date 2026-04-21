@@ -73,7 +73,7 @@
  @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
      JsonTopics.class, TimIngestTrackerProperties.class,
      SecurityServicesProperties.class, OdeKafkaProperties.class})
-@EmbeddedKafka(brokerProperties = {"auto.create.topics.enable=true"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "ode.kafka.brokers=${spring.embedded.kafka.brokers}"})
  @DirtiesContext

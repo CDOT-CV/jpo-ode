@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class, },
     properties = {"ode.kafka.topics.raw-encoded-json.bsm=topic.Asn1DecoderTestBSMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput"})
-@EmbeddedKafka(partitions = 1, topics = {"topic.Asn1DecoderBSMInput", "topic.Asn1DecoderTestBSMJSON"})
+@EmbeddedKafka
 @TestPropertySource(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,

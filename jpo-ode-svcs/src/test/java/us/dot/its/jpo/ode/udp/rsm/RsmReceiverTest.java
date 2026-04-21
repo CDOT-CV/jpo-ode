@@ -50,7 +50,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         RawEncodedJsonTopics.class,
         KafkaProperties.class,
 })
-@EmbeddedKafka(partitions = 1, topics = {"topic.RsmReceiverTest"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 public class RsmReceiverTest {

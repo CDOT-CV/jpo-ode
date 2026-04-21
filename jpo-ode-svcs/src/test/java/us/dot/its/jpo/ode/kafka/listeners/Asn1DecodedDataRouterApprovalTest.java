@@ -49,7 +49,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         "ode.kafka.topics.asn1.decoder-output=topic.Asn1DecoderOutputRouterApprovalTest",
         "ode.kafka.topics.json.map=topic.OdeMapJsonRouterApprovalTest"
     })
-@EmbeddedKafka(partitions = 1, topics = {"topic.Asn1DecoderOutputRouterApprovalTest", "topic.OdeMapJsonRouterApprovalTest"})
+@EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {

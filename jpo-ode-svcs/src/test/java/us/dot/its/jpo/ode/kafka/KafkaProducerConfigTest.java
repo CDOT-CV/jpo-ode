@@ -40,7 +40,7 @@ import us.dot.its.jpo.ode.model.OdeObject;
 @Slf4j
 @ExtendWith(SpringExtension.class)
 @DirtiesContext
-@EmbeddedKafka()
+@EmbeddedKafka
 @EnableConfigurationProperties({ KafkaProperties.class })
 @Import({ KafkaProducerConfigTest.KafkaProducerConfigTestConfig.class, SerializationConfig.class })
 class KafkaProducerConfigTest {
