@@ -17,6 +17,7 @@ spring:
         attempts: 0
     listener:
       log-container-config: true
+      concurrency: ${ODE_KAFKA_LISTENER_CONCURRENCY:10}
   http:
     multipart:
       max-file-size: 1MB

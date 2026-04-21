@@ -124,11 +124,11 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps("timDecoderTest", "true", embeddedKafka);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
-    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, true, topics);
 
     String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
     for (String recordType : new String[] {"timMsg", "rxMsg"}) {
