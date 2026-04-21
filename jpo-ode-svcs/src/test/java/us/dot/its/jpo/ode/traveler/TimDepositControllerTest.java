@@ -62,7 +62,6 @@
  import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
  import us.dot.its.jpo.ode.util.XmlUtils;
 
-
  @EnableConfigurationProperties
  @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
      OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
