@@ -63,8 +63,6 @@ class RawEncodedMAPJsonRouterTest {
   @Value("${ode.kafka.topics.raw-encoded-json.map}")
   private String rawEncodedMapJson;
 
-  @Value("${ode.kafka.topics.asn1.decoder-input}")
-  private String asn1DecoderInput;
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 

@@ -62,9 +62,6 @@ class Asn1DecodedDataRouterApprovalTest {
   @Value("${ode.kafka.topics.asn1.decoder-output}")
   private String decoderOutputTopic;
 
-  @Value("${ode.kafka.topics.json.map}")
-  private String jsonMapTopic;
-
   @Autowired
   KafkaTemplate<String, String> producer;
 

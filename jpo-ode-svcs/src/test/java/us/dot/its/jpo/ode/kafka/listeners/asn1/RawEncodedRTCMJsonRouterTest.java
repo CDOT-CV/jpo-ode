@@ -58,9 +58,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 public class RawEncodedRTCMJsonRouterTest {
-  
-  @Autowired
-  Asn1CoderTopics asn1CoderTopics;
+
   @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
   @Autowired

@@ -16,7 +16,6 @@
 
  package us.dot.its.jpo.ode.traveler;
 
- import com.fasterxml.jackson.core.JsonProcessingException;
  import com.fasterxml.jackson.databind.JsonNode;
  import com.fasterxml.jackson.databind.node.ObjectNode;
  import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -55,7 +54,6 @@
  import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
  import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
  import us.dot.its.jpo.ode.model.OdeMsgMetadata;
- import us.dot.its.jpo.ode.model.OdeObject;
  import us.dot.its.jpo.ode.model.SerialId;
  import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
  import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
@@ -96,20 +94,15 @@
  
    @Autowired
    KafkaTemplate<String, String> kafkaTemplate;
- 
-   @Autowired
-   KafkaTemplate<String, OdeObject> timDataKafkaTemplate;
- 
+
    @Autowired
    private XmlMapper simpleXmlMapper;
 
    @Autowired
    EmbeddedKafkaBroker embeddedKafka;
-
-   int consumerCount = 0;
  
    @Test
-   void nullRequestShouldReturnEmptyError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void nullRequestShouldReturnEmptyError() {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -119,7 +112,7 @@
    }
  
    @Test
-   void emptyRequestShouldReturnEmptyError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void emptyRequestShouldReturnEmptyError() {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -129,7 +122,7 @@
    }
  
    @Test
-   void invalidJsonSyntaxShouldReturnJsonSyntaxError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void invalidJsonSyntaxShouldReturnJsonSyntaxError() {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -140,7 +133,7 @@
    }
  
    @Test
-   void missingRequestElementShouldReturnMissingRequestError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void missingRequestElementShouldReturnMissingRequestError() {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -152,7 +145,7 @@
    }
  
    @Test
-   void invalidTimestampShouldReturnInvalidTimestampError() throws com.fasterxml.jackson.core.JsonProcessingException {
+   void invalidTimestampShouldReturnInvalidTimestampError() {
      TimDepositController testTimDepositController =
          new TimDepositController(asn1CoderTopics, jsonTopics,
              timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
@@ -166,7 +159,7 @@
    }
  
    @Test
-   void messageWithNoRSUsOrSDWShouldReturnWarning() throws IOException {
+   void messageWithNoRSUsOrSDWShouldReturnWarning() {
      // prepare
      odeKafkaProperties.setDisabledTopics(Set.of());
      TimDepositController testTimDepositController =
@@ -223,7 +216,7 @@
    @Test
    void failedXmlConversionShouldReturnConversionError(
        @Capturing TimTransmogrifier capturingTimTransmogrifier)
-       throws XmlUtils.XmlUtilsException, JsonUtilsException, JsonProcessingException {
+       throws XmlUtils.XmlUtilsException, JsonUtilsException {
      // prepare
      odeKafkaProperties.setDisabledTopics(Set.of());
      final Clock prevClock = DateTimeUtils.setClock(

@@ -59,9 +59,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 })
 @DirtiesContext
 public class RawEncodedRSMJsonRouterTest {
-  
-  @Autowired
-  Asn1CoderTopics asn1CoderTopics;
+
   @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
   @Autowired

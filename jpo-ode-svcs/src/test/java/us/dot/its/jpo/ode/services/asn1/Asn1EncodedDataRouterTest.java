@@ -222,11 +222,6 @@ class Asn1EncodedDataRouterTest {
 
   @Test
   void processUnsignedMessageSDWOnly() throws IOException {
-    String[] topicsForConsumption = {
-        asn1CoderTopics.getEncoderInput(),
-        jsonTopics.getTimCertExpiration(),
-        jsonTopics.getTimTmcFiltered()
-    };
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);
@@ -312,11 +307,6 @@ class Asn1EncodedDataRouterTest {
 
   @Test
   void processUnsignedMessageWithRsus() throws IOException {
-    String[] topicsForConsumption = {
-        asn1CoderTopics.getEncoderInput(),
-        jsonTopics.getTimCertExpiration(),
-        jsonTopics.getTimTmcFiltered()
-    };
 
     securityServicesProperties.setIsSdwSigningEnabled(true);
     securityServicesProperties.setIsRsuSigningEnabled(true);

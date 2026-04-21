@@ -56,8 +56,6 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 class RawEncodedSRMJsonRouterTest {
 
   @Autowired
-  Asn1CoderTopics asn1CoderTopics;
-  @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;

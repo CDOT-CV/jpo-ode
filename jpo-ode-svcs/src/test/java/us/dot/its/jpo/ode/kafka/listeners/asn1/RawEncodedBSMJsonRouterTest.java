@@ -48,9 +48,6 @@ class RawEncodedBSMJsonRouterTest {
   @Value(value = "${ode.kafka.topics.raw-encoded-json.bsm}")
   private String rawEncodedBsmJson;
 
-  @Value(value = "${ode.kafka.topics.asn1.decoder-input}")
-  private String asn1DecoderInput;
-
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 

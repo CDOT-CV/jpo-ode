@@ -51,9 +51,7 @@ class KafkaProducerConfigTest {
   @Autowired
   @Qualifier("testOdeKafkaProperties")
   OdeKafkaProperties odeKafkaProperties;
-  @Autowired
-  @Qualifier("testMeterRegistry")
-  MeterRegistry meterRegistry;
+
   XmlMapper xmlMapper;
   ObjectMapper objectMapper = new ObjectMapper();
 

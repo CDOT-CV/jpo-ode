@@ -59,8 +59,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 class RawEncodedPSMJsonRouterTest {
 
   @Autowired
-  Asn1CoderTopics asn1CoderTopics;
-  @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
