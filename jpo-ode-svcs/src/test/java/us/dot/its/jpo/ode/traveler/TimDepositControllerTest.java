@@ -262,7 +262,6 @@
      String[] topics = {jsonTopics.getTim(), asn1CoderTopics.getEncoderInput()};
      embeddedKafka.addTopics(topics);
 
-     // Subscribe consumers
      var jsonTimConsumer = createConsumer("postSuccessJsonTimGroup");
      var asn1CoderEncoderInputConsumer = createConsumer("postSuccessEncoderInputGroup");
      embeddedKafka.consumeFromAnEmbeddedTopic(jsonTimConsumer, jsonTopics.getTim());

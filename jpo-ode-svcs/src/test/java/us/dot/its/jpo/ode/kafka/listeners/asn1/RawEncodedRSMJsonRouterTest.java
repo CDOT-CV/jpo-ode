@@ -67,7 +67,6 @@ public class RawEncodedRSMJsonRouterTest {
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
 
-
   private CountDownLatch latch;
   private String actualPayload;
 
