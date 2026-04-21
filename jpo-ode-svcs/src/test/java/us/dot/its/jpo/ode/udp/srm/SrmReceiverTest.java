@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -85,9 +85,9 @@ class SrmReceiverTest {
     ExecutorService executorService = Executors.newCachedThreadPool();
     executorService.submit(srmReceiver);
 
-    String fileContent = Files.readString(Path.of(
+    String fileContent = Files.readString(Paths.get(
         "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
-    String expected = Files.readString(Path.of(
+    String expected = Files.readString(Paths.get(
         "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
