@@ -258,7 +258,7 @@ class Asn1EncodedDataRouterTest {
     Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "processUnsignedMessageSDWOnly", "false", embeddedKafka);
+        embeddedKafka, "processUnsignedMessageSDWOnly", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
 
@@ -348,7 +348,7 @@ class Asn1EncodedDataRouterTest {
     Awaitility.await().until(completableFuture::isDone);
 
     var consumerProps = KafkaTestUtils.consumerProps(
-        "processUnsignedMessage", "false", embeddedKafka);
+        embeddedKafka, "processUnsignedMessage", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
 
@@ -391,7 +391,7 @@ class Asn1EncodedDataRouterTest {
   private KafkaMessageListenerContainer<String, String> setupListenerContainer(
       Asn1EncodedDataRouter encoderRouter,
       String containerName) {
-    var consumerProps = KafkaTestUtils.consumerProps(containerName, "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, containerName, false);
     DefaultKafkaConsumerFactory<String, String> consumerFactory =
         new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer());
     ContainerProperties containerProperties = new ContainerProperties(asn1CoderTopics.getEncoderOutput());
@@ -414,7 +414,7 @@ class Asn1EncodedDataRouterTest {
 
   private Consumer<String, String> createTestConsumer(String group) {
     var consumerProps = KafkaTestUtils.consumerProps(
-        group, "false", embeddedKafka);
+        embeddedKafka, group, false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     return consumerFactory.createConsumer();

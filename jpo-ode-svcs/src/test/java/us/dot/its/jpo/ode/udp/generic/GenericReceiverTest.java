@@ -81,7 +81,7 @@ class GenericReceiverTest {
     TestUDPClient udpClient =
         new TestUDPClient(udpReceiverProperties.getGeneric().getReceiverPort());
 
-    var consumerProps = KafkaTestUtils.consumerProps("GenericReceiverTest", "true", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "GenericReceiverTest", true);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var consumer = cf.createConsumer();

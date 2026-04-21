@@ -80,9 +80,9 @@ class KafkaProducerConfigTest {
         embeddedKafka.addTopics(topic);
       }
     }
-    var consumerProps = KafkaTestUtils.consumerProps("interceptor-disabled",
-        "false",
-        embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka,
+        "interceptor-disabled",
+        false);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var consumer = cf.createConsumer();
@@ -112,7 +112,7 @@ class KafkaProducerConfigTest {
       embeddedKafka.addTopics(enabledTopic);
     }
 
-    var consumerProps = KafkaTestUtils.consumerProps("interceptor-enabled", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "interceptor-enabled", false);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var consumer = cf.createConsumer();
@@ -137,7 +137,7 @@ class KafkaProducerConfigTest {
       embeddedKafka.addTopics(enabledTopic);
     }
 
-    var consumerProps = KafkaTestUtils.consumerProps("send-after", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "send-after", false);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps,
         new StringDeserializer(), new StringDeserializer());
     var consumer = cf.createConsumer();

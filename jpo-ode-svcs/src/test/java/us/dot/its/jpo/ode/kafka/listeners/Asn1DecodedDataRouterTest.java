@@ -174,7 +174,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-spat.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("spatDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "spatDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -219,7 +219,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-ssm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("ssmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "ssmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -263,7 +263,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-srm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("srmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "srmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -307,7 +307,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-psm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("psmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "psmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -351,7 +351,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-map.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("mapDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "mapDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -395,7 +395,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-sdsm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("sdsmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "sdsmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -440,7 +440,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-rtcm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("rtcmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "rtcmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
@@ -485,7 +485,7 @@ class Asn1DecodedDataRouterTest {
     String baseTestData =
         loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-rsm.xml");
 
-    var consumerProps = KafkaTestUtils.consumerProps("rsmDecoderTest", "false", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "rsmDecoderTest", false);
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();

@@ -691,7 +691,7 @@
    */
   private Consumer<String, String> createConsumer(String groupId) {
     java.util.Map<String, Object> consumerProps =
-         KafkaTestUtils.consumerProps(groupId, "true", embeddedKafka);
+         KafkaTestUtils.consumerProps(embeddedKafka, groupId, true);
     return new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer()).createConsumer();
    }
  
