@@ -47,7 +47,7 @@
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <sonar.language>java</sonar.language>
-    <jmockit.version>1.49</jmockit.version>
+    <jmockit.version>1.57</jmockit.version>
     <!-- Allow override of github organization when publishing artifacts to github -->
     <github_organization>usdot-jpo-ode</github_organization>
   </properties>
