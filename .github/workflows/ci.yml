@@ -7,8 +7,6 @@ on:
       - "develop"
       - "master"
       - "release/*"
-      - "fix_sonar_coverage"
-
 jobs:
   docker:
     runs-on: ubuntu-latest
