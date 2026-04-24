@@ -82,7 +82,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     } while (!isStopped());
   }
 
-  private void routeMessageByMessageType(
+  protected void routeMessageByMessageType(
       String messageType,
       DatagramPacket packet
   ) throws InvalidPayloadException, UnsupportedMessageTypeException {
