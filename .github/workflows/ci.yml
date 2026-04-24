@@ -20,6 +20,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   test-no-sonar:
+  # Fallback for PRs from forks outside usdot-jpo-ode (e.g. cdot). Runs plain tests without SonarCloud since SONAR_TOKEN is not available to fork-triggered workflows.
     if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.login != 'usdot-jpo-ode'
     runs-on: ubuntu-latest
     steps:
@@ -35,6 +36,10 @@ jobs:
         run: mvn clean verify
 
   sonar:
+  # Run SonarCloud analysis on:
+  #   - pushes to develop/master/release branches (internal)
+  #   - PRs opened from branches within the usdot-jpo-ode org
+  # Skipped for fork PRs (e.g. from cdot) because GitHub does not expose SONAR_TOKEN to workflows triggered from forks. Those PRs fall through to the test-no-sonar job instead.
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.login == 'usdot-jpo-ode')
     runs-on: ubuntu-latest
     steps:
