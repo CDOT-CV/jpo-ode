@@ -15,25 +15,22 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.generic;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
 import org.junit.jupiter.api.Test;
-
-import mockit.Tested;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit;
 import us.dot.its.jpo.ode.plugin.SnmpProtocol;
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 
 public class RoadSideUnitTest {
-	@Tested
-	RSU testRSU;
+	RSU testRSU = new RSU();
 
 	@Test
 	public void testGettersAndSetters() {
