@@ -220,11 +220,13 @@ None
     - [ ] code compiles
         - gradle build
             - [ ] `jpo-asn-j2735-2024` subproject builds via gradle
-            - [ ] `jpo-asn-test-generator` subproject build via gradle
+            - [ ] `jpo-asn-test-generator` subproject builds via gradle
+            - [ ] `jpo-asn-jsonschema-generator` subproject builds via gradle
         - maven build:
             - [ ] `jpo-asn-j2735-2024` subproject builds via maven
     - [ ] unit tests pass
     - [ ] test generator command line tool can generate messages
+    - [ ] schema generator command line tool can generate schemas
 
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update Gradle build version number
