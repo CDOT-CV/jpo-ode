@@ -7,7 +7,6 @@ on:
       - "develop"
       - "master"
       - "release/*"
-
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -21,7 +20,8 @@ jobs:
           cache-to: type=gha,mode=max
 
   test-no-sonar:
-    if: github.event.pull_request.base.repo.owner.login != 'usdot-jpo-ode'
+  # Fallback for PRs from forks outside usdot-jpo-ode (e.g. cdot). Runs plain tests without SonarCloud since SONAR_TOKEN is not available to fork-triggered workflows.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.login != 'usdot-jpo-ode'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -36,7 +36,11 @@ jobs:
         run: mvn clean verify
 
   sonar:
-    if: github.event.pull_request.base.repo.owner.login == 'usdot-jpo-ode'
+  # Run SonarCloud analysis on:
+  #   - pushes to develop/master/release branches (internal)
+  #   - PRs opened from branches within the usdot-jpo-ode org
+  # Skipped for fork PRs (e.g. from cdot) because GitHub does not expose SONAR_TOKEN to workflows triggered from forks. Those PRs fall through to the test-no-sonar job instead.
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.head.repo.owner.login == 'usdot-jpo-ode')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -51,5 +55,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ls -la && pwd
-          mvn -e clean org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar -Dsonar.projectKey=usdot.jpo.ode:jpo-ode -Dsonar.projectName=jpo-ode -Dsonar.organization=usdot-jpo-ode -Dsonar.host.url=https://sonarcloud.io -Dsonar.branch.name=$GITHUB_REF_NAME
+          mvn -e clean verify sonar:sonar -Dsonar.projectKey=usdot.jpo.ode:jpo-ode -Dsonar.projectName=jpo-ode -Dsonar.organization=usdot-jpo-ode -Dsonar.host.url=https://sonarcloud.io

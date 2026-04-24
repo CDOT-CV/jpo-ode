@@ -1,6 +1,4 @@
-| Sonar Code Quality | Sonar Code Coverage |
-|---------------------|---------------------|
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=usdot.jpo.ode%3Ajpo-ode&metric=alert_status)](https://sonarcloud.io/dashboard?id=usdot.jpo.ode%3Ajpo-ode) | [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=usdot.jpo.ode%3Ajpo-ode&metric=coverage)](https://sonarcloud.io/dashboard?id=usdot.jpo.ode%3Ajpo-ode) |
+![GitHub Release](https://img.shields.io/github/v/release/usdot-jpo-ode/jpo-ode) [![CI](https://github.com/usdot-jpo-ode/jpo-ode/actions/workflows/ci.yml/badge.svg)](https://github.com/usdot-jpo-ode/jpo-ode/actions/workflows/ci.yml) ![Docker Pulls](https://img.shields.io/docker/pulls/usdotjpoode/jpo-ode) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=usdot.jpo.ode%3Ajpo-ode&metric=alert_status)](https://sonarcloud.io/dashboard?id=usdot.jpo.ode%3Ajpo-ode) ![GitHub License](https://img.shields.io/github/license/usdot-jpo-ode/jpo-ode)
 
 # jpo-ode
 
