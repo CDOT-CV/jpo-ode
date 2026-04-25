@@ -17,6 +17,9 @@ package us.dot.its.jpo.ode.rsuHealth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 
@@ -78,6 +81,9 @@ public class RsuHealthControllerTest {
             } catch (IOException e) {
                 fail("Unexpected Exception: " + e);
             }
+
+            rsuSnmpStatic.verify(() ->
+                    RsuSnmp.sendSnmpV3Request(eq("127.0.0.1"), eq("1.1"), any(Snmp.class), isNull()));
         }
     }
 
@@ -97,6 +103,9 @@ public class RsuHealthControllerTest {
             } catch (IOException e) {
                 fail("Unexpected Exception: " + e);
             }
+
+            rsuSnmpStatic.verify(() ->
+                    RsuSnmp.sendSnmpV3Request(eq("127.0.0.1"), eq("1.1"), any(Snmp.class), eq("aladdin")));
         }
     }
 }

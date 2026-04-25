@@ -48,11 +48,8 @@ public class StompControllerTest {
             fail("Unexpected exception testing greeting method: " + e);
         }
 
+        // getName() runs after Thread.sleep(), so verifying it covers the body executing fully.
         verify(mockRegistrationMessage, times(1)).getName();
-        // NOTE: original jmockit verification of `Thread.sleep(anyLong)` is dropped because Mockito
-        // cannot mock java.lang.Thread.sleep (avoids deadlocking class loading). The greeting()
-        // method still calls Thread.sleep internally; the getName() verification above proves the
-        // code reached the body.
     }
 
     @Test

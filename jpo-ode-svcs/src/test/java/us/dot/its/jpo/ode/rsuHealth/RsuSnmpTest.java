@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
@@ -72,6 +74,9 @@ public class RsuSnmpTest {
         when(snmp.send(any(PDU.class), any(Target.class))).thenThrow(new IOException("testException123"));
 
         RsuSnmp.sendSnmpV3Request("127.0.0.1", "1.1", snmp, null);
+
+        // close() is unreachable when send() throws — guards against accidentally adding a finally block
+        verify(snmp, never()).close();
     }
 
     @Test
@@ -84,6 +89,7 @@ public class RsuSnmpTest {
         String actualMessage = RsuSnmp.sendSnmpV3Request("127.0.0.1", "1.1", snmp, null);
 
         assertEquals(expectedMessage, actualMessage);
+        verify(snmp).close();
     }
 
     @Test
@@ -98,6 +104,7 @@ public class RsuSnmpTest {
         String actualMessage = RsuSnmp.sendSnmpV3Request("127.0.0.1", "1.1", snmp, null);
 
         assertEquals(expectedMessage, actualMessage);
+        verify(snmp).close();
     }
 
     @Test
@@ -118,6 +125,7 @@ public class RsuSnmpTest {
         String actualMessage = RsuSnmp.sendSnmpV3Request("127.0.0.1", "1.1", snmp, null);
 
         assertEquals(expectedMessage, actualMessage);
+        verify(snmp).close();
     }
 
 }
