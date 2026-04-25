@@ -19,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -34,8 +35,6 @@ import org.mockito.MockedConstruction;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.snmp4j.PDU;
 import org.snmp4j.event.ResponseEvent;
 import org.springframework.http.HttpStatus;
@@ -45,7 +44,6 @@ import us.dot.its.jpo.ode.snmp.SnmpSession;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 public class PdmControllerTest {
 
    @InjectMocks
@@ -82,7 +80,7 @@ public class PdmControllerTest {
                  throw new AssertionError(e);
               }
            })) {
-         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), any(Class.class)))
+         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), eq(J2735PdmRequest.class)))
                .thenReturn(mockJ2735PdmRequest);
 
          assertEquals("{\"rsu_responses\":[{\"127.0.0.1\":\"Timeout\"}]}",
@@ -104,7 +102,7 @@ public class PdmControllerTest {
                  throw new AssertionError(e);
               }
            })) {
-         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), any(Class.class)))
+         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), eq(J2735PdmRequest.class)))
                .thenReturn(mockJ2735PdmRequest);
 
          assertEquals("{\"rsu_responses\":[{\"127.0.0.1\":\"Timeout\"}]}",
@@ -128,7 +126,7 @@ public class PdmControllerTest {
                  throw new AssertionError(e);
               }
            })) {
-         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), any(Class.class)))
+         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), eq(J2735PdmRequest.class)))
                .thenReturn(mockJ2735PdmRequest);
 
          assertEquals("{\"rsu_responses\":[{\"127.0.0.1\":\"Deposit successful\"}]}",
@@ -153,7 +151,7 @@ public class PdmControllerTest {
                  throw new AssertionError(e);
               }
            })) {
-         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), any(Class.class)))
+         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), eq(J2735PdmRequest.class)))
                .thenReturn(mockJ2735PdmRequest);
 
          assertEquals("{\"rsu_responses\":[{\"127.0.0.1\":\"Deposit failed: testError123\"}]}",
@@ -175,7 +173,7 @@ public class PdmControllerTest {
                  throw new AssertionError(e);
               }
            })) {
-         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), any(Class.class)))
+         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), eq(J2735PdmRequest.class)))
                .thenReturn(mockJ2735PdmRequest);
 
          assertEquals("{\"rsu_responses\":[{\"127.0.0.1\":\"Exception occurred\"}]}",
@@ -199,7 +197,7 @@ public class PdmControllerTest {
                  throw new AssertionError(e);
               }
            })) {
-         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), any(Class.class)))
+         jsonStatic.when(() -> JsonUtils.fromJson(anyString(), eq(J2735PdmRequest.class)))
                .thenReturn(mockJ2735PdmRequest);
 
          assertEquals("{\"rsu_responses\":[{\"127.0.0.1\":\"Deposit successful\"},{\"127.0.0.1\":\"Deposit successful\"}]}",

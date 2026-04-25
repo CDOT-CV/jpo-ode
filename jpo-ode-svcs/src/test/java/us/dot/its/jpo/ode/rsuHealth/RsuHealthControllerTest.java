@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 
@@ -82,6 +83,10 @@ public class RsuHealthControllerTest {
                 fail("Unexpected Exception: " + e);
             }
 
+            assertEquals(1, udpCtor.constructed().size(), "expected exactly one DefaultUdpTransportMapping");
+            assertEquals(1, snmpCtor.constructed().size(), "expected exactly one Snmp instance");
+            assertEquals(1, usmCtor.constructed().size(), "expected exactly one USM instance");
+            verify(mockSecurityModels).addSecurityModel(usmCtor.constructed().get(0));
             rsuSnmpStatic.verify(() ->
                     RsuSnmp.sendSnmpV3Request(eq("127.0.0.1"), eq("1.1"), any(Snmp.class), isNull()));
         }
@@ -104,6 +109,10 @@ public class RsuHealthControllerTest {
                 fail("Unexpected Exception: " + e);
             }
 
+            assertEquals(1, udpCtor.constructed().size(), "expected exactly one DefaultUdpTransportMapping");
+            assertEquals(1, snmpCtor.constructed().size(), "expected exactly one Snmp instance");
+            assertEquals(1, usmCtor.constructed().size(), "expected exactly one USM instance");
+            verify(mockSecurityModels).addSecurityModel(usmCtor.constructed().get(0));
             rsuSnmpStatic.verify(() ->
                     RsuSnmp.sendSnmpV3Request(eq("127.0.0.1"), eq("1.1"), any(Snmp.class), eq("aladdin")));
         }
