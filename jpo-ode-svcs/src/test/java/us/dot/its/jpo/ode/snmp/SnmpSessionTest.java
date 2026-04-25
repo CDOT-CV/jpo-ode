@@ -24,9 +24,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.text.ParseException;
-
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.snmp4j.PDU;
@@ -35,11 +33,10 @@ import org.snmp4j.Snmp;
 import org.snmp4j.TransportMapping;
 import org.snmp4j.UserTarget;
 import org.snmp4j.smi.VariableBinding;
-
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
-import us.dot.its.jpo.ode.plugin.SnmpProtocol;
 import us.dot.its.jpo.ode.plugin.SNMP;
 import us.dot.its.jpo.ode.plugin.ServiceRequest.OdeInternal.RequestVerb;
+import us.dot.its.jpo.ode.plugin.SnmpProtocol;
 
 public class SnmpSessionTest {
 	RSU testProps;
@@ -53,16 +50,6 @@ public class SnmpSessionTest {
 		int testTimeout = 2000;
 		testProps = new RSU("127.0.0.1" + "/161", testUsername, testPassword, testRetries, testTimeout);
 		snmpSession = new SnmpSession(testProps);
-	}
-
-	@Test
-	@Disabled("TODO: cannot simulate DefaultUdpTransportMapping constructor throwing IOException with pure "
-			+ "Mockito (MockedConstruction wraps initializer throwables in MockitoException, which is not "
-			+ "IOException). Unblock by adopting PowerMock or refactoring SnmpSession to accept an injected "
-			+ "TransportMapping factory.")
-	public void constructorShouldWithIOException() {
-		// Original behavior verified that `new DefaultUdpTransportMapping()` throwing IOException
-		// propagated out of `new SnmpSession(rsu)`. See @Disabled reason.
 	}
 
 	@Test
