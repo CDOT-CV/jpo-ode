@@ -17,7 +17,6 @@ package us.dot.its.jpo.ode.plugin.j2735;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class J2735ChoiceTest {
@@ -51,18 +50,5 @@ public class J2735ChoiceTest {
 
 		derivedClass.setChosenField("childField", "childFieldValue");
 		assertEquals("childFieldValue", derivedClass.getChildField());
-	}
-
-	@Test
-	@Disabled("TODO: cannot reliably replace the static final Logger in J2735Choice with pure Mockito. "
-			+ "The original jmockit test made the logger throw NoSuchFieldException from inside the catch block in "
-			+ "setChosenField to force the exception to propagate; Mockito.mockStatic(LoggerFactory.class) cannot "
-			+ "replace the static field once the class has been loaded, and Mockito rejects checked-exception stubbing "
-			+ "on Logger.error which does not declare them. Unblock by either (a) refactoring J2735Choice to accept "
-			+ "an injected logger / rethrow instead of log-and-swallow, or (b) adopting PowerMock.")
-	public void testSetChosenFieldException2() {
-		// Original behavior verified that a logger mock throwing NoSuchFieldException inside the
-		// catch block of J2735Choice.setChosenField would propagate out. Preserving the intent
-		// requires either a production refactor or PowerMock — see @Disabled reason.
 	}
 }
