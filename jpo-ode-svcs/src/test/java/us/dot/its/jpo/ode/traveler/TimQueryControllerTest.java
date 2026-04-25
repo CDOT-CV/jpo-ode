@@ -18,33 +18,30 @@ package us.dot.its.jpo.ode.traveler;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.util.Vector;
-import java.util.function.Consumer;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.snmp4j.PDU;
 import org.snmp4j.Snmp;
-import org.snmp4j.UserTarget;
 import org.snmp4j.event.ResponseEvent;
 import org.snmp4j.smi.VariableBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
+import us.dot.its.jpo.ode.snmp.SnmpSessionFactory;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -53,16 +50,15 @@ class TimQueryControllerTest {
     @Mock
     RsuProperties mockRsuProperties;
 
+    @Mock
+    SnmpSessionFactory snmpSessionFactory;
+
     @InjectMocks
     TimQueryController testTimQueryController;
 
     private final String defaultRSU = "{\"rsuTarget\":\"10.10.10.10\",\"rsuUsername\":\"user\",\"rsuPassword\":\"pass\",\"rsuRetries\":\"3\",\"rsuTimeout\":\"5000\"}";
     private final String fourDot1RSU = "{\"rsuTarget\":\"10.10.10.10\",\"rsuUsername\":\"user\",\"rsuPassword\":\"pass\",\"rsuRetries\":\"3\",\"rsuTimeout\":\"5000\",\"snmpProtocol\":\"FOURDOT1\"}";
     private final String ntcip1218RSU = "{\"rsuTarget\":\"10.10.10.10\",\"rsuUsername\":\"user\",\"rsuPassword\":\"pass\",\"rsuRetries\":\"3\",\"rsuTimeout\":\"5000\",\"snmpProtocol\":\"NTCIP1218\"}";
-
-    private static MockedConstruction<SnmpSession> mockSnmpSession(Consumer<SnmpSession> initializer) {
-        return mockConstruction(SnmpSession.class, (mock, ctx) -> initializer.accept(mock));
-    }
 
     @Test
     void nullRequestShouldReturnError() {
@@ -79,44 +75,50 @@ class TimQueryControllerTest {
     }
 
     @Test
-    @Disabled("TODO: cannot simulate SnmpSession constructor throwing IOException with pure Mockito. See TimDeleteControllerTest for details.")
-    void snmpSessionExceptionShouldReturnError() { /* body preserved in git history */ }
+    void snmpSessionExceptionShouldReturnError() throws IOException {
+        assertSessionFactoryThrowYields500(defaultRSU);
+    }
 
     @Test
-    @Disabled("TODO: cannot simulate SnmpSession constructor throwing IOException with pure Mockito. See TimDeleteControllerTest for details.")
-    void snmpSessionExceptionShouldReturnError_fourDot1RSU() { /* body preserved in git history */ }
+    void snmpSessionExceptionShouldReturnError_fourDot1RSU() throws IOException {
+        assertSessionFactoryThrowYields500(fourDot1RSU);
+    }
 
     @Test
-    @Disabled("TODO: cannot simulate SnmpSession constructor throwing IOException with pure Mockito. See TimDeleteControllerTest for details.")
-    void snmpSessionExceptionShouldReturnError_ntcip1218RSU() { /* body preserved in git history */ }
+    void snmpSessionExceptionShouldReturnError_ntcip1218RSU() throws IOException {
+        assertSessionFactoryThrowYields500(ntcip1218RSU);
+    }
+
+    private void assertSessionFactoryThrowYields500(String rsuJson) throws IOException {
+        when(snmpSessionFactory.create(any(RSU.class)))
+                .thenThrow(new IOException("testException123"));
+        ResponseEntity<String> actualResponse = testTimQueryController.bulkQuery(rsuJson);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, actualResponse.getStatusCode());
+        assertTrue(actualResponse.getBody().contains("Failed to create SNMP session."));
+    }
 
     @Test
-    void snmpSessionListenExceptionShouldReturnError() {
+    void snmpSessionListenExceptionShouldReturnError() throws IOException {
         assertListenIoThrowsYields500(defaultRSU);
     }
 
     @Test
-    void snmpSessionListenExceptionShouldReturnError_fourDot1RSU() {
+    void snmpSessionListenExceptionShouldReturnError_fourDot1RSU() throws IOException {
         assertListenIoThrowsYields500(fourDot1RSU);
     }
 
     @Test
-    void snmpSessionListenExceptionShouldReturnError_ntcip1218RSU() {
+    void snmpSessionListenExceptionShouldReturnError_ntcip1218RSU() throws IOException {
         assertListenIoThrowsYields500(ntcip1218RSU);
     }
 
-    private void assertListenIoThrowsYields500(String rsuJson) {
-        try (MockedConstruction<SnmpSession> ignored = mockSnmpSession(session -> {
-            try {
-                Mockito.doThrow(new IOException("testException123")).when(session).startListen();
-            } catch (IOException e) {
-                throw new AssertionError(e);
-            }
-        })) {
-            ResponseEntity<String> actualResponse = testTimQueryController.bulkQuery(rsuJson);
-            assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, actualResponse.getStatusCode());
-            assertTrue(actualResponse.getBody().contains("Failed to create SNMP session."));
-        }
+    private void assertListenIoThrowsYields500(String rsuJson) throws IOException {
+        SnmpSession session = Mockito.mock(SnmpSession.class);
+        Mockito.doThrow(new IOException("testException123")).when(session).startListen();
+        when(snmpSessionFactory.create(any(RSU.class))).thenReturn(session);
+        ResponseEntity<String> actualResponse = testTimQueryController.bulkQuery(rsuJson);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, actualResponse.getStatusCode());
+        assertTrue(actualResponse.getBody().contains("Failed to create SNMP session."));
     }
 
     @Test
@@ -204,13 +206,12 @@ class TimQueryControllerTest {
         when(mockRsuProperties.getSrmSlots()).thenReturn(1);
         Snmp snmp = Mockito.mock(Snmp.class);
         when(snmp.send(any(), any())).thenReturn(sendResult);
-        try (MockedConstruction<SnmpSession> ignored = mockSnmpSession(session -> {
-            when(session.getSnmp()).thenReturn(snmp);
-        })) {
-            ResponseEntity<String> actualResponse = testTimQueryController.bulkQuery(rsuJson);
-            assertEquals(expectedStatus, actualResponse.getStatusCode());
-            assertTrue(actualResponse.getBody().contains(expectedBodyContains));
-        }
+        SnmpSession session = Mockito.mock(SnmpSession.class);
+        when(session.getSnmp()).thenReturn(snmp);
+        when(snmpSessionFactory.create(any(RSU.class))).thenReturn(session);
+        ResponseEntity<String> actualResponse = testTimQueryController.bulkQuery(rsuJson);
+        assertEquals(expectedStatus, actualResponse.getStatusCode());
+        assertTrue(actualResponse.getBody().contains(expectedBodyContains));
     }
 
     @Test

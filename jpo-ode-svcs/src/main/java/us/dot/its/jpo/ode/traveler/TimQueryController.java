@@ -33,6 +33,7 @@ import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.snmp.SnmpFourDot1Protocol;
 import us.dot.its.jpo.ode.snmp.SnmpNTCIP1218Protocol;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
+import us.dot.its.jpo.ode.snmp.SnmpSessionFactory;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
 import java.io.IOException;
@@ -41,14 +42,16 @@ import java.util.HashMap;
 @RestController
 @Slf4j
 public class TimQueryController {
-    
+
     private static final String ERRSTR = "error";
 
     private final RsuProperties rsuProperties;
+    private final SnmpSessionFactory snmpSessionFactory;
 
     @Autowired
-    public TimQueryController(RsuProperties rsuProperties) {
+    public TimQueryController(RsuProperties rsuProperties, SnmpSessionFactory snmpSessionFactory) {
         this.rsuProperties = rsuProperties;
+        this.snmpSessionFactory = snmpSessionFactory;
     }
 
     /**
@@ -80,7 +83,7 @@ public class TimQueryController {
 
         SnmpSession snmpSession = null;
         try {
-            snmpSession = new SnmpSession(queryTarget);
+            snmpSession = snmpSessionFactory.create(queryTarget);
             snmpSession.startListen();
         } catch (IOException e) {
             log.error("Error creating SNMP session.", e);

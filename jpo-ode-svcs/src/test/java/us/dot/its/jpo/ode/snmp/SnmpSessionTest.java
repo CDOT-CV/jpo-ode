@@ -53,6 +53,12 @@ public class SnmpSessionTest {
 	}
 
 	@Test
+	public void constructorShouldThrowWhenTransportFactoryFails() {
+		TransportMappingFactory throwingFactory = () -> { throw new IOException("boom"); };
+		assertThrows(IOException.class, () -> new SnmpSession(testProps, throwingFactory));
+	}
+
+	@Test
 	public void shouldSendMockSetCall() {
 		SnmpSession testSession = null;
 		try {

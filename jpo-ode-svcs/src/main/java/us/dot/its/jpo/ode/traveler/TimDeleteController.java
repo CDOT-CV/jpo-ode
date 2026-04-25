@@ -37,6 +37,7 @@ import us.dot.its.jpo.ode.rsu.RsuProperties;
 import us.dot.its.jpo.ode.snmp.SnmpFourDot1Protocol;
 import us.dot.its.jpo.ode.snmp.SnmpNTCIP1218Protocol;
 import us.dot.its.jpo.ode.snmp.SnmpSession;
+import us.dot.its.jpo.ode.snmp.SnmpSessionFactory;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
 @RestController
@@ -46,12 +47,14 @@ public class TimDeleteController {
 
    private static final String ERRSTR = "error";
 
-   private RsuProperties rsuProperties;
-   
+   private final RsuProperties rsuProperties;
+   private final SnmpSessionFactory snmpSessionFactory;
+
    @Autowired
-   public TimDeleteController(RsuProperties rsuProperties) {
+   public TimDeleteController(RsuProperties rsuProperties, SnmpSessionFactory snmpSessionFactory) {
       super();
       this.rsuProperties = rsuProperties;
+      this.snmpSessionFactory = snmpSessionFactory;
    }
 
    @CrossOrigin
@@ -71,7 +74,7 @@ public class TimDeleteController {
 
       SnmpSession ss = null;
       try {
-         ss = new SnmpSession(queryTarget);
+         ss = snmpSessionFactory.create(queryTarget);
       } catch (IOException e) {
          logger.error("Error creating TIM delete SNMP session", e);
          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
