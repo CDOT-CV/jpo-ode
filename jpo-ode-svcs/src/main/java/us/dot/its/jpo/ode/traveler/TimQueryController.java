@@ -55,7 +55,7 @@ public class TimQueryController {
   }
 
   /**
-   * Checks given RSU for all TIMs set
+   * Checks given RSU for all TIMs set.
    *
    * @param jsonString Request body containing RSU info
    * @return list of occupied TIM slots on RSU

@@ -1,12 +1,12 @@
 /*******************************************************************************
  * Copyright 2018 572682
- *
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License.  You may obtain a copy
  * of the License at
- *
+ * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
@@ -50,6 +50,12 @@ public class TimDeleteController {
   private final RsuProperties rsuProperties;
   private final SnmpSessionFactory snmpSessionFactory;
 
+  /**
+   * Constructs a controller wired with the RSU configuration and SNMP session factory.
+   *
+   * @param rsuProperties      configured RSU connection settings
+   * @param snmpSessionFactory factory used to create SNMP sessions for RSU communication
+   */
   @Autowired
   public TimDeleteController(RsuProperties rsuProperties, SnmpSessionFactory snmpSessionFactory) {
     super();
@@ -57,6 +63,13 @@ public class TimDeleteController {
     this.snmpSessionFactory = snmpSessionFactory;
   }
 
+  /**
+   * Deletes a TIM message at the given index on the target RSU.
+   *
+   * @param jsonString request body containing the target RSU configuration as JSON
+   * @param index      RSU message index to delete
+   * @return HTTP response indicating success, timeout, or RSU-reported error
+   */
   @CrossOrigin
   @DeleteMapping(value = "/tim")
   public ResponseEntity<String> deleteTim(@RequestBody String jsonString,
@@ -139,7 +152,8 @@ public class TimDeleteController {
       String givenReason = "Error code " + Integer.toString(errorCodeReturnedByRSU) + ": " + errorTextReturnedByRSU;
       String interpretation = interpretErrorCode(errorCodeReturnedByRSU, index);
       httpResponseBodyMessage = JsonUtils.jsonKeyValue(ERRSTR, givenReason + " => Interpretation: " + interpretation);
-      logger.error("Failed to delete message at index {} for RSU {} due to error: {} => Interpretation: {}", index, rsuIpAddress, givenReason, interpretation);
+      logger.error("Failed to delete message at index {} for RSU {} due to error: {} => Interpretation: {}",
+          index, rsuIpAddress, givenReason, interpretation);
     }
 
     return ResponseEntity.status(httpResponseReturnCode).body(httpResponseBodyMessage);
