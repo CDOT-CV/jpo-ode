@@ -47,8 +47,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSPATInput"
     })
 @EmbeddedKafka
-@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"
-})
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
 @ContextConfiguration(classes = {
     UDPReceiverProperties.class, OdeKafkaProperties.class,
