@@ -19,7 +19,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -45,6 +44,11 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         RawEncodedJsonService.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class,
+        Asn1CoderTopics.class
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.rsm=topic.Asn1DecoderTestRSMJSON",
@@ -53,10 +57,6 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
-})
 @DirtiesContext
 public class RawEncodedRSMJsonRouterTest {
 

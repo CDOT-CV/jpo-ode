@@ -26,7 +26,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -42,11 +41,9 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 @EnableConfigurationProperties
 @SpringBootTest(
     classes = {KafkaConsumerConfig.class,  KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class},
+        SerializationConfig.class, TestMetricsConfig.class, UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class, OdeKafkaProperties.class},
     properties = {"ode.receivers.sdsm.receiver-port=12413",
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.SdsmReceiverTest"})
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class, OdeKafkaProperties.class})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext

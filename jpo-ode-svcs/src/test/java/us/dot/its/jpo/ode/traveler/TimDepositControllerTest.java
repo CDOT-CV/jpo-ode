@@ -45,7 +45,6 @@
  import org.springframework.kafka.test.context.EmbeddedKafka;
  import org.springframework.kafka.test.utils.KafkaTestUtils;
  import org.springframework.test.annotation.DirtiesContext;
- import org.springframework.test.context.ContextConfiguration;
  import org.springframework.test.context.TestPropertySource;
  import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
  import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
@@ -66,10 +65,7 @@
  @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
      OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
      SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
-     XmlMapper.class, TestMetricsConfig.class}, properties = {"ode.kafka.brokers=localhost:4242"})
- @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
-     JsonTopics.class, TimIngestTrackerProperties.class,
-     SecurityServicesProperties.class, OdeKafkaProperties.class})
+     XmlMapper.class, TestMetricsConfig.class, TimDepositController.class}, properties = {"ode.kafka.brokers=localhost:4242"})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "ode.kafka.brokers=${spring.embedded.kafka.brokers}"})

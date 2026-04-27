@@ -22,7 +22,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -42,16 +41,16 @@ import static org.assertj.core.api.Assertions.assertThat;
         KafkaConsumerConfig.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class
     },
     properties = {
         "ode.receivers.tim.receiver-port=15353",
         "ode.kafka.topics.raw-encoded-json.tim=topic.TimReceiverTest"
     }
 )
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext

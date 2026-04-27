@@ -19,7 +19,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -34,14 +33,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(
     classes = { KafkaProducerConfig.class, KafkaConsumerConfig.class, RawEncodedBSMJsonRouter.class,
-        RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class, },
+        RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class,
+        UDPReceiverProperties.class, OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class, KafkaProperties.class},
     properties = {"ode.kafka.topics.raw-encoded-json.bsm=topic.Asn1DecoderTestBSMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput"})
 @EmbeddedKafka
 @TestPropertySource(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class RawEncodedBSMJsonRouterTest {
 
