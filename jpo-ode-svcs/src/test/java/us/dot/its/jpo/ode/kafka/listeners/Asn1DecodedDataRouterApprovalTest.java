@@ -81,7 +81,7 @@ class Asn1DecodedDataRouterApprovalTest {
 
       producer.send(decoderOutputTopic, testCase.getInput());
 
-      assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+      assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
       OdeMessageFrameData receivedMapData = mapper.readValue(actualPayload, OdeMessageFrameData.class);
 

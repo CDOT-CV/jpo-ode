@@ -82,7 +82,7 @@ class RawEncodedTIMJsonRouterTest {
     assert inputStream != null;
     var expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
     assertEquals(expectedTim, odeTimData);
   }

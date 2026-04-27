@@ -91,7 +91,7 @@ class MapReceiverTest {
       latch = new CountDownLatch(1);
       actualPayload = null;
       udpClient.send(approvalTestCase.getInput());
-        assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+        assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
       JSONObject producedJson = new JSONObject(actualPayload);
       JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
 

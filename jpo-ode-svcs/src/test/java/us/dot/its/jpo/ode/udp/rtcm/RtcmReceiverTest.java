@@ -84,7 +84,7 @@ public class RtcmReceiverTest {
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRtcm().getReceiverPort());
     udpClient.send(fileContent);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
       // confirm the stream-id is different, then remove it from both so that we can test equality
     // of all other fields

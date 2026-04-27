@@ -82,7 +82,7 @@ class RawEncodedMAPJsonRouterTest {
 
        kafkaTemplate.send(rawEncodedMapJson, approvalTestCase.getInput());
 
-       assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+       assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
       assertEquals(approvalTestCase.getExpected(), actualPayload,
           approvalTestCase.getDescription());

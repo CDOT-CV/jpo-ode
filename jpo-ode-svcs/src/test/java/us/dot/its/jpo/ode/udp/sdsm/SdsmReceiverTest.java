@@ -97,7 +97,7 @@ class SdsmReceiverTest {
           new TestUDPClient(udpReceiverProperties.getSdsm().getReceiverPort());
       udpClient.send(fileContent);
 
-      Assertions.assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+      Assertions.assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
       assertNotEquals(expected, actualPayload);
 

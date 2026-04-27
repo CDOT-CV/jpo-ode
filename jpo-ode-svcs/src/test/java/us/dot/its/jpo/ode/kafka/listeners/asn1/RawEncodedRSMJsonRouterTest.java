@@ -88,7 +88,7 @@ public class RawEncodedRSMJsonRouterTest {
 
     kafkaTemplate.send(rawEncodedJsonTopics.getRsm(), json);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
     assertEquals(expectedRSM, actualPayload);
   }
 

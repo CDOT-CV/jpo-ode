@@ -81,7 +81,7 @@ class RawEncodedSSMJsonRouterTest {
     assert inputStream != null;
     var expectedSSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
     assertEquals(expectedSSM, odeSsmData);
   }

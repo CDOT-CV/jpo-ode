@@ -92,7 +92,7 @@ class SrmReceiverTest {
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
     udpClient.send(fileContent);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
     assertNotEquals(expected, actualPayload);
 

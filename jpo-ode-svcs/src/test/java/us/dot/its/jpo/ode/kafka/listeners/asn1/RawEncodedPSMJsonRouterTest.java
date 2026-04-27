@@ -86,7 +86,7 @@ class RawEncodedPSMJsonRouterTest {
 
     kafkaTemplate.send(rawEncodedJsonTopics.getPsm(), psmJson);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
     assertEquals(expectedPsm, actualPayload);
   }

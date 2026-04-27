@@ -76,7 +76,7 @@ class RawEncodedSRMJsonRouterTest {
     var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     kafkaTemplate.send(rawEncodedJsonTopics.getSrm(), json);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
     inputStream = classLoader
         .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-srm.xml");

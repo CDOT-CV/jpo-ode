@@ -83,7 +83,7 @@ public class RsmReceiverTest {
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRsm().getReceiverPort());
     udpClient.send(fileContent);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
 
     assertNotEquals(expected, actualPayload);
     JSONObject producedJson = new JSONObject(actualPayload);
