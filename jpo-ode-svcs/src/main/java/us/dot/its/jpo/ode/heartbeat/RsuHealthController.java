@@ -35,12 +35,27 @@ import org.springframework.web.bind.annotation.RestController;
 
 import us.dot.its.jpo.ode.util.CodecUtils;
 
+/**
+ * REST controller that exposes the {@code /rsuHeartbeat} endpoint for querying RSU health
+ * via SNMP v3.
+ */
 @RestController
 public class RsuHealthController {
 
   private RsuHealthController() {
   }
 
+  /**
+   * Queries an RSU for a specific OID value using SNMP v3 with optional MD5 authentication.
+   *
+   * @param auth HTTP Basic Authorization header containing the SNMP username and password;
+   *             may be {@code null} for an unauthenticated USM session
+   * @param ip the IP address of the RSU to query
+   * @param oid the SNMP OID to request from the RSU
+   * @return a JSON-formatted SNMP response string
+   * @throws IOException if the SNMP transport cannot be opened or the request fails
+   * @throws IllegalArgumentException if {@code ip} or {@code oid} is {@code null}
+   */
   @GetMapping(value = "/rsuHeartbeat", produces = "application/json")
   @ResponseBody
   public static String heartBeat(
