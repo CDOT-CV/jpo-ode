@@ -67,7 +67,7 @@ public class RsuHealthControllerTest {
     }
 
     @Test
-    public void shouldAttemptToSendNoAuth() {
+    public void shouldAttemptToSendNoAuth() throws IOException {
         SecurityModels mockSecurityModels = Mockito.mock(SecurityModels.class);
         try (MockedConstruction<DefaultUdpTransportMapping> udpCtor = mockConstruction(DefaultUdpTransportMapping.class);
              MockedConstruction<Snmp> snmpCtor = mockConstruction(Snmp.class);
@@ -89,11 +89,12 @@ public class RsuHealthControllerTest {
             verify(mockSecurityModels).addSecurityModel(usmCtor.constructed().get(0));
             rsuSnmpStatic.verify(() ->
                     RsuSnmp.sendSnmpV3Request(eq("127.0.0.1"), eq("1.1"), any(Snmp.class), isNull()));
+            verify(snmpCtor.constructed().get(0)).close();
         }
     }
 
     @Test
-    public void shouldAttemptToSendWithAuth() {
+    public void shouldAttemptToSendWithAuth() throws IOException {
         SecurityModels mockSecurityModels = Mockito.mock(SecurityModels.class);
         try (MockedConstruction<DefaultUdpTransportMapping> udpCtor = mockConstruction(DefaultUdpTransportMapping.class);
              MockedConstruction<Snmp> snmpCtor = mockConstruction(Snmp.class);
@@ -115,6 +116,7 @@ public class RsuHealthControllerTest {
             verify(mockSecurityModels).addSecurityModel(usmCtor.constructed().get(0));
             rsuSnmpStatic.verify(() ->
                     RsuSnmp.sendSnmpV3Request(eq("127.0.0.1"), eq("1.1"), any(Snmp.class), eq("aladdin")));
+            verify(snmpCtor.constructed().get(0)).close();
         }
     }
 }

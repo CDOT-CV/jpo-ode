@@ -50,37 +50,38 @@ public class RsuHealthController {
         }
 
         TransportMapping transport = new DefaultUdpTransportMapping();
-        Snmp snmp = new Snmp(transport);
-        USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
+        try (Snmp snmp = new Snmp(transport)) {
+            USM usm = new USM(SecurityProtocols.getInstance(), new OctetString(MPv3.createLocalEngineID()), 0);
 
-        String username = null;
-        if (auth != null) {
-          String[] auth2 = auth.split(" ");
-          if (auth2[0].equals("Basic")) {
-            String unpw = auth2[1];
-            byte[] unpw2 = CodecUtils.fromBase64(unpw);
-            String unpw3 = new String(unpw2);
-            String[] unpw4 = unpw3.split(":");
-            if (unpw4.length == 2) {
-              username = unpw4[0];
-              String password = unpw4[1];
-              OctetString un = new OctetString(username);
-              UsmUser usmUser = new UsmUser(
-                  un, 
-                  AuthMD5.ID, 
-                  new OctetString(password),
-                  null, 
-                  null
-              );
-              usm.addUser(un, usmUser);
+            String username = null;
+            if (auth != null) {
+              String[] auth2 = auth.split(" ");
+              if (auth2[0].equals("Basic")) {
+                String unpw = auth2[1];
+                byte[] unpw2 = CodecUtils.fromBase64(unpw);
+                String unpw3 = new String(unpw2);
+                String[] unpw4 = unpw3.split(":");
+                if (unpw4.length == 2) {
+                  username = unpw4[0];
+                  String password = unpw4[1];
+                  OctetString un = new OctetString(username);
+                  UsmUser usmUser = new UsmUser(
+                      un,
+                      AuthMD5.ID,
+                      new OctetString(password),
+                      null,
+                      null
+                  );
+                  usm.addUser(un, usmUser);
+                }
+              }
             }
-          }
-        }
-        
-        SecurityModels.getInstance().addSecurityModel(usm);
-        transport.listen();
 
-        return RsuSnmp.sendSnmpV3Request(ip, oid, snmp, username);
+            SecurityModels.getInstance().addSecurityModel(usm);
+            transport.listen();
+
+            return RsuSnmp.sendSnmpV3Request(ip, oid, snmp, username);
+        }
     }
 
 }
