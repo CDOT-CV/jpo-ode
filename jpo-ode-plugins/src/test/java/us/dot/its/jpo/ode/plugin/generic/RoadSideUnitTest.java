@@ -16,6 +16,7 @@
 package us.dot.its.jpo.ode.plugin.generic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -119,6 +120,6 @@ public class RoadSideUnitTest {
 		catch(Exception e) {
 			
 		}
-		assert(deserializedRSU == null);
+		assertNull(deserializedRSU);
 	}
 }
