@@ -36,15 +36,16 @@ import static org.assertj.core.api.Assertions.assertThat;
         RawEncodedJsonService.class, SerializationConfig.class, TestMetricsConfig.class,
         UDPReceiverProperties.class, OdeKafkaProperties.class,
         RawEncodedJsonTopics.class, KafkaProperties.class},
-    properties = {"ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput"})
+    properties = {"ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput",
+        "ode.kafka.topics.raw-encoded-json.bsm=topic.OdeRawEncodedBSMJson"})
 @EmbeddedKafka
 @TestPropertySource(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @EnableConfigurationProperties
 @DirtiesContext
 class RawEncodedBSMJsonRouterTest {
 
-  @Value(value = "${ode.kafka.topics.raw-encoded-json.bsm}")
-  private String rawEncodedBsmJson;
+  @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
 
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
@@ -60,7 +61,7 @@ class RawEncodedBSMJsonRouterTest {
         .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-bsm.json");
     assert inputStream != null;
     var bsmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-    kafkaTemplate.send(rawEncodedBsmJson, bsmJson);
+    kafkaTemplate.send(rawEncodedJsonTopics.getBsm(), bsmJson);
 
     inputStream =
         classLoader.getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-bsm.xml");
