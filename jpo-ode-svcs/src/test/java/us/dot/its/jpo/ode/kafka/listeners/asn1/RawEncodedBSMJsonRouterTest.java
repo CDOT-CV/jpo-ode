@@ -5,13 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +30,6 @@ import us.dot.its.jpo.ode.kafka.listeners.json.RawEncodedJsonService;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(
     classes = { KafkaProducerConfig.class, KafkaConsumerConfig.class, RawEncodedBSMJsonRouter.class,
@@ -50,12 +50,12 @@ class RawEncodedBSMJsonRouterTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private final CountDownLatch latch = new CountDownLatch(1);
-  private String odeBsmData;
+  private CompletableFuture<String> future;
 
   @Test
   void testListen() throws JSONException, IOException, InterruptedException {
 
+    future = new CompletableFuture<>();
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
         .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-bsm.json");
@@ -68,14 +68,18 @@ class RawEncodedBSMJsonRouterTest {
     assert inputStream != null;
     var expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+    String odeBsmData;
+    try {
+      odeBsmData = future.get(3, TimeUnit.SECONDS);
+    } catch (ExecutionException | TimeoutException e) {
+      throw new AssertionError("BSM message was not received within the timeout period", e);
+    }
 
     assertEquals(expectedBsm, odeBsmData);
   }
 
     @KafkaListener(topics = {"topic.Asn1DecoderBSMInput"} , groupId = "test-group")
     public void receive(String payload) {
-        odeBsmData = payload;
-        latch.countDown();
+        future.complete(payload);
     }
 }

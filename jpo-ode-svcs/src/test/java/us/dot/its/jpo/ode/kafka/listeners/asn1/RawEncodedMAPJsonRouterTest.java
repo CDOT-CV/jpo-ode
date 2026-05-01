@@ -1,13 +1,14 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
 import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -65,8 +66,7 @@ class RawEncodedMAPJsonRouterTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @Test
   void testProcess_ApprovalTest() throws IOException, InterruptedException {
@@ -77,12 +77,16 @@ class RawEncodedMAPJsonRouterTest {
 
     for (ApprovalTestCase approvalTestCase : approvalTestCases) {
 
-       latch = new CountDownLatch(1);
-       actualPayload = null;
+       future = new CompletableFuture<>();
 
        kafkaTemplate.send(rawEncodedMapJson, approvalTestCase.getInput());
 
-       assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+       String actualPayload;
+       try {
+         actualPayload = future.get(3, TimeUnit.SECONDS);
+       } catch (ExecutionException | TimeoutException e) {
+           throw new AssertionError("MAP message was not received within the timeout period", e);
+       }
 
       assertEquals(approvalTestCase.getExpected(), actualPayload,
           approvalTestCase.getDescription());
@@ -91,7 +95,6 @@ class RawEncodedMAPJsonRouterTest {
 
   @KafkaListener(topics = {"topic.Asn1DecoderMAPInput"})
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }
