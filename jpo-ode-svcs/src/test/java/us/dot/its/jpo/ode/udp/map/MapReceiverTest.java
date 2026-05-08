@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.udp.map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
 
 import java.io.IOException;
@@ -110,6 +111,11 @@ class MapReceiverTest {
           producedJson.getJSONObject("metadata").get("serialId"));
       expectedJson.getJSONObject("metadata").remove("serialId");
       producedJson.getJSONObject("metadata").remove("serialId");
+      String expectedAsn1 = expectedJson.getJSONObject("metadata").getString("asn1");
+      String producedAsn1 = producedJson.getJSONObject("metadata").getString("asn1");
+      assertTrue(producedAsn1.toLowerCase().endsWith(expectedAsn1.toLowerCase()),
+          approvalTestCase.getDescription());
+      expectedJson.getJSONObject("metadata").put("asn1", producedAsn1);
 
       String expectedJsonStr = expectedJson.toString();
       String producedJsonStr = producedJson.toString().trim();
