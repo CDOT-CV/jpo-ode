@@ -4,14 +4,18 @@ spring:
   kafka:
     consumer:
       enable-auto-commit: true
-      auto-commit-interval: 1000
+      auto-commit-interval: 100
       bootstrap-servers: ${ODE_KAFKA_BROKERS}
+      fetch-max-wait: 10
     producer:
       acks: "all"
       batch-size: 16384
       compression-type: "zstd"
       buffer-memory: 33554432
       bootstrap-servers: ${ODE_KAFKA_BROKERS}
+      retries: 1
+      properties:
+        "[linger.ms]": 0
     retry:
       topic:
         attempts: 0
