@@ -43,6 +43,31 @@ None
     - [ ] messages get decoded as expected
     - [ ] messages get encoded as expected
 
+#### Details on how to do tests
+
+Run compilation and unit tests in Docker: From the root directory of asn1_codec issue:
+```
+docker build -t acm .
+docker run --env-file .env --name acm -it acm
+```
+In a separate shell:
+```
+docker exec -it acm bash
+/build/acm_tests
+```
+
+where the `.env` file is configured with necessary environment variables.
+
+To test program startup and encoding/decoding:
+
+Pull the release branch into the ODE submodule, and run the ODE via `docker compose up --build -d` from the jpo-ode root directory, with the following profiles set in the `.env` file:
+```
+COMPOSE_PROFILES=ode,adm,aem,kafka,kafka_setup,kafka_ui
+```
+To test decoding send test messages with the `udpsender_generic.py` script and verify the messages are decoded by looking at the `topic.Asn1DecoderOutput` in the kafka UI.
+
+To test encoding, use the Kafka UI to produce one of the decoded messages from `topic.Asn1DecoderOutput` to `topic.Asn1EncoderInput` and check the decoded output appears on `topic.Asn1EncoderOutput`.
+
 ### 3. Project Reference Updates & Release Creation
     - [ ] Merge ‘release/(year)-(quarter)’ branch into ‘master’ branch for the asn1_codec project
     - [ ] Create a release for the asn1_codec project from the ‘master’ branch and tag the release with the version number of the release. (e.g. asn1_codec-x.x.x)
