@@ -96,7 +96,7 @@
     <dependency>
       <groupId>usdot.jpo.asn</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>1.2.0-alpha4</version>
+      <version>1.2.0</version>
     </dependency>
   </dependencies>
 
