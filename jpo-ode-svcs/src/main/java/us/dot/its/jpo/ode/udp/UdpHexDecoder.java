@@ -13,6 +13,7 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata.Source;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.uper.StartFlagNotFoundException;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.uper.UperUtil;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
@@ -83,6 +84,15 @@ public class UdpHexDecoder {
 
     String strippedHex =
         UperUtil.stripDot3Header(untrimmedPayloadHex, msgType.getStartFlag()).toLowerCase();
+
+    // Adding the dot2 header stripping here to handle the case where the signed 1609.2 header is
+    // present.
+    try {
+      strippedHex = UperUtil.stripDot2Header(strippedHex, msgType.getStartFlag());
+    } catch (StartFlagNotFoundException e) {
+      log.debug("Error stripping dot2 header: {}", e.getMessage());
+    }
+
     log.debug("Stripped {} packet: {}", msgType, strippedHex);
 
     return new Asn1PayloadExtraction(new OdeAsn1Payload(HexUtils.fromHexString(strippedHex)),

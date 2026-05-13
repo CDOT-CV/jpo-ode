@@ -15,7 +15,7 @@
 		"maxDurationTime": 0,
 		"recordGeneratedBy": "UNKNOWN",
 		"sanitized": false,
-		"asn1": "00201A0000021BD86891DE75F84DA101C13F042E2214141FFF00022C2000270000000163B2CC7986010000",
+		"asn1": "011d0000201a0000021bd86891de75f84da101c13f042e2214141fff00022c2000270000000163b2cc7986010000",
 		"source": "RSU",
 		"originIp": "127.0.0.1",
 		"isCertPresent": false

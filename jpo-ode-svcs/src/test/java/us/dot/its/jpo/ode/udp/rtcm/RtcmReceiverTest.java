@@ -2,7 +2,6 @@ package us.dot.its.jpo.ode.udp.rtcm;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -99,10 +98,6 @@ public class RtcmReceiverTest {
         producedJson.getJSONObject("metadata").get("serialId"));
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
-    String expectedAsn1 = expectedJson.getJSONObject("metadata").getString("asn1");
-    String producedAsn1 = producedJson.getJSONObject("metadata").getString("asn1");
-    assertTrue(producedAsn1.toLowerCase().endsWith(expectedAsn1.toLowerCase()));
-    expectedJson.getJSONObject("metadata").put("asn1", producedAsn1);
 
     assertEquals(expectedJson.toString(2), producedJson.toString(2));
 

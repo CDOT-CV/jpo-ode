@@ -2,7 +2,6 @@ package us.dot.its.jpo.ode.udp.bsm;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -36,8 +35,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class, },
+    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class,},
     properties = {"ode.receivers.bsm.receiver-port=15352",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.BsmReceiverTest"})
 @ContextConfiguration(
@@ -96,10 +95,6 @@ class BsmReceiverTest {
         producedJson.getJSONObject("metadata").get("serialId"));
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
-    String expectedAsn1 = expectedJson.getJSONObject("metadata").getString("asn1");
-    String producedAsn1 = producedJson.getJSONObject("metadata").getString("asn1");
-    assertTrue(producedAsn1.toLowerCase().endsWith(expectedAsn1.toLowerCase()));
-    expectedJson.getJSONObject("metadata").put("asn1", producedAsn1);
 
     assertEquals(expectedJson.toString(2), producedJson.toString(2));
 
