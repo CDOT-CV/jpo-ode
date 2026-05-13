@@ -109,13 +109,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     }
     int off = packet.getOffset();
     byte[] data = packet.getData();
-    // int end = Math.min(off + len, data.length);
-    // int actualLen = Math.max(0, end - off);
-    // final int maxBytes = 256;
-    // int show = Math.min(actualLen, maxBytes);
-    // if (show == 0) {
-    // return sb.toString();
-    // }
+
     String hex = HexUtils.toHexString(Arrays.copyOfRange(data, off, data.length)).toLowerCase();
     sb.append(", hex=").append(hex);
     return sb.toString();

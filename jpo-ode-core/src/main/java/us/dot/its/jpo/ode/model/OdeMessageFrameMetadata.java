@@ -41,8 +41,7 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
    * string (for example the full UDP datagram payload before 1609.3 header stripping).
    */
   public OdeMessageFrameMetadata(OdeMsgPayload<?> payload, String asn1Hex) {
-    super(payload);
-    setAsn1(asn1Hex);
+    super(payload, asn1Hex);
   }
 
   public OdeMessageFrameMetadata(Source source) {

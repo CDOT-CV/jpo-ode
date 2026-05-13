@@ -1,14 +1,16 @@
 /*******************************************************************************
  * Copyright 2018 572682
  * 
- * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
- * in compliance with the License. You may obtain a copy of the License at
+ * <p>Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License.  You may obtain a copy
+ * of the License at
  * 
- * <p>http://www.apache.org/licenses/LICENSE-2.0
+ *   <p>http://www.apache.org/licenses/LICENSE-2.0
  * 
- * <p>Unless required by applicable law or agreed to in writing, software distributed under the License
- * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
- * or implied. See the License for the specific language governing permissions and limitations under
+ * <p>Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
+ * License for the specific language governing permissions and limitations under
  * the License.
  ******************************************************************************/
 
@@ -66,6 +68,20 @@ public class OdeMsgMetadata extends OdeObject {
    */
   public OdeMsgMetadata(OdeMsgPayload payload) {
     this(payload, new SerialId(), DateTimeUtils.now());
+  }
+
+  /**
+   * Same as {@link #OdeMsgMetadata(OdeMsgPayload)} but sets {@code asn1} to {@code asn1Hex}
+   * directly (for example the full received UDP hex) instead of from the payload's stripped
+   * {@code bytes} field.
+   *
+   * @param payload the payload (type, serial id, and receive time are initialized like the
+   *     single-argument constructor)
+   * @param asn1Hex hex string for {@link #setAsn1(String)}; may be null
+   */
+  public OdeMsgMetadata(OdeMsgPayload payload, String asn1Hex) {
+    this(payload.getClass().getName(), new SerialId(), DateTimeUtils.now());
+    setAsn1(asn1Hex);
   }
 
   /**
@@ -196,9 +212,8 @@ public class OdeMsgMetadata extends OdeObject {
 
   /**
    * Sets {@code asn1} from the serialized {@code bytes} field of the payload (typically the
-   * header-stripped ASN.1 used for decoding). For UDP ingress, prefer
-   * {@link OdeMessageFrameMetadata#OdeMessageFrameMetadata(OdeMsgPayload, String)} or
-   * {@link #setAsn1(String)} with the full received hex.
+   * header-stripped ASN.1 used for decoding). For full received hex (e.g. UDP), prefer
+   * {@link #OdeMsgMetadata(OdeMsgPayload, String)} or {@link #setAsn1(String)}.
    *
    * @param payload the payload whose bytes are copied into {@code asn1}
    */
