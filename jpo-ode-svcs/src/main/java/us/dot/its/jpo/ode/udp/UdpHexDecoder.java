@@ -16,6 +16,7 @@ import us.dot.its.jpo.ode.model.RxSource;
 import us.dot.its.jpo.ode.uper.StartFlagNotFoundException;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.uper.UperUtil;
+import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
@@ -25,11 +26,13 @@ import us.dot.its.jpo.ode.util.JsonUtils;
  * packet payloads into ASN.1 payloads for various message types such as MAP, SPAT, TIM, BSM, SSM,
  * SRM, and PSM.
  *
- * <p>The class logs details about the packet's origin and ensures the payload contains the correct
+ * <p>
+ * The class logs details about the packet's origin and ensures the payload contains the correct
  * message type start flag. It provides methods to build JSON objects encapsulating metadata about
  * each packet's origin, source, record type, and security information.
  *
- * <p>Note that this class cannot be instantiated.
+ * <p>
+ * Note that this class cannot be instantiated.
  */
 @Slf4j
 public class UdpHexDecoder {
@@ -74,16 +77,17 @@ public class UdpHexDecoder {
     int offsetOfReceivedPacket = packet.getOffset();
     byte[] payload = retrieveRelevantBytes(lengthOfReceivedPacket, buffer, offsetOfReceivedPacket);
 
-    // convert bytes to hex string and verify identity
-    String untrimmedPayloadHex = HexUtils.toHexString(payload).toLowerCase();
-    if (!untrimmedPayloadHex.contains(msgType.getStartFlag())) {
+    // Lowercase hex for start-flag matching (flags use a-f, e.g. TIM "001f"); uppercase for
+    // metadata.asn1 to match OdeHexByteArray / CodecUtils serialization.
+    String untrimmedPayloadHexLower = HexUtils.toHexString(payload).toLowerCase();
+    if (!untrimmedPayloadHexLower.contains(msgType.getStartFlag())) {
       throw new InvalidPayloadException("Payload does not contain start flag");
     }
 
-    log.debug("Full {} packet: {}", msgType, untrimmedPayloadHex);
+    log.debug("Full {} packet: {}", msgType, untrimmedPayloadHexLower);
 
     String strippedHex =
-        UperUtil.stripDot3Header(untrimmedPayloadHex, msgType.getStartFlag()).toLowerCase();
+        UperUtil.stripDot3Header(untrimmedPayloadHexLower, msgType.getStartFlag()).toLowerCase();
 
     // Adding the dot2 header stripping here to handle the case where the signed 1609.2 header is
     // present.
@@ -96,7 +100,7 @@ public class UdpHexDecoder {
     log.debug("Stripped {} packet: {}", msgType, strippedHex);
 
     return new Asn1PayloadExtraction(new OdeAsn1Payload(HexUtils.fromHexString(strippedHex)),
-        untrimmedPayloadHex);
+        CodecUtils.toHex(payload));
   }
 
   /**

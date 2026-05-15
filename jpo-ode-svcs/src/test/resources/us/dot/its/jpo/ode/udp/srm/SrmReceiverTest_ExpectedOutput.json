@@ -15,7 +15,7 @@
     "maxDurationTime": 0,
     "recordGeneratedBy": "OBU",
     "sanitized": false,
-    "asn1": "03810040038056001d2130000010090bd341080d00855c6c0c6899853000a534f7c24cb29897694759b7c0",
+    "asn1": "03810040038056001D2130000010090BD341080D00855C6C0C6899853000A534F7C24CB29897694759B7C0",
     "source": "RSU",
     "originIp": "127.0.0.1",
     "isCertPresent": false

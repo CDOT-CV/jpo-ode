@@ -2,12 +2,18 @@ package us.dot.its.jpo.ode.udp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
+import java.util.List;
 import org.apache.tomcat.util.buf.HexUtils;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeHexByteArray;
+import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
+import us.dot.its.jpo.ode.util.CodecUtils;
 
 class UdpHexDecoderTest {
 
@@ -46,5 +52,30 @@ class UdpHexDecoderTest {
     // verify that the payload contents match the example BSM hex string
     String payloadContents = ((OdeHexByteArray) payload.getData()).getBytes();
     assertEquals(exampleBSMHexString, payloadContents);
+  }
+
+  /**
+   * metadata.asn1 must use the same uppercase hex as {@link OdeHexByteArray} / {@link CodecUtils}
+   * so JSON matches approval fixtures and TIM start flags (e.g. {@code 001f}) still match during
+   * stripping (lowercase is used only internally for that path).
+   */
+  @Test
+  void buildJsonMapFromPacket_metadataAsn1MatchesCodecUtils() throws IOException, InvalidPayloadException {
+    String path =
+        "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
+    List<ApprovalTestCase> cases = ApprovalTestCase.deserializeTestCases(path);
+    ApprovalTestCase mapCase = cases.stream()
+        .filter(c -> c.getDescription().contains("minimum allowed"))
+        .findFirst()
+        .orElseThrow();
+
+    byte[] receivedBytes = HexUtils.fromHexString(mapCase.getInput());
+    DatagramPacket packet = new DatagramPacket(
+        receivedBytes, receivedBytes.length, InetAddress.getLoopbackAddress(), 1);
+
+    String json = UdpHexDecoder.buildJsonMapFromPacket(packet);
+    String asn1 = new JSONObject(json).getJSONObject("metadata").getString("asn1");
+
+    assertEquals(CodecUtils.toHex(receivedBytes), asn1);
   }
 }
