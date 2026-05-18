@@ -1,10 +1,10 @@
 {
 	"metadata": {
-		"recordType": "sdsmTx",
+		"recordType": "ssmTx",
 		"securityResultCode": "success",
 		"payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
 		"serialId": {
-			"streamId": "37f2a582-ae14-4ea8-8ade-f21b452068f5",
+			"streamId": "a3aee5db-4816-42e3-b044-b7150bfd5463",
 			"bundleSize": 1,
 			"bundleId": 0,
 			"recordId": 0,
@@ -15,7 +15,7 @@
 		"maxDurationTime": 0,
 		"recordGeneratedBy": "RSU",
 		"sanitized": false,
-		"asn1": "0029250A010C0C0A301FA04EDB8816396666F30C34000A00002C43E94BBA4200020002EC00280002",
+		"asn1": "03810040038069001E120000000005E9C04071A26614C06000040BA0",
 		"source": "RSU",
 		"originIp": "127.0.0.1",
 		"isCertPresent": false
@@ -23,7 +23,7 @@
 	"payload": {
 		"dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
 		"data": {
-			"bytes": "0029250A010C0C0A301FA04EDB8816396666F30C34000A00002C43E94BBA4200020002EC00280002"
+			"bytes": "001E120000000005E9C04071A26614C06000040BA0"
 		}
 	}
 }

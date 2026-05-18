@@ -79,7 +79,7 @@ public class OdeMsgMetadata extends OdeObject {
    *     single-argument constructor)
    * @param asn1Hex hex string for {@link #setAsn1(String)}; may be null
    */
-  public OdeMsgMetadata(OdeMsgPayload payload, String asn1Hex) {
+  public OdeMsgMetadata(OdeMsgPayload<?> payload, String asn1Hex) {
     this(payload.getClass().getName(), new SerialId(), DateTimeUtils.now());
     setAsn1(asn1Hex);
   }
