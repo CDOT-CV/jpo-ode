@@ -92,13 +92,11 @@ class SpatReceiverTest {
   static Stream<Arguments> testInputs() {
     String base = "src/test/resources/us/dot/its/jpo/ode/udp/spat/";
     return Stream.of(
-        Arguments.of("raw J2735 no headers",
-            base + "SpatReceiverTest_ValidSPAT.txt",
+        Arguments.of("raw J2735 no headers", base + "SpatReceiverTest_ValidSPAT.txt",
             base + "SpatReceiverTest_ValidSPAT_expected.json"),
-        Arguments.of("with 1609.3 WSMP header",
+        Arguments.of("with 1609.2 WSMP header",
             base + "SpatReceiverTest_ValidSPAT_WithSignature.txt",
-            base + "SpatReceiverTest_ValidSPAT_WithSignature_expected.json")
-    );
+            base + "SpatReceiverTest_ValidSPAT_WithSignature_expected.json"));
   }
 
   @ParameterizedTest(name = "{0}")

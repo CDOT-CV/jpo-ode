@@ -92,13 +92,11 @@ class SdsmReceiverTest {
   static Stream<Arguments> testInputs() {
     String base = "src/test/resources/us/dot/its/jpo/ode/udp/sdsm/";
     return Stream.of(
-        Arguments.of("raw J2735 no headers",
-            base + "SdsmReceiverTest_ValidSDSM.txt",
+        Arguments.of("raw J2735 no headers", base + "SdsmReceiverTest_ValidSDSM.txt",
             base + "SdsmReceiverTest_ValidSDSM_expected.json"),
-        Arguments.of("with 1609.3 WSMP header",
+        Arguments.of("with 1609.2 WSMP header",
             base + "SdsmReceiverTest_ValidSDSM_WithSignature.txt",
-            base + "SdsmReceiverTest_ValidSDSM_WithSignature_expected.json")
-    );
+            base + "SdsmReceiverTest_ValidSDSM_WithSignature_expected.json"));
   }
 
   @ParameterizedTest(name = "{0}")
@@ -107,8 +105,7 @@ class SdsmReceiverTest {
     String fileContent = Files.readString(Paths.get(inputFile));
     String expected = Files.readString(Paths.get(expectedFile));
 
-    TestUDPClient udpClient =
-        new TestUDPClient(udpReceiverProperties.getSdsm().getReceiverPort());
+    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSdsm().getReceiverPort());
     udpClient.send(fileContent);
 
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSdsm());

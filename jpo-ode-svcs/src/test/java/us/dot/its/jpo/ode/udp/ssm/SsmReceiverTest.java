@@ -92,13 +92,10 @@ class SsmReceiverTest {
   static Stream<Arguments> testInputs() {
     String base = "src/test/resources/us/dot/its/jpo/ode/udp/ssm/";
     return Stream.of(
-        Arguments.of("raw J2735 no headers",
-            base + "SsmReceiverTest_ValidSSM.txt",
+        Arguments.of("raw J2735 no headers", base + "SsmReceiverTest_ValidSSM.txt",
             base + "SsmReceiverTest_ValidSSM_expected.json"),
-        Arguments.of("with 1609.3 WSMP header",
-            base + "SsmReceiverTest_ValidSSM_WithSignature.txt",
-            base + "SsmReceiverTest_ValidSSM_WithSignature_expected.json")
-    );
+        Arguments.of("with 1609.2 WSMP header", base + "SsmReceiverTest_ValidSSM_WithSignature.txt",
+            base + "SsmReceiverTest_ValidSSM_WithSignature_expected.json"));
   }
 
   @ParameterizedTest(name = "{0}")

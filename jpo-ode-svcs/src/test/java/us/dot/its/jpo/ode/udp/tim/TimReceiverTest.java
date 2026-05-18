@@ -46,9 +46,8 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         SerializationConfig.class, TestMetricsConfig.class,},
     properties = {"ode.receivers.tim.receiver-port=15353",
         "ode.kafka.topics.raw-encoded-json.tim=topic.TimReceiverTest"})
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-        RawEncodedJsonTopics.class, KafkaProperties.class})
+@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
+    RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TimReceiverTest {
@@ -95,13 +94,10 @@ class TimReceiverTest {
   static Stream<Arguments> testInputs() {
     String base = "src/test/resources/us/dot/its/jpo/ode/udp/tim/";
     return Stream.of(
-        Arguments.of("raw J2735 no headers",
-            base + "TimReceiverTest_ValidTIM.txt",
+        Arguments.of("raw J2735 no headers", base + "TimReceiverTest_ValidTIM.txt",
             base + "TimReceiverTest_ValidTIM_expected.json"),
-        Arguments.of("with 1609.3 WSMP header",
-            base + "TimReceiverTest_ValidTIM_WithSignature.txt",
-            base + "TimReceiverTest_ValidTIM_WithSignature_expected.json")
-    );
+        Arguments.of("with 1609.2 WSMP header", base + "TimReceiverTest_ValidTIM_WithSignature.txt",
+            base + "TimReceiverTest_ValidTIM_WithSignature_expected.json"));
   }
 
   @ParameterizedTest(name = "{0}")

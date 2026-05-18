@@ -92,13 +92,11 @@ public class RtcmReceiverTest {
   static Stream<Arguments> testInputs() {
     String base = "src/test/resources/us/dot/its/jpo/ode/udp/rtcm/";
     return Stream.of(
-        Arguments.of("raw J2735 no headers",
-            base + "RtcmReceiverTest_ValidRTC.txt",
+        Arguments.of("raw J2735 no headers", base + "RtcmReceiverTest_ValidRTC.txt",
             base + "RtcmReceiverTest_ValidRTC_expected.json"),
-        Arguments.of("with 1609.3 WSMP header",
+        Arguments.of("with 1609.2 WSMP header",
             base + "RtcmReceiverTest_ValidRTC_WithSignature.txt",
-            base + "RtcmReceiverTest_ValidRTC_WithSignature_expected.json")
-    );
+            base + "RtcmReceiverTest_ValidRTC_WithSignature_expected.json"));
   }
 
   @ParameterizedTest(name = "{0}")
