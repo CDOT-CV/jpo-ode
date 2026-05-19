@@ -11,17 +11,14 @@ import java.time.ZoneOffset;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -143,52 +140,40 @@ class GenericReceiverTest {
     );
   }
 
-  static Stream<Arguments> testScenarios() {
-    return Stream.of(
-        Arguments.of("raw J2735 no headers", buildFiles("")),
-        Arguments.of("with message signature / WSMP header", buildFiles("_WithSignature"))
-    );
+  @Test
+  void testRawJ2735() throws Exception {
+    runScenario(buildFiles(""));
   }
 
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("testScenarios")
-  void testRun(String scenario, Map<String, MsgFiles> files) throws Exception {
+  @Test
+  void testWithSignature() throws Exception {
+    runScenario(buildFiles("_WithSignature"));
+  }
+
+  private void runScenario(Map<String, MsgFiles> files) throws Exception {
     TestUDPClient udpClient =
         new TestUDPClient(udpReceiverProperties.getGeneric().getReceiverPort());
 
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getPsm(), files.get("PSM"),
-        "Produced PSM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getBsm(), files.get("BSM"),
-        "Produced BSM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getMap(), files.get("MAP"),
-        "Produced MAP message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getSpat(), files.get("SPAT"),
-        "Produced SPAT message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getSsm(), files.get("SSM"),
-        "Produced SSM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getTim(), files.get("TIM"),
-        "Produced TIM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getSrm(), files.get("SRM"),
-        "Produced SRM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getSdsm(), files.get("SDSM"),
-        "Produced SDSM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getRtcm(), files.get("RTCM"),
-        "Produced RTCM message does not match expected");
-    sendAndAssert(udpClient, rawEncodedJsonTopics.getRsm(), files.get("RSM"),
-        "Produced RSM message does not match expected");
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getPsm(), files.get("PSM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getBsm(), files.get("BSM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getMap(), files.get("MAP"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getSpat(), files.get("SPAT"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getSsm(), files.get("SSM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getTim(), files.get("TIM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getSrm(), files.get("SRM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getSdsm(), files.get("SDSM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getRtcm(), files.get("RTCM"));
+    sendAndAssert(udpClient, rawEncodedJsonTopics.getRsm(), files.get("RSM"));
   }
 
-  private void sendAndAssert(TestUDPClient udpClient, String topic, MsgFiles files,
-      String failureMsg) throws Exception {
+  private void sendAndAssert(TestUDPClient udpClient, String topic, MsgFiles files)
+      throws Exception {
     String fileContent = Files.readString(Paths.get(files.input()));
     String expected = Files.readString(Paths.get(files.expected()));
     udpClient.send(fileContent);
     ConsumerRecord<String, String> record = KafkaTestUtils.getSingleRecord(consumer, topic);
-    assertExpected(failureMsg, record.value(), expected);
-  }
 
-  private static void assertExpected(String failureMsg, String actual, String expected) {
-    JSONObject producedJson = new JSONObject(actual);
+    JSONObject producedJson = new JSONObject(record.value());
     JSONObject expectedJson = new JSONObject(expected);
 
     assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
@@ -196,6 +181,6 @@ class GenericReceiverTest {
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(expectedJson.toString(2), producedJson.toString(2), failureMsg);
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }

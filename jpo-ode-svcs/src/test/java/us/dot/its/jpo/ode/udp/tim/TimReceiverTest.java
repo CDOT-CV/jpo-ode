@@ -10,16 +10,13 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Stream;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -46,11 +43,15 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         SerializationConfig.class, TestMetricsConfig.class,},
     properties = {"ode.receivers.tim.receiver-port=15353",
         "ode.kafka.topics.raw-encoded-json.tim=topic.TimReceiverTest"})
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TimReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/tim/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
@@ -91,18 +92,19 @@ class TimReceiverTest {
     DateTimeUtils.setClock(prevClock);
   }
 
-  static Stream<Arguments> testInputs() {
-    String base = "src/test/resources/us/dot/its/jpo/ode/udp/tim/";
-    return Stream.of(
-        Arguments.of("raw J2735 no headers", base + "TimReceiverTest_ValidTIM.txt",
-            base + "TimReceiverTest_ValidTIM_expected.json"),
-        Arguments.of("with 1609.2 WSMP header", base + "TimReceiverTest_ValidTIM_WithSignature.txt",
-            base + "TimReceiverTest_ValidTIM_WithSignature_expected.json"));
+  @Test
+  void testRawJ2735() throws Exception {
+    runTest(BASE + "TimReceiverTest_ValidTIM.txt",
+        BASE + "TimReceiverTest_ValidTIM_expected.json");
   }
 
-  @ParameterizedTest(name = "{0}")
-  @MethodSource("testInputs")
-  void testRun(String description, String inputFile, String expectedFile) throws Exception {
+  @Test
+  void testWithSignature() throws Exception {
+    runTest(BASE + "TimReceiverTest_ValidTIM_WithSignature.txt",
+        BASE + "TimReceiverTest_ValidTIM_WithSignature_expected.json");
+  }
+
+  private void runTest(String inputFile, String expectedFile) throws Exception {
     String fileContent = Files.readString(Paths.get(inputFile));
     String expected = Files.readString(Paths.get(expectedFile));
 
@@ -110,7 +112,6 @@ class TimReceiverTest {
     udpClient.send(fileContent);
 
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getTim());
-    assertNotEquals(expected, singleRecord.value());
     JSONObject producedJson = new JSONObject(singleRecord.value());
     JSONObject expectedJson = new JSONObject(expected);
 
