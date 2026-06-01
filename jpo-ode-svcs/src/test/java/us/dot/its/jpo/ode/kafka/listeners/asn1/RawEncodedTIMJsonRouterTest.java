@@ -69,17 +69,22 @@ class RawEncodedTIMJsonRouterTest {
     future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-tim.json");
-    assert inputStream != null;
-    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String json;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-tim.json")) {
+
+      assert inputStream != null;
+      json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
     kafkaTemplate.send(rawEncodedJsonTopics.getTim(), json);
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-tim.xml");
-    assert inputStream != null;
-    var expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedTim;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-tim.xml")) {
+
+      assert inputStream != null;
+      expectedTim = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     String odeTimData;
     try {

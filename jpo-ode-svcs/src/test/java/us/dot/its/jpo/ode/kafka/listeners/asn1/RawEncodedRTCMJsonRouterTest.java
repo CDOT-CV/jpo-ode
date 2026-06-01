@@ -72,17 +72,22 @@ public class RawEncodedRTCMJsonRouterTest {
     future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rtcm.json");
-    assert inputStream != null;
-    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String json;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rtcm.json")) {
+
+      assert inputStream != null;
+      json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
     kafkaTemplate.send(rawEncodedJsonTopics.getRtcm(), json);
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rtcm.xml");
-    assert inputStream != null;
-    var expectedRTCM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedRTCM;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rtcm.xml")) {
+
+      assert inputStream != null;
+      expectedRTCM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     String actualPayload;
     try {

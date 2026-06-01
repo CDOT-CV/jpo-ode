@@ -68,11 +68,13 @@ class RawEncodedSRMJsonRouterTest {
     future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-srm.json");
-    assert inputStream != null;
-    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String json;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-srm.json")) {
+
+      assert inputStream != null;
+      json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
     kafkaTemplate.send(rawEncodedJsonTopics.getSrm(), json);
 
     String odeRsmData;
@@ -82,10 +84,13 @@ class RawEncodedSRMJsonRouterTest {
       throw new AssertionError("SRM message was not received within the timeout period", e);
     }
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-srm.xml");
-    assert inputStream != null;
-    var expectedSrm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedSrm;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-srm.xml")) {
+
+      assert inputStream != null;
+      expectedSrm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     assertEquals(expectedSrm, odeRsmData);
   }

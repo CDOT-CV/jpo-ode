@@ -72,16 +72,21 @@ class RawEncodedPSMJsonRouterTest {
     future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-psm.json");
-    assert inputStream != null;
-    var psmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String psmJson;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-psm.json")) {
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-psm.xml");
-    assert inputStream != null;
-    var expectedPsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+      assert inputStream != null;
+      psmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    String expectedPsm;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-psm.xml")) {
+
+      assert inputStream != null;
+      expectedPsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     kafkaTemplate.send(rawEncodedJsonTopics.getPsm(), psmJson);
 

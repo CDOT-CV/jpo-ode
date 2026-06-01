@@ -57,16 +57,23 @@ class RawEncodedBSMJsonRouterTest {
 
     future = new CompletableFuture<>();
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-bsm.json");
-    assert inputStream != null;
-    var bsmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String bsmJson;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-bsm.json")) {
+
+      assert inputStream != null;
+      bsmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+
     kafkaTemplate.send(rawEncodedJsonTopics.getBsm(), bsmJson);
 
-    inputStream =
-        classLoader.getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-bsm.xml");
-    assert inputStream != null;
-    var expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedBsm;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-bsm.xml")) {
+
+      assert inputStream != null;
+      expectedBsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     String odeBsmData;
     try {

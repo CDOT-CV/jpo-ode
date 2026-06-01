@@ -74,16 +74,21 @@ public class RawEncodedRSMJsonRouterTest {
     future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rsm.json");
-    assert inputStream != null;
-    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String json;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-rsm.json")) {
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rsm.xml");
-    assert inputStream != null;
-    var expectedRSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+      assert inputStream != null;
+      json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    String expectedRSM;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-rsm.xml")) {
+
+      assert inputStream != null;
+      expectedRSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     kafkaTemplate.send(rawEncodedJsonTopics.getRsm(), json);
 

@@ -70,17 +70,21 @@ class RawEncodedSPATJsonRouterTest {
    future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json");
-    assert inputStream != null;
-    var spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String spatJson;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json")) {
 
+      assert inputStream != null;
+      spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml");
-    assert inputStream != null;
-    var expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedSpat;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml")) {
+
+      assert inputStream != null;
+      expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
     kafkaTemplate.send(rawEncodedJsonTopics.getSpat(), spatJson);
 
     String actualPayload;
