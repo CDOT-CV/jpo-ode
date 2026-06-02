@@ -13,7 +13,10 @@ import java.util.concurrent.Executors;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -36,24 +39,19 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
-    properties = {
-        "ode.receivers.tim.receiver-port=15353",
-        "ode.kafka.topics.raw-encoded-json.tim=topic.TimReceiverTest"
-    }
-)
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class,},
+    properties = {"ode.receivers.tim.receiver-port=15353",
+        "ode.kafka.topics.raw-encoded-json.tim=topic.TimReceiverTest"})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TimReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/tim/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
@@ -66,50 +64,62 @@ class TimReceiverTest {
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
-  @Test
-  void testRun() throws Exception {
+  private TimReceiver timReceiver;
+  private ExecutorService executorService;
+  private Consumer<String, String> consumer;
+  private Clock prevClock;
+
+  @BeforeAll
+  void startReceiver() {
     EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getTim());
-
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
-
-    TimReceiver timReceiver = new TimReceiver(udpReceiverProperties.getTim(),
-        kafkaTemplate, rawEncodedJsonTopics.getTim());
-    ExecutorService executorService = Executors.newCachedThreadPool();
+    prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    timReceiver = new TimReceiver(udpReceiverProperties.getTim(), kafkaTemplate,
+        rawEncodedJsonTopics.getTim());
+    executorService = Executors.newCachedThreadPool();
     executorService.submit(timReceiver);
+    var consumerProps = KafkaTestUtils.consumerProps("TimReceiverTest", "true", embeddedKafka);
+    consumer = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer()).createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getTim());
+  }
 
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM.txt"));
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/tim/TimReceiverTest_ValidTIM_expected.json"));
+  @AfterAll
+  void cleanup() {
+    timReceiver.setStopped(true);
+    executorService.shutdown();
+    consumer.close();
+    DateTimeUtils.setClock(prevClock);
+  }
+
+  @Test
+  void testRawJ2735() throws Exception {
+    runTest(BASE + "TimReceiverTest_ValidTIM.txt",
+        BASE + "TimReceiverTest_ValidTIM_expected.json");
+  }
+
+  @Test
+  void testWithSignature() throws Exception {
+    runTest(BASE + "TimReceiverTest_ValidTIM_WithSignature.txt",
+        BASE + "TimReceiverTest_ValidTIM_WithSignature_expected.json");
+  }
+
+  private void runTest(String inputFile, String expectedFile) throws Exception {
+    String fileContent = Files.readString(Paths.get(inputFile));
+    String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getTim().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "TimReceiverTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<String, String> cf =
-        new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(), new StringDeserializer());
-    Consumer<String, String> consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getTim());
-
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getTim());
-    // confirm the stream-id is different, then remove it from both so that we can test equality of all other fields
-    assertNotEquals(expected, singleRecord.value());
     JSONObject producedJson = new JSONObject(singleRecord.value());
     JSONObject expectedJson = new JSONObject(expected);
 
-    // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
     assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
         producedJson.getJSONObject("metadata").get("serialId"));
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(
-        expectedJson.toString(2),
-        producedJson.toString(2));
-
-    DateTimeUtils.setClock(prevClock);
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }

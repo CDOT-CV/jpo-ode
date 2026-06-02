@@ -13,8 +13,10 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata.Source;
 import us.dot.its.jpo.ode.model.OdeMsgMetadata.GeneratedBy;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.uper.StartFlagNotFoundException;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
 import us.dot.its.jpo.ode.uper.UperUtil;
+import us.dot.its.jpo.ode.util.CodecUtils;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
 
@@ -38,6 +40,13 @@ public class UdpHexDecoder {
   }
 
   /**
+   * Result of extracting an ASN.1 payload from a UDP packet: the stripped payload used for decode,
+   * plus the full received hex (before 1609.3 / 1609.2 header stripping) for metadata.
+   */
+  private record Asn1PayloadExtraction(OdeAsn1Payload payload, String untrimmedPayloadHex) {
+  }
+
+  /**
    * Extracts the payload from the given {@link DatagramPacket} and converts it into an
    * {@link OdeAsn1Payload} object. The method validates that the payload contains the necessary
    * start flag for the specified message type.
@@ -50,6 +59,11 @@ public class UdpHexDecoder {
    */
   public static OdeAsn1Payload getPayloadHexString(DatagramPacket packet,
       SupportedMessageType msgType) throws InvalidPayloadException {
+    return extractAsn1PayloadFromPacket(packet, msgType).payload();
+  }
+
+  private static Asn1PayloadExtraction extractAsn1PayloadFromPacket(DatagramPacket packet,
+      SupportedMessageType msgType) throws InvalidPayloadException {
     // retrieve the buffer from the packet
     byte[] buffer = packet.getData();
     if (buffer == null) {
@@ -61,19 +75,30 @@ public class UdpHexDecoder {
     int offsetOfReceivedPacket = packet.getOffset();
     byte[] payload = retrieveRelevantBytes(lengthOfReceivedPacket, buffer, offsetOfReceivedPacket);
 
-    // convert bytes to hex string and verify identity
-    String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
-    if (!payloadHexString.contains(msgType.getStartFlag())) {
+    // Lowercase hex for start-flag matching (flags use a-f, e.g. TIM "001f"); uppercase for
+    // metadata.asn1 to match OdeHexByteArray / CodecUtils serialization.
+    String untrimmedPayloadHexLower = HexUtils.toHexString(payload).toLowerCase();
+    if (!untrimmedPayloadHexLower.contains(msgType.getStartFlag())) {
       throw new InvalidPayloadException("Payload does not contain start flag");
     }
 
-    log.debug("Full {} packet: {}", msgType, payloadHexString);
+    log.debug("Full {} packet: {}", msgType, untrimmedPayloadHexLower);
 
-    payloadHexString =
-        UperUtil.stripDot3Header(payloadHexString, msgType.getStartFlag()).toLowerCase();
-    log.debug("Stripped {} packet: {}", msgType, payloadHexString);
+    String strippedHex =
+        UperUtil.stripDot3Header(untrimmedPayloadHexLower, msgType.getStartFlag()).toLowerCase();
 
-    return new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
+    // Adding the dot2 header stripping here to handle the case where the signed 1609.2 header is
+    // present.
+    try {
+      strippedHex = UperUtil.stripDot2Header(strippedHex, msgType.getStartFlag());
+    } catch (StartFlagNotFoundException e) {
+      log.debug("Error stripping dot2 header: {}", e.getMessage());
+    }
+
+    log.debug("Stripped {} packet: {}", msgType, strippedHex);
+
+    return new Asn1PayloadExtraction(new OdeAsn1Payload(HexUtils.fromHexString(strippedHex)),
+        CodecUtils.toHex(payload));
   }
 
   /**
@@ -143,7 +168,7 @@ public class UdpHexDecoder {
   public static String buildJsonSsmFromPacket(DatagramPacket packet)
       throws InvalidPayloadException {
     return JsonUtils.toJson(buildAsn1DataFromPacket(packet, SupportedMessageType.SSM,
-      RecordType.ssmTx, Source.RSU, GeneratedBy.RSU, false), false);
+        RecordType.ssmTx, Source.RSU, GeneratedBy.RSU, false), false);
   }
 
   /**
@@ -244,15 +269,18 @@ public class UdpHexDecoder {
    */
   public static OdeAsn1Data buildAsn1DataFromPacket(DatagramPacket packet,
       SupportedMessageType messageType, RecordType recordType, Source source,
-      GeneratedBy generatedBy, boolean includeReceivedMessageDetails) throws InvalidPayloadException {
+      GeneratedBy generatedBy, boolean includeReceivedMessageDetails)
+      throws InvalidPayloadException {
 
     String senderIp = packet.getAddress().getHostAddress();
     int senderPort = packet.getPort();
     log.debug("Packet received from {}:{}", senderIp, senderPort);
 
     // Create OdeMsgPayload and OdeLogMetadata objects and populate them
-    OdeAsn1Payload payload = getPayloadHexString(packet, messageType);
-    OdeMessageFrameMetadata metadata = new OdeMessageFrameMetadata(payload);
+    Asn1PayloadExtraction extracted = extractAsn1PayloadFromPacket(packet, messageType);
+    OdeAsn1Payload payload = extracted.payload();
+    OdeMessageFrameMetadata metadata =
+        new OdeMessageFrameMetadata(payload, extracted.untrimmedPayloadHex());
 
     // Add header data for the decoding process
     metadata.setOdeReceivedAt(DateTimeUtils.now());

@@ -10,6 +10,8 @@ The ITS ODE is a real-time virtual data router that ingests and processes operat
 
 _Figure 1: ODE Dataflows_
 
+For a module-by-module description of the components in this diagram, see [Architecture Section 5.2 – Architecture Module Reference](docs/Architecture.md#52---architecture-module-reference).
+
 **Documentation:**
 
 1. [ODE Architecture](docs/Architecture.md)
