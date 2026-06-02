@@ -7,6 +7,7 @@ Version 5.2.0, released May 2026
 This release expands support for existing jpo-ode functionality and improves flexibility in deployment and data handling. JSON schemas are now bundled within the jpo-asn-pojos submodule, enabling offline usage without external dependencies. Additionally, a receiving port remapping configuration has been introduced to better identify traffic sources that may not originate from an RSU. This release also includes several minor fixes.
 
 Enhancements in this release:
+- [ASN Hex 1609.2 Signature Retention (ITSA)](https://github.com/usdot-jpo-ode/jpo-ode/pull/596)
 - [Submodule update to provide JSON schemas in resources for offline availability](https://github.com/neaeraconsulting/jpo-ode/pull/1)
 - [Port remap receiver](https://github.com/neaeraconsulting/jpo-ode/pull/2)
 - [Configurable kafka concurrency](https://github.com/neaeraconsulting/jpo-ode/pull/3)
