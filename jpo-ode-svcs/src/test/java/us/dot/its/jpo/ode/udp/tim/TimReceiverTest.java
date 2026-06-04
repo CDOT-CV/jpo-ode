@@ -32,7 +32,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableConfigurationProperties
 @SpringBootTest(
