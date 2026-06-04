@@ -102,6 +102,14 @@ public class OdeLogMetadata extends OdeMsgMetadata {
     super(payload);
   }
 
+  /**
+   * Same as {@link #OdeLogMetadata(OdeMsgPayload)} but sets {@code asn1} to {@code asn1Hex}
+   * directly instead of from the payload's stripped bytes.
+   */
+  public OdeLogMetadata(OdeMsgPayload<?> payload, String asn1Hex) {
+    super(payload, asn1Hex);
+  }
+
   public OdeLogMetadata() {
     super();
   }

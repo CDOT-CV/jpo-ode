@@ -12,7 +12,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -35,24 +38,18 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {
-        OdeKafkaProperties.class,
-        UDPReceiverProperties.class,
-        KafkaProducerConfig.class,
-        SerializationConfig.class,
-        TestMetricsConfig.class,
-    },
-    properties = {
-        "ode.receivers.spat.receiver-port=15356",
-        "ode.kafka.topics.raw-encoded-json.spat=topic.SpatReceiverTest"
-    }
-)
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
+    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
+        SerializationConfig.class, TestMetricsConfig.class,},
+    properties = {"ode.receivers.spat.receiver-port=15356",
+        "ode.kafka.topics.raw-encoded-json.spat=topic.SpatReceiverTest"})
+@ContextConfiguration(
+    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpatReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/spat/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
@@ -65,37 +62,53 @@ class SpatReceiverTest {
 
   EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
 
-  @Test
-  void testRun() throws Exception {
+  private SpatReceiver spatReceiver;
+  private ExecutorService executorService;
+  private Consumer<Integer, String> consumer;
+  private Clock prevClock;
+
+  @BeforeAll
+  void startReceiver() {
     EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getSpat());
-
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
-
-    SpatReceiver spatReceiver = new SpatReceiver(udpReceiverProperties.getSpat(), kafkaTemplate,
+    prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    spatReceiver = new SpatReceiver(udpReceiverProperties.getSpat(), kafkaTemplate,
         rawEncodedJsonTopics.getSpat());
-    ExecutorService executorService = Executors.newCachedThreadPool();
+    executorService = Executors.newCachedThreadPool();
     executorService.submit(spatReceiver);
+    var consumerProps = KafkaTestUtils.consumerProps("SpatReceiverTest", "true", embeddedKafka);
+    consumer = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps).createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSpat());
+  }
 
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
+  @AfterAll
+  void cleanup() {
+    spatReceiver.setStopped(true);
+    executorService.shutdown();
+    consumer.close();
+    DateTimeUtils.setClock(prevClock);
+  }
 
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
+  @Test
+  void testRawJ2735() throws Exception {
+    runTest(BASE + "SpatReceiverTest_ValidSPAT.txt",
+        BASE + "SpatReceiverTest_ValidSPAT_expected.json");
+  }
+
+  @Test
+  void testWithSignature() throws Exception {
+    runTest(BASE + "SpatReceiverTest_ValidSPAT_WithSignature.txt",
+        BASE + "SpatReceiverTest_ValidSPAT_WithSignature_expected.json");
+  }
+
+  private void runTest(String inputFile, String expectedFile) throws Exception {
+    String fileContent = Files.readString(Paths.get(inputFile));
+    String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSpat().getReceiverPort());
     udpClient.send(fileContent);
 
-    var consumerProps = KafkaTestUtils.consumerProps(
-        "SpatReceiverTest", "true", embeddedKafka);
-    DefaultKafkaConsumerFactory<Integer, String> cf =
-        new DefaultKafkaConsumerFactory<>(consumerProps);
-    Consumer<Integer, String> consumer = cf.createConsumer();
-    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSpat());
-
     var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSpat());
-    assertNotEquals(expected, singleRecord.value());
     JSONObject producedJson = new JSONObject(singleRecord.value());
     JSONObject expectedJson = new JSONObject(expected);
 
@@ -104,10 +117,6 @@ class SpatReceiverTest {
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(
-        expectedJson.toString(2),
-        producedJson.toString(2));
-
-    DateTimeUtils.setClock(prevClock);
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }
