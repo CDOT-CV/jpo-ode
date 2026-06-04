@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -61,8 +61,7 @@ class SdsmReceiverTest {
   private ExecutorService executorService;
   private SdsmReceiver sdsmReceiver;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @AfterEach
   void cleanup() {
@@ -76,8 +75,7 @@ class SdsmReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    latch = new CountDownLatch(1);
-    actualPayload = null;
+    future = new CompletableFuture<>();
 
     final Clock prevClock = DateTimeUtils
         .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
@@ -97,7 +95,7 @@ class SdsmReceiverTest {
           new TestUDPClient(udpReceiverProperties.getSdsm().getReceiverPort());
       udpClient.send(fileContent);
 
-      Assertions.assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+      String actualPayload = future.get(3, TimeUnit.SECONDS);
 
       assertNotEquals(expected, actualPayload);
 
@@ -118,7 +116,6 @@ class SdsmReceiverTest {
 
   @KafkaListener(topics = "topic.SdsmReceiverTest")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }

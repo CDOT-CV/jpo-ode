@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -60,13 +60,11 @@ public class RtcmReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @Test
   void testRun() throws Exception {
-    latch = new CountDownLatch(1);
-    actualPayload = null;
+    future = new CompletableFuture<>();
 
     final Clock prevClock = DateTimeUtils
         .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
@@ -84,9 +82,9 @@ public class RtcmReceiverTest {
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRtcm().getReceiverPort());
     udpClient.send(fileContent);
 
-    assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+    String actualPayload = future.get(3, TimeUnit.SECONDS);
 
-      // confirm the stream-id is different, then remove it from both so that we can test equality
+    // confirm the stream-id is different, then remove it from both so that we can test equality
     // of all other fields
     assertNotEquals(expected, actualPayload);
     JSONObject producedJson = new JSONObject(actualPayload);
@@ -106,7 +104,6 @@ public class RtcmReceiverTest {
 
   @KafkaListener(topics = "topic.RtcmReceiverTest")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }

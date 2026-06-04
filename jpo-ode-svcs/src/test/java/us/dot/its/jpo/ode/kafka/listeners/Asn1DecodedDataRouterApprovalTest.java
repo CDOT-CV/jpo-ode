@@ -6,8 +6,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -66,22 +68,20 @@ class Asn1DecodedDataRouterApprovalTest {
 
   private final ObjectMapper mapper = new ObjectMapper();
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @Test
-  void testAsn1DecodedDataRouter_MAPDataFlow() throws IOException, InterruptedException {
+  void testAsn1DecodedDataRouter_MAPDataFlow() throws IOException, InterruptedException, ExecutionException, TimeoutException {
 
     List<ApprovalTestCase> jsonTestCases = ApprovalTestCase.deserializeTestCases(
         "src/test/resources/us.dot.its.jpo.ode.udp.map/Asn1DecoderRouter_ApprovalTestCases_MapJson.json");
 
     for (ApprovalTestCase testCase : jsonTestCases) {
-      latch = new CountDownLatch(1);
-      actualPayload = null;
+      future = new CompletableFuture<>();
 
       producer.send(decoderOutputTopic, testCase.getInput());
 
-      assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
+      String actualPayload = future.get(3, TimeUnit.SECONDS);
 
       OdeMessageFrameData receivedMapData = mapper.readValue(actualPayload, OdeMessageFrameData.class);
 
@@ -94,7 +94,6 @@ class Asn1DecodedDataRouterApprovalTest {
 
   @KafkaListener(topics = "topic.OdeMapJsonRouterApprovalTest")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }
