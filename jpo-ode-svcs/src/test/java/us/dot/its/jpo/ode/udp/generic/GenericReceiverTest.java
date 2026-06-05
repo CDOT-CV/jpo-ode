@@ -14,7 +14,7 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
@@ -22,7 +22,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
@@ -36,7 +35,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
 @EnableConfigurationProperties
 @SpringBootTest(
     classes = { OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class, },
+        SerializationConfig.class, TestMetricsConfig.class, RawEncodedJsonTopics.class, KafkaProperties.class },
     properties = {"ode.receivers.generic.receiver-port=15460",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.GenericReceiverTestBSM",
         "ode.kafka.topics.raw-encoded-json.map=topic.GenericReceiverTestMAP",
@@ -48,8 +47,6 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM",
         "ode.kafka.topics.raw-encoded-json.rtcm=topic.GenericReceiverTestRTCM",
         "ode.kafka.topics.raw-encoded-json.rsm=topic.GenericReceiverTestRSM"})
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class})
 @DirtiesContext
 class GenericReceiverTest {
 
@@ -81,7 +78,7 @@ class GenericReceiverTest {
     TestUDPClient udpClient =
         new TestUDPClient(udpReceiverProperties.getGeneric().getReceiverPort());
 
-    var consumerProps = KafkaTestUtils.consumerProps("GenericReceiverTest", "true", embeddedKafka);
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "GenericReceiverTest", true);
     var cf = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var consumer = cf.createConsumer();
