@@ -28,7 +28,6 @@ import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -49,11 +48,9 @@ import us.dot.its.jpo.ode.util.JsonUtils;
     classes = {KafkaProperties.class, JsonTopics.class, Asn1CoderTopics.class,
         KafkaConsumerConfig.class, KafkaProducerConfig.class, RawEncodedJsonTopics.class,
         Asn1CoderTopics.class, OdeKafkaProperties.class, Asn1DecodedDataRouter.class,
-        SerializationConfig.class, TestMetricsConfig.class},
+        SerializationConfig.class, TestMetricsConfig.class, UDPReceiverProperties.class},
     properties = {"ode.kafka.disabled-topics="})
 @EnableConfigurationProperties
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, OdeKafkaProperties.class, KafkaProperties.class})
 @DirtiesContext
 @EmbeddedKafka
 @TestPropertySource(properties = "logging.level.org.springframework.kafka=DEBUG")

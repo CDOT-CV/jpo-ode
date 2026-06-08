@@ -159,11 +159,12 @@ class Asn1EncodedDataRouterTest {
   private static String loadResourceString(String name)
       throws IOException {
     String resourcePackagePath = "us/dot/its/jpo/ode/services/asn1/";
-    InputStream inputStream;
-    inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
-        .getResourceAsStream(resourcePackagePath + name);
-    assert inputStream != null;
-    return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    try (InputStream inputStream = Asn1EncodedDataRouterTest.class.getClassLoader()
+        .getResourceAsStream(resourcePackagePath + name)) {
+
+      assert inputStream != null;
+      return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
   }
 
   @Test

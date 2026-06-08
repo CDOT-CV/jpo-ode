@@ -1,13 +1,14 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -41,19 +41,19 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         KafkaConsumerConfig.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class,
+        Asn1CoderTopics.class
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.spat=topic.Asn1DecoderTestSPATJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSPATInput"
     })
 @EmbeddedKafka
-@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"
-})
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
-})
 @DirtiesContext
 class RawEncodedSPATJsonRouterTest {
 
@@ -62,37 +62,43 @@ class RawEncodedSPATJsonRouterTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @Test
   void testListen() throws JSONException, IOException, InterruptedException {
 
-   latch = new CountDownLatch(1);
-   actualPayload = null;
+   future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json");
-    assert inputStream != null;
-    var spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String spatJson;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-spat.json")) {
 
+      assert inputStream != null;
+      spatJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml");
-    assert inputStream != null;
-    var expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedSpat;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-spat.xml")) {
+
+      assert inputStream != null;
+      expectedSpat = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
     kafkaTemplate.send(rawEncodedJsonTopics.getSpat(), spatJson);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    String actualPayload;
+    try {
+      actualPayload = future.get(3, TimeUnit.SECONDS);
+    } catch (ExecutionException | TimeoutException e) {
+        throw new AssertionError("SPAT message was not received within the timeout period", e);
+    }
 
     assertEquals(expectedSpat, actualPayload);
   }
 
   @KafkaListener(topics = "topic.Asn1DecoderSPATInput", groupId = "test-group")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }

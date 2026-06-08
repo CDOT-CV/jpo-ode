@@ -9,12 +9,11 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -26,7 +25,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -42,11 +40,9 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 @EnableConfigurationProperties
 @SpringBootTest(
     classes = {KafkaConsumerConfig.class,  KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class},
+        SerializationConfig.class, TestMetricsConfig.class, UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class, OdeKafkaProperties.class},
     properties = {"ode.receivers.sdsm.receiver-port=12413",
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.SdsmReceiverTest"})
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class, OdeKafkaProperties.class})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
@@ -64,8 +60,7 @@ class SdsmReceiverTest {
   private ExecutorService executorService;
   private SdsmReceiver sdsmReceiver;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @AfterEach
   void cleanup() {
@@ -79,8 +74,7 @@ class SdsmReceiverTest {
 
   @Test
   void testRun() throws Exception {
-    latch = new CountDownLatch(1);
-    actualPayload = null;
+    future = new CompletableFuture<>();
 
     final Clock prevClock = DateTimeUtils
         .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
@@ -100,7 +94,7 @@ class SdsmReceiverTest {
           new TestUDPClient(udpReceiverProperties.getSdsm().getReceiverPort());
       udpClient.send(fileContent);
 
-      Assertions.assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+      String actualPayload = future.get(3, TimeUnit.SECONDS);
 
       assertNotEquals(expected, actualPayload);
 
@@ -121,7 +115,6 @@ class SdsmReceiverTest {
 
   @KafkaListener(topics = "topic.SdsmReceiverTest")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }

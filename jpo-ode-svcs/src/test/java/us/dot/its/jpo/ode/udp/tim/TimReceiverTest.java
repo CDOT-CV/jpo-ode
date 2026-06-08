@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -22,7 +22,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -33,7 +32,6 @@ import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
-import static org.assertj.core.api.Assertions.assertThat;
 
 @EnableConfigurationProperties
 @SpringBootTest(
@@ -42,16 +40,16 @@ import static org.assertj.core.api.Assertions.assertThat;
         KafkaConsumerConfig.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class
     },
     properties = {
         "ode.receivers.tim.receiver-port=15353",
         "ode.kafka.topics.raw-encoded-json.tim=topic.TimReceiverTest"
     }
 )
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
@@ -66,13 +64,11 @@ class TimReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @Test
   void testRun() throws Exception {
-    latch = new CountDownLatch(1);
-    actualPayload = null;
+    future = new CompletableFuture<>();
 
     final Clock prevClock = DateTimeUtils.setClock(
         Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
@@ -91,7 +87,7 @@ class TimReceiverTest {
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getTim().getReceiverPort());
     udpClient.send(fileContent);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    String actualPayload = future.get(3, TimeUnit.SECONDS);
 
     assertNotEquals(expected, actualPayload);
     JSONObject producedJson = new JSONObject(actualPayload);
@@ -111,7 +107,6 @@ class TimReceiverTest {
 
   @KafkaListener(topics = "topic.TimReceiverTest")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    future.complete(payload);
   }
 }

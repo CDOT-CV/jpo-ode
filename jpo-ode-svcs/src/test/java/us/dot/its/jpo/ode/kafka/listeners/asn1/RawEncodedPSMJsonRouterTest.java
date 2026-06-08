@@ -1,13 +1,14 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -63,37 +64,44 @@ class RawEncodedPSMJsonRouterTest {
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private CompletableFuture<String> future;
 
   @Test
   void testListen() throws JSONException, IOException, InterruptedException {
 
-    latch = new CountDownLatch(1);
-    actualPayload = null;
+    future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-psm.json");
-    assert inputStream != null;
-    var psmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String psmJson;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-psm.json")) {
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-psm.xml");
-    assert inputStream != null;
-    var expectedPsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+      assert inputStream != null;
+      psmJson = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
+
+    String expectedPsm;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-psm.xml")) {
+
+      assert inputStream != null;
+      expectedPsm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     kafkaTemplate.send(rawEncodedJsonTopics.getPsm(), psmJson);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    String actualPayload;
+    try {
+      actualPayload = future.get(3, TimeUnit.SECONDS);
+    } catch (ExecutionException | TimeoutException e) {
+      throw new AssertionError("PSM message was not received within the timeout period", e);
+    }
 
     assertEquals(expectedPsm, actualPayload);
   }
 
   @KafkaListener(topics = "topic.Asn1DecoderPSMInput")
     public void receive(String payload) {
-      this.actualPayload = payload;
-      latch.countDown();
+      future.complete(payload);
   }
 }

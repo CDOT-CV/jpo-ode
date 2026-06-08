@@ -1,13 +1,14 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -40,6 +40,11 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         RawEncodedJsonService.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class,
+        Asn1CoderTopics.class
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.srm=topic.Asn1DecoderTestSRMJSON",
@@ -48,10 +53,6 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
-})
 @DirtiesContext
 class RawEncodedSRMJsonRouterTest {
 
@@ -60,35 +61,42 @@ class RawEncodedSRMJsonRouterTest {
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String odeRsmData;
+  private CompletableFuture<String> future;
 
   @Test
   void testListen() throws JSONException, IOException, InterruptedException {
-    latch = new CountDownLatch(1);
-    odeRsmData = null;
+    future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
-    InputStream inputStream = classLoader
-        .getResourceAsStream(
-            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-srm.json");
-    assert inputStream != null;
-    var json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String json;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/decoder-input-srm.json")) {
+
+      assert inputStream != null;
+      json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
     kafkaTemplate.send(rawEncodedJsonTopics.getSrm(), json);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    String odeRsmData;
+    try {
+      odeRsmData = future.get(3, TimeUnit.SECONDS);
+    } catch (ExecutionException | TimeoutException e) {
+      throw new AssertionError("SRM message was not received within the timeout period", e);
+    }
 
-    inputStream = classLoader
-        .getResourceAsStream("us/dot/its/jpo/ode/kafka/listeners/asn1/expected-srm.xml");
-    assert inputStream != null;
-    var expectedSrm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    String expectedSrm;
+    try (InputStream inputStream = classLoader.getResourceAsStream(
+            "us/dot/its/jpo/ode/kafka/listeners/asn1/expected-srm.xml")) {
+
+      assert inputStream != null;
+      expectedSrm = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+    }
 
     assertEquals(expectedSrm, odeRsmData);
   }
 
     @KafkaListener(topics = {"topic.Asn1DecoderSRMInput"} , groupId = "test-group")
     public void receive(String payload) {
-      odeRsmData = payload;
-      latch.countDown();
+      future.complete(payload);
     }
 }

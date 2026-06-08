@@ -1,13 +1,14 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -40,6 +40,11 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         RawEncodedJsonService.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class,
+        Asn1CoderTopics.class
     },
     properties = {
         "ode.kafka.topics.raw-encoded-json.ssm=topic.Asn1DecoderTestSSMJSON",
@@ -48,10 +53,6 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class, Asn1CoderTopics.class
-})
 @DirtiesContext
 class RawEncodedSSMJsonRouterTest {
 
@@ -60,13 +61,11 @@ class RawEncodedSSMJsonRouterTest {
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
 
-  private CountDownLatch latch;
-  private String odeSsmData;
+  private CompletableFuture<String> future;
 
   @Test
   void testListen() throws JSONException, IOException, InterruptedException {
-    latch = new CountDownLatch(1);
-    odeSsmData = null;
+    future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
     InputStream inputStream = classLoader
@@ -81,14 +80,18 @@ class RawEncodedSSMJsonRouterTest {
     assert inputStream != null;
     var expectedSSM = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
 
-    assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+    String odeSsmData;
+    try {
+      odeSsmData = future.get(3, TimeUnit.SECONDS);
+    } catch (ExecutionException | TimeoutException e) {
+      throw new AssertionError("SSM message was not received within the timeout period", e);
+    }
 
     assertEquals(expectedSSM, odeSsmData);
   }
 
     @KafkaListener(topics = {"topic.Asn1DecoderSSMInput"} , groupId = "test-group")
     public void receive(String payload) {
-      odeSsmData = payload;
-      latch.countDown();
+      future.complete(payload);
     }
 }

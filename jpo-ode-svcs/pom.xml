@@ -6,7 +6,7 @@
   <parent>
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-ode</artifactId>
-    <version>5.1.0</version>
+    <version>6.0.0</version>
   </parent>
   <artifactId>jpo-ode-svcs</artifactId>
   <packaging>jar</packaging>
@@ -55,7 +55,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-webmvc</artifactId>
-      <version>4.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.restdocs</groupId>
@@ -74,12 +73,10 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-kafka</artifactId>
-      <version>4.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-restclient</artifactId>
-      <version>4.0.3</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.kafka</groupId>
@@ -133,12 +130,12 @@
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-core</artifactId>
-      <version>5.1.0</version>
+      <version>6.0.0</version>
     </dependency>
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-plugins</artifactId>
-      <version>5.1.0</version>
+      <version>6.0.0</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

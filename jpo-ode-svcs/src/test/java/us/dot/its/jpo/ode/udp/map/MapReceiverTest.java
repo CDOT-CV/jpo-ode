@@ -1,6 +1,5 @@
 package us.dot.its.jpo.ode.udp.map;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
@@ -9,12 +8,12 @@ import java.io.IOException;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,6 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
@@ -38,22 +36,21 @@ import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
-@Slf4j
 @SpringBootTest(
     classes = {
         KafkaConsumerConfig.class,
         KafkaProducerConfig.class,
         SerializationConfig.class,
         TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class
     },
     properties = {"ode.kafka.topics.raw-encoded-json.map=topic.MapReceiverTestMAPJSON",
         "ode.receivers.map.receiver-port=12412"}
 )
 @EnableConfigurationProperties
-@ContextConfiguration(classes = {
-    UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class
-})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
@@ -68,8 +65,7 @@ class MapReceiverTest {
   @Autowired
   RawEncodedJsonTopics rawEncodedJsonTopics;
 
-  private CountDownLatch latch;
-  private String actualPayload;
+  private final BlockingQueue<String> receivedMessages = new LinkedBlockingQueue<>();
 
   @Test
   void testMapReceiver() throws IOException, InterruptedException {
@@ -89,10 +85,11 @@ class MapReceiverTest {
     List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
 
     for (ApprovalTestCase approvalTestCase : approvalTestCases) {
-      latch = new CountDownLatch(1);
-      actualPayload = null;
+      receivedMessages.clear();
       udpClient.send(approvalTestCase.getInput());
-        assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+
+      String actualPayload = receivedMessages.poll(3, TimeUnit.SECONDS);
+
       JSONObject producedJson = new JSONObject(actualPayload);
       JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
 
@@ -102,10 +99,7 @@ class MapReceiverTest {
       expectedJson.getJSONObject("metadata").remove("serialId");
       producedJson.getJSONObject("metadata").remove("serialId");
 
-      String expectedJsonStr = expectedJson.toString();
-      String producedJsonStr = producedJson.toString().trim();
-
-      assertEquals(expectedJsonStr, producedJsonStr,
+      assertEquals(expectedJson.toString(), producedJson.toString().trim(),
           approvalTestCase.getDescription());
     }
 
@@ -114,7 +108,9 @@ class MapReceiverTest {
 
   @KafkaListener(topics = "topic.MapReceiverTestMAPJSON")
   public void receive(String payload) {
-    this.actualPayload = payload;
-    latch.countDown();
+    if (!receivedMessages.offer(payload)) {
+      throw new RuntimeException("MapReceiverTest timed out waiting for Kafka message for: "
+              + payload);
+    }
   }
 }

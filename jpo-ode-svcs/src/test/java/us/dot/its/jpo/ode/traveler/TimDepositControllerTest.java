@@ -67,10 +67,7 @@
  @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
      OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
      SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
-     XmlMapper.class, TestMetricsConfig.class}, properties = {"ode.kafka.brokers=localhost:4242"})
- @ContextConfiguration(classes = {TimDepositController.class, Asn1CoderTopics.class,
-     JsonTopics.class, TimIngestTrackerProperties.class,
-     SecurityServicesProperties.class, OdeKafkaProperties.class})
+     XmlMapper.class, TestMetricsConfig.class, TimDepositController.class}, properties = {"ode.kafka.brokers=localhost:4242"})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "ode.kafka.brokers=${spring.embedded.kafka.brokers}"})
@@ -100,7 +97,7 @@
 
    @Autowired
    EmbeddedKafkaBroker embeddedKafka;
- 
+
    @Test
    void nullRequestShouldReturnEmptyError() {
      TimDepositController testTimDepositController =
