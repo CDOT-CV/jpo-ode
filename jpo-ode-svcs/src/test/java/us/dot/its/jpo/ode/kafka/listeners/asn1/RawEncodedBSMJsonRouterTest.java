@@ -17,6 +17,7 @@ import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
@@ -37,8 +38,6 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         RawEncodedJsonTopics.class, KafkaProperties.class},
     properties = {"ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderBSMInput",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.OdeRawEncodedBSMJson"})
-@EmbeddedKafka
-@TestPropertySource(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @EmbeddedKafka
 @TestPropertySource(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @EnableConfigurationProperties
