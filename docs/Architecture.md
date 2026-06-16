@@ -17,20 +17,28 @@ _Last updated April 26th, 2024_
 # Contents
 
 - [Version History](#version-history)
-- [1 - Introduction](#introduction)
-- [2 - Project Overview](#project-overview)
-- [3 - System Overview](#system-overview)
-  - [3.1 - ODE Technology Stack](#ode-technology-stack)
-  - [3.2 - Producer Mechanisms](#producer-mechanisms)
-  - [3.3 - Consumer Mechanisms](#consumer-mechanisms)
-  - [3.4 - ODE Management Console](#ode-management-console)
-- [4 - Architecture Pattern](#architecture-pattern)
-  - [4.1 - Pattern Description](#pattern-description)
-  - [4.2 - Pattern Topology](#pattern-topology)
-- [5 - JPO ODE Micro-services Topology](#jpo-ode-micro-services-topology)
-  - [5.1 - Deployments](#deployments)
-- [6 - Appendix](#appendix)
-  - [6.1 - Glossary](#glossary)
+- [1 - Introduction](#1---introduction)
+- [2 - Project Overview](#2---project-overview)
+- [3 - System Overview](#3---system-overview)
+    - [3.1 - ODE Technology Stack](#31---ode-technology-stack)
+    - [3.2 - Producer Mechanisms](#32---producer-mechanisms)
+    - [3.3 - Consumer Mechanisms](#33---consumer-mechanisms)
+    - [3.4 - ODE Management Console](#34---ode-management-console)
+- [4 - Architecture Pattern](#4---architecture-pattern)
+    - [4.1 - Pattern Description](#41---pattern-description)
+    - [4.2 - Pattern Topology](#42---pattern-topology)
+- [5 - JPO ODE Micro-services Topology](#5---jpo-ode-micro-services-topology)
+  - [5.1 - Deployments](#51---deployments)
+  - [5.2 - Architecture Module Reference](#52---architecture-module-reference)
+    - [Core ODE Services](#core-ode-services)
+    - [Data Import Services](#data-import-services)
+    - [Data Processing Services](#data-processing-services)
+    - [Data Export Services](#data-export-services)
+    - [System-Wide Services](#system-wide-services)
+    - [Supporting Libraries](#supporting-libraries)
+    - [Notes](#notes)
+- [6 - Appendix](#6---appendix)
+    - [6.1 - Glossary](#61---glossary)
 
 <a name="version-history"></a>
 
@@ -352,7 +360,7 @@ _Figure 7 - JPO ODE Micro-services Topology_
 
 <a name="deployments"></a>
 
-### 5.1 - Deployments
+## 5.1 - Deployments
 
 Docker is utilized as the primary deployment mechanism to
 compartmentalize each of the designed micro-services into separate
@@ -360,6 +368,76 @@ containers. Docker is used to package all components in a composite of
 containers each running a distinct service. The ODE application runs in
 one container, its submodules run in separate containers and other major
 frameworks such as Kafka run in their own separate containers.
+
+<a name="architecture-module-reference"></a>
+
+## 5.2 - Architecture Module Reference
+
+This section provides implementation details for the modules shown in the
+ODE TMC architecture diagrams, including feature descriptions, interfaces,
+deployment roles, and source code references.
+
+### Core ODE Services
+
+| Module | Purpose | Interface(s) | Implementation / Codebase |
+|--------|---------|--------------|----------------------------|
+| REST API | Accepts Traveler Information Messages (TIM), Probe Data Messages (PDM), and management requests into the ODE processing pipeline. | HTTP/REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| Kafka Data Streams | Primary internal messaging bus used for inter-service communication and publish/subscribe routing of JSON and POJO message streams. | Kafka Producer/Consumer APIs | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode), [jpo-utils](https://github.com/usdot-jpo-ode/jpo-utils) |
+| UDP (ASN.1) Input | Receives ASN.1 UPER encoded J2735 messages for direct ingestion and decoding. | UDP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| Log Upload Folder | File-based ingestion mechanism for uploaded OBU and infrastructure log files. | File System / SCP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| SNMP to RSU | Supports TIM query, deposit, and deletion operations with roadside units (RSUs). | SNMP / NTCIP1218 / RSU MIB 4.1 | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+
+### Data Import Services
+
+| Module | Purpose | Interface(s) | Implementation / Codebase |
+|--------|---------|--------------|----------------------------|
+| BSM Importer | Ingests and routes Basic Safety Messages (BSM). | Kafka, UDP, File Upload | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| TIM Importer | Ingests and routes Traveler Information Messages (TIM). | REST, Kafka, SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| Distress Notification Importer | Imports distress notification events for downstream processing. | Kafka / REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+
+### Data Processing Services
+
+| Module | Purpose | Interface(s) | Implementation / Codebase |
+|--------|---------|--------------|----------------------------|
+| Privacy Protection Module | Filters and sanitizes BSM data to reduce privacy risk and support geofencing/privacy policies. | Kafka | [jpo-cvdp](https://github.com/usdot-jpo-ode/jpo-cvdp) |
+| ASN.1 Message Deduplication Module | Removes duplicate ASN.1 messages before downstream processing/archiving. | Kafka | [jpo-deduplicator](https://github.com/usdot-jpo-ode/jpo-deduplicator) |
+| ASN.1 Decoder Module | Decodes ASN.1 UPER/COER encoded J2735 messages into XER. | Kafka | [asn1_codec](https://github.com/usdot-jpo-ode/asn1_codec) |
+| ASN.1 Encoder Module | Encodes XER messages into ASN.1 formats for outbound transmission. | Kafka | [asn1_codec](https://github.com/usdot-jpo-ode/asn1_codec) |
+| HAAS Alert J2735 Module | Processes HAAS alerts messaging and generates J2735 messages for V2X transmission. | Kafka | [jpo-haas-asn1-bridge](https://github.com/usdot-jpo-ode/jpo-haas-asn1-bridge) |
+| RTK Ingest J2735 Module | Imports and processes RTK correction messages. | Kafka / UDP | [jpo-rtk-asn1-bridge](https://github.com/usdot-jpo-ode/jpo-rtk-asn1-bridge) |
+| GeoJSON Converter | Converts location-based data into GeoJSON format. | Internal service | [jpo-geojsonconverter](https://github.com/usdot-jpo-ode/jpo-geojsonconverter) |
+| Conflict Monitor | Supports conflict detection and monitoring workflows. | Kafka | [jpo-conflictmonitor](https://github.com/usdot-jpo-ode/jpo-conflictmonitor) |
+
+### Data Export Services
+
+| Module | Purpose | Interface(s) | Implementation / Codebase |
+|--------|---------|--------------|----------------------------|
+| S3 Depositor Module | Stores exported ODE data into AWS S3-compatible storage. | AWS S3 API | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| JPO MEC MQTT Depositor | Publishes processed data to external MQTT brokers or MEC environments. | MQTT | [jpo-mec-deposit](https://github.com/usdot-jpo-ode/jpo-mec-deposit) |
+| SNMP Depositor | Sends TIM and related messages to RSUs via SNMP. | SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| SDX Depositor | Publishes data to Situational Data Exchange (SDX). | External API | [jpo-sdw-depositor](https://github.com/usdot-jpo-ode/jpo-sdw-depositor) |
+
+### System-Wide Services
+
+| Module | Purpose | Interface(s) | Implementation / Codebase |
+|--------|---------|--------------|----------------------------|
+| Kafka Message Bus | Distributed event backbone for ODE services. | Kafka | [jpo-utils](https://github.com/usdot-jpo-ode/jpo-utils) |
+| Security Module | Supports IEEE 1609.2 signing, encryption, and certificate management. | REST / Internal service | [jpo-security-svcs](https://github.com/usdot-jpo-ode/jpo-security-svcs) |
+| Message Database (MongoDB) | Optional persistence layer for ODE output topics. | MongoDB / Kafka Connect | [jpo-utils](https://github.com/usdot-jpo-ode/jpo-utils) |
+
+### Supporting Libraries
+
+| Library | Purpose | Codebase |
+|--------|---------|----------|
+| ASN.1 POJOs | Java POJOs representing J2735 ASN.1 message schemas. | [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos) |
+| ODE Output Validator Library | Schema validation and output verification utilities. | [ode-output-validator-library](https://github.com/usdot-jpo-ode/ode-output-validator-library) |
+
+### Notes
+
+- Optional modules may be enabled through Docker Compose profiles or
+  deployment-specific configuration.
+- Repository links reflect the current public source locations for each
+  major service or library.
 
 <a name="appendix"></a>
 

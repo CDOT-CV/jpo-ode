@@ -4,7 +4,7 @@ spring:
   kafka:
     consumer:
       enable-auto-commit: true
-      auto-commit-interval: 1000
+      auto-commit-interval: ${KAFKA_AUTO_COMMIT_INTERVAL:1000}
       bootstrap-servers: ${ODE_KAFKA_BROKERS}
     producer:
       acks: "all"
@@ -17,6 +17,7 @@ spring:
         attempts: 0
     listener:
       log-container-config: true
+      concurrency: ${ODE_KAFKA_LISTENER_CONCURRENCY:10}
   http:
     multipart:
       max-file-size: 1MB

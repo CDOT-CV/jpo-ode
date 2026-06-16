@@ -1,6 +1,4 @@
-| Sonar Code Quality | Sonar Code Coverage |
-|---------------------|---------------------|
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=usdot.jpo.ode%3Ajpo-ode&metric=alert_status)](https://sonarcloud.io/dashboard?id=usdot.jpo.ode%3Ajpo-ode) | [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=usdot.jpo.ode%3Ajpo-ode&metric=coverage)](https://sonarcloud.io/dashboard?id=usdot.jpo.ode%3Ajpo-ode) |
+![GitHub Release](https://img.shields.io/github/v/release/usdot-jpo-ode/jpo-ode) [![CI](https://github.com/usdot-jpo-ode/jpo-ode/actions/workflows/ci.yml/badge.svg)](https://github.com/usdot-jpo-ode/jpo-ode/actions/workflows/ci.yml) ![Docker Pulls](https://img.shields.io/docker/pulls/usdotjpoode/jpo-ode) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=usdot.jpo.ode%3Ajpo-ode&metric=alert_status)](https://sonarcloud.io/dashboard?id=usdot.jpo.ode%3Ajpo-ode) ![GitHub License](https://img.shields.io/github/license/usdot-jpo-ode/jpo-ode)
 
 # jpo-ode
 
@@ -11,6 +9,8 @@ The ITS ODE is a real-time virtual data router that ingests and processes operat
 ![Figure 1: ODE Dataflows](docs/images/readme/figure1.png)
 
 _Figure 1: ODE Dataflows_
+
+For a module-by-module description of the components in this diagram, see [Architecture Section 5.2 – Architecture Module Reference](docs/Architecture.md#52---architecture-module-reference).
 
 **Documentation:**
 
@@ -444,6 +444,23 @@ In order to utilize Confluent Cloud:
 
 #### Note
 
+### Port Mapped Receiver Configuration
+Many production deployments may not send intersection data directly from an RSU unit. This often happens if another device is responsible for generating MAP / SPaT messages or if a proxy or load balancer is used between an RSU unit and the ODE. To handle these edge cases the ODE has a configurable port-mapped receiver which can be used for receiving data on a variety of ports. The intent of this feature is to allow the ODE to continue to identify different source RSU units based upon the port the data is forwarded on. 
+
+To use port-mapped ingest, add an entry similar to the below to the application.yaml file. The entry below creates a BSM receiver which listens on port 1234. Any BSM data received on port 1234 will be marked as having been received from the IP 1.2.3.4.
+
+```
+port-mapped-ingest:
+  sources:
+    - intersectipon-name: "Name"
+      intersection-id: 1234
+      origin-ip: 1.2.3.4
+      port: 1234
+      type: BSM
+```
+
+Please note, ports added here are not automatically opened in the host docker container. Any port added here should separately be added to the running docker container.
+
 This has only been tested with Confluent Cloud but technically all SASL authenticated Kafka brokers can be reached using this method.
 
 [Back to top](#table-of-contents)
@@ -463,6 +480,8 @@ To sink streamed kafka topic data to a MongoDB database, a kafka connect and Mon
 The configuration that defines this is in the jpo-utils submodule [here](jpo-utils\kafka-connect\connect_start.sh). This script is attached to the `connect` container as a volume and if you would like to sink different topics then feel free to make a copy of the `connect_start.sh` script and attach it to the `connect` container to the following path: `/scripts/connect_start.sh`. The script can be overridden by setting the `CONNECT_SCRIPT_RELATIVE_PATH` to a location relative to the `/jpo-utils` repository.
 
 For further documentation on configuring the MongoDB Kafka Connect image refer [to this readme](jpo-utils/README.md).
+
+
 
 ## Note
 
