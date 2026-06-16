@@ -115,7 +115,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     return sb.toString();
   }
 
-  private void routeMessageByMessageType(String messageType, DatagramPacket packet)
+  protected void routeMessageByMessageType(String messageType, DatagramPacket packet)
       throws InvalidPayloadException, UnsupportedMessageTypeException {
     log.debug("Detected Message Type {}", messageType);
     switch (messageType) {

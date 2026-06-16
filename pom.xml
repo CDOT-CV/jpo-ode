@@ -13,12 +13,12 @@
 
   <scm>
     <developerConnection>scm:git:https://github.com/usdot-jpo-ode/jpo-ode.git</developerConnection>
-    <tag>jpo-ode-5.1.0</tag>
+    <tag>jpo-ode-6.0.0</tag>
   </scm>
 
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>5.1.0</version>
+  <version>6.0.0</version>
   <packaging>pom</packaging>
   <modules>
     <module>jpo-ode-common</module>
@@ -151,7 +151,9 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>3.2.5</version>
           <configuration>
-            <argLine>@{argLine} -javaagent:${user.home}/.m2/repository/com/github/hazendaz/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar -Xshare:off</argLine>
+            <argLine>@{argLine}
+              -javaagent:${user.home}/.m2/repository/com/github/hazendaz/jmockit/jmockit/${jmockit.version}/jmockit-${jmockit.version}.jar
+              -Xshare:off</argLine>
             <!-- <testFailureIgnore>true</testFailureIgnore> -->
             <systemPropertyVariables>
               <loader.path>${loader.path}</loader.path>
