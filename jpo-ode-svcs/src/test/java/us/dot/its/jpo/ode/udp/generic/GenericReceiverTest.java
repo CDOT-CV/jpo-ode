@@ -7,43 +7,52 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.common.serialization.StringDeserializer;
 import org.json.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class,},
-    properties = {"ode.receivers.generic.receiver-port=15460",
+    classes = {
+        KafkaConsumerConfig.class,
+        KafkaProducerConfig.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class
+    },
+    properties = {
+        "ode.receivers.generic.receiver-port=15470",
         "ode.kafka.topics.raw-encoded-json.bsm=topic.GenericReceiverTestBSM",
         "ode.kafka.topics.raw-encoded-json.map=topic.GenericReceiverTestMAP",
         "ode.kafka.topics.raw-encoded-json.psm=topic.GenericReceiverTestPSM",
@@ -53,9 +62,24 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.srm=topic.GenericReceiverTestSRM",
         "ode.kafka.topics.raw-encoded-json.sdsm=topic.GenericReceiverTestSDSM",
         "ode.kafka.topics.raw-encoded-json.rtcm=topic.GenericReceiverTestRTCM",
-        "ode.kafka.topics.raw-encoded-json.rsm=topic.GenericReceiverTestRSM"})
-@ContextConfiguration(classes = {UDPReceiverProperties.class, OdeKafkaProperties.class,
-    RawEncodedJsonTopics.class, KafkaProperties.class})
+        "ode.kafka.topics.raw-encoded-json.rsm=topic.GenericReceiverTestRSM"
+    }
+)
+@EmbeddedKafka(
+    topics = {
+        "topic.GenericReceiverTestBSM",
+        "topic.GenericReceiverTestMAP",
+        "topic.GenericReceiverTestPSM",
+        "topic.GenericReceiverTestSPAT",
+        "topic.GenericReceiverTestSSM",
+        "topic.GenericReceiverTestTIM",
+        "topic.GenericReceiverTestSRM",
+        "topic.GenericReceiverTestSDSM",
+        "topic.GenericReceiverTestRTCM",
+        "topic.GenericReceiverTestRSM"
+    }
+)
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class GenericReceiverTest {
@@ -69,7 +93,8 @@ class GenericReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
 
   private GenericReceiver genericReceiver;
   private ExecutorService executorService;
@@ -78,25 +103,31 @@ class GenericReceiverTest {
 
   @BeforeAll
   void startReceiver() {
-    String[] topics = {rawEncodedJsonTopics.getBsm(), rawEncodedJsonTopics.getMap(),
-        rawEncodedJsonTopics.getPsm(), rawEncodedJsonTopics.getSpat(),
-        rawEncodedJsonTopics.getSsm(), rawEncodedJsonTopics.getTim(), rawEncodedJsonTopics.getSrm(),
-        rawEncodedJsonTopics.getSdsm(), rawEncodedJsonTopics.getRtcm(),
-        rawEncodedJsonTopics.getRsm()};
-    EmbeddedKafkaHolder.addTopics(topics);
+    prevClock = DateTimeUtils
+        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
 
     genericReceiver = new GenericReceiver(udpReceiverProperties.getGeneric(), kafkaTemplate,
         rawEncodedJsonTopics);
     executorService = Executors.newCachedThreadPool();
     executorService.submit(genericReceiver);
 
-    var consumerProps = KafkaTestUtils.consumerProps("GenericReceiverTest", "true", embeddedKafka);
-    consumer = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
-        new StringDeserializer()).createConsumer();
-    embeddedKafka.consumeFromEmbeddedTopics(consumer, topics);
+    String[] topics = {
+        rawEncodedJsonTopics.getBsm(),
+        rawEncodedJsonTopics.getMap(),
+        rawEncodedJsonTopics.getPsm(),
+        rawEncodedJsonTopics.getSpat(),
+        rawEncodedJsonTopics.getSsm(),
+        rawEncodedJsonTopics.getTim(),
+        rawEncodedJsonTopics.getSrm(),
+        rawEncodedJsonTopics.getSdsm(),
+        rawEncodedJsonTopics.getRtcm(),
+        rawEncodedJsonTopics.getRsm()
+    };
 
-    prevClock = DateTimeUtils
-        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneOffset.UTC));
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "GenericReceiverTest", true);
+    var cf = new DefaultKafkaConsumerFactory<String, String>(consumerProps);
+    consumer = cf.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(consumer, topics);
   }
 
   @AfterAll
@@ -112,11 +143,11 @@ class GenericReceiverTest {
   private static Map<String, MsgFiles> buildFiles(String variant) {
     String base = "src/test/resources/us/dot/its/jpo/ode/udp/";
     String srmInput = variant.isEmpty()
-        ? base + "srm/SrmReceiverTest_ValidData.txt"
-        : base + "srm/SrmReceiverTest_ValidData" + variant + ".txt";
+        ? base + "srm/SrmReceiverTest_ValidSRM.txt"
+        : base + "srm/SrmReceiverTest_ValidSRM" + variant + ".txt";
     String srmExpected = variant.isEmpty()
-        ? base + "srm/SrmReceiverTest_ExpectedOutput.json"
-        : base + "srm/SrmReceiverTest_ExpectedOutput" + variant + ".json";
+        ? base + "srm/SrmReceiverTest_ValidSRM_expected.json"
+        : base + "srm/SrmReceiverTest_ValidSRM" + variant + "_expected.json";
     return Map.of(
         "PSM",  new MsgFiles(base + "psm/PsmReceiverTest_ValidPSM" + variant + ".txt",
                              base + "psm/PsmReceiverTest_ValidPSM" + variant + "_expected.json"),
@@ -133,8 +164,8 @@ class GenericReceiverTest {
         "SRM",  new MsgFiles(srmInput, srmExpected),
         "SDSM", new MsgFiles(base + "sdsm/SdsmReceiverTest_ValidSDSM" + variant + ".txt",
                              base + "sdsm/SdsmReceiverTest_ValidSDSM" + variant + "_expected.json"),
-        "RTCM", new MsgFiles(base + "rtcm/RtcmReceiverTest_ValidRTC" + variant + ".txt",
-                             base + "rtcm/RtcmReceiverTest_ValidRTC" + variant + "_expected.json"),
+        "RTCM", new MsgFiles(base + "rtcm/RtcmReceiverTest_ValidRTCM" + variant + ".txt",
+                             base + "rtcm/RtcmReceiverTest_ValidRTCM" + variant + "_expected.json"),
         "RSM",  new MsgFiles(base + "rsm/RsmReceiverTest_ValidRSM" + variant + ".txt",
                              base + "rsm/RsmReceiverTest_ValidRSM" + variant + "_expected.json")
     );

@@ -7,7 +7,7 @@
   <parent>
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-ode</artifactId>
-    <version>6.0.0</version>
+    <version>6.0.1</version>
   </parent>
 
   <artifactId>jpo-ode-common</artifactId>
@@ -41,12 +41,11 @@
     <dependency>
       <groupId>jakarta.xml.bind</groupId>
       <artifactId>jakarta.xml.bind-api</artifactId>
-      <version>4.0.0</version>
-    </dependency>
+      <version>4.0.5</version>
+		</dependency>
     <dependency>
-      <groupId>javax.websocket</groupId>
-      <artifactId>javax.websocket-client-api</artifactId>
-      <version>1.1</version>
+      <groupId>jakarta.websocket</groupId>
+      <artifactId>jakarta.websocket-client-api</artifactId>
     </dependency>
     <dependency>
       <groupId>com.esotericsoftware</groupId>

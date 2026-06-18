@@ -17,33 +17,45 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
+import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
+import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
 import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 @EnableConfigurationProperties
 @SpringBootTest(
-    classes = {OdeKafkaProperties.class, UDPReceiverProperties.class, KafkaProducerConfig.class,
-        SerializationConfig.class, TestMetricsConfig.class,},
-    properties = {"ode.receivers.psm.receiver-port=15456",
-        "ode.kafka.topics.raw-encoded-json.psm=topic.PsmReceiverTest"})
-@ContextConfiguration(
-    classes = {UDPReceiverProperties.class, RawEncodedJsonTopics.class, KafkaProperties.class})
+    classes = {
+        KafkaConsumerConfig.class,
+        KafkaProducerConfig.class,
+        SerializationConfig.class,
+        TestMetricsConfig.class,
+        UDPReceiverProperties.class,
+        OdeKafkaProperties.class,
+        RawEncodedJsonTopics.class,
+        KafkaProperties.class
+    },
+    properties = {
+        "ode.receivers.psm.receiver-port=15456",
+        "ode.kafka.topics.raw-encoded-json.psm=topic.PsmReceiverTest"
+    }
+)
+@EmbeddedKafka(topics = "topic.PsmReceiverTest")
+@TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PsmReceiverTest {
@@ -60,23 +72,36 @@ class PsmReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  EmbeddedKafkaBroker embeddedKafka = EmbeddedKafkaHolder.getEmbeddedKafka();
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
 
   private PsmReceiver psmReceiver;
   private ExecutorService executorService;
   private Consumer<Integer, String> consumer;
   private Clock prevClock;
 
+  @Test
+    void testRawJ2735() throws Exception {
+        runTest(BASE + "PsmReceiverTest_ValidPSM.txt",
+                BASE + "PsmReceiverTest_ValidPSM_expected.json");
+    }
+
+  @Test
+  void testWithSignature() throws Exception {
+    runTest(BASE + "PsmReceiverTest_ValidPSM_WithSignature.txt",
+            BASE + "PsmReceiverTest_ValidPSM_WithSignature_expected.json");
+  }
+
   @BeforeAll
   void startReceiver() {
-    EmbeddedKafkaHolder.addTopics(rawEncodedJsonTopics.getPsm());
     prevClock = DateTimeUtils
-        .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+            .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
     psmReceiver = new PsmReceiver(udpReceiverProperties.getPsm(), kafkaTemplate,
-        rawEncodedJsonTopics.getPsm());
+            rawEncodedJsonTopics.getPsm());
     executorService = Executors.newCachedThreadPool();
     executorService.submit(psmReceiver);
-    var consumerProps = KafkaTestUtils.consumerProps("PsmReceiverTest", "true", embeddedKafka);
+
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "PsmReceiverTest", true);
     consumer = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps).createConsumer();
     embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getPsm());
   }
@@ -89,34 +114,23 @@ class PsmReceiverTest {
     DateTimeUtils.setClock(prevClock);
   }
 
-  @Test
-  void testRawJ2735() throws Exception {
-    runTest(BASE + "PsmReceiverTest_ValidPSM.txt",
-        BASE + "PsmReceiverTest_ValidPSM_expected.json");
-  }
-
-  @Test
-  void testWithSignature() throws Exception {
-    runTest(BASE + "PsmReceiverTest_ValidPSM_WithSignature.txt",
-        BASE + "PsmReceiverTest_ValidPSM_WithSignature_expected.json");
-  }
-
   private void runTest(String inputFile, String expectedFile) throws Exception {
-    String fileContent = Files.readString(Paths.get(inputFile));
-    String expected = Files.readString(Paths.get(expectedFile));
+      String fileContent = Files.readString(Paths.get(inputFile));
+      String expected = Files.readString(Paths.get(expectedFile));
 
-    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getPsm().getReceiverPort());
-    udpClient.send(fileContent);
+      TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getPsm().getReceiverPort());
+      udpClient.send(fileContent);
 
-    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getPsm());
-    JSONObject producedJson = new JSONObject(singleRecord.value());
-    JSONObject expectedJson = new JSONObject(expected);
+      var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getPsm());
+      assertNotEquals(expected, singleRecord.value());
+      JSONObject producedJson = new JSONObject(singleRecord.value());
+      JSONObject expectedJson = new JSONObject(expected);
 
-    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-        producedJson.getJSONObject("metadata").get("serialId"));
-    expectedJson.getJSONObject("metadata").remove("serialId");
-    producedJson.getJSONObject("metadata").remove("serialId");
+      assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+          producedJson.getJSONObject("metadata").get("serialId"));
+      expectedJson.getJSONObject("metadata").remove("serialId");
+      producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(expectedJson.toString(2), producedJson.toString(2));
+      assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }
