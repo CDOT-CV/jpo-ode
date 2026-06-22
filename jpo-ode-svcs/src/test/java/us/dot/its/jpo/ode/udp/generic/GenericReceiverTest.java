@@ -207,6 +207,7 @@ class GenericReceiverTest {
     JSONObject producedJson = new JSONObject(record.value());
     JSONObject expectedJson = new JSONObject(expected);
 
+    // serialId is generated at ingest time, so it should differ per message and is excluded from JSON comparison
     assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
         producedJson.getJSONObject("metadata").get("serialId"));
     expectedJson.getJSONObject("metadata").remove("serialId");
