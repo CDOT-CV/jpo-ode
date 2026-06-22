@@ -42,8 +42,17 @@ public class PortMappedIngestConfigLoader {
         source.setType(type);
       }
 
+      ReceiverProperties receiverProperties = buildReceiverProperties(udpProps, source);
+
+      // Checking for a null case outcome
+      if (receiverProperties == null) {
+        log.error("Configurable UDP ingest source has missing UDP properties. type={}, port={}",
+            source.getType(), source.getPort());
+        continue;
+      }
+
       PortMappedConfigurableReceiver receiver = new PortMappedConfigurableReceiver(
-          buildReceiverProperties(udpProps, source),
+          receiverProperties,
           kafkaTemplate,
           rawEncodedJsonTopics,
           source
