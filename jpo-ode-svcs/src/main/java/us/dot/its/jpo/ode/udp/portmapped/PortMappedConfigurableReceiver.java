@@ -14,7 +14,7 @@ import us.dot.its.jpo.ode.udp.generic.GenericReceiver;
 
 /**
  * PortMappedConfigurableReceiver is a class that listens for UDP packets and processes them based on the
- * determined message type. It extends GenericReceiver to take advantage multi message routing
+ * determined message type. It extends GenericReceiver to take advantage of multi message routing
  *
  * </p>The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType}
  * message types encoded in UDP packets such as and routes them to the appropriate Kafka topic.
