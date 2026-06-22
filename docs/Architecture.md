@@ -381,7 +381,7 @@ deployment roles, and source code references.
 
 | Module | Purpose | Interface(s) | Implementation / Codebase |
 |--------|---------|--------------|----------------------------|
-| REST API | Accepts Traveler Information Messages (TIM), Probe Data Messages (PDM), and management requests into the ODE processing pipeline. | HTTP/REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| REST API | Accepts Traveler Information Message (TIM) metadata, Probe Data Messages (PDM), and management requests into the ODE processing pipeline. | HTTP/REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | Kafka Data Streams | Primary internal messaging bus used for inter-service communication and publish/subscribe routing of JSON and POJO message streams. | Kafka Producer/Consumer APIs | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode), [jpo-utils](https://github.com/usdot-jpo-ode/jpo-utils) |
 | UDP (ASN.1) Input | Receives ASN.1 UPER encoded J2735 messages for direct ingestion and decoding. | UDP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | Log Upload Folder | File-based ingestion mechanism for uploaded OBU and infrastructure log files. | File System / SCP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
@@ -392,8 +392,7 @@ deployment roles, and source code references.
 | Module | Purpose | Interface(s) | Implementation / Codebase |
 |--------|---------|--------------|----------------------------|
 | BSM Importer | Ingests and routes Basic Safety Messages (BSM). | Kafka, UDP, File Upload | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
-| TIM Importer | Ingests and routes Traveler Information Messages (TIM). | REST, Kafka, SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
-| Distress Notification Importer | Imports distress notification events for downstream processing. | Kafka / REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| TIM Importer | Ingests and routes Traveler Information Message (TIM) metadata to generate appropriate J2735 messages. | REST, Kafka, SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 
 ### Data Processing Services
 
@@ -412,7 +411,6 @@ deployment roles, and source code references.
 
 | Module | Purpose | Interface(s) | Implementation / Codebase |
 |--------|---------|--------------|----------------------------|
-| S3 Depositor Module | Stores exported ODE data into AWS S3-compatible storage. | AWS S3 API | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | JPO MEC MQTT Depositor | Publishes processed data to external MQTT brokers or MEC environments. | MQTT | [jpo-mec-deposit](https://github.com/usdot-jpo-ode/jpo-mec-deposit) |
 | SNMP Depositor | Sends TIM and related messages to RSUs via SNMP. | SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | SDX Depositor | Publishes data to Situational Data Exchange (SDX). | External API | [jpo-sdw-depositor](https://github.com/usdot-jpo-ode/jpo-sdw-depositor) |
