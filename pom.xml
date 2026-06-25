@@ -13,12 +13,12 @@
 
   <scm>
     <developerConnection>scm:git:https://github.com/usdot-jpo-ode/jpo-ode.git</developerConnection>
-    <tag>jpo-ode-6.0.0</tag>
+    <tag>jpo-ode-7.0.0-alpha1</tag>
   </scm>
 
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>6.0.0</version>
+  <version>7.0.0-alpha1</version>
   <packaging>pom</packaging>
   <modules>
     <module>jpo-ode-common</module>
@@ -193,6 +193,28 @@
 
       </plugins>
     </pluginManagement>
+    <plugins>
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals>
+              <goal>prepare-agent</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>test</phase>
+            <goals>
+              <goal>report</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
   <reporting>
     <plugins>

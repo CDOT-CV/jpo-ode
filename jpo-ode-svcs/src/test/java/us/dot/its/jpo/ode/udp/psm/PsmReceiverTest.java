@@ -8,20 +8,23 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import org.apache.kafka.clients.consumer.Consumer;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -51,10 +54,14 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         "ode.kafka.topics.raw-encoded-json.psm=topic.PsmReceiverTest"
     }
 )
-@EmbeddedKafka
+@EmbeddedKafka(topics = "topic.PsmReceiverTest")
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PsmReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/psm/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
@@ -65,48 +72,65 @@ class PsmReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private CompletableFuture<String> future;
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
+
+  private PsmReceiver psmReceiver;
+  private ExecutorService executorService;
+  private Consumer<Integer, String> consumer;
+  private Clock prevClock;
 
   @Test
-  void testRun() throws Exception {
-    future = new CompletableFuture<>();
+    void testRawJ2735() throws Exception {
+        runTest(BASE + "PsmReceiverTest_ValidPSM.txt",
+                BASE + "PsmReceiverTest_ValidPSM_expected.json");
+    }
 
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+  @Test
+  void testWithSignature() throws Exception {
+    runTest(BASE + "PsmReceiverTest_ValidPSM_WithSignature.txt",
+            BASE + "PsmReceiverTest_ValidPSM_WithSignature_expected.json");
+  }
 
-    PsmReceiver psmReceiver = new PsmReceiver(udpReceiverProperties.getPsm(), kafkaTemplate,
-        rawEncodedJsonTopics.getPsm());
-    ExecutorService executorService = Executors.newCachedThreadPool();
+  @BeforeAll
+  void startReceiver() {
+    prevClock = DateTimeUtils
+            .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    psmReceiver = new PsmReceiver(udpReceiverProperties.getPsm(), kafkaTemplate,
+            rawEncodedJsonTopics.getPsm());
+    executorService = Executors.newCachedThreadPool();
     executorService.submit(psmReceiver);
 
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM.txt"));
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/psm/PsmReceiverTest_ValidPSM_expected.json"));
+    var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "PsmReceiverTest", true);
+    consumer = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps).createConsumer();
+    embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getPsm());
+  }
 
-    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getPsm().getReceiverPort());
-    udpClient.send(fileContent);
-
-    String actualPayload = future.get(3, TimeUnit.SECONDS);
-
-    assertNotEquals(expected, actualPayload);
-
-    JSONObject producedJson = new JSONObject(actualPayload);
-    JSONObject expectedJson = new JSONObject(expected);
-
-    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-        producedJson.getJSONObject("metadata").get("serialId"));
-    expectedJson.getJSONObject("metadata").remove("serialId");
-    producedJson.getJSONObject("metadata").remove("serialId");
-
-    assertEquals(expectedJson.toString(2), producedJson.toString(2));
-
+  @AfterAll
+  void cleanup() {
+    psmReceiver.setStopped(true);
+    executorService.shutdown();
+    consumer.close();
     DateTimeUtils.setClock(prevClock);
   }
 
-  @KafkaListener(topics = "topic.PsmReceiverTest")
-  public void receive(String payload) {
-    future.complete(payload);
+  private void runTest(String inputFile, String expectedFile) throws Exception {
+      String fileContent = Files.readString(Paths.get(inputFile));
+      String expected = Files.readString(Paths.get(expectedFile));
+
+      TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getPsm().getReceiverPort());
+      udpClient.send(fileContent);
+
+      var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getPsm());
+      assertNotEquals(expected, singleRecord.value());
+      JSONObject producedJson = new JSONObject(singleRecord.value());
+      JSONObject expectedJson = new JSONObject(expected);
+
+      assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+          producedJson.getJSONObject("metadata").get("serialId"));
+      expectedJson.getJSONObject("metadata").remove("serialId");
+      producedJson.getJSONObject("metadata").remove("serialId");
+
+      assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }

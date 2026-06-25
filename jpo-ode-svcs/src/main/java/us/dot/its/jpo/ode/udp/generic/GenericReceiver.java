@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.udp.generic;
 
 import java.net.DatagramPacket;
+import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -16,8 +17,9 @@ import us.dot.its.jpo.ode.uper.UperUtil;
  * determined message type. It extends AbstractUdpReceiverPublisher to take advantage of the
  * runnable interface for running the receiver service in a separate thread.
  *
- * </p>The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType}
- * message types encoded in UDP packets such as and routes them to the appropriate Kafka topic.
+ * </p>
+ * The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType} message
+ * types encoded in UDP packets and routes them to the appropriate Kafka topic.
  */
 @Slf4j
 public class GenericReceiver extends AbstractUdpReceiverPublisher {
@@ -29,11 +31,11 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
    * Constructs a new GenericReceiver with the specified properties, Kafka template, and raw encoded
    * JSON topics.
    *
-   * @param props                the receiver properties containing configuration settings such as
-   *                             port and buffer size
-   * @param kafkaTemplate        the KafkaTemplate used for publishing messages
+   * @param props the receiver properties containing configuration settings such as port and buffer
+   *        size
+   * @param kafkaTemplate the KafkaTemplate used for publishing messages
    * @param rawEncodedJsonTopics the configuration object containing the topics used to publish
-   *                             messages
+   *        messages
    */
   public GenericReceiver(ReceiverProperties props, KafkaTemplate<String, String> kafkaTemplate,
       RawEncodedJsonTopics rawEncodedJsonTopics) {
@@ -52,6 +54,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
       buffer = new byte[bufferSize];
       // packet should be recreated on each loop to prevent latent data in buffer
       DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+      String detectedMessageType = null;
       try {
         log.debug("Waiting for Generic UDP packets...");
         socket.receive(packet);
@@ -68,23 +71,51 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
         log.debug("Raw Payload {}", payloadHexString);
 
-        String messageType = UperUtil.determineHexPacketType(payloadHexString);
-        routeMessageByMessageType(messageType, packet);
+        detectedMessageType = UperUtil.determineHexPacketType(payloadHexString);
+        routeMessageByMessageType(detectedMessageType, packet);
 
       } catch (UnsupportedMessageTypeException e) {
-        log.error("Unsupported Message Type", e);
+        log.error("Unsupported message type (detected={}, exception={}). Packet: {}.",
+            detectedMessageType, e.getMessage(), describePacketForLog(packet), e);
       } catch (InvalidPayloadException e) {
-        log.error("Error decoding packet", e);
+        log.error("Error decoding {} packet ({}). Packet: {}.",
+            detectedMessageType != null ? detectedMessageType : "unknown", e.getMessage(),
+            describePacketForLog(packet), e);
       } catch (Exception e) {
-        log.error("Error receiving packet", e);
+        log.error("Error receiving or processing packet (detectedMessageType={}). Packet: {}.",
+            detectedMessageType, describePacketForLog(packet), e);
       }
     } while (!isStopped());
   }
 
-  private void routeMessageByMessageType(
-      String messageType,
-      DatagramPacket packet
-  ) throws InvalidPayloadException, UnsupportedMessageTypeException {
+  /**
+   * Formats UDP packet metadata and a hex preview of the received bytes for troubleshooting. Hex is
+   * capped to avoid flooding logs on large payloads.
+   */
+  private static String describePacketForLog(DatagramPacket packet) {
+    if (packet == null) {
+      return "(null packet)";
+    }
+    StringBuilder sb = new StringBuilder(128);
+    if (packet.getAddress() != null) {
+      sb.append("from ").append(packet.getAddress().getHostAddress()).append(':')
+          .append(packet.getPort()).append(", ");
+    }
+    int len = packet.getLength();
+    sb.append("length=").append(len);
+    if (len <= 0 || packet.getData() == null) {
+      return sb.toString();
+    }
+    int off = packet.getOffset();
+    byte[] data = packet.getData();
+
+    String hex = HexUtils.toHexString(Arrays.copyOfRange(data, off, data.length)).toLowerCase();
+    sb.append(", hex=").append(hex);
+    return sb.toString();
+  }
+
+  protected void routeMessageByMessageType(String messageType, DatagramPacket packet)
+      throws InvalidPayloadException, UnsupportedMessageTypeException {
     log.debug("Detected Message Type {}", messageType);
     switch (messageType) {
       case "MAP" -> {

@@ -8,20 +8,23 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import org.apache.kafka.clients.consumer.Consumer;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -47,14 +50,18 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         KafkaProperties.class
     },
     properties = {
-        "ode.receivers.spat.receiver-port=15356",
+        "ode.receivers.spat.receiver-port=15462",
         "ode.kafka.topics.raw-encoded-json.spat=topic.SpatReceiverTest"
     }
 )
-@EmbeddedKafka
+@EmbeddedKafka(topics = "topic.SpatReceiverTest")
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SpatReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/spat/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
@@ -63,36 +70,60 @@ class SpatReceiverTest {
   RawEncodedJsonTopics rawEncodedJsonTopics;
 
   @Autowired
-  private KafkaTemplate<String, String> kafkaTemplate;
+  KafkaTemplate<String, String> kafkaTemplate;
 
-  private CompletableFuture<String> future;
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
+
+  private SpatReceiver spatReceiver;
+  private ExecutorService executorService;
+  private Consumer<Integer, String> consumer;
+  private Clock prevClock;
 
   @Test
-  void testRun() throws Exception {
-    future = new CompletableFuture<>();
+    void testRawJ2735() throws Exception {
+        runTest(BASE + "SpatReceiverTest_ValidSPAT.txt",
+                BASE + "SpatReceiverTest_ValidSPAT_expected.json");
+    }
 
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    @Test
+    void testWithSignature() throws Exception {
+        runTest(BASE + "SpatReceiverTest_ValidSPAT_WithSignature.txt",
+                BASE + "SpatReceiverTest_ValidSPAT_WithSignature_expected.json");
+    }
 
-    SpatReceiver spatReceiver = new SpatReceiver(udpReceiverProperties.getSpat(), kafkaTemplate,
-        rawEncodedJsonTopics.getSpat());
-    ExecutorService executorService = Executors.newCachedThreadPool();
-    executorService.submit(spatReceiver);
+    @BeforeAll
+    void startReceiver() {
+        prevClock = DateTimeUtils
+                .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+        spatReceiver = new SpatReceiver(udpReceiverProperties.getSpat(), kafkaTemplate,
+                rawEncodedJsonTopics.getSpat());
+        executorService = Executors.newCachedThreadPool();
+        executorService.submit(spatReceiver);
 
-    String fileContent =
-        Files.readString(Paths.get(
-            "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT.txt"));
+        var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "SpatReceiverTest", true);
+        consumer = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps).createConsumer();
+        embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSpat());
+    }
 
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/spat/SpatReceiverTest_ValidSPAT_expected.json"));
+    @AfterAll
+    void cleanup() {
+        spatReceiver.setStopped(true);
+        executorService.shutdown();
+        consumer.close();
+        DateTimeUtils.setClock(prevClock);
+    }
+
+    private void runTest(String inputFile, String expectedFile) throws Exception {
+        String fileContent = Files.readString(Paths.get(inputFile));
+        String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSpat().getReceiverPort());
     udpClient.send(fileContent);
 
-    String actualPayload = future.get(3, TimeUnit.SECONDS);
-
-    assertNotEquals(expected, actualPayload);
-    JSONObject producedJson = new JSONObject(actualPayload);
+    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSpat());
+    assertNotEquals(expected, singleRecord.value());
+    JSONObject producedJson = new JSONObject(singleRecord.value());
     JSONObject expectedJson = new JSONObject(expected);
 
     assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
@@ -100,14 +131,6 @@ class SpatReceiverTest {
     expectedJson.getJSONObject("metadata").remove("serialId");
     producedJson.getJSONObject("metadata").remove("serialId");
 
-    assertEquals(
-        expectedJson.toString(2),
-        producedJson.toString(2));
-
-    DateTimeUtils.setClock(prevClock);
-  }
-  @KafkaListener(topics = "topic.SpatReceiverTest")
-  public void receive(String payload) {
-    future.complete(payload);
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }

@@ -8,20 +8,23 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import org.apache.kafka.clients.consumer.Consumer;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -47,14 +50,18 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         KafkaProperties.class
     },
     properties = {
-        "ode.receivers.srm.receiver-port=15459",
+        "ode.receivers.srm.receiver-port=15463",
         "ode.kafka.topics.raw-encoded-json.srm=topic.SrmReceiverTest"
     }
 )
-@EmbeddedKafka
+@EmbeddedKafka(topics = "topic.SrmReceiverTest")
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SrmReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/srm/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
@@ -65,35 +72,58 @@ class SrmReceiverTest {
   @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
-  private CompletableFuture<String> future;
+  @Autowired
+  EmbeddedKafkaBroker embeddedKafka;
+
+  private SrmReceiver srmReceiver;
+  private ExecutorService executorService;
+  private Consumer<Integer, String> consumer;
+  private Clock prevClock;
 
   @Test
-  void testRun() throws Exception {
-    future = new CompletableFuture<>();
+    void testRawJ2735() throws Exception {
+        runTest(BASE + "SrmReceiverTest_ValidSRM.txt",
+                BASE + "SrmReceiverTest_ValidSRM_expected.json");
+    }
 
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+    @Test
+    void testWithSignature() throws Exception {
+        runTest(BASE + "SrmReceiverTest_ValidSRM_WithSignature.txt",
+                BASE + "SrmReceiverTest_ValidSRM_WithSignature_expected.json");
+    }
 
-    SrmReceiver srmReceiver = new SrmReceiver(
-        udpReceiverProperties.getSrm(),
-        kafkaTemplate, rawEncodedJsonTopics.getSrm()
-    );
-    ExecutorService executorService = Executors.newCachedThreadPool();
-    executorService.submit(srmReceiver);
+    @BeforeAll
+    void startReceiver() {
+        prevClock = DateTimeUtils
+                .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+        srmReceiver = new SrmReceiver(udpReceiverProperties.getSrm(), kafkaTemplate,
+                rawEncodedJsonTopics.getSrm());
+        executorService = Executors.newCachedThreadPool();
+        executorService.submit(srmReceiver);
 
-    String fileContent = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ValidData.txt"));
-    String expected = Files.readString(Paths.get(
-        "src/test/resources/us/dot/its/jpo/ode/udp/srm/SrmReceiverTest_ExpectedOutput.json"));
+        var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "SrmReceiverTest", true);
+        consumer = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps).createConsumer();
+        embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getSrm());
+    }
+
+    @AfterAll
+    void cleanup() {
+        srmReceiver.setStopped(true);
+        executorService.shutdown();
+        consumer.close();
+        DateTimeUtils.setClock(prevClock);
+    }
+
+    private void runTest(String inputFile, String expectedFile) throws Exception {
+        String fileContent = Files.readString(Paths.get(inputFile));
+        String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
     udpClient.send(fileContent);
 
-    String actualPayload = future.get(3, TimeUnit.SECONDS);
-
-    assertNotEquals(expected, actualPayload);
-
-    JSONObject producedJson = new JSONObject(actualPayload);
+    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getSrm());
+    assertNotEquals(expected, singleRecord.value());
+    JSONObject producedJson = new JSONObject(singleRecord.value());
     JSONObject expectedJson = new JSONObject(expected);
 
     assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
@@ -102,12 +132,5 @@ class SrmReceiverTest {
     producedJson.getJSONObject("metadata").remove("serialId");
 
     assertEquals(expectedJson.toString(2), producedJson.toString(2));
-
-    DateTimeUtils.setClock(prevClock);
-  }
-
-  @KafkaListener(topics = "topic.SrmReceiverTest")
-  public void receive(String payload) {
-    future.complete(payload);
   }
 }

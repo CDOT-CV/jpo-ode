@@ -2,27 +2,29 @@ package us.dot.its.jpo.ode.udp.map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static us.dot.its.jpo.ode.test.utilities.ApprovalTestCase.deserializeTestCases;
 
-import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.time.ZoneId;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
+import org.apache.kafka.clients.consumer.Consumer;
 import org.json.JSONObject;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -31,11 +33,11 @@ import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
 import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
 import us.dot.its.jpo.ode.kafka.producer.KafkaProducerConfig;
 import us.dot.its.jpo.ode.kafka.topics.RawEncodedJsonTopics;
-import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
 import us.dot.its.jpo.ode.test.utilities.TestUDPClient;
 import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
+@EnableConfigurationProperties
 @SpringBootTest(
     classes = {
         KafkaConsumerConfig.class,
@@ -47,70 +49,88 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
         RawEncodedJsonTopics.class,
         KafkaProperties.class
     },
-    properties = {"ode.kafka.topics.raw-encoded-json.map=topic.MapReceiverTestMAPJSON",
-        "ode.receivers.map.receiver-port=12412"}
+    properties = {
+        "ode.receivers.map.receiver-port=15459",
+        "ode.kafka.topics.raw-encoded-json.map=topic.MapReceiverTest"
+    }
 )
-@EnableConfigurationProperties
-@EmbeddedKafka
+@EmbeddedKafka(topics = "topic.MapReceiverTest")
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @DirtiesContext
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MapReceiverTest {
+
+  private static final String BASE =
+      "src/test/resources/us/dot/its/jpo/ode/udp/map/";
 
   @Autowired
   UDPReceiverProperties udpReceiverProperties;
 
   @Autowired
+  RawEncodedJsonTopics rawEncodedJsonTopics;
+
+  @Autowired
   KafkaTemplate<String, String> kafkaTemplate;
 
   @Autowired
-  RawEncodedJsonTopics rawEncodedJsonTopics;
+  EmbeddedKafkaBroker embeddedKafka;
 
-  private final BlockingQueue<String> receivedMessages = new LinkedBlockingQueue<>();
+  private MapReceiver mapReceiver;
+  private ExecutorService executorService;
+  private Consumer<Integer, String> consumer;
+  private Clock prevClock;
 
   @Test
-  void testMapReceiver() throws IOException, InterruptedException {
-    // Set the clock to a fixed time so that the MapReceiver will produce the same output every time
-    final Clock prevClock = DateTimeUtils.setClock(
-        Clock.fixed(Instant.parse("2020-01-01T00:00:00Z"), Clock.systemUTC().getZone()));
+    void testRawJ2735() throws Exception {
+        runTest(BASE + "MapReceiverTest_ValidMAP.txt",
+                BASE + "MapReceiverTest_ValidMAP_expected.json");
+    }
 
-    MapReceiver mapReceiver = new MapReceiver(udpReceiverProperties.getMap(), kafkaTemplate,
-        rawEncodedJsonTopics.getMap());
-    ExecutorService executorService = Executors.newCachedThreadPool();
-    executorService.submit(mapReceiver);
+    @Test
+    void testWithSignature() throws Exception {
+        runTest(BASE + "MapReceiverTest_ValidMAP_WithSignature.txt",
+                BASE + "MapReceiverTest_ValidMAP_WithSignature_expected.json");
+    }
+
+    @BeforeAll
+    void startReceiver() {
+        prevClock = DateTimeUtils
+                .setClock(Clock.fixed(Instant.parse("2024-11-26T23:53:21.120Z"), ZoneId.of("UTC")));
+        mapReceiver = new MapReceiver(udpReceiverProperties.getMap(), kafkaTemplate,
+                rawEncodedJsonTopics.getMap());
+        executorService = Executors.newCachedThreadPool();
+        executorService.submit(mapReceiver);
+
+        var consumerProps = KafkaTestUtils.consumerProps(embeddedKafka, "MapReceiverTest", true);
+        consumer = new DefaultKafkaConsumerFactory<Integer, String>(consumerProps).createConsumer();
+        embeddedKafka.consumeFromAnEmbeddedTopic(consumer, rawEncodedJsonTopics.getMap());
+    }
+
+    @AfterAll
+    void cleanup() {
+        mapReceiver.setStopped(true);
+        executorService.shutdown();
+        consumer.close();
+        DateTimeUtils.setClock(prevClock);
+    }
+
+    private void runTest(String inputFile, String expectedFile) throws Exception {
+        String fileContent = Files.readString(Paths.get(inputFile));
+        String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getMap().getReceiverPort());
+    udpClient.send(fileContent);
 
-    String path =
-        "src/test/resources/us.dot.its.jpo.ode.udp.map/UDPMAP_To_EncodedJSON_Validation.json";
-    List<ApprovalTestCase> approvalTestCases = deserializeTestCases(path);
+    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getMap());
+    assertNotEquals(expected, singleRecord.value());
+    JSONObject producedJson = new JSONObject(singleRecord.value());
+    JSONObject expectedJson = new JSONObject(expected);
 
-    for (ApprovalTestCase approvalTestCase : approvalTestCases) {
-      receivedMessages.clear();
-      udpClient.send(approvalTestCase.getInput());
+    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+        producedJson.getJSONObject("metadata").get("serialId"));
+    expectedJson.getJSONObject("metadata").remove("serialId");
+    producedJson.getJSONObject("metadata").remove("serialId");
 
-      String actualPayload = receivedMessages.poll(3, TimeUnit.SECONDS);
-
-      JSONObject producedJson = new JSONObject(actualPayload);
-      JSONObject expectedJson = new JSONObject(approvalTestCase.getExpected());
-
-      // assert that the UUIDs are different, then remove them so that the rest of the JSON can be compared
-      assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-          producedJson.getJSONObject("metadata").get("serialId"));
-      expectedJson.getJSONObject("metadata").remove("serialId");
-      producedJson.getJSONObject("metadata").remove("serialId");
-
-      assertEquals(expectedJson.toString(), producedJson.toString().trim(),
-          approvalTestCase.getDescription());
-    }
-
-    DateTimeUtils.setClock(prevClock);
-  }
-
-  @KafkaListener(topics = "topic.MapReceiverTestMAPJSON")
-  public void receive(String payload) {
-    if (!receivedMessages.offer(payload)) {
-      throw new RuntimeException("MapReceiverTest timed out waiting for Kafka message for: "
-              + payload);
-    }
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
   }
 }

@@ -24,9 +24,9 @@ import us.dot.its.jpo.ode.util.JsonUtils;
 /**
  * Base ODE Metadata class.
  */
-@JsonPropertyOrder({ "logFileName", "recordType", "receivedMessageDetails", "payloadType", "serialId",
-    "odeReceivedAt", "schemaVersion", "maxDurationTime", "recordGeneratedAt", "recordGeneratedBy", "sanitized",
-    "asn1" })
+@JsonPropertyOrder({"logFileName", "recordType", "receivedMessageDetails", "payloadType",
+    "serialId", "odeReceivedAt", "schemaVersion", "maxDurationTime", "recordGeneratedAt",
+    "recordGeneratedBy", "sanitized", "asn1"})
 public class OdeMsgMetadata extends OdeObject {
 
   public static final String METADATA_STRING = "metadata";
@@ -71,11 +71,24 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   /**
-   * Constructs an OdeMsgMetadata object with the specified payload, serial ID,
-   * and received time.
+   * Same as {@link #OdeMsgMetadata(OdeMsgPayload)} but sets {@code asn1} to {@code asn1Hex}
+   * directly (for example the full received UDP hex) instead of from the payload's stripped
+   * {@code bytes} field.
    *
-   * @param payload    the payload to be set
-   * @param serialId   the serial ID to be set
+   * @param payload the payload (type, serial id, and receive time are initialized like the
+   *     single-argument constructor)
+   * @param asn1Hex hex string for {@link #setAsn1(String)}; may be null
+   */
+  public OdeMsgMetadata(OdeMsgPayload<?> payload, String asn1Hex) {
+    this(payload.getClass().getName(), new SerialId(), DateTimeUtils.now());
+    setAsn1(asn1Hex);
+  }
+
+  /**
+   * Constructs an OdeMsgMetadata object with the specified payload, serial ID, and received time.
+   *
+   * @param payload the payload to be set
+   * @param serialId the serial ID to be set
    * @param receivedAt the time the message was received
    */
   private OdeMsgMetadata(OdeMsgPayload payload, SerialId serialId, String receivedAt) {
@@ -84,12 +97,12 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   /**
-   * Constructs an OdeMsgMetadata object with the specified payload type, serial
-   * ID, and received time.
+   * Constructs an OdeMsgMetadata object with the specified payload type, serial ID, and received
+   * time.
    *
    * @param payloadType the type of the payload
-   * @param serialId    the serial ID to be set
-   * @param receivedAt  the time the message was received
+   * @param serialId the serial ID to be set
+   * @param receivedAt the time the message was received
    */
   public OdeMsgMetadata(String payloadType, SerialId serialId, String receivedAt) {
     super();
@@ -198,9 +211,11 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   /**
-   * Sets the ASN1 value for the metadata object.
+   * Sets {@code asn1} from the serialized {@code bytes} field of the payload (typically the
+   * header-stripped ASN.1 used for decoding). For full received hex (e.g. UDP), prefer
+   * {@link #OdeMsgMetadata(OdeMsgPayload, String)} or {@link #setAsn1(String)}.
    *
-   * @param payload the ASN1 payload hex string
+   * @param payload the payload whose bytes are copied into {@code asn1}
    */
   public void setAsn1(OdeMsgPayload payload) {
     if (payload != null && payload.getData() != null) {

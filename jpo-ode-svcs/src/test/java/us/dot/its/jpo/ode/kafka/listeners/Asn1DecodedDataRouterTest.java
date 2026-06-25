@@ -129,7 +129,7 @@ class Asn1DecodedDataRouterTest {
     var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
         new StringDeserializer());
     var testConsumer = consumerFactory.createConsumer();
-    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, topics);
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, true, topics);
 
     String baseExpectedTim = loadFromResource("us/dot/its/jpo/ode/services/asn1/expected-tim.json");
     for (String recordType : new String[] {"timMsg", "rxMsg"}) {
