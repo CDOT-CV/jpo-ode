@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.udp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -9,6 +10,8 @@ import java.util.List;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import us.dot.its.jpo.ode.model.Asn1Encoding;
+import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeHexByteArray;
 import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
@@ -74,8 +77,27 @@ class UdpHexDecoderTest {
         receivedBytes, receivedBytes.length, InetAddress.getLoopbackAddress(), 1);
 
     String json = UdpHexDecoder.buildJsonMapFromPacket(packet);
-    String asn1 = new JSONObject(json).getJSONObject("metadata").getString("asn1");
+    JSONObject metadata = new JSONObject(json).getJSONObject("metadata");
+    String asn1 = metadata.getString("asn1");
 
     assertEquals(CodecUtils.toHex(receivedBytes), asn1);
+    assertFalse(metadata.getBoolean("isCertPresent"));
+    assertFalse(metadata.has("certPresent"));
+  }
+
+  @Test
+  void buildAsn1DataFromSignedTimRetainsCoerEnvelope() throws InvalidPayloadException {
+    byte[] receivedBytes = HexUtils.fromHexString("0001038100001f00");
+    DatagramPacket packet = new DatagramPacket(
+        receivedBytes, receivedBytes.length, InetAddress.getLoopbackAddress(), 1);
+
+    OdeAsn1Data asn1Data = UdpHexDecoder.buildAsn1DataFromPacket(
+        packet, SupportedMessageType.TIM, null, null, null, false);
+
+    String decoderBytes = ((OdeHexByteArray) asn1Data.getPayload().getData()).getBytes();
+    assertEquals("038100001F00", decoderBytes);
+    List<Asn1Encoding> encodings = asn1Data.getMetadata().getEncodings();
+    assertEquals("Ieee1609Dot2Data", encodings.get(0).getElementType());
+    assertEquals("MessageFrame", encodings.get(1).getElementType());
   }
 }

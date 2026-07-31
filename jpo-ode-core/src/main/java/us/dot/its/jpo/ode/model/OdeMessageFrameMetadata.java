@@ -1,5 +1,6 @@
 package us.dot.its.jpo.ode.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -31,6 +32,10 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
   // otherwise it will deserialize as "certPresent"
   @JsonProperty("isCertPresent")
   private boolean isCertPresent;
+
+  /** Processed timing metadata decoded from the IEEE 1609.2 signed-data envelope. */
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private SignedDataMetadata certMetadata;
 
   public OdeMessageFrameMetadata(OdeMsgPayload<?> payload) {
     super(payload);

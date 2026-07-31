@@ -3,6 +3,7 @@ package us.dot.its.jpo.ode.kafka.listeners;
 import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -159,6 +160,41 @@ class Asn1DecodedDataRouterTest {
 
       assertThat(actualMF, jsonEquals(expectedMF).withTolerance(0.0001));
     }
+    testConsumer.close();
+  }
+
+  @Test
+  void testAsn1DecodedDataRouterTIMProcessesSignedDataTimestamps() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getTim());
+    EmbeddedKafkaHolder.addTopics(topics);
+
+    var consumerProps = KafkaTestUtils.consumerProps(
+        "timSignatureValidityTest", "true", embeddedKafka);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, true, topics);
+
+    String inputData = loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml")
+        .replace("<isCertPresent>false</isCertPresent>",
+            "<isCertPresent>false</isCertPresent>"
+                + "<signedDataHeaderInfo><psid>32</psid>"
+                + "<generationTime>428169792505460</generationTime>"
+                + "<expiryTime>428170152505460</expiryTime></signedDataHeaderInfo>"
+                + "<signatureValidityPeriod><start>428058000</start>"
+                + "<duration><hours>169</hours></duration></signatureValidityPeriod>");
+    kafkaStringTemplate.send(
+        asn1CoderTopics.getDecoderOutput(), UUID.randomUUID().toString(), inputData);
+
+    var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+    OdeMessageFrameData decodedTim = mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
+
+    var certMetadata = decodedTim.getMetadata().getCertMetadata();
+    assertEquals(32L, certMetadata.getPsid());
+    assertNotNull(certMetadata.getGenerationTime());
+    assertNotNull(certMetadata.getExpiryTime());
+    assertNotNull(certMetadata.getCertificateValidityStart());
+    assertNotNull(certMetadata.getCertificateValidityEnd());
     testConsumer.close();
   }
 

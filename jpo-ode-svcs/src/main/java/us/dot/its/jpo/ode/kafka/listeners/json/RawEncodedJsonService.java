@@ -30,7 +30,8 @@ public class RawEncodedJsonService {
   /**
    * Processes the given JSON string and constructs an OdeAsn1Data object by extracting and encoding
    * metadata and payload information. The metadata is mutated by adding an Asn1Encoding. Converts
-   * the payload bytes from hexadecimal string format after stripping IEEE 1609.2 security headers.
+   * the payload bytes from hexadecimal string format after stripping transport headers. Signed IEEE
+   * 1609.2 envelopes are retained so ACM can decode certificate validity metadata.
    *
    * @param json          the JSON string containing the metadata and payload information
    * @param messageType   the type of message to determine the start flag for processing the
@@ -49,18 +50,36 @@ public class RawEncodedJsonService {
     String jsonStringMetadata = rawJsonObject.get("metadata").toString();
     var metadata = mapper.readValue(jsonStringMetadata, metadataClass);
 
-    Asn1Encoding
-        unsecuredDataEncoding =
-        new Asn1Encoding("unsecuredData", "MessageFrame", EncodingRule.UPER);
-    metadata.addEncoding(unsecuredDataEncoding);
-
     String payloadHexString =
         ((JSONObject) ((JSONObject) rawJsonObject.get("payload")).get("data")).getString(
             "bytes");
-    payloadHexString = UperUtil.stripDot2Header(payloadHexString, messageType.getStartFlag());
+    String signedEnvelope = findSignedEnvelope(payloadHexString);
+    if (signedEnvelope == null) {
+      String metadataAsn1 = rawJsonObject.getJSONObject("metadata").optString("asn1", "");
+      signedEnvelope = findSignedEnvelope(metadataAsn1);
+    }
+
+    if (signedEnvelope != null) {
+      payloadHexString = signedEnvelope;
+      metadata.addEncoding(
+          new Asn1Encoding("Ieee1609Dot2Data", "Ieee1609Dot2Data", EncodingRule.COER));
+    } else {
+      if (UperUtil.findValidStartFlagLocation(payloadHexString, messageType.getStartFlag()) < 0) {
+        throw new StartFlagNotFoundException(
+            "Start flag '%s' not found in message payload".formatted(messageType.getStartFlag()));
+      }
+      payloadHexString = UperUtil.stripDot3Header(payloadHexString, messageType.getStartFlag());
+      payloadHexString = UperUtil.stripDot2Header(payloadHexString, messageType.getStartFlag());
+    }
+    metadata.addEncoding(new Asn1Encoding("unsecuredData", "MessageFrame", EncodingRule.UPER));
 
     OdeAsn1Payload payload = new OdeAsn1Payload(HexUtils.fromHexString(payloadHexString));
     return new OdeAsn1Data(metadata, payload);
+  }
+
+  private String findSignedEnvelope(String hexString) {
+    int envelopeStart = hexString.toLowerCase().indexOf("038100");
+    return envelopeStart < 0 ? null : hexString.substring(envelopeStart);
   }
 
 }
