@@ -381,7 +381,7 @@ deployment roles, and source code references.
 
 | Module | Purpose | Interface(s) | Implementation / Codebase |
 |--------|---------|--------------|----------------------------|
-| REST API | Accepts Traveler Information Messages (TIM), Probe Data Messages (PDM), and management requests into the ODE processing pipeline. | HTTP/REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| REST API | Accepts Traveler Information Message (TIM) metadata, Probe Data Messages (PDM), and management requests into the ODE processing pipeline. | HTTP/REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | Kafka Data Streams | Primary internal messaging bus used for inter-service communication and publish/subscribe routing of JSON and POJO message streams. | Kafka Producer/Consumer APIs | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode), [jpo-utils](https://github.com/usdot-jpo-ode/jpo-utils) |
 | UDP (ASN.1) Input | Receives ASN.1 UPER encoded J2735 messages for direct ingestion and decoding. | UDP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | Log Upload Folder | File-based ingestion mechanism for uploaded OBU and infrastructure log files. | File System / SCP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
@@ -392,7 +392,7 @@ deployment roles, and source code references.
 | Module | Purpose | Interface(s) | Implementation / Codebase |
 |--------|---------|--------------|----------------------------|
 | BSM Importer | Ingests and routes Basic Safety Messages (BSM). | Kafka, UDP, File Upload | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
-| TIM Importer | Ingests and routes Traveler Information Messages (TIM). | REST, Kafka, SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
+| TIM Importer | Ingests and routes Traveler Information Message (TIM) metadata to generate appropriate J2735 messages. | REST, Kafka, SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | Distress Notification Importer | Imports distress notification events for downstream processing. | Kafka / REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 
 ### Data Processing Services
