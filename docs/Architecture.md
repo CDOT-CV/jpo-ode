@@ -393,7 +393,6 @@ deployment roles, and source code references.
 |--------|---------|--------------|----------------------------|
 | BSM Importer | Ingests and routes Basic Safety Messages (BSM). | Kafka, UDP, File Upload | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | TIM Importer | Ingests and routes Traveler Information Message (TIM) metadata to generate appropriate J2735 messages. | REST, Kafka, SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
-| Distress Notification Importer | Imports distress notification events for downstream processing. | Kafka / REST | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 
 ### Data Processing Services
 
@@ -412,7 +411,6 @@ deployment roles, and source code references.
 
 | Module | Purpose | Interface(s) | Implementation / Codebase |
 |--------|---------|--------------|----------------------------|
-| S3 Depositor Module | Stores exported ODE data into AWS S3-compatible storage. | AWS S3 API | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | JPO MEC MQTT Depositor | Publishes processed data to external MQTT brokers or MEC environments. | MQTT | [jpo-mec-deposit](https://github.com/usdot-jpo-ode/jpo-mec-deposit) |
 | SNMP Depositor | Sends TIM and related messages to RSUs via SNMP. | SNMP | [jpo-ode](https://github.com/usdot-jpo-ode/jpo-ode) |
 | SDX Depositor | Publishes data to Situational Data Exchange (SDX). | External API | [jpo-sdw-depositor](https://github.com/usdot-jpo-ode/jpo-sdw-depositor) |
