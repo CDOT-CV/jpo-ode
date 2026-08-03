@@ -2,6 +2,13 @@
   "metadata": {
     "source": "EV",
     "recordType": "bsmTx",
+    "encodings": [
+      {
+        "encodingRule": "UPER",
+        "elementType": "MessageFrame",
+        "elementName": "unsecuredData"
+      }
+    ],
     "securityResultCode": "success",
     "receivedMessageDetails": {
       "locationData": {

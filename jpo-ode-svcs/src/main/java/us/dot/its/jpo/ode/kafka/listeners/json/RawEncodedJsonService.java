@@ -52,7 +52,7 @@ public class RawEncodedJsonService {
 
     String payloadHexString =
         ((JSONObject) ((JSONObject) rawJsonObject.get("payload")).get("data")).getString(
-            "bytes");
+            "bytes").toLowerCase();
     String signedEnvelope = findSignedEnvelope(payloadHexString);
     if (signedEnvelope == null) {
       String metadataAsn1 = rawJsonObject.getJSONObject("metadata").optString("asn1", "");

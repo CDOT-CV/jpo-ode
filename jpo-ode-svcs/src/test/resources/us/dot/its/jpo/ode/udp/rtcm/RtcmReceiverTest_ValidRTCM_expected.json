@@ -12,6 +12,13 @@
 			"serialNumber": 0
 		},
     "recordType": "rtcmTx",
+    "encodings": [
+      {
+        "encodingRule": "UPER",
+        "elementType": "MessageFrame",
+        "elementName": "unsecuredData"
+      }
+    ],
     "maxDurationTime": 0,
     "source": "RSU",
     "isCertPresent": false,
