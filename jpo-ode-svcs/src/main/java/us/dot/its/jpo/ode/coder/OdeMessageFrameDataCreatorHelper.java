@@ -21,7 +21,17 @@ import us.dot.its.jpo.ode.plugin.ServiceRequest;
 @Slf4j
 public class OdeMessageFrameDataCreatorHelper {
 
+  // IEEE 1609.2 Duration uses the average Gregorian year, not a 365-day year.
+  private static final long SECONDS_PER_YEAR = 31_556_952L;
+  private static final long SECONDS_PER_SIXTY_HOURS = 216_000L;
+  private static final long SECONDS_PER_HOUR = 3_600L;
+  private static final long SECONDS_PER_MINUTE = 60L;
+  private static final long MICROSECONDS_PER_MILLISECOND = 1_000L;
+
   private static final Instant IEEE_1609_2_EPOCH = Instant.parse("2004-01-01T00:00:00Z");
+
+  // Schema versions 4 and earlier omit receivedMessageDetails.
+  private static final int MAX_SCHEMA_VERSION_WITHOUT_RECEIVED_MESSAGE_DETAILS = 4;
 
   private OdeMessageFrameDataCreatorHelper() {
     throw new UnsupportedOperationException("Utility class should not be instantiated");
@@ -66,7 +76,7 @@ public class OdeMessageFrameDataCreatorHelper {
       metadata.getReceivedMessageDetails().setRxSource(RxSource.NA);
     }
 
-    if (metadata.getSchemaVersion() <= 4) {
+    if (metadata.getSchemaVersion() <= MAX_SCHEMA_VERSION_WITHOUT_RECEIVED_MESSAGE_DETAILS) {
       metadata.setReceivedMessageDetails(null);
     }
 
@@ -118,7 +128,7 @@ public class OdeMessageFrameDataCreatorHelper {
     if (time64Microseconds == null) {
       return null;
     }
-    return Date.from(IEEE_1609_2_EPOCH.plusMillis(time64Microseconds / 1_000));
+    return Date.from(IEEE_1609_2_EPOCH.plusMillis(time64Microseconds / MICROSECONDS_PER_MILLISECOND));
   }
 
   private static Instant time32ToInstant(Long time32Seconds) {
@@ -130,7 +140,8 @@ public class OdeMessageFrameDataCreatorHelper {
       return null;
     }
     if (duration.has("microseconds")) {
-      return Date.from(start.plusMillis(duration.get("microseconds").asLong() / 1_000));
+      return Date.from(start.plusMillis(
+          duration.get("microseconds").asLong() / MICROSECONDS_PER_MILLISECOND));
     }
     if (duration.has("milliseconds")) {
       return Date.from(start.plusMillis(duration.get("milliseconds").asLong()));
@@ -139,16 +150,17 @@ public class OdeMessageFrameDataCreatorHelper {
       return Date.from(start.plusSeconds(duration.get("seconds").asLong()));
     }
     if (duration.has("minutes")) {
-      return Date.from(start.plusSeconds(duration.get("minutes").asLong() * 60));
+      return Date.from(start.plusSeconds(duration.get("minutes").asLong() * SECONDS_PER_MINUTE));
     }
     if (duration.has("hours")) {
-      return Date.from(start.plusSeconds(duration.get("hours").asLong() * 3_600));
+      return Date.from(start.plusSeconds(duration.get("hours").asLong() * SECONDS_PER_HOUR));
     }
     if (duration.has("sixtyHours")) {
-      return Date.from(start.plusSeconds(duration.get("sixtyHours").asLong() * 216_000));
+      return Date.from(start.plusSeconds(
+          duration.get("sixtyHours").asLong() * SECONDS_PER_SIXTY_HOURS));
     }
     if (duration.has("years")) {
-      return Date.from(start.plusSeconds(duration.get("years").asLong() * 31_536_000));
+      return Date.from(start.plusSeconds(duration.get("years").asLong() * SECONDS_PER_YEAR));
     }
     return null;
   }

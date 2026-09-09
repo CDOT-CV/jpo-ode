@@ -3,7 +3,6 @@ package us.dot.its.jpo.ode.kafka.listeners;
 import static net.javacrumbs.jsonunit.JsonMatchers.jsonEquals;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +11,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -192,10 +192,14 @@ class Asn1DecodedDataRouterTest {
 
     var certMetadata = decodedTim.getMetadata().getCertMetadata();
     assertEquals(32L, certMetadata.getPsid());
-    assertNotNull(certMetadata.getGenerationTime());
-    assertNotNull(certMetadata.getExpiryTime());
-    assertNotNull(certMetadata.getCertificateValidityStart());
-    assertNotNull(certMetadata.getCertificateValidityEnd());
+    assertEquals(Instant.parse("2017-07-26T16:03:12.505Z"),
+        certMetadata.getGenerationTime().toInstant());
+    assertEquals(Instant.parse("2017-07-26T16:09:12.505Z"),
+        certMetadata.getExpiryTime().toInstant());
+    assertEquals(Instant.parse("2017-07-25T09:00:00.000Z"),
+        certMetadata.getCertificateValidityStart().toInstant());
+    assertEquals(Instant.parse("2017-08-01T10:00:00.000Z"),
+        certMetadata.getCertificateValidityEnd().toInstant());
     testConsumer.close();
   }
 
