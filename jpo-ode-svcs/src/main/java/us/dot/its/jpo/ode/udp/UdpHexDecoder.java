@@ -3,6 +3,8 @@ package us.dot.its.jpo.ode.udp;
 import java.net.DatagramPacket;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
+import us.dot.its.jpo.ode.model.Asn1Encoding;
+import us.dot.its.jpo.ode.model.Asn1Encoding.EncodingRule;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeLogMetadata.RecordType;
@@ -43,7 +45,8 @@ public class UdpHexDecoder {
    * Result of extracting an ASN.1 payload from a UDP packet: the stripped payload used for decode,
    * plus the full received hex (before 1609.3 / 1609.2 header stripping) for metadata.
    */
-  private record Asn1PayloadExtraction(OdeAsn1Payload payload, String untrimmedPayloadHex) {
+  private record Asn1PayloadExtraction(OdeAsn1Payload payload, String untrimmedPayloadHex,
+      boolean signedIeee1609Dot2) {
   }
 
   /**
@@ -84,21 +87,21 @@ public class UdpHexDecoder {
 
     log.debug("Full {} packet: {}", msgType, untrimmedPayloadHexLower);
 
-    String strippedHex =
+    String decoderInputHex =
         UperUtil.stripDot3Header(untrimmedPayloadHexLower, msgType.getStartFlag()).toLowerCase();
-
-    // Adding the dot2 header stripping here to handle the case where the signed 1609.2 header is
-    // present.
-    try {
-      strippedHex = UperUtil.stripDot2Header(strippedHex, msgType.getStartFlag());
-    } catch (StartFlagNotFoundException e) {
-      log.debug("Error stripping dot2 header: {}", e.getMessage());
+    boolean signedIeee1609Dot2 = decoderInputHex.startsWith("038100");
+    if (!signedIeee1609Dot2) {
+      try {
+        decoderInputHex = UperUtil.stripDot2Header(decoderInputHex, msgType.getStartFlag());
+      } catch (StartFlagNotFoundException e) {
+        log.debug("Error stripping dot2 header: {}", e.getMessage());
+      }
     }
 
-    log.debug("Stripped {} packet: {}", msgType, strippedHex);
+    log.debug("Decoder input {} packet: {}", msgType, decoderInputHex);
 
-    return new Asn1PayloadExtraction(new OdeAsn1Payload(HexUtils.fromHexString(strippedHex)),
-        CodecUtils.toHex(payload));
+    return new Asn1PayloadExtraction(new OdeAsn1Payload(HexUtils.fromHexString(decoderInputHex)),
+        CodecUtils.toHex(payload), signedIeee1609Dot2);
   }
 
   /**
@@ -290,6 +293,11 @@ public class UdpHexDecoder {
     metadata.setRecordType(recordType);
     metadata.setRecordGeneratedBy(generatedBy);
     metadata.setSecurityResultCode(SecurityResultCode.success);
+    if (extracted.signedIeee1609Dot2()) {
+      metadata.addEncoding(new Asn1Encoding(
+          "Ieee1609Dot2Data", "Ieee1609Dot2Data", EncodingRule.COER));
+    }
+    metadata.addEncoding(new Asn1Encoding("unsecuredData", "MessageFrame", EncodingRule.UPER));
 
     if (includeReceivedMessageDetails) {
       ReceivedMessageDetails receivedMessageDetails = new ReceivedMessageDetails();

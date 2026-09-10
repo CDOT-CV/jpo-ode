@@ -49,17 +49,14 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("Generic UDP Receiver Service started.");
 
-    byte[] buffer;
     do {
-      buffer = new byte[bufferSize];
-      // packet should be recreated on each loop to prevent latent data in buffer
-      DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+      DatagramPacket packet = null;
       String detectedMessageType = null;
       try {
         log.debug("Waiting for Generic UDP packets...");
-        socket.receive(packet);
+        packet = receiveExactPacket();
         byte[] payload = packet.getData();
-        if ((packet.getLength() <= 0) || (payload == null)) {
+        if ((packet.getLength() <= 0) || (payload == null) || payload.length == 0) {
           log.debug("Skipping empty payload");
           continue;
         }
@@ -109,7 +106,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     int off = packet.getOffset();
     byte[] data = packet.getData();
 
-    String hex = HexUtils.toHexString(Arrays.copyOfRange(data, off, data.length)).toLowerCase();
+    String hex = HexUtils.toHexString(Arrays.copyOfRange(data, off, off + len)).toLowerCase();
     sb.append(", hex=").append(hex);
     return sb.toString();
   }

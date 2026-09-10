@@ -46,12 +46,10 @@ public class SdsmReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.info("SDSM UDP Receiver Service started.");
 
-    byte[] buffer = new byte[bufferSize];
-    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.info("Waiting for UDP SDSM packets...");
-        socket.receive(packet);
+        DatagramPacket packet = receiveExactPacket();
         if (packet.getLength() > 0) {
           String sdsmData = UdpHexDecoder.buildJsonSdsmFromPacket(packet);
           if (sdsmData != null) {

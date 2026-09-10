@@ -4,12 +4,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import java.time.Instant;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFramePayload;
 import us.dot.its.jpo.ode.model.RxSource;
+import us.dot.its.jpo.ode.model.SignedDataMetadata;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 
 /**
@@ -17,6 +20,18 @@ import us.dot.its.jpo.ode.plugin.ServiceRequest;
  */
 @Slf4j
 public class OdeMessageFrameDataCreatorHelper {
+
+  // IEEE 1609.2 Duration uses the average Gregorian year, not a 365-day year.
+  private static final long SECONDS_PER_YEAR = 31_556_952L;
+  private static final long SECONDS_PER_SIXTY_HOURS = 216_000L;
+  private static final long SECONDS_PER_HOUR = 3_600L;
+  private static final long SECONDS_PER_MINUTE = 60L;
+  private static final long MICROSECONDS_PER_MILLISECOND = 1_000L;
+
+  private static final Instant IEEE_1609_2_EPOCH = Instant.parse("2004-01-01T00:00:00Z");
+
+  // Schema versions 4 and earlier omit receivedMessageDetails.
+  private static final int MAX_SCHEMA_VERSION_WITHOUT_RECEIVED_MESSAGE_DETAILS = 4;
 
   private OdeMessageFrameDataCreatorHelper() {
     throw new UnsupportedOperationException("Utility class should not be instantiated");
@@ -49,8 +64,10 @@ public class OdeMessageFrameDataCreatorHelper {
         object.remove("request");
       }
     }
+    SignedDataMetadata certMetadata = extractCertMetadata(metadataNode);
     OdeMessageFrameMetadata metadata = simpleXmlMapper.treeToValue(metadataNode, OdeMessageFrameMetadata.class);
     metadata.setRequest(request);
+    metadata.setCertMetadata(certMetadata);
     // Setting encodings to null as per the original code logic but is technically supportable
     metadata.setEncodings(null);
 
@@ -59,7 +76,7 @@ public class OdeMessageFrameDataCreatorHelper {
       metadata.getReceivedMessageDetails().setRxSource(RxSource.NA);
     }
 
-    if (metadata.getSchemaVersion() <= 4) {
+    if (metadata.getSchemaVersion() <= MAX_SCHEMA_VERSION_WITHOUT_RECEIVED_MESSAGE_DETAILS) {
       metadata.setReceivedMessageDetails(null);
     }
 
@@ -67,5 +84,84 @@ public class OdeMessageFrameDataCreatorHelper {
     MessageFrame<?> messageFrame = simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
     OdeMessageFramePayload payload = new OdeMessageFramePayload(messageFrame);
     return new OdeMessageFrameData(metadata, payload);
+  }
+
+  /**
+   * Converts the raw IEEE 1609.2 timing values emitted by ASN1C into BSON-Date-compatible values.
+   */
+  private static SignedDataMetadata extractCertMetadata(JsonNode metadataNode) {
+    if (!(metadataNode instanceof ObjectNode metadata)) {
+      return null;
+    }
+
+    JsonNode header = metadata.remove("signedDataHeaderInfo");
+    JsonNode validityPeriod = metadata.remove("signatureValidityPeriod");
+    if (header == null && validityPeriod == null) {
+      return null;
+    }
+
+    SignedDataMetadata result = new SignedDataMetadata();
+    if (header != null) {
+      result.setPsid(optionalLong(header, "psid"));
+      result.setGenerationTime(time64ToDate(optionalLong(header, "generationTime")));
+      result.setExpiryTime(time64ToDate(optionalLong(header, "expiryTime")));
+    }
+
+    if (validityPeriod != null) {
+      Instant certificateStart = time32ToInstant(optionalLong(validityPeriod, "start"));
+      if (certificateStart != null) {
+        result.setCertificateValidityStart(Date.from(certificateStart));
+        result.setCertificateValidityEnd(certificateValidityEnd(certificateStart,
+            validityPeriod.get("duration")));
+      }
+    }
+
+    return result;
+  }
+
+  private static Long optionalLong(JsonNode node, String fieldName) {
+    JsonNode field = node.get(fieldName);
+    return field == null || field.isNull() ? null : field.asLong();
+  }
+
+  private static Date time64ToDate(Long time64Microseconds) {
+    if (time64Microseconds == null) {
+      return null;
+    }
+    return Date.from(IEEE_1609_2_EPOCH.plusMillis(time64Microseconds / MICROSECONDS_PER_MILLISECOND));
+  }
+
+  private static Instant time32ToInstant(Long time32Seconds) {
+    return time32Seconds == null ? null : IEEE_1609_2_EPOCH.plusSeconds(time32Seconds);
+  }
+
+  private static Date certificateValidityEnd(Instant start, JsonNode duration) {
+    if (duration == null || !duration.isObject()) {
+      return null;
+    }
+    if (duration.has("microseconds")) {
+      return Date.from(start.plusMillis(
+          duration.get("microseconds").asLong() / MICROSECONDS_PER_MILLISECOND));
+    }
+    if (duration.has("milliseconds")) {
+      return Date.from(start.plusMillis(duration.get("milliseconds").asLong()));
+    }
+    if (duration.has("seconds")) {
+      return Date.from(start.plusSeconds(duration.get("seconds").asLong()));
+    }
+    if (duration.has("minutes")) {
+      return Date.from(start.plusSeconds(duration.get("minutes").asLong() * SECONDS_PER_MINUTE));
+    }
+    if (duration.has("hours")) {
+      return Date.from(start.plusSeconds(duration.get("hours").asLong() * SECONDS_PER_HOUR));
+    }
+    if (duration.has("sixtyHours")) {
+      return Date.from(start.plusSeconds(
+          duration.get("sixtyHours").asLong() * SECONDS_PER_SIXTY_HOURS));
+    }
+    if (duration.has("years")) {
+      return Date.from(start.plusSeconds(duration.get("years").asLong() * SECONDS_PER_YEAR));
+    }
+    return null;
   }
 }
