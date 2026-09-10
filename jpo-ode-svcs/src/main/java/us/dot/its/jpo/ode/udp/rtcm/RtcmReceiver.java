@@ -40,12 +40,10 @@ public class RtcmReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("RTCM UDP Receiver Service started.");
 
-    byte[] buffer = new byte[bufferSize];
-    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.info("Waiting for UDP RTCM packets...");
-        socket.receive(packet);
+        DatagramPacket packet = receiveExactPacket();
         if (packet.getLength() > 0) {
           String rtcmData = UdpHexDecoder.buildJsonRtcmFromPacket(packet);
           if (rtcmData != null) {
