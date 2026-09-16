@@ -55,7 +55,6 @@ public class SerializationConfig {
   @Bean
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
-    xmlMapper.registerModule(new JavaTimeModule());
     var builder = new Builder(xmlMapper);
     builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
@@ -70,8 +69,6 @@ public class SerializationConfig {
 
   @Bean("simpleXmlMapper")
   public XmlMapper simpleXmlMapper() {
-    XmlMapper mapper = new XmlMapper();
-    mapper.registerModule(new JavaTimeModule());
-    return mapper;
+    return new XmlMapper();
   }
 }

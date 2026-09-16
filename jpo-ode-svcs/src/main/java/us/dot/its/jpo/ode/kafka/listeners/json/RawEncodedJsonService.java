@@ -53,10 +53,10 @@ public class RawEncodedJsonService {
     String payloadHexString =
         ((JSONObject) ((JSONObject) rawJsonObject.get("payload")).get("data")).getString(
             "bytes").toLowerCase();
-    String signedEnvelope = findSignedEnvelope(payloadHexString);
+    String signedEnvelope = findSignedEnvelope(payloadHexString, messageType.getStartFlag());
     if (signedEnvelope == null) {
       String metadataAsn1 = rawJsonObject.getJSONObject("metadata").optString("asn1", "");
-      signedEnvelope = findSignedEnvelope(metadataAsn1);
+      signedEnvelope = findSignedEnvelope(metadataAsn1, messageType.getStartFlag());
     }
 
     if (signedEnvelope != null) {
@@ -77,9 +77,18 @@ public class RawEncodedJsonService {
     return new OdeAsn1Data(metadata, payload);
   }
 
-  private String findSignedEnvelope(String hexString) {
-    int envelopeStart = hexString.toLowerCase().indexOf("038100");
-    return envelopeStart < 0 ? null : hexString.substring(envelopeStart);
+  private String findSignedEnvelope(String hexString, String payloadStartFlag) {
+    String normalizedHex = hexString.toLowerCase();
+    int payloadStart = UperUtil.findValidStartFlagLocation(normalizedHex, payloadStartFlag);
+    if (payloadStart < 0) {
+      return null;
+    }
+
+    int envelopeStart = normalizedHex.indexOf("038100");
+    while (envelopeStart >= 0 && (envelopeStart >= payloadStart || envelopeStart % 2 != 0)) {
+      envelopeStart = normalizedHex.indexOf("038100", envelopeStart + 1);
+    }
+    return envelopeStart < 0 ? null : normalizedHex.substring(envelopeStart);
   }
 
 }

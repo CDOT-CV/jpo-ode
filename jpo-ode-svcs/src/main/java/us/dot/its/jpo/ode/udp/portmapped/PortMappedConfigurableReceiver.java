@@ -2,7 +2,6 @@ package us.dot.its.jpo.ode.udp.portmapped;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
@@ -57,7 +56,8 @@ public class PortMappedConfigurableReceiver extends GenericReceiver {
         }
 
         senderIp = this.ingestConfig.getOriginIp();
-        setConfiguredSourceAddress(packet, senderIp);
+        InetAddress senderAddress = InetAddress.getByName(senderIp);
+        packet.setAddress(senderAddress);
         senderPort = packet.getPort();
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
@@ -76,11 +76,5 @@ public class PortMappedConfigurableReceiver extends GenericReceiver {
         log.error("Error receiving packet", e);
       }
     } while (!isStopped());
-  }
-
-  static void setConfiguredSourceAddress(DatagramPacket packet, String senderIp)
-      throws UnknownHostException {
-    InetAddress senderAddress = InetAddress.getByName(senderIp);
-    packet.setAddress(senderAddress);
   }
 }
