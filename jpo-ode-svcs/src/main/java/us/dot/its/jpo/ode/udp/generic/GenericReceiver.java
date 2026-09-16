@@ -50,11 +50,12 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     log.debug("Generic UDP Receiver Service started.");
 
     do {
-      DatagramPacket packet = null;
+      byte[] buffer = new byte[bufferSize];
+      DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
       String detectedMessageType = null;
       try {
         log.debug("Waiting for Generic UDP packets...");
-        packet = receiveExactPacket();
+        socket.receive(packet);
         byte[] payload = packet.getData();
         if ((packet.getLength() <= 0) || (payload == null) || payload.length == 0) {
           log.debug("Skipping empty payload");
@@ -65,7 +66,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         senderPort = packet.getPort();
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-        String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
+        String payloadHexString = toReceivedPayloadHex(packet);
         log.debug("Raw Payload {}", payloadHexString);
 
         detectedMessageType = UperUtil.determineHexPacketType(payloadHexString);
@@ -83,6 +84,13 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
             detectedMessageType, describePacketForLog(packet), e);
       }
     } while (!isStopped());
+  }
+
+  static String toReceivedPayloadHex(DatagramPacket packet) {
+    int offset = packet.getOffset();
+    int length = packet.getLength();
+    return HexUtils.toHexString(
+        Arrays.copyOfRange(packet.getData(), offset, offset + length)).toLowerCase();
   }
 
   /**

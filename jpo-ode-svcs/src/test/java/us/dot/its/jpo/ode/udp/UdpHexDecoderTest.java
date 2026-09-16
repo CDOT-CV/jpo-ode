@@ -57,6 +57,26 @@ class UdpHexDecoderTest {
     assertEquals(exampleBSMHexString, payloadContents);
   }
 
+  @Test
+  void getPayloadHexString_BSM_UsesOffsetAndPreservesTrailingZero()
+      throws InvalidPayloadException {
+    byte[] receivedBytes = HexUtils.fromHexString(exampleBSMHexString);
+    int offset = 3;
+    byte[] buffer = new byte[receivedBytes.length + offset + 64];
+    System.arraycopy(receivedBytes, 0, buffer, offset, receivedBytes.length);
+    buffer[buffer.length - 1] = 0x1f;
+
+    DatagramPacket packet = new DatagramPacket(buffer, offset, receivedBytes.length,
+        InetAddress.getLoopbackAddress(), 1);
+    OdeAsn1Payload payload = UdpHexDecoder.getPayloadHexString(packet, SupportedMessageType.BSM);
+
+    assertEquals(buffer.length, packet.getData().length);
+    assertEquals(offset, packet.getOffset());
+    assertEquals(receivedBytes.length, packet.getLength());
+    assertEquals(0, receivedBytes[receivedBytes.length - 1]);
+    assertEquals(exampleBSMHexString, ((OdeHexByteArray) payload.getData()).getBytes());
+  }
+
   /**
    * metadata.asn1 must use the same uppercase hex as {@link OdeHexByteArray} / {@link CodecUtils}
    * so JSON matches approval fixtures and TIM start flags (e.g. {@code 001f}) still match during

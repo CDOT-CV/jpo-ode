@@ -45,10 +45,13 @@ public class SpatReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("SPaT UDP Receiver Service started.");
 
+    byte[] buffer = new byte[bufferSize];
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.debug("Waiting for UDP SPaT packets...");
-        DatagramPacket packet = receiveExactPacket();
+        packet.setLength(buffer.length);
+        socket.receive(packet);
         if (packet.getLength() > 0) {
           String spatJson = UdpHexDecoder.buildJsonSpatFromPacket(packet);
           if (spatJson != null) {

@@ -41,10 +41,13 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("BSM UDP Receiver Service started.");
 
+    byte[] buffer = new byte[bufferSize];
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.info("Waiting for UDP BSM packets...");
-        DatagramPacket packet = receiveExactPacket();
+        packet.setLength(buffer.length);
+        socket.receive(packet);
         if (packet.getLength() > 0) {
           String bsmData = UdpHexDecoder.buildJsonBsmFromPacket(packet);
           if (bsmData != null) {

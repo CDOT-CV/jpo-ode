@@ -9,9 +9,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.cfg.CoercionAction;
 import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.type.LogicalType;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,6 +55,7 @@ public class SerializationConfig {
   @Bean
   public XmlMapper xmlMapper() {
     XmlMapper xmlMapper = new XmlMapper();
+    xmlMapper.registerModule(new JavaTimeModule());
     var builder = new Builder(xmlMapper);
     builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
@@ -69,6 +70,8 @@ public class SerializationConfig {
 
   @Bean("simpleXmlMapper")
   public XmlMapper simpleXmlMapper() {
-    return new XmlMapper();
+    XmlMapper mapper = new XmlMapper();
+    mapper.registerModule(new JavaTimeModule());
+    return mapper;
   }
 }

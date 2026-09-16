@@ -33,6 +33,16 @@ public class OdeMessageFrameMetadata extends OdeLogMetadata {
   @JsonProperty("isCertPresent")
   private boolean isCertPresent;
 
+  @JsonProperty("isCertPresent")
+  public boolean isCertPresent() {
+    return isCertPresent;
+  }
+
+  @JsonProperty("isCertPresent")
+  public void setCertPresent(boolean certPresent) {
+    isCertPresent = certPresent;
+  }
+
   /** Processed timing metadata decoded from the IEEE 1609.2 signed-data envelope. */
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private SignedDataMetadata certMetadata;

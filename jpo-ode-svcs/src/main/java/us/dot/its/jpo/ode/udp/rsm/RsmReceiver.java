@@ -41,10 +41,13 @@ public class RsmReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("RSM UDP Receiver Service started.");
 
+    byte[] buffer = new byte[bufferSize];
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.info("Waiting for UDP RSM packets...");
-        DatagramPacket packet = receiveExactPacket();
+        packet.setLength(buffer.length);
+        socket.receive(packet);
         if (packet.getLength() > 0) {
           String rsmData = UdpHexDecoder.buildJsonRsmFromPacket(packet);
           if (rsmData != null) {

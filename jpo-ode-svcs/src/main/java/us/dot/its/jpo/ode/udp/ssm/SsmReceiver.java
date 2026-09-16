@@ -39,10 +39,13 @@ public class SsmReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("SSM UDP Receiver Service started.");
 
+    byte[] buffer = new byte[bufferSize];
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.debug("Waiting for UDP SSM packets...");
-        DatagramPacket packet = receiveExactPacket();
+        packet.setLength(buffer.length);
+        socket.receive(packet);
         if (packet.getLength() > 0) {
           String ssmJson = UdpHexDecoder.buildJsonSsmFromPacket(packet);
           if (ssmJson != null) {

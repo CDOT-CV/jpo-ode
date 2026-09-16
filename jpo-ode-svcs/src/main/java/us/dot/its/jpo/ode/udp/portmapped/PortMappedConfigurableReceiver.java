@@ -2,6 +2,8 @@ package us.dot.its.jpo.ode.udp.portmapped;
 
 import java.net.DatagramPacket;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Arrays;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -44,8 +46,10 @@ public class PortMappedConfigurableReceiver extends GenericReceiver {
     log.debug("");
 
     do {
+      byte[] buffer = new byte[bufferSize];
+      DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
       try {
-        DatagramPacket packet = receiveExactPacket();
+        socket.receive(packet);
         byte[] payload = packet.getData();
         if ((packet.getLength() <= 0) || (payload == null) || payload.length == 0) {
           log.debug("Skipping empty payload");
@@ -53,12 +57,13 @@ public class PortMappedConfigurableReceiver extends GenericReceiver {
         }
 
         senderIp = this.ingestConfig.getOriginIp();
-        InetAddress senderAddress = InetAddress.getByName(senderIp);
-        packet.setAddress(senderAddress);
+        setConfiguredSourceAddress(packet, senderIp);
         senderPort = packet.getPort();
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-        String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
+        String payloadHexString = HexUtils.toHexString(
+            Arrays.copyOfRange(payload, packet.getOffset(),
+                packet.getOffset() + packet.getLength())).toLowerCase();
         log.debug("Raw Payload {}", payloadHexString);
 
         routeMessageByMessageType(this.ingestConfig.getType(), packet);
@@ -71,5 +76,11 @@ public class PortMappedConfigurableReceiver extends GenericReceiver {
         log.error("Error receiving packet", e);
       }
     } while (!isStopped());
+  }
+
+  static void setConfiguredSourceAddress(DatagramPacket packet, String senderIp)
+      throws UnknownHostException {
+    InetAddress senderAddress = InetAddress.getByName(senderIp);
+    packet.setAddress(senderAddress);
   }
 }

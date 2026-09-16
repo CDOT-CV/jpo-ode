@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Test;
 public class OdeMessageFrameDataTest {
 
   private static final String SAMPLE_SDSM_FILE = "src/test/resources/json/sample-sdsm.json";
-  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
+  private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
   /**
    * Test proper serialization and deserialization of SDSM data.
@@ -71,11 +72,15 @@ public class OdeMessageFrameDataTest {
   @Test
   public void testCertMetadataSerializationDeserialization() throws IOException {
     String json = """
-        {"certMetadata":{"psid":32,
-        "generationTime":"2026-05-07T18:26:51.000Z",
-        "expiryTime":"2026-05-12T10:00:05.000Z",
-        "certificateValidityStart":"2026-05-05T09:00:05.000Z",
-        "certificateValidityEnd":"2026-05-12T10:00:05.000Z"}}
+        {
+          "certMetadata": {
+            "psid": 32,
+            "generationTime": "2026-05-07T18:26:51.000Z",
+            "expiryTime": "2026-05-12T10:00:05.000Z",
+            "certificateValidityStart": "2026-05-05T09:00:05.000Z",
+            "certificateValidityEnd": "2026-05-12T10:00:05.000Z"
+          }
+        }
         """;
 
     OdeMessageFrameMetadata metadata = objectMapper.readValue(json, OdeMessageFrameMetadata.class);

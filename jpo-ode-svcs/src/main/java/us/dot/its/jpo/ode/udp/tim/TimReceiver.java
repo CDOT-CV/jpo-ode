@@ -42,10 +42,13 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("TIM UDP Receiver Service started.");
 
+    byte[] buffer = new byte[bufferSize];
+    DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
     do {
       try {
         log.debug("Waiting for UDP TIM packets...");
-        DatagramPacket packet = receiveExactPacket();
+        packet.setLength(buffer.length);
+        socket.receive(packet);
         if (packet.getLength() > 0) {
           String timData = UdpHexDecoder.buildJsonTimFromPacket(packet);
           if (timData != null) {

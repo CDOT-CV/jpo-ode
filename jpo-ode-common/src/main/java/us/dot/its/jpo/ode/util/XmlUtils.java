@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -50,6 +51,7 @@ public class XmlUtils {
   private static XmlMapper staticXmlMapper = new XmlMapper();
 
   static {
+    staticXmlMapper.registerModule(new JavaTimeModule());
     var builder = new Builder(staticXmlMapper);
     builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
@@ -61,6 +63,7 @@ public class XmlUtils {
    */
   public XmlUtils() {
     super();
+    xmlMapper.registerModule(new JavaTimeModule());
     var builder = new Builder(xmlMapper);
     builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
