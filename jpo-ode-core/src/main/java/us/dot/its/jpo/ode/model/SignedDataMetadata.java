@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
  * Processed timing metadata extracted from an IEEE 1609.2 signed-data envelope.
  *
  * <p>The {@link Instant} values are database-agnostic UTC timestamps. They are emitted on Kafka
- * as ISO-8601 timestamps with millisecond precision; database-specific conversion belongs at the
- * persistence boundary.</p>
+ * as ISO-8601 timestamps with millisecond precision.</p>
  */
 @Data
 @NoArgsConstructor
