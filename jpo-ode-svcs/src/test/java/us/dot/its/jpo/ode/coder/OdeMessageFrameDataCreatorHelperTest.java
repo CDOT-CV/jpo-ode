@@ -39,8 +39,8 @@ class OdeMessageFrameDataCreatorHelperTest {
     var data = OdeMessageFrameDataCreatorHelper.createOdeMessageFrameData(xml, new XmlMapper());
 
     assertEquals(Instant.parse("2004-01-01T00:00:00Z"),
-        data.getMetadata().getCertMetadata().getCertificateValidityStart().toInstant());
+        data.getMetadata().getCertMetadata().getCertificateValidityStart());
     assertEquals(Instant.parse(expectedEnd),
-        data.getMetadata().getCertMetadata().getCertificateValidityEnd().toInstant());
+        data.getMetadata().getCertMetadata().getCertificateValidityEnd());
   }
 }

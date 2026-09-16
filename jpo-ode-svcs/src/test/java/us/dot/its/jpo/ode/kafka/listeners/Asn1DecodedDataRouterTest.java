@@ -68,7 +68,7 @@ class Asn1DecodedDataRouterTest {
   @Autowired
   private XmlMapper simpleXmlMapper;
 
-  ObjectMapper mapper = new ObjectMapper();
+  ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
 
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
@@ -193,13 +193,13 @@ class Asn1DecodedDataRouterTest {
     var certMetadata = decodedTim.getMetadata().getCertMetadata();
     assertEquals(32L, certMetadata.getPsid());
     assertEquals(Instant.parse("2017-07-26T16:03:12.505Z"),
-        certMetadata.getGenerationTime().toInstant());
+        certMetadata.getGenerationTime());
     assertEquals(Instant.parse("2017-07-26T16:09:12.505Z"),
-        certMetadata.getExpiryTime().toInstant());
+        certMetadata.getExpiryTime());
     assertEquals(Instant.parse("2017-07-25T09:00:00.000Z"),
-        certMetadata.getCertificateValidityStart().toInstant());
+        certMetadata.getCertificateValidityStart());
     assertEquals(Instant.parse("2017-08-01T10:00:00.000Z"),
-        certMetadata.getCertificateValidityEnd().toInstant());
+        certMetadata.getCertificateValidityEnd());
     testConsumer.close();
   }
 

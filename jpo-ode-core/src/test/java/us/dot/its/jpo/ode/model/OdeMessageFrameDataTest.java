@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 public class OdeMessageFrameDataTest {
 
   private static final String SAMPLE_SDSM_FILE = "src/test/resources/json/sample-sdsm.json";
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
   /**
    * Test proper serialization and deserialization of SDSM data.
@@ -70,11 +70,13 @@ public class OdeMessageFrameDataTest {
 
   @Test
   public void testCertMetadataSerializationDeserialization() throws IOException {
-    String json = "{\"certMetadata\":{\"psid\":32,"
-        + "\"generationTime\":\"2026-05-07T18:26:51.000Z\","
-        + "\"expiryTime\":\"2026-05-12T10:00:05.000Z\","
-        + "\"certificateValidityStart\":\"2026-05-05T09:00:05.000Z\","
-        + "\"certificateValidityEnd\":\"2026-05-12T10:00:05.000Z\"}}";
+    String json = """
+        {"certMetadata":{"psid":32,
+        "generationTime":"2026-05-07T18:26:51.000Z",
+        "expiryTime":"2026-05-12T10:00:05.000Z",
+        "certificateValidityStart":"2026-05-05T09:00:05.000Z",
+        "certificateValidityEnd":"2026-05-12T10:00:05.000Z"}}
+        """;
 
     OdeMessageFrameMetadata metadata = objectMapper.readValue(json, OdeMessageFrameMetadata.class);
 

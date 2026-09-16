@@ -1,15 +1,16 @@
 package us.dot.its.jpo.ode.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import java.util.Date;
+import java.time.Instant;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
  * Processed timing metadata extracted from an IEEE 1609.2 signed-data envelope.
  *
- * <p>The {@link Date} values map directly to MongoDB BSON Date values. They are emitted on Kafka
- * as UTC ISO-8601 timestamps and retain MongoDB's millisecond precision.</p>
+ * <p>The {@link Instant} values are database-agnostic UTC timestamps. They are emitted on Kafka
+ * as ISO-8601 timestamps with millisecond precision; database-specific conversion belongs at the
+ * persistence boundary.</p>
  */
 @Data
 @NoArgsConstructor
@@ -17,14 +18,14 @@ public class SignedDataMetadata {
   private Long psid;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
-  private Date generationTime;
+  private Instant generationTime;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
-  private Date expiryTime;
+  private Instant expiryTime;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
-  private Date certificateValidityStart;
+  private Instant certificateValidityStart;
 
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
-  private Date certificateValidityEnd;
+  private Instant certificateValidityEnd;
 }

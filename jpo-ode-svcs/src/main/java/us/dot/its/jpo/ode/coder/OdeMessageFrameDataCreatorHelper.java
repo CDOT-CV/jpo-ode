@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.time.Instant;
-import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
@@ -87,7 +86,7 @@ public class OdeMessageFrameDataCreatorHelper {
   }
 
   /**
-   * Converts the raw IEEE 1609.2 timing values emitted by ASN1C into BSON-Date-compatible values.
+   * Converts the raw IEEE 1609.2 timing values emitted by ASN1C into UTC instants.
    */
   private static SignedDataMetadata extractCertMetadata(JsonNode metadataNode) {
     if (!(metadataNode instanceof ObjectNode metadata)) {
@@ -103,14 +102,14 @@ public class OdeMessageFrameDataCreatorHelper {
     SignedDataMetadata result = new SignedDataMetadata();
     if (header != null) {
       result.setPsid(optionalLong(header, "psid"));
-      result.setGenerationTime(time64ToDate(optionalLong(header, "generationTime")));
-      result.setExpiryTime(time64ToDate(optionalLong(header, "expiryTime")));
+      result.setGenerationTime(time64ToInstant(optionalLong(header, "generationTime")));
+      result.setExpiryTime(time64ToInstant(optionalLong(header, "expiryTime")));
     }
 
     if (validityPeriod != null) {
       Instant certificateStart = time32ToInstant(optionalLong(validityPeriod, "start"));
       if (certificateStart != null) {
-        result.setCertificateValidityStart(Date.from(certificateStart));
+        result.setCertificateValidityStart(certificateStart);
         result.setCertificateValidityEnd(certificateValidityEnd(certificateStart,
             validityPeriod.get("duration")));
       }
@@ -124,43 +123,44 @@ public class OdeMessageFrameDataCreatorHelper {
     return field == null || field.isNull() ? null : field.asLong();
   }
 
-  private static Date time64ToDate(Long time64Microseconds) {
+  private static Instant time64ToInstant(Long time64Microseconds) {
     if (time64Microseconds == null) {
       return null;
     }
-    return Date.from(IEEE_1609_2_EPOCH.plusMillis(time64Microseconds / MICROSECONDS_PER_MILLISECOND));
+    return IEEE_1609_2_EPOCH.plusMillis(
+        time64Microseconds / MICROSECONDS_PER_MILLISECOND);
   }
 
   private static Instant time32ToInstant(Long time32Seconds) {
     return time32Seconds == null ? null : IEEE_1609_2_EPOCH.plusSeconds(time32Seconds);
   }
 
-  private static Date certificateValidityEnd(Instant start, JsonNode duration) {
+  private static Instant certificateValidityEnd(Instant start, JsonNode duration) {
     if (duration == null || !duration.isObject()) {
       return null;
     }
     if (duration.has("microseconds")) {
-      return Date.from(start.plusMillis(
-          duration.get("microseconds").asLong() / MICROSECONDS_PER_MILLISECOND));
+      return start.plusMillis(
+          duration.get("microseconds").asLong() / MICROSECONDS_PER_MILLISECOND);
     }
     if (duration.has("milliseconds")) {
-      return Date.from(start.plusMillis(duration.get("milliseconds").asLong()));
+      return start.plusMillis(duration.get("milliseconds").asLong());
     }
     if (duration.has("seconds")) {
-      return Date.from(start.plusSeconds(duration.get("seconds").asLong()));
+      return start.plusSeconds(duration.get("seconds").asLong());
     }
     if (duration.has("minutes")) {
-      return Date.from(start.plusSeconds(duration.get("minutes").asLong() * SECONDS_PER_MINUTE));
+      return start.plusSeconds(duration.get("minutes").asLong() * SECONDS_PER_MINUTE);
     }
     if (duration.has("hours")) {
-      return Date.from(start.plusSeconds(duration.get("hours").asLong() * SECONDS_PER_HOUR));
+      return start.plusSeconds(duration.get("hours").asLong() * SECONDS_PER_HOUR);
     }
     if (duration.has("sixtyHours")) {
-      return Date.from(start.plusSeconds(
-          duration.get("sixtyHours").asLong() * SECONDS_PER_SIXTY_HOURS));
+      return start.plusSeconds(
+          duration.get("sixtyHours").asLong() * SECONDS_PER_SIXTY_HOURS);
     }
     if (duration.has("years")) {
-      return Date.from(start.plusSeconds(duration.get("years").asLong() * SECONDS_PER_YEAR));
+      return start.plusSeconds(duration.get("years").asLong() * SECONDS_PER_YEAR);
     }
     return null;
   }
