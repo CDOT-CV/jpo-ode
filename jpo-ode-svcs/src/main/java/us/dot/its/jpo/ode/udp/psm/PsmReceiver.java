@@ -51,7 +51,6 @@ public class PsmReceiver extends AbstractUdpReceiverPublisher {
     do {
       try {
         log.debug("Waiting for UDP PSM packets...");
-        packet.setLength(buffer.length);
         socket.receive(packet);
         if (packet.getLength() > 0) {
           String psmJson = UdpHexDecoder.buildJsonPsmFromPacket(packet);

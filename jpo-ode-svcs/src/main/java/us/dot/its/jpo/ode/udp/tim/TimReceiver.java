@@ -47,7 +47,6 @@ public class TimReceiver extends AbstractUdpReceiverPublisher {
     do {
       try {
         log.debug("Waiting for UDP TIM packets...");
-        packet.setLength(buffer.length);
         socket.receive(packet);
         if (packet.getLength() > 0) {
           String timData = UdpHexDecoder.buildJsonTimFromPacket(packet);

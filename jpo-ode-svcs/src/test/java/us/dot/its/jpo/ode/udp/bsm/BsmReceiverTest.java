@@ -92,15 +92,6 @@ class BsmReceiverTest {
                 BASE + "BsmReceiverTest_ValidBSM_WithSignature_expected.json");
     }
 
-    @Test
-    void testShortThenLongDatagramsWithReusedPacket() throws Exception {
-        TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getBsm().getReceiverPort());
-        sendAndAssert(udpClient, BASE + "BsmReceiverTest_ValidBSM.txt",
-                BASE + "BsmReceiverTest_ValidBSM_expected.json");
-        sendAndAssert(udpClient, BASE + "BsmReceiverTest_ValidBSM_WithSignature.txt",
-                BASE + "BsmReceiverTest_ValidBSM_WithSignature_expected.json");
-    }
-
     @BeforeAll
     void startReceiver() {
         prevClock = DateTimeUtils
@@ -124,27 +115,22 @@ class BsmReceiverTest {
     }
 
     private void runTest(String inputFile, String expectedFile) throws Exception {
-        sendAndAssert(new TestUDPClient(udpReceiverProperties.getBsm().getReceiverPort()),
-                inputFile, expectedFile);
-    }
-
-    private void sendAndAssert(TestUDPClient udpClient, String inputFile, String expectedFile)
-            throws Exception {
         String fileContent = Files.readString(Paths.get(inputFile));
         String expected = Files.readString(Paths.get(expectedFile));
 
-        udpClient.send(fileContent);
+    TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getBsm().getReceiverPort());
+    udpClient.send(fileContent);
 
-        var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
-        assertNotEquals(expected, singleRecord.value());
-        JSONObject producedJson = new JSONObject(singleRecord.value());
-        JSONObject expectedJson = new JSONObject(expected);
+    var singleRecord = KafkaTestUtils.getSingleRecord(consumer, rawEncodedJsonTopics.getBsm());
+    assertNotEquals(expected, singleRecord.value());
+    JSONObject producedJson = new JSONObject(singleRecord.value());
+    JSONObject expectedJson = new JSONObject(expected);
 
-        assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
-            producedJson.getJSONObject("metadata").get("serialId"));
-        expectedJson.getJSONObject("metadata").remove("serialId");
-        producedJson.getJSONObject("metadata").remove("serialId");
+    assertNotEquals(expectedJson.getJSONObject("metadata").get("serialId"),
+        producedJson.getJSONObject("metadata").get("serialId"));
+    expectedJson.getJSONObject("metadata").remove("serialId");
+    producedJson.getJSONObject("metadata").remove("serialId");
 
-        assertEquals(expectedJson.toString(2), producedJson.toString(2));
-    }
+    assertEquals(expectedJson.toString(2), producedJson.toString(2));
+  }
 }

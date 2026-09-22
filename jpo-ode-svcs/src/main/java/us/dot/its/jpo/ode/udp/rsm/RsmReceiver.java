@@ -46,7 +46,6 @@ public class RsmReceiver extends AbstractUdpReceiverPublisher {
     do {
       try {
         log.info("Waiting for UDP RSM packets...");
-        packet.setLength(buffer.length);
         socket.receive(packet);
         if (packet.getLength() > 0) {
           String rsmData = UdpHexDecoder.buildJsonRsmFromPacket(packet);

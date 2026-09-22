@@ -46,7 +46,6 @@ public class BsmReceiver extends AbstractUdpReceiverPublisher {
     do {
       try {
         log.info("Waiting for UDP BSM packets...");
-        packet.setLength(buffer.length);
         socket.receive(packet);
         if (packet.getLength() > 0) {
           String bsmData = UdpHexDecoder.buildJsonBsmFromPacket(packet);

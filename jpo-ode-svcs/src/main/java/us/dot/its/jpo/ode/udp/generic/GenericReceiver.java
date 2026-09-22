@@ -49,15 +49,17 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
   public void run() {
     log.debug("Generic UDP Receiver Service started.");
 
+    byte[] buffer;
     do {
-      byte[] buffer = new byte[bufferSize];
+      buffer = new byte[bufferSize];
+      // packet should be recreated on each loop to prevent latent data in buffer
       DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
       String detectedMessageType = null;
       try {
         log.debug("Waiting for Generic UDP packets...");
         socket.receive(packet);
         byte[] payload = packet.getData();
-        if ((packet.getLength() <= 0) || (payload == null) || payload.length == 0) {
+        if ((packet.getLength() <= 0) || (payload == null)) {
           log.debug("Skipping empty payload");
           continue;
         }
@@ -66,7 +68,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
         senderPort = packet.getPort();
         log.debug("Packet received from {}:{}", senderIp, senderPort);
 
-        String payloadHexString = toReceivedPayloadHex(packet);
+        String payloadHexString = HexUtils.toHexString(payload).toLowerCase();
         log.debug("Raw Payload {}", payloadHexString);
 
         detectedMessageType = UperUtil.determineHexPacketType(payloadHexString);
@@ -84,13 +86,6 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
             detectedMessageType, describePacketForLog(packet), e);
       }
     } while (!isStopped());
-  }
-
-  static String toReceivedPayloadHex(DatagramPacket packet) {
-    int offset = packet.getOffset();
-    int length = packet.getLength();
-    return HexUtils.toHexString(
-        Arrays.copyOfRange(packet.getData(), offset, offset + length)).toLowerCase();
   }
 
   /**
@@ -114,7 +109,7 @@ public class GenericReceiver extends AbstractUdpReceiverPublisher {
     int off = packet.getOffset();
     byte[] data = packet.getData();
 
-    String hex = HexUtils.toHexString(Arrays.copyOfRange(data, off, off + len)).toLowerCase();
+    String hex = HexUtils.toHexString(Arrays.copyOfRange(data, off, data.length)).toLowerCase();
     sb.append(", hex=").append(hex);
     return sb.toString();
   }

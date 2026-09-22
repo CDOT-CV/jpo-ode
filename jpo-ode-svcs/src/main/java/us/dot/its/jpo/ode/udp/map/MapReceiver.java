@@ -50,7 +50,6 @@ public class MapReceiver extends AbstractUdpReceiverPublisher {
     do {
       try {
         log.debug("Waiting for UDP Map packets...");
-        packet.setLength(buffer.length);
         socket.receive(packet);
         if (packet.getLength() > 0) {
           String mapData = UdpHexDecoder.buildJsonMapFromPacket(packet);
