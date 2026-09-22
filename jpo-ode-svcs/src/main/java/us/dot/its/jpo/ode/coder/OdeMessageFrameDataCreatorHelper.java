@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
@@ -25,7 +26,6 @@ public class OdeMessageFrameDataCreatorHelper {
   private static final long SECONDS_PER_SIXTY_HOURS = 216_000L;
   private static final long SECONDS_PER_HOUR = 3_600L;
   private static final long SECONDS_PER_MINUTE = 60L;
-  private static final long MICROSECONDS_PER_MILLISECOND = 1_000L;
 
   private static final Instant IEEE_1609_2_EPOCH = Instant.parse("2004-01-01T00:00:00Z");
 
@@ -120,15 +120,25 @@ public class OdeMessageFrameDataCreatorHelper {
 
   private static Long optionalLong(JsonNode node, String fieldName) {
     JsonNode field = node.get(fieldName);
-    return field == null || field.isNull() ? null : field.asLong();
+    if (field == null || field.isNull() || !field.isValueNode()) {
+      return null;
+    }
+    String text = field.asText().trim();
+    if (text.isEmpty()) {
+      return null;
+    }
+    try {
+      return Long.parseLong(text);
+    } catch (NumberFormatException ex) {
+      return null;
+    }
   }
 
   private static Instant time64ToInstant(Long time64Microseconds) {
     if (time64Microseconds == null) {
       return null;
     }
-    return IEEE_1609_2_EPOCH.plusMillis(
-        time64Microseconds / MICROSECONDS_PER_MILLISECOND);
+    return IEEE_1609_2_EPOCH.plus(time64Microseconds, ChronoUnit.MICROS);
   }
 
   private static Instant time32ToInstant(Long time32Seconds) {
@@ -139,28 +149,33 @@ public class OdeMessageFrameDataCreatorHelper {
     if (duration == null || !duration.isObject()) {
       return null;
     }
-    if (duration.has("microseconds")) {
-      return start.plusMillis(
-          duration.get("microseconds").asLong() / MICROSECONDS_PER_MILLISECOND);
+    Long microseconds = optionalLong(duration, "microseconds");
+    if (microseconds != null) {
+      return start.plus(microseconds, ChronoUnit.MICROS);
     }
-    if (duration.has("milliseconds")) {
-      return start.plusMillis(duration.get("milliseconds").asLong());
+    Long milliseconds = optionalLong(duration, "milliseconds");
+    if (milliseconds != null) {
+      return start.plusMillis(milliseconds);
     }
-    if (duration.has("seconds")) {
-      return start.plusSeconds(duration.get("seconds").asLong());
+    Long seconds = optionalLong(duration, "seconds");
+    if (seconds != null) {
+      return start.plusSeconds(seconds);
     }
-    if (duration.has("minutes")) {
-      return start.plusSeconds(duration.get("minutes").asLong() * SECONDS_PER_MINUTE);
+    Long minutes = optionalLong(duration, "minutes");
+    if (minutes != null) {
+      return start.plusSeconds(minutes * SECONDS_PER_MINUTE);
     }
-    if (duration.has("hours")) {
-      return start.plusSeconds(duration.get("hours").asLong() * SECONDS_PER_HOUR);
+    Long hours = optionalLong(duration, "hours");
+    if (hours != null) {
+      return start.plusSeconds(hours * SECONDS_PER_HOUR);
     }
-    if (duration.has("sixtyHours")) {
-      return start.plusSeconds(
-          duration.get("sixtyHours").asLong() * SECONDS_PER_SIXTY_HOURS);
+    Long sixtyHours = optionalLong(duration, "sixtyHours");
+    if (sixtyHours != null) {
+      return start.plusSeconds(sixtyHours * SECONDS_PER_SIXTY_HOURS);
     }
-    if (duration.has("years")) {
-      return start.plusSeconds(duration.get("years").asLong() * SECONDS_PER_YEAR);
+    Long years = optionalLong(duration, "years");
+    if (years != null) {
+      return start.plusSeconds(years * SECONDS_PER_YEAR);
     }
     return null;
   }
