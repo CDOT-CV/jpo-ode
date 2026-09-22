@@ -27,6 +27,7 @@ public class OdeMessageFrameDataCreatorHelper {
   private static final long SECONDS_PER_HOUR = 3_600L;
   private static final long SECONDS_PER_MINUTE = 60L;
 
+  // Time32 and Time64 both count from this instant. Leap seconds are not applied.
   private static final Instant IEEE_1609_2_EPOCH = Instant.parse("2004-01-01T00:00:00Z");
 
   // Schema versions 4 and earlier omit receivedMessageDetails.
@@ -39,6 +40,9 @@ public class OdeMessageFrameDataCreatorHelper {
   /**
    * Creates an OdeMessageFrameData object from consumed XML data.
    *
+   * <p>IEEE 1609.2 {@code signedDataHeaderInfo} and {@code signatureValidityPeriod} elements are
+   * converted to {@link SignedDataMetadata} instants and removed before metadata deserialization.
+   *
    * @param consumedData The XML data string to be processed
    * @param simpleXmlMapper The XmlMapper for XML operations
    * @return OdeMessageFrameData object containing the processed data
@@ -46,16 +50,13 @@ public class OdeMessageFrameDataCreatorHelper {
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
       XmlMapper simpleXmlMapper) throws JsonProcessingException {
-    // Parse the XML into a tree structure first
     JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
-    
-    // Extract and deserialize metadata separately
+
     JsonNode metadataNode = rootNode.get("metadata");
     ServiceRequest request = null;
     if (metadataNode instanceof ObjectNode object) {
       if (object.has("request")) {
         JsonNode requestNode = object.get("request");
-        // Check if "request" is present and not an empty object
         if (requestNode != null && requestNode.isObject() && requestNode.size() > 0) {
           String xmlBack = simpleXmlMapper.writeValueAsString(requestNode);
           request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
@@ -86,7 +87,11 @@ public class OdeMessageFrameDataCreatorHelper {
   }
 
   /**
-   * Converts the raw IEEE 1609.2 timing values emitted by ASN1C into UTC instants.
+   * Converts ASN1C's raw IEEE 1609.2 XER times into instants.
+   *
+   * <p>Time64 values keep microsecond precision. Blank or non-numeric text is left unset instead
+   * of becoming the 2004 epoch. The source nodes are removed so metadata deserialization ignores
+   * them.
    */
   private static SignedDataMetadata extractCertMetadata(JsonNode metadataNode) {
     if (!(metadataNode instanceof ObjectNode metadata)) {
@@ -118,6 +123,7 @@ public class OdeMessageFrameDataCreatorHelper {
     return result;
   }
 
+  /** Returns the field as a long, or null when it is missing, blank, or not an integer. */
   private static Long optionalLong(JsonNode node, String fieldName) {
     JsonNode field = node.get(fieldName);
     if (field == null || field.isNull() || !field.isValueNode()) {
@@ -145,6 +151,12 @@ public class OdeMessageFrameDataCreatorHelper {
     return time32Seconds == null ? null : IEEE_1609_2_EPOCH.plusSeconds(time32Seconds);
   }
 
+  /**
+   * Adds the first {@code Duration} arm that parses as an integer.
+   *
+   * <p>Empty or non-numeric arms are skipped, so a later arm can still apply. {@code years} uses
+   * the mean Gregorian year in {@link #SECONDS_PER_YEAR}, not a calendar year.
+   */
   private static Instant certificateValidityEnd(Instant start, JsonNode duration) {
     if (duration == null || !duration.isObject()) {
       return null;
