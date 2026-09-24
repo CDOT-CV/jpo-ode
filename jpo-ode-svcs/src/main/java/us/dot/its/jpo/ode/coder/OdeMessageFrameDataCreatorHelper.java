@@ -50,13 +50,18 @@ public class OdeMessageFrameDataCreatorHelper {
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
       XmlMapper simpleXmlMapper) throws JsonProcessingException {
+    // Parse the XML into a tree structure first
     JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
 
+    // Extract the metadata node from the root node
     JsonNode metadataNode = rootNode.get("metadata");
+
+    // Extract the request node from the metadata node
     ServiceRequest request = null;
     if (metadataNode instanceof ObjectNode object) {
       if (object.has("request")) {
         JsonNode requestNode = object.get("request");
+        // Check if "request" is present and not an empty object
         if (requestNode != null && requestNode.isObject() && requestNode.size() > 0) {
           String xmlBack = simpleXmlMapper.writeValueAsString(requestNode);
           request = simpleXmlMapper.readValue(xmlBack, ServiceRequest.class);
