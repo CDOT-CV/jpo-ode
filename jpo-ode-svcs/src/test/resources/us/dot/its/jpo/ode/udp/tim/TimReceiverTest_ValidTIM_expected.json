@@ -1,6 +1,13 @@
 {
 	"metadata": {
 		"recordType": "timMsg",
+		"encodings": [
+		  {
+		    "encodingRule": "UPER",
+		    "elementType": "MessageFrame",
+		    "elementName": "unsecuredData"
+		  }
+		],
 		"securityResultCode": "success",
 		"payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
 		"serialId": {
