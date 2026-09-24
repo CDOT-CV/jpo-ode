@@ -84,9 +84,9 @@ public class RawEncodedJsonService {
       return null;
     }
 
-    int envelopeStart = normalizedHex.indexOf("038100");
+    int envelopeStart = normalizedHex.indexOf(UperUtil.SIGNED_DOT2_HEADER_PREFIX);
     while (envelopeStart >= 0 && (envelopeStart >= payloadStart || envelopeStart % 2 != 0)) {
-      envelopeStart = normalizedHex.indexOf("038100", envelopeStart + 1);
+      envelopeStart = normalizedHex.indexOf(UperUtil.SIGNED_DOT2_HEADER_PREFIX, envelopeStart + 1);
     }
     return envelopeStart < 0 ? null : normalizedHex.substring(envelopeStart);
   }

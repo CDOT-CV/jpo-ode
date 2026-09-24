@@ -89,7 +89,7 @@ public class UdpHexDecoder {
 
     String decoderInputHex =
         UperUtil.stripDot3Header(untrimmedPayloadHexLower, msgType.getStartFlag()).toLowerCase();
-    boolean signedIeee1609Dot2 = decoderInputHex.startsWith("038100");
+    boolean signedIeee1609Dot2 = decoderInputHex.startsWith(UperUtil.SIGNED_DOT2_HEADER_PREFIX);
     if (!signedIeee1609Dot2) {
       try {
         decoderInputHex = UperUtil.stripDot2Header(decoderInputHex, msgType.getStartFlag());

@@ -16,6 +16,18 @@ import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 @Slf4j
 public class UperUtil {
 
+  /**
+   * COER prefix of an IEEE 1609.2 signed-data header: protocol version 3 ({@code 03}), content
+   * choice {@code signedData} ({@code 81}), and hash algorithm {@code sha256} ({@code 00}).
+   *
+   * <p>Derived from <a href="https://github.com/usdot-jpo-ode/asn1_codec/blob/master/asn1c_combined/scms-asn-files/Ieee1609Dot2.asn">Ieee1609Dot2.asn</a>.
+   * The note on {@code EncryptedData} in that file gives the unsigned encoding {@code 03 80}:
+   * {@code 03} is {@code protocolVersion} and {@code 80} is the {@code unsecuredData} choice.
+   * {@code signedData} is the next {@code Ieee1609Dot2Content} alternative, so its choice octet is
+   * {@code 81}. {@code SignedData.hashId} is then {@code 00} for {@code sha256}.</p>
+   */
+  public static final String SIGNED_DOT2_HEADER_PREFIX = "038100";
+
   private UperUtil() {
     throw new UnsupportedOperationException();
   }
@@ -63,7 +75,7 @@ public class UperUtil {
       String payload = hexString.substring(payloadStartIndex);
 
       // Look for the index of the start flag of a signed 1609.2 header, if one exists
-      int signedDot2StartIndex = headers.indexOf("038100");
+      int signedDot2StartIndex = headers.indexOf(SIGNED_DOT2_HEADER_PREFIX);
       if (signedDot2StartIndex == -1) {
         hexPacketParsed = payload;
       } else {
@@ -89,7 +101,7 @@ public class UperUtil {
     String payload = hexString.substring(payloadStartIndex);
     log.debug("Base payload: {}", payload);
     // Look for the index of the start flag of a signed 1609.2 header
-    int signedDot2StartIndex = headers.indexOf("038100");
+    int signedDot2StartIndex = headers.indexOf(SIGNED_DOT2_HEADER_PREFIX);
     if (signedDot2StartIndex == -1) {
       return payload;
     } else {
