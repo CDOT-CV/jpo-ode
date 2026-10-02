@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.udp;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -9,6 +10,8 @@ import java.util.List;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import us.dot.its.jpo.ode.model.Asn1Encoding;
+import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeAsn1Payload;
 import us.dot.its.jpo.ode.model.OdeHexByteArray;
 import us.dot.its.jpo.ode.test.utilities.ApprovalTestCase;
@@ -54,6 +57,26 @@ class UdpHexDecoderTest {
     assertEquals(exampleBSMHexString, payloadContents);
   }
 
+  @Test
+  void getPayloadHexString_BSM_UsesOffsetAndPreservesTrailingZero()
+      throws InvalidPayloadException {
+    byte[] receivedBytes = HexUtils.fromHexString(exampleBSMHexString);
+    int offset = 3;
+    byte[] buffer = new byte[receivedBytes.length + offset + 64];
+    System.arraycopy(receivedBytes, 0, buffer, offset, receivedBytes.length);
+    buffer[buffer.length - 1] = 0x1f;
+
+    DatagramPacket packet = new DatagramPacket(buffer, offset, receivedBytes.length,
+        InetAddress.getLoopbackAddress(), 1);
+    OdeAsn1Payload payload = UdpHexDecoder.getPayloadHexString(packet, SupportedMessageType.BSM);
+
+    assertEquals(buffer.length, packet.getData().length);
+    assertEquals(offset, packet.getOffset());
+    assertEquals(receivedBytes.length, packet.getLength());
+    assertEquals(0, receivedBytes[receivedBytes.length - 1]);
+    assertEquals(exampleBSMHexString, ((OdeHexByteArray) payload.getData()).getBytes());
+  }
+
   /**
    * metadata.asn1 must use the same uppercase hex as {@link OdeHexByteArray} / {@link CodecUtils}
    * so JSON matches approval fixtures and TIM start flags (e.g. {@code 001f}) still match during
@@ -74,8 +97,27 @@ class UdpHexDecoderTest {
         receivedBytes, receivedBytes.length, InetAddress.getLoopbackAddress(), 1);
 
     String json = UdpHexDecoder.buildJsonMapFromPacket(packet);
-    String asn1 = new JSONObject(json).getJSONObject("metadata").getString("asn1");
+    JSONObject metadata = new JSONObject(json).getJSONObject("metadata");
+    String asn1 = metadata.getString("asn1");
 
     assertEquals(CodecUtils.toHex(receivedBytes), asn1);
+    assertFalse(metadata.getBoolean("isCertPresent"));
+    assertFalse(metadata.has("certPresent"));
+  }
+
+  @Test
+  void buildAsn1DataFromSignedTimRetainsCoerEnvelope() throws InvalidPayloadException {
+    byte[] receivedBytes = HexUtils.fromHexString("0001038100001f00");
+    DatagramPacket packet = new DatagramPacket(
+        receivedBytes, receivedBytes.length, InetAddress.getLoopbackAddress(), 1);
+
+    OdeAsn1Data asn1Data = UdpHexDecoder.buildAsn1DataFromPacket(
+        packet, SupportedMessageType.TIM, null, null, null, false);
+
+    String decoderBytes = ((OdeHexByteArray) asn1Data.getPayload().getData()).getBytes();
+    assertEquals("038100001F00", decoderBytes);
+    List<Asn1Encoding> encodings = asn1Data.getMetadata().getEncodings();
+    assertEquals("Ieee1609Dot2Data", encodings.get(0).getElementType());
+    assertEquals("MessageFrame", encodings.get(1).getElementType());
   }
 }

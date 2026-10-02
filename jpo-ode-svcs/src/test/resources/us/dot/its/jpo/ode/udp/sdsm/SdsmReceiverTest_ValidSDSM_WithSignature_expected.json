@@ -1,6 +1,18 @@
 {
 	"metadata": {
 		"recordType": "sdsmTx",
+		"encodings": [
+		  {
+		    "encodingRule": "COER",
+		    "elementType": "Ieee1609Dot2Data",
+		    "elementName": "Ieee1609Dot2Data"
+		  },
+		  {
+		    "encodingRule": "UPER",
+		    "elementType": "MessageFrame",
+		    "elementName": "unsecuredData"
+		  }
+		],
 		"securityResultCode": "success",
 		"payloadType": "us.dot.its.jpo.ode.model.OdeAsn1Payload",
 		"serialId": {
@@ -23,7 +35,7 @@
 	"payload": {
 		"dataType": "us.dot.its.jpo.ode.model.OdeHexByteArray",
 		"data": {
-			"bytes": "0029250A010C0C0A301FA04EDB8816396666F30C34000A00002C43E94BBA4200020002EC00280002"
+			"bytes": "038100400380560029250A010C0C0A301FA04EDB8816396666F30C34000A00002C43E94BBA4200020002EC00280002"
 		}
 	}
 }

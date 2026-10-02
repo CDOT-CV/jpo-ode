@@ -92,6 +92,12 @@ class RtcmReceiverTest {
                 BASE + "RtcmReceiverTest_ValidRTCM_WithSignature_expected.json");
     }
 
+    @Test
+    void testWithAdditionalSignatureFixture() throws Exception {
+        runTest(BASE + "RtcmReceiverTest_ValidRTC_WithSignature.txt",
+                BASE + "RtcmReceiverTest_ValidRTC_WithSignature_expected.json");
+    }
+
     @BeforeAll
     void startReceiver() {
         prevClock = DateTimeUtils
@@ -115,7 +121,7 @@ class RtcmReceiverTest {
     }
 
     private void runTest(String inputFile, String expectedFile) throws Exception {
-        String fileContent = Files.readString(Paths.get(inputFile));
+        String fileContent = Files.readString(Paths.get(inputFile)).trim();
         String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getRtcm().getReceiverPort());

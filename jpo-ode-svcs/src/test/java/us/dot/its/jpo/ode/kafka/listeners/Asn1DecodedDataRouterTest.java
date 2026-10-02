@@ -7,10 +7,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -67,7 +69,7 @@ class Asn1DecodedDataRouterTest {
   @Autowired
   private XmlMapper simpleXmlMapper;
 
-  ObjectMapper mapper = new ObjectMapper();
+  ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {
@@ -160,6 +162,45 @@ class Asn1DecodedDataRouterTest {
 
       assertThat(actualMF, jsonEquals(expectedMF).withTolerance(0.0001));
     }
+    testConsumer.close();
+  }
+
+  @Test
+  void testAsn1DecodedDataRouterTIMProcessesSignedDataTimestamps() throws IOException {
+    String[] topics = Arrays.array(jsonTopics.getTim());
+    embeddedKafka.addTopics(topics);
+
+    var consumerProps =
+        KafkaTestUtils.consumerProps(embeddedKafka, "timSignatureValidityTest", false);
+    var consumerFactory = new DefaultKafkaConsumerFactory<>(consumerProps, new StringDeserializer(),
+        new StringDeserializer());
+    var testConsumer = consumerFactory.createConsumer();
+    embeddedKafka.consumeFromEmbeddedTopics(testConsumer, true, topics);
+
+    String inputData = loadFromResource("us/dot/its/jpo/ode/services/asn1/decoder-output-tim.xml")
+        .replace("<isCertPresent>false</isCertPresent>",
+            "<isCertPresent>false</isCertPresent>"
+                + "<signedDataHeaderInfo><psid>32</psid>"
+                + "<generationTime>428169792505460</generationTime>"
+                + "<expiryTime>428170152505460</expiryTime></signedDataHeaderInfo>"
+                + "<signatureValidityPeriod><start>428058000</start>"
+                + "<duration><hours>169</hours></duration></signatureValidityPeriod>");
+    kafkaStringTemplate.send(
+        asn1CoderTopics.getDecoderOutput(), UUID.randomUUID().toString(), inputData);
+
+    var consumedTim = KafkaTestUtils.getSingleRecord(testConsumer, jsonTopics.getTim());
+    OdeMessageFrameData decodedTim = mapper.readValue(consumedTim.value(), OdeMessageFrameData.class);
+
+    var certMetadata = decodedTim.getMetadata().getCertMetadata();
+    assertEquals(32L, certMetadata.getPsid());
+    assertEquals(Instant.parse("2017-07-26T16:03:12.505Z"),
+        certMetadata.getGenerationTime());
+    assertEquals(Instant.parse("2017-07-26T16:09:12.505Z"),
+        certMetadata.getExpiryTime());
+    assertEquals(Instant.parse("2017-07-25T09:00:00.000Z"),
+        certMetadata.getCertificateValidityStart());
+    assertEquals(Instant.parse("2017-08-01T10:00:00.000Z"),
+        certMetadata.getCertificateValidityEnd());
     testConsumer.close();
   }
 
