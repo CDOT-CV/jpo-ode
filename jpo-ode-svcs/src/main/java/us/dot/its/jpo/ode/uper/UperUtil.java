@@ -71,15 +71,12 @@ public class UperUtil {
         continue;
       }
 
-      String headers = hexString.substring(0, payloadStartIndex);
-      String payload = hexString.substring(payloadStartIndex);
-
       // Look for the index of the start flag of a signed 1609.2 header, if one exists
-      int signedDot2StartIndex = headers.indexOf(SIGNED_DOT2_HEADER_PREFIX);
+      int signedDot2StartIndex = findSignedDot2HeaderLocation(hexString, payloadStartIndex);
       if (signedDot2StartIndex == -1) {
-        hexPacketParsed = payload;
+        hexPacketParsed = hexString.substring(payloadStartIndex);
       } else {
-        hexPacketParsed = headers.substring(signedDot2StartIndex) + payload;
+        hexPacketParsed = hexString.substring(signedDot2StartIndex);
       }
       break;
     }
@@ -97,15 +94,14 @@ public class UperUtil {
    */
   public static String stripDot3Header(String hexString, String payloadStartFlag) {
     int payloadStartIndex = findValidStartFlagLocation(hexString, payloadStartFlag);
-    String headers = hexString.substring(0, payloadStartIndex);
     String payload = hexString.substring(payloadStartIndex);
     log.debug("Base payload: {}", payload);
     // Look for the index of the start flag of a signed 1609.2 header
-    int signedDot2StartIndex = headers.indexOf(SIGNED_DOT2_HEADER_PREFIX);
+    int signedDot2StartIndex = findSignedDot2HeaderLocation(hexString, payloadStartIndex);
     if (signedDot2StartIndex == -1) {
       return payload;
     } else {
-      return headers.substring(signedDot2StartIndex) + payload;
+      return hexString.substring(signedDot2StartIndex);
     }
   }
 
@@ -202,6 +198,30 @@ public class UperUtil {
       index = hexString.indexOf(startFlag, index + 1);
     }
     return index;
+  }
+
+  /**
+   * Searches for the start of a signed IEEE 1609.2 header ({@link #SIGNED_DOT2_HEADER_PREFIX})
+   * within the header region that precedes the payload. Like
+   * {@link #findValidStartFlagLocation(String, String)}, only matches on an even numbered index
+   * (a byte boundary) are accepted, since a string match at an odd index straddles two bytes.
+   *
+   * @param hexString the string representation of the message in hexadecimal format.
+   * @param payloadStartIndex the index where the payload begins; the signed header prefix must
+   *        lie entirely before this index.
+   * @return the index of the signed 1609.2 header prefix if found on a byte boundary before the
+   *         payload; -1 otherwise.
+   */
+  public static int findSignedDot2HeaderLocation(String hexString, int payloadStartIndex) {
+    int lastValidIndex = payloadStartIndex - SIGNED_DOT2_HEADER_PREFIX.length();
+    int index = hexString.indexOf(SIGNED_DOT2_HEADER_PREFIX);
+    while (index != -1 && index <= lastValidIndex) {
+      if (index % 2 == 0) {
+        return index;
+      }
+      index = hexString.indexOf(SIGNED_DOT2_HEADER_PREFIX, index + 1);
+    }
+    return -1;
   }
 
 

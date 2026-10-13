@@ -1,10 +1,14 @@
 package us.dot.its.jpo.ode.kafka;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.awaitility.Awaitility;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.util.FileSystemUtils;
 import us.dot.its.jpo.ode.OdeTimJsonTopology;
 import us.dot.its.jpo.ode.test.utilities.EmbeddedKafkaHolder;
 
@@ -36,7 +40,22 @@ public class TestKafkaStreamsConfig {
       OdeKafkaProperties odeKafkaProperties,
       KafkaTemplate<String, String> kafkaTemplate) {
     EmbeddedKafkaHolder.addTopics(timTopic);
-    var topology = new OdeTimJsonTopology(odeKafkaProperties, timTopic, timKTableTopic, kafkaTemplate);
+    Path stateDir;
+    try {
+      stateDir = Files.createTempDirectory("ode-tim-json-topology-test");
+    } catch (IOException e) {
+      throw new IllegalStateException("Unable to create Kafka Streams state directory", e);
+    }
+    // Best-effort cleanup so repeated test runs don't accumulate state directories
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      try {
+        FileSystemUtils.deleteRecursively(stateDir);
+      } catch (IOException ignored) {
+        // files may still be locked by Kafka Streams; the OS temp cleaner will handle it
+      }
+    }));
+    var topology = new OdeTimJsonTopology(odeKafkaProperties, timTopic, timKTableTopic,
+        kafkaTemplate, stateDir.toString());
     Awaitility.await().until(topology::isRunning);
     return topology;
   }
