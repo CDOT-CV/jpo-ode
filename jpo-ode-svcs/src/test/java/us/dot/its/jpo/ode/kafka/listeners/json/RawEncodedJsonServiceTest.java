@@ -22,7 +22,7 @@ class RawEncodedJsonServiceTest {
   void signedTimRetainsCoerEnvelopeAndDeclaresBothDecoders() throws Exception {
     String signedTim = loadSignedTim();
     String rawTim = """
-        {"metadata":{"schemaVersion":9},"payload":{"data":{"bytes":"0001%s"}}}
+        {"metadata":{"schemaVersion":10},"payload":{"data":{"bytes":"0001%s"}}}
         """.formatted(signedTim);
     RawEncodedJsonService service = new RawEncodedJsonService(new ObjectMapper());
 
@@ -41,7 +41,7 @@ class RawEncodedJsonServiceTest {
     // This fixture contains a 98-byte MessageFrame after its seven-byte COER prefix.
     String strippedTim = signedTim.substring(14, 210);
     String rawTim = """
-        {"metadata":{"schemaVersion":9,"asn1":"0001%s"},
+        {"metadata":{"schemaVersion":10,"asn1":"0001%s"},
         "payload":{"data":{"bytes":"%s"}}}
         """.formatted(signedTim, strippedTim);
     RawEncodedJsonService service = new RawEncodedJsonService(new ObjectMapper());
@@ -97,7 +97,7 @@ class RawEncodedJsonServiceTest {
 
   private String rawMessage(String payloadHex) {
     return """
-        {"metadata":{"schemaVersion":9},"payload":{"data":{"bytes":"%s"}}}
+        {"metadata":{"schemaVersion":10},"payload":{"data":{"bytes":"%s"}}}
         """.formatted(payloadHex);
   }
 
