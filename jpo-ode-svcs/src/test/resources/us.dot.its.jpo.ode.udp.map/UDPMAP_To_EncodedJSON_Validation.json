@@ -16,7 +16,7 @@
             "serialNumber": 0
           },
           "odeReceivedAt": "2020-01-01T00:00:00.000Z",
-          "schemaVersion": 9,
+          "schemaVersion": 10,
           "maxDurationTime": 0,
           "recordGeneratedBy": "RSU",
           "sanitized": false,
@@ -49,7 +49,7 @@
             "serialNumber": 0
           },
           "odeReceivedAt": "2020-01-01T00:00:00.000Z",
-          "schemaVersion": 9,
+          "schemaVersion": 10,
           "maxDurationTime": 0,
           "recordGeneratedBy": "RSU",
           "sanitized": false,
@@ -82,7 +82,7 @@
             "serialNumber": 0
           },
           "odeReceivedAt": "2020-01-01T00:00:00.000Z",
-          "schemaVersion": 9,
+          "schemaVersion": 10,
           "maxDurationTime": 0,
           "recordGeneratedBy": "RSU",
           "sanitized": false,

@@ -17,8 +17,10 @@ import org.springframework.boot.kafka.autoconfigure.KafkaProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.KafkaListenerEndpointRegistry;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.test.context.EmbeddedKafka;
+import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import us.dot.its.jpo.ode.config.SerializationConfig;
@@ -50,7 +52,10 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
         "ode.kafka.topics.raw-encoded-json.srm=topic.Asn1DecoderTestSRMJSON",
         "ode.kafka.topics.asn1.decoder-input=topic.Asn1DecoderSRMInput"
     })
-@EmbeddedKafka
+@EmbeddedKafka(partitions = 1, topics = {
+    "topic.Asn1DecoderTestSRMJSON",
+    "topic.Asn1DecoderSRMInput"
+})
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}"})
 @EnableConfigurationProperties
 @DirtiesContext
@@ -60,11 +65,16 @@ class RawEncodedSRMJsonRouterTest {
   RawEncodedJsonTopics rawEncodedJsonTopics;
   @Autowired
   private KafkaTemplate<String, String> kafkaTemplate;
+  @Autowired
+  private KafkaListenerEndpointRegistry listenerRegistry;
 
   private CompletableFuture<String> future;
 
   @Test
-  void testListen() throws JSONException, IOException, InterruptedException {
+  void testListen() throws JSONException, IOException, InterruptedException, ExecutionException,
+      TimeoutException {
+    listenerRegistry.getListenerContainers()
+        .forEach(container -> ContainerTestUtils.waitForAssignment(container, 1));
     future = new CompletableFuture<>();
 
     var classLoader = getClass().getClassLoader();
@@ -75,11 +85,11 @@ class RawEncodedSRMJsonRouterTest {
       assert inputStream != null;
       json = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     }
-    kafkaTemplate.send(rawEncodedJsonTopics.getSrm(), json);
+    kafkaTemplate.send(rawEncodedJsonTopics.getSrm(), json).get(10, TimeUnit.SECONDS);
 
     String odeRsmData;
     try {
-      odeRsmData = future.get(3, TimeUnit.SECONDS);
+      odeRsmData = future.get(15, TimeUnit.SECONDS);
     } catch (ExecutionException | TimeoutException e) {
       throw new AssertionError("SRM message was not received within the timeout period", e);
     }
@@ -95,7 +105,7 @@ class RawEncodedSRMJsonRouterTest {
     assertEquals(expectedSrm, odeRsmData);
   }
 
-    @KafkaListener(topics = {"topic.Asn1DecoderSRMInput"} , groupId = "test-group")
+    @KafkaListener(topics = "topic.Asn1DecoderSRMInput", groupId = "srm-router-output")
     public void receive(String payload) {
       future.complete(payload);
     }

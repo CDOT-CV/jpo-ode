@@ -83,37 +83,37 @@ ode:
         input: "topic.SDWDepositorInput"
   receivers:
     generic:
-      buffer-size: 2000
+      buffer-size: 8192
       receiver-port: 44990
     bsm:
-      buffer-size: 500
+      buffer-size: 4096
       receiver-port: 46800
     map:
-      buffer-size: 2048
+      buffer-size: 8192
       receiver-port: 44920
     psm:
-      buffer-size: 500
+      buffer-size: 2048
       receiver-port: 44940
     spat:
-      buffer-size: 500
+      buffer-size: 8192
       receiver-port: 44910
     srm:
-      buffer-size: 500
+      buffer-size: 2048
       receiver-port: 44930
     ssm:
-      buffer-size: 500
+      buffer-size: 8192
       receiver-port: 44900
     tim:
-      buffer-size: 500
+      buffer-size: 8192
       receiver-port: 47900
     sdsm:
-      buffer-size: 500
+      buffer-size: 8192
       receiver-port: 44950
     rtcm:
-      buffer-size: 500
+      buffer-size: 8192
       receiver-port: 44960
     rsm:
-      buffer-size: 2000
+      buffer-size: 8192
       receiver-port: 44970
   file-importer:
     buffer-size: 500

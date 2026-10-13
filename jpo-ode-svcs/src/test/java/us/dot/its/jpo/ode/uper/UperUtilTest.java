@@ -87,4 +87,30 @@ class UperUtilTest {
     OdeAsn1Payload rtcmPayload = new OdeAsn1Payload(HexUtils.fromHexString(rtcmHexString));
     assertEquals("RTCM", UperUtil.determineMessageType(rtcmPayload));
   }
+
+  @Test
+  void testFindSignedDot2HeaderLocationOnByteBoundary() {
+    // headers: 0000 | signed dot2 prefix 038100 at index 4 | payload 0014...
+    String hexString = "0000038100aabb0014abcd";
+    assertEquals(4, UperUtil.findSignedDot2HeaderLocation(hexString, 14));
+  }
+
+  @Test
+  void testFindSignedDot2HeaderLocationIgnoresOddIndex() {
+    // "038100" appears at index 1, straddling bytes a0|38|10|00
+    String hexString = "a03810000014abcd";
+    assertEquals(-1, UperUtil.findSignedDot2HeaderLocation(hexString, 8));
+  }
+
+  @Test
+  void testFindSignedDot2HeaderLocationIgnoresMatchInPayload() {
+    String hexString = "00000014038100";
+    assertEquals(-1, UperUtil.findSignedDot2HeaderLocation(hexString, 4));
+  }
+
+  @Test
+  void testStripDot3HeaderIgnoresMisalignedSignedPrefix() {
+    String hexString = "a03810000014abcd";
+    assertEquals("0014abcd", UperUtil.stripDot3Header(hexString, "0014"));
+  }
 }

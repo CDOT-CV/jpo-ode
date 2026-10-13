@@ -55,11 +55,26 @@ public class OdeTimJsonTopology {
    */
   public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps, String topic, String ktableTopic,
       KafkaTemplate<String, String> template) {
+    this(odeKafkaProps, topic, ktableTopic, template, null);
+  }
+
+  /**
+   * Same as {@link #OdeTimJsonTopology(OdeKafkaProperties, String, String, KafkaTemplate)} but
+   * uses {@code stateDir} as the Kafka Streams state directory. Tests pass a fresh directory so a
+   * leftover global-store checkpoint from another KTable topic cannot fail startup.
+   *
+   * @param stateDir Kafka Streams state directory, or null to use the Streams default
+   */
+  public OdeTimJsonTopology(OdeKafkaProperties odeKafkaProps, String topic, String ktableTopic,
+      KafkaTemplate<String, String> template, String stateDir) {
     Properties streamsProperties = new Properties();
     streamsProperties.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, odeKafkaProps.getBrokers());
     streamsProperties.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
     streamsProperties.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.StringSerde.class);
     streamsProperties.put(StreamsConfig.APPLICATION_ID_CONFIG, "ode-tim-json-topology");
+    if (stateDir != null) {
+      streamsProperties.put(StreamsConfig.STATE_DIR_CONFIG, stateDir);
+    }
 
     if ("CONFLUENT".equals(odeKafkaProps.getKafkaType())) {
       streamsProperties.putAll(odeKafkaProps.getConfluent().buildConfluentProperties());

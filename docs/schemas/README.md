@@ -15,7 +15,9 @@ The jpo-ode supports receiving and decoding ASN1 messages from RSUs. The support
 
 The output JSON of the ODE is complex but it is similar to the official standard of J2735 with some minor differences due to the form of their deserialized POJOs. To help implement proper data validation for the JSON output of the ODE into any data pipeline infrastructure, you may use the provided validation schemas within this directory.
 
-Each jpo-ode output object also contains a `schemaVersion`. This value represents the version of the jpo-ode output that the object came from. This version is not intended to be changed except in the scenario of newly added breaking changes to the output. This value is set [here](./jpo-ode-core/src/main/java/us/dot/its/jpo/ode/model/OdeMsgMetadata.java).
+Each jpo-ode output object also contains a `schemaVersion`. This value represents the version of the jpo-ode output that the object came from. This version is not intended to be changed except in the scenario of newly added breaking changes to the output. This value is set [here](../../jpo-ode-core/src/main/java/us/dot/its/jpo/ode/model/OdeMsgMetadata.java).
+
+Optional `metadata.certMetadata` carries IEEE 1609.2 signed-data timing (`psid`, generation and expiry times, and certificate validity). It is omitted when no signed-data envelope was present. Adding this field bumps `schemaVersion` to 10.
 
 ## Testing the schemas
 These schemas can be used for manual validation in the following steps:
