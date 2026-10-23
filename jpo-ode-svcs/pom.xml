@@ -169,9 +169,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>usdot.jpo.asn</groupId>
+      <groupId>${asn.pojos.group.id}</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>1.2.0</version>
+      <version>${asn.pojos.version}</version>
     </dependency>
     <dependency>
       <groupId>net.javacrumbs.json-unit</groupId>
