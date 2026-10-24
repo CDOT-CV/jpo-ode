@@ -33,10 +33,11 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  * Tests that depositor outputs are the same before and after, except for a couple xml variants,
  * some corrections, and errors that no longer happen:
  * <ul>
- * <li>Empty elements: encoder XML now writes <advisory/> instead of <advisory></advisory>.</li>
- * <li>Geometry extent: now sent as the enum, e.g. <extent><useFor500meters/></extent>, and
+ * <li>Empty elements: encoder XML now writes {@code <advisory/>} instead of
+ *     {@code <advisory></advisory>}.</li>
+ * <li>Geometry extent: now sent as the enum, e.g. {@code <extent><useFor500meters/></extent>}, and
  *     OdeTimJson now includes extent.</li>
- * <li>Circle units: "1": legacy wrote an empty, invalid <units/>. It now writes cm2-5, and
+ * <li>Circle units: "1": legacy wrote an empty, invalid {@code <units/>}. It now writes cm2-5, and
  *     OdeTimJson gains units.</li>
  *  <p>Lowercase packetID: it now goes to the encoder in uppercase hex; OdeTimJson was already
  *     identical.</p>
