@@ -21,7 +21,6 @@
 package us.dot.its.jpo.ode.traveler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -39,6 +38,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.TravelerInformation;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -52,7 +52,6 @@ import us.dot.its.jpo.ode.plugin.ServiceRequest.OdeInternal;
 import us.dot.its.jpo.ode.plugin.ServiceRequest.OdeInternal.RequestVerb;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.DataFrame;
-import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -227,26 +226,17 @@ public class TimDepositController {
     timMetadata.setSerialId(serialIdJ2735);
 
     // Craft ASN-encodable TIM
-    ObjectNode encodableTid;
+    TravelerInformation encodableTim;
     try {
-      encodableTid = JsonUtils.toObjectNode(odeTID.toJson());
-      TravelerMessageFromHumanToAsnConverter.convertTravelerInputDataToEncodableTim(encodableTid);
-
-      log.debug("Encodable Traveler Information Data: {}", encodableTid);
-
-    } catch (JsonUtilsException e) {
-      String errMsg = "Error converting to encodable TravelerInputData.";
-      log.error(errMsg, e);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
-    } catch (TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException e) {
-      String errMsg = "Non-compliant fields in TIM: " + e.getMessage();
-      log.error(errMsg, e);
-      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-          .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
-    } catch (TravelerMessageFromHumanToAsnConverter.InvalidNodeLatLonOffsetException e) {
+      encodableTim = TravelerInformationConverter.convert(tim);
+    } catch (TravelerInformationConverter.InvalidNodeLatLonOffsetException e) {
       String errMsg = "Invalid node lat/lon offset in TIM: " + e.getMessage();
       log.error(errMsg);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
+    } catch (TravelerInformationConverter.UnsupportedRegionException e) {
+      String errMsg = "Error sending data to ASN.1 Encoder module: " + e.getMessage();
+      log.error(errMsg, e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
@@ -254,7 +244,7 @@ public class TimDepositController {
     // Publish the resulting ASN XML and JSON to the appropriate topics
     try {
       String xmlMsg;
-      xmlMsg = TimTransmogrifier.convertToXml(null, encodableTid, timMetadata, serialIdJ2735);
+      xmlMsg = TimTransmogrifier.convertToXml(encodableTim, request, timMetadata, serialIdJ2735);
       log.debug("XML representation: {}", xmlMsg);
 
       // Convert XML into ODE TIM JSON object and obfuscate RSU password
