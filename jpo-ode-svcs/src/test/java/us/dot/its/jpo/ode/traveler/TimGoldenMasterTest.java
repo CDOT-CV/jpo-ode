@@ -28,6 +28,26 @@ import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
+/**
+ * Regression tests for the refactor to remove legacy J2735.
+ * Tests that depositor outputs are the same before and after, except for a couple xml variants,
+ * some corrections, and errors that no longer happen:
+ * <ul>
+ * <li>Empty elements: encoder XML now writes <advisory/> instead of <advisory></advisory>.</li>
+ * <li>Geometry extent: now sent as the enum, e.g. <extent><useFor500meters/></extent>, and
+ *     OdeTimJson now includes extent.</li>
+ * <li>Circle units: "1": legacy wrote an empty, invalid <units/>. It now writes cm2-5, and
+ *     OdeTimJson gains units.</li>
+ *  <p>Lowercase packetID: it now goes to the encoder in uppercase hex; OdeTimJson was already
+ *     identical.</p>
+ *  <p>Unsupported regions still get a 400, with new message text. Unknown description values and
+ *     shapepoint/regionPoint old-region areas now read "Unsupported region description: …" or
+ *     "Unsupported oldRegion area…"; the old message named a deleted class. An unknown content value
+ *     still returns 200, as before.
+ * <p>Two removed 400s: "Error converting to encodable TravelerInputData." and "Non-compliant
+ *     fields in TIM" could no longer be triggered through REST.</p>
+ * </ul>
+ */
 class TimGoldenMasterTest {
 
   private static final Path GOLDEN = Paths.get("src/test/resources/us/dot/its/jpo/ode/traveler/golden");
