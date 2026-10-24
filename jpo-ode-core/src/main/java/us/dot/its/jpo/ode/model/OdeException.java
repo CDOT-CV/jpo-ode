@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.util.JsonUtils;
 

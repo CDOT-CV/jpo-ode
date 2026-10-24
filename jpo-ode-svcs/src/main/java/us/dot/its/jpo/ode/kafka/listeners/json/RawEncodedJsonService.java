@@ -1,7 +1,7 @@
 package us.dot.its.jpo.ode.kafka.listeners.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -38,12 +38,12 @@ public class RawEncodedJsonService {
    * @param metadataClass the class type of OdeLogMetadata to which the JSON metadata should be
    *                      deserialized
    * @return an OdeAsn1Data object containing the processed metadata and payload
-   * @throws JsonProcessingException    if there is an error processing the JSON input
+   * @throws JacksonException    if there is an error processing the JSON input
    * @throws StartFlagNotFoundException if the specified start flag is not found in the payload
    */
   public OdeAsn1Data addEncodingAndMutateBytes(String json, SupportedMessageType messageType,
       Class<? extends OdeLogMetadata> metadataClass)
-      throws JsonProcessingException, StartFlagNotFoundException {
+      throws JacksonException, StartFlagNotFoundException {
     JSONObject rawJsonObject = new JSONObject(json);
 
     String jsonStringMetadata = rawJsonObject.get("metadata").toString();

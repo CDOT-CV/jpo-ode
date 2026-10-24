@@ -18,7 +18,7 @@ package us.dot.its.jpo.ode.plugin.j2735;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import java.math.BigDecimal;
 import lombok.EqualsAndHashCode;
 import us.dot.its.jpo.ode.model.OdeObject;

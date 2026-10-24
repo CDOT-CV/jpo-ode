@@ -17,15 +17,18 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.CoercionAction;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.type.LogicalType;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.cfg.CoercionAction;
+import tools.jackson.databind.cfg.CoercionInputShape;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.type.LogicalType;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -44,18 +47,24 @@ public class JsonUtils {
   private static final ObjectMapper mapper_noNulls;
 
   static {
-    mapper = new ObjectMapper();
-    mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-    mapper.coercionConfigFor(LogicalType.Enum)
-        .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
+    mapper = JsonMapper.builderWithJackson2Defaults()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
+        .withCoercionConfig(LogicalType.Enum,
+            cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
+        // Ensure BigDecimals are serialized consistently as numbers not strings
+        .withConfigOverride(BigDecimal.class,
+            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
+        .build();
 
-    mapper_noNulls = new ObjectMapper();
-    mapper_noNulls.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-    mapper_noNulls.setSerializationInclusion(Include.NON_NULL);
-
-    // Ensure BigDecimals are serialized consistently as numbers not strings
-    mapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
-    mapper_noNulls.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
+    mapper_noNulls = JsonMapper.builderWithJackson2Defaults()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
+        .changeDefaultPropertyInclusion(
+            incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
+        .withConfigOverride(BigDecimal.class,
+            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
+        .build();
   }
 
   private JsonUtils() {
@@ -74,7 +83,7 @@ public class JsonUtils {
     // and returned as JSON formatted string
     try {
       return verbose ? mapper.writeValueAsString(o) : mapper_noNulls.writeValueAsString(o);
-    } catch (JsonProcessingException e) {
+    } catch (JacksonException e) {
       log.error("Error converting object to JSON", e);
       return "";
     }
@@ -107,7 +116,7 @@ public class JsonUtils {
   public static Object jacksonFromJson(String s, Class<?> clazz) throws JsonUtilsException {
     try {
       return mapper.readValue(s, clazz);
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       throw new JsonUtilsException("Error deserializing JSON tree to " + clazz.getName(), e);
     }
   }
@@ -124,12 +133,13 @@ public class JsonUtils {
   public static Object jacksonFromJson(String s, Class<?> clazz, boolean allowUnknownProperties)
       throws JsonUtilsException {
     try {
-      mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, !allowUnknownProperties);
-      return mapper.readValue(s, clazz);
-    } catch (IOException e) {
+      ObjectReader reader = mapper.readerFor(clazz);
+      reader = allowUnknownProperties
+          ? reader.without(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+          : reader.with(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+      return reader.readValue(s);
+    } catch (JacksonException e) {
       throw new JsonUtilsException("Error deserializing JSON tree to " + clazz.getName(), e);
-    } finally {
-      mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, allowUnknownProperties);
     }
   }
 
@@ -183,7 +193,7 @@ public class JsonUtils {
       JsonNode jsonNode = mapper.readTree(tree);
       node = jsonNode.get(fieldName);
 
-    } catch (IOException e) {
+    } catch (JacksonException e) {
       log.error("IOException", e);
     }
     return node;
@@ -250,7 +260,7 @@ public class JsonUtils {
     try {
       ObjectNode jsonNode = (ObjectNode) mapper.readTree(tree);
       return jsonNode != null;
-    } catch (JsonProcessingException jpe) {
+    } catch (JacksonException jpe) {
       return false;
     }
   }
@@ -263,7 +273,7 @@ public class JsonUtils {
    */
   public static HashMap<String, JsonNode> jsonNodeToHashMap(JsonNode jsonNode) {
     HashMap<String, JsonNode> nodeProps = new HashMap<String, JsonNode>();
-    Iterator<Entry<String, JsonNode>> iter = jsonNode.fields();
+    Iterator<Entry<String, JsonNode>> iter = jsonNode.properties().iterator();
 
     while (iter.hasNext()) {
       Entry<String, JsonNode> element = iter.next();

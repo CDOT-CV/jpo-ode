@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 public class Asn1Encoding extends OdeObject {
 

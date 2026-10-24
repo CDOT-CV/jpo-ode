@@ -7,8 +7,8 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withServerError;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -59,7 +59,7 @@ class SecurityServicesClientTest {
   }
 
   @Test
-  void testSignMessage_WithMockServerSuccessfulResponse() throws JsonProcessingException {
+  void testSignMessage_WithMockServerSuccessfulResponse() throws JacksonException {
     // Arrange
     String message = "TestMessage";
     SignatureResultModel expectedResult = new SignatureResultModel();

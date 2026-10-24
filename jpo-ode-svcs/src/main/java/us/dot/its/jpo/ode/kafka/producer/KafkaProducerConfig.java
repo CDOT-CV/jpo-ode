@@ -1,7 +1,7 @@
 package us.dot.its.jpo.ode.kafka.producer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.Map;
 import org.apache.kafka.clients.producer.ProducerConfig;

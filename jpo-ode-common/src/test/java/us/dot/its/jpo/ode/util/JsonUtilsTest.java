@@ -27,8 +27,8 @@ import java.util.Map.Entry;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
@@ -175,7 +175,7 @@ public class JsonUtilsTest {
 
         JsonNode jsonNode = JsonUtils.getJsonNode(ODM, "payload");
         HashMap<String, JsonNode> hashMap = JsonUtils.jsonNodeToHashMap(jsonNode);
-        Iterator<Entry<String, JsonNode>> fieldsIter = jsonNode.fields();
+        Iterator<Entry<String, JsonNode>> fieldsIter = jsonNode.properties().iterator();
 
         while (fieldsIter.hasNext()) {
             Entry<String, JsonNode> field = fieldsIter.next();

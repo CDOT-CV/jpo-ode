@@ -4,13 +4,14 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.cfg.CoercionAction;
-import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
-import com.fasterxml.jackson.databind.type.LogicalType;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.cfg.CoercionAction;
+import tools.jackson.databind.cfg.CoercionInputShape;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.type.LogicalType;
+import tools.jackson.dataformat.xml.XmlMapper;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,15 +33,18 @@ public class SerializationConfig {
   @Bean
   @Primary
   public ObjectMapper objectMapper() {
-    ObjectMapper mapper = new ObjectMapper();
-    mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
-    mapper.coercionConfigFor(LogicalType.Enum)
-        .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
-    // Ensure BigDecimals are serialized consistently as numbers not strings
-    mapper.configOverride(BigDecimal.class).setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER));
-    // Only serialize non-null fields
-    mapper.setSerializationInclusion(Include.NON_NULL);
-    return mapper;
+    return JsonMapper.builderWithJackson2Defaults()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
+        .withCoercionConfig(LogicalType.Enum,
+            cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
+        // Ensure BigDecimals are serialized consistently as numbers not strings
+        .withConfigOverride(BigDecimal.class,
+            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
+        // Only serialize non-null fields
+        .changeDefaultPropertyInclusion(
+            incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
+        .build();
   }
 
   /**
@@ -52,21 +56,25 @@ public class SerializationConfig {
    */
   @Bean
   public XmlMapper xmlMapper() {
-    XmlMapper xmlMapper = new XmlMapper();
-    var builder = new Builder(xmlMapper);
+    var builder = XmlMapper.builderWithJackson2Defaults();
     builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
+    builder.disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
     return builder.build();
   }
 
 
   @Bean("simpleObjectMapper")
   public ObjectMapper simpleObjectMapper() {
-    return new ObjectMapper();
+    return JsonMapper.builderWithJackson2Defaults()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
   }
 
   @Bean("simpleXmlMapper")
   public XmlMapper simpleXmlMapper() {
-    return new XmlMapper();
+    return XmlMapper.builderWithJackson2Defaults()
+        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        .build();
   }
 }

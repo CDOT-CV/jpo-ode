@@ -1,7 +1,7 @@
 package us.dot.its.jpo.ode.plugin;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

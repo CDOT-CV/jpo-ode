@@ -21,12 +21,11 @@
 package us.dot.its.jpo.ode.model;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import java.io.IOException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -206,11 +205,10 @@ public class OdeLogMetadata extends OdeMsgMetadata {
   /**
    * Custom deserializer for the list of Asn1Encoding objects used in OdeLogMetadata.
    */
-  public static class EncodingsDeserializer extends JsonDeserializer<List<Asn1Encoding>> {
+  public static class EncodingsDeserializer extends ValueDeserializer<List<Asn1Encoding>> {
     @Override
-    public List<Asn1Encoding> deserialize(JsonParser p, DeserializationContext ctxt)
-        throws IOException {
-      JsonNode node = p.getCodec().readTree(p);
+    public List<Asn1Encoding> deserialize(JsonParser p, DeserializationContext ctxt) {
+      JsonNode node = ctxt.readTree(p);
       List<Asn1Encoding> result = new ArrayList<>();
 
       if (node != null && node.has("encodings")) {

@@ -1,9 +1,10 @@
 package us.dot.its.jpo.ode.http;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
 
 /**
@@ -23,7 +24,7 @@ public class WebClientConfig {
 
   /**
    * Creates and configures a {@link RestTemplate} bean with a custom
-   * {@link MappingJackson2HttpMessageConverter} to use the provided
+   * {@link JacksonJsonHttpMessageConverter} to use the provided
    * {@link ObjectMapper} for JSON serialization and deserialization.
    *
    * @param mapper the {@link ObjectMapper} to be used for configuring
@@ -34,8 +35,7 @@ public class WebClientConfig {
   @Bean
   public RestTemplate restTemplate(ObjectMapper mapper) {
     var template = new RestTemplate();
-    MappingJackson2HttpMessageConverter customConverter = new MappingJackson2HttpMessageConverter();
-    customConverter.setObjectMapper(mapper);
+    var customConverter = new JacksonJsonHttpMessageConverter((JsonMapper) mapper);
     template.getMessageConverters().add(customConverter);
     return template;
   }
