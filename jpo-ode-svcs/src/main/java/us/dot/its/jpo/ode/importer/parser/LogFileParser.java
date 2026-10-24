@@ -19,6 +19,7 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +30,6 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata.Source;
 import us.dot.its.jpo.ode.model.ReceivedMessageDetails;
 import us.dot.its.jpo.ode.model.RxSource;
-import us.dot.its.jpo.ode.plugin.j2735.builders.ElevationBuilder;
-import us.dot.its.jpo.ode.plugin.j2735.builders.HeadingBuilder;
-import us.dot.its.jpo.ode.plugin.j2735.builders.LatitudeBuilder;
-import us.dot.its.jpo.ode.plugin.j2735.builders.LongitudeBuilder;
-import us.dot.its.jpo.ode.plugin.j2735.builders.SpeedOrVelocityBuilder;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 /**
@@ -177,12 +173,11 @@ public abstract class LogFileParser implements FileParser {
     }
 
     LogLocation locationDetails = locationParser.getLocation();
-    BigDecimal genericLatitude = LatitudeBuilder.genericLatitude(locationDetails.getLatitude());
-    BigDecimal genericLongitude = LongitudeBuilder.genericLongitude(locationDetails.getLongitude());
-    BigDecimal genericElevation = ElevationBuilder.genericElevation(locationDetails.getElevation());
-    BigDecimal genericSpeedOrVelocity =
-        SpeedOrVelocityBuilder.genericSpeedOrVelocity(locationDetails.getSpeed());
-    BigDecimal genericHeading = HeadingBuilder.genericHeading(locationDetails.getHeading());
+    BigDecimal genericLatitude = genericLatitude(locationDetails.getLatitude());
+    BigDecimal genericLongitude = genericLongitude(locationDetails.getLongitude());
+    BigDecimal genericElevation = genericElevation(locationDetails.getElevation());
+    BigDecimal genericSpeedOrVelocity = genericSpeedOrVelocity(locationDetails.getSpeed());
+    BigDecimal genericHeading = genericHeading(locationDetails.getHeading());
 
     var locationMetadata = new OdeLogMsgMetadataLocation(
         genericLatitude == null ? null : genericLatitude.stripTrailingZeros().toPlainString(),
@@ -200,6 +195,37 @@ public abstract class LogFileParser implements FileParser {
     }
 
     return rxMsgDetails;
+  }
+
+  private static BigDecimal genericLatitude(long latitude) {
+    return latitude == 900000001 ? null : BigDecimal.valueOf(latitude, 7);
+  }
+
+  private static BigDecimal genericLongitude(long longitude) {
+    return longitude == 1800000001 ? null : BigDecimal.valueOf(longitude, 7);
+  }
+
+  private static BigDecimal genericElevation(long elevation) {
+    if (elevation == -4096) {
+      return null;
+    } else if (elevation >= 61439) {
+      return BigDecimal.valueOf(61439L, 1);
+    } else if (elevation <= -4095) {
+      return BigDecimal.valueOf(-4095L, 1);
+    }
+    return BigDecimal.valueOf(elevation, 1);
+  }
+
+  private static BigDecimal genericSpeedOrVelocity(int speedOrVelocity) {
+    if (speedOrVelocity < 0 || speedOrVelocity > 8191) {
+      throw new IllegalArgumentException("Speed or velocity out of bounds");
+    }
+    return speedOrVelocity == 8191 ? null : BigDecimal.valueOf(speedOrVelocity * 2L, 2);
+  }
+
+  private static BigDecimal genericHeading(long heading) {
+    return heading == 28800 ? null
+        : BigDecimal.valueOf(heading * 125, 4).setScale(4, RoundingMode.HALF_DOWN);
   }
 
   /**

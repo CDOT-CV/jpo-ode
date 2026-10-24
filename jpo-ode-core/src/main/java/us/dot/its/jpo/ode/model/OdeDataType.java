@@ -21,13 +21,11 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import us.dot.its.jpo.ode.plugin.j2735.J2735Bsm;
-
 public enum OdeDataType {
    Status("status", OdeStatus.class),
    Control("control", OdeControlData.class),
    Authorization("auth", OdeAuthorization.class),
-   BasicSafetyMessage("bsm", J2735Bsm.class),
+   BasicSafetyMessage("bsm", us.dot.its.jpo.asn.j2735.r2024.BasicSafetyMessage.BasicSafetyMessage.class),
    TravelerInformationMessage("tim", OdeTravelerInputData.class),
    AggregateData("agg", OdeAggregateData.class),
    AsnBase64("asnbase64", String.class),
