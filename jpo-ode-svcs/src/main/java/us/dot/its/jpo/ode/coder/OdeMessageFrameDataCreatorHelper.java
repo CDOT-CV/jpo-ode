@@ -11,6 +11,7 @@ import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
 import us.dot.its.jpo.ode.model.OdeMessageFramePayload;
 import us.dot.its.jpo.ode.model.RxSource;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
+import us.dot.its.jpo.ode.util.XmlUtils;
 
 /**
  * Helper class for creating OdeMessageFrameData objects from consumed data.
@@ -63,8 +64,10 @@ public class OdeMessageFrameDataCreatorHelper {
       metadata.setReceivedMessageDetails(null);
     }
 
-    JsonNode messageFrameNode = rootNode.get("payload").get("data").get("MessageFrame");
-    MessageFrame<?> messageFrame = simpleXmlMapper.convertValue(messageFrameNode, MessageFrame.class);
+    // Deserialize the MessageFrame from the XML text, not the tree.  A tree groups repeated
+    // sibling elements, which would reorder SEQUENCE OF CHOICE items.
+    String messageFrameXml = XmlUtils.findXmlContentString(consumedData, "MessageFrame");
+    MessageFrame<?> messageFrame = simpleXmlMapper.readValue(messageFrameXml, MessageFrame.class);
     OdeMessageFramePayload payload = new OdeMessageFramePayload(messageFrame);
     return new OdeMessageFrameData(metadata, payload);
   }
