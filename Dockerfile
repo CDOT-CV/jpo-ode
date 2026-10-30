@@ -36,7 +36,9 @@ COPY --from=builder /home/jpo-ode-svcs/src/main/resources/logback.xml /home
 COPY --from=builder /home/jpo-ode-svcs/target/jpo-ode-svcs.jar /home
 COPY ./scripts/startup_jpoode.sh /home
 
-RUN apk --no-cache add openssh  \
+# Upgrade base image packages so cached base layers still get OS security fixes (e.g. brotli-libs, CVE-2026-111497)
+RUN apk --no-cache upgrade \
+    && apk --no-cache add openssh  \
     && apk --no-cache add openrc  \
     && rc-update add sshd \
     && apk add libstdc++
