@@ -2,7 +2,7 @@
   "metadata": {
     "securityResultCode": "success",
     "recordGeneratedBy": "RSU",
-    "schemaVersion": 9,
+    "schemaVersion": 10,
     "sanitized": false,
     "serialId": {
 			"streamId": "609a6611-8a14-4ca7-a6a2-44f68c163c7d",
@@ -12,6 +12,13 @@
 			"serialNumber": 0
 		},
     "recordType": "rtcmTx",
+    "encodings": [
+      {
+        "encodingRule": "UPER",
+        "elementType": "MessageFrame",
+        "elementName": "unsecuredData"
+      }
+    ],
     "maxDurationTime": 0,
     "source": "RSU",
     "isCertPresent": false,

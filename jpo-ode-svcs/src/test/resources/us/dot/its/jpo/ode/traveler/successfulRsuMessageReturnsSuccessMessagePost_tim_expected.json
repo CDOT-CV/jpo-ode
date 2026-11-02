@@ -36,7 +36,7 @@
       "serialNumber": 1
     },
     "odeReceivedAt": "2018-03-13T01:07:11.120Z",
-    "schemaVersion": 9,
+    "schemaVersion": 10,
     "maxDurationTime": 30,
     "recordGeneratedAt": "2024-05-10T19:01:22.000Z",
     "recordGeneratedBy": "TMC",

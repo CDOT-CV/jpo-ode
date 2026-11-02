@@ -6,7 +6,7 @@
   <parent>
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-ode</artifactId>
-    <version>7.0.0-alpha1</version>
+    <version>7.0.0-alpha2</version>
   </parent>
   <artifactId>jpo-ode-svcs</artifactId>
   <packaging>jar</packaging>
@@ -140,12 +140,12 @@
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-core</artifactId>
-      <version>7.0.0-alpha1</version>
+      <version>7.0.0-alpha2</version>
     </dependency>
     <dependency>
       <groupId>usdot.jpo.ode</groupId>
       <artifactId>jpo-ode-plugins</artifactId>
-      <version>7.0.0-alpha1</version>
+      <version>7.0.0-alpha2</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>

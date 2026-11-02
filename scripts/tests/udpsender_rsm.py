@@ -15,5 +15,5 @@ sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 
 while True:
   sock.sendto(bytes.fromhex(MESSAGE), (UDP_IP, UDP_PORT))
-  time.sleep(5)
   print("sending RSM every 5 seconds")
+  time.sleep(5)

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.type.LogicalType;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,6 +34,7 @@ public class SerializationConfig {
   @Primary
   public ObjectMapper objectMapper() {
     ObjectMapper mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
     mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
     mapper.coercionConfigFor(LogicalType.Enum)
         .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
@@ -62,7 +64,7 @@ public class SerializationConfig {
 
   @Bean("simpleObjectMapper")
   public ObjectMapper simpleObjectMapper() {
-    return new ObjectMapper();
+    return new ObjectMapper().registerModule(new JavaTimeModule());
   }
 
   @Bean("simpleXmlMapper")

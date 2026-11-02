@@ -11,7 +11,7 @@
       "serialNumber": 0
     },
     "odeReceivedAt": "2025-06-25T07:10:33.878Z",
-    "schemaVersion": 9,
+    "schemaVersion": 10,
     "maxDurationTime": 0,
     "recordGeneratedBy": "OBU",
     "sanitized": false,
