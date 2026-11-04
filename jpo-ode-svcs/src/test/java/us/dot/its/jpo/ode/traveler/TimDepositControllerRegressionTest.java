@@ -15,12 +15,16 @@ import java.nio.file.Paths;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.invocation.Invocation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.xmlunit.builder.DiffBuilder;
@@ -31,38 +35,93 @@ import us.dot.its.jpo.ode.security.SecurityServicesProperties;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
 /**
- * Regression tests for the refactor to remove legacy J2735.
- * Tests that depositor can accept the same inputs and outputs are the same before and after,
- * except for a couple xml variants, some corrections, and errors that no longer happen:
+ * Regression test for the TIM depositor REST endpoint, {@code POST /tim}.
+ *
+ * <h2>What it checks</h2>
+ * <p>Each case is a request body in {@code tim-deposit-regression/requests/<case>.json}. The test
+ * passes the body to {@link TimDepositController#postTim}, called directly (no HTTP server, no
+ * Spring context), with a mocked {@link KafkaTemplate} that records what is published. It then
+ * compares the three things the depositor produces with files in
+ * {@code tim-deposit-regression/expected/}:</p>
+ * <ol>
+ *   <li>{@code <case>.response.txt}: the HTTP status code and body returned by {@code postTim},
+ *       e.g. {@code 200 {"success":"true"}}. If {@code postTim} throws, it holds
+ *       {@code EXCEPTION <exception class>}.</li>
+ *   <li>{@code <case>.OdeTimJson.json}: the message published to the OdeTimJson topic, compared as
+ *       JSON.</li>
+ *   <li>{@code <case>.Asn1EncoderInput.xml}: the message published to the Asn1EncoderInput topic,
+ *       the input to the ASN.1 encoder, compared as XML ignoring whitespace.</li>
+ * </ol>
+ * <p>An empty expected file means nothing is published to that topic, as for a rejected request.
+ * The clock is fixed and the random {@code streamId} is replaced with {@code STREAM}, so the
+ * outputs are repeatable.</p>
+ *
+ * <h2>Where the expected files come from</h2>
+ * <p>They were recorded from the legacy implementation on {@code cdot_develop}, before the legacy
+ * J2735 POJOs were removed, and re-recorded only for the intended differences listed below. A
+ * passing run shows that the depositor accepts the same requests and produces the same outputs as
+ * before the refactor.</p>
+ *
+ * <p>The case name prefix says where the request came from:</p>
  * <ul>
- * <li>Empty elements: encoder XML now writes {@code <advisory/>} instead of
- *     {@code <advisory></advisory>}.</li>
- * <li>Geometry extent: now sent as the enum, e.g. {@code <extent><useFor500meters/></extent>}, and
- *     OdeTimJson now includes extent.</li>
- * <li>Circle units: "1": legacy wrote an empty, invalid {@code <units/>}. It now writes cm2-5, and
- *     OdeTimJson gains units.</li>
- *  <p>Lowercase packetID: it now goes to the encoder in uppercase hex; OdeTimJson was already
- *     identical.</p>
- *  <p>Unsupported regions still get a 400, with new message text. Unknown description values and
- *     shapepoint/regionPoint old-region areas now read "Unsupported region description: …" or
- *     "Unsupported oldRegion area…"; the old message named a deleted class. An unknown content value
- *     still returns 200, as before.
- * <p>Two removed 400s: "Error converting to encodable TravelerInputData." and "Non-compliant
- *     fields in TIM" could no longer be triggered through REST.</p>
+ *   <li>{@code controller_}: request bodies from {@code TimDepositControllerTest}, named after its
+ *       test methods.</li>
+ *   <li>{@code converter_}: request bodies from the deleted
+ *       {@code TravelerMessageFromHumanToAsnConverterTest}.</li>
+ *   <li>{@code data_}: sample requests from {@code data/TIM_Message_Testing_Files}.</li>
+ *   <li>{@code resource_}: other request files under {@code src/test/resources}.</li>
+ *   <li>{@code crafted_}: written for this test. Each varies one thing, such as a field value, an
+ *       enum given by name or by number, or a node offset at a size boundary.</li>
  * </ul>
+ *
+ * <h2>Intended differences from cdot_develop</h2>
+ * <ul>
+ *   <li>Empty elements: the encoder XML now writes {@code <advisory/>} instead of
+ *       {@code <advisory></advisory>}.</li>
+ *   <li>Geometry extent: now sent as the enum, e.g. {@code <extent><useFor500meters/></extent>},
+ *       and OdeTimJson now includes the extent.</li>
+ *   <li>Circle units {@code "1"}: legacy wrote an empty, invalid {@code <units/>}. It now writes
+ *       {@code cm2-5}, and OdeTimJson now includes the units.</li>
+ *   <li>Lowercase packetID: now sent to the encoder as uppercase hex. OdeTimJson was already the
+ *       same.</li>
+ *   <li>Unsupported regions still get a 400, with new message text. An unknown description, or a
+ *       shapepoint or regionPoint oldRegion area, now reads "Unsupported region description: ..."
+ *       or "Unsupported oldRegion area..."; the old message named a deleted class. An unknown
+ *       content value still returns 200.</li>
+ *   <li>Two 400 responses no longer exist, because nothing sent through REST could trigger them:
+ *       "Error converting to encodable TravelerInputData." and "Non-compliant fields in TIM".</li>
+ * </ul>
+ *
+ * <h2>Recording expected files</h2>
+ * <p>Run with {@code -DtimDepositRegression.record=true} to write the current outputs to
+ * {@code expected/} instead of comparing them. Use it to add a case (add the request file first) or
+ * to record an intended behavior change, then review the {@code git diff} of {@code expected/}.</p>
+ * <pre>
+ * mvn -pl jpo-ode-svcs test -Dtest=TimDepositControllerRegressionTest -DtimDepositRegression.record=true
+ * </pre>
  */
-class TimGoldenMasterTest {
+@DisplayName("POST /tim: responses and published Kafka messages match the recorded outputs")
+class TimDepositControllerRegressionTest {
 
-  private static final Path GOLDEN = Paths.get("src/test/resources/us/dot/its/jpo/ode/traveler/golden");
-  private static final Path EXPECTED = GOLDEN.resolve("expected");
-  private static final boolean CAPTURE = Boolean.getBoolean("golden.capture");
-  private static final String TIM_JSON_TOPIC = "timJson";
-  private static final String ENCODER_INPUT_TOPIC = "encoderInput";
+  private static final String RECORD_PROPERTY = "timDepositRegression.record";
+
+  private static final Path CASES =
+      Paths.get("src/test/resources/us/dot/its/jpo/ode/traveler/tim-deposit-regression");
+  private static final Path REQUESTS = CASES.resolve("requests");
+  private static final Path EXPECTED = CASES.resolve("expected");
+
+  private static final String ODE_TIM_JSON_TOPIC = "topic.OdeTimJson";
+  private static final String ASN1_ENCODER_INPUT_TOPIC = "topic.Asn1EncoderInput";
+
+  /** What the depositor produced for one request. A topic with no message is "". */
+  private record DepositResult(String response, String odeTimJsonMessage,
+                               String asn1EncoderInputMessage) {
+  }
+
+  /** Each case is deposited once and shared by the three comparison tests. */
+  private static final Map<String, DepositResult> RESULTS = new HashMap<>();
 
   private static Clock prevClock;
-
-  private record Outputs(String response, String timJson, String encoderXml) {
-  }
 
   @BeforeAll
   static void fixClock() {
@@ -75,97 +134,49 @@ class TimGoldenMasterTest {
     DateTimeUtils.setClock(prevClock);
   }
 
-  static Stream<String> goldenCases() throws IOException {
-    try (Stream<Path> inputs = Files.list(GOLDEN.resolve("inputs"))) {
-      return inputs.map(input -> input.getFileName().toString().replace(".json", ""))
+  /** Case names: the request file names without {@code .json}, sorted. */
+  static Stream<String> caseNames() throws IOException {
+    try (Stream<Path> requests = Files.list(REQUESTS)) {
+      return requests.map(request -> request.getFileName().toString().replace(".json", ""))
           .sorted()
           .toList()
           .stream();
     }
   }
 
-  /**
-   * Deposits each request in {@code golden/inputs} and compares the REST response, OdeTimJson
-   * message and Asn1EncoderInput message with the files in {@code golden/expected}.
-   *
-   * <p>Run with {@code -Dgolden.capture=true} to overwrite the expected files with the current
-   * outputs instead of comparing (no assertions run). Use it to add a case or record an intended
-   * behavior change, then review the {@code git diff} of {@code golden/expected}.</p>
-   */
   @ParameterizedTest(name = "{0}")
-  @MethodSource("goldenCases")
-  void timDepositOutputsMatchGoldenFiles(String name) throws IOException {
-    String body = Files.readString(GOLDEN.resolve("inputs").resolve(name + ".json"), StandardCharsets.UTF_8);
-    Outputs actual = deposit(body);
-
-    Path responseFile = EXPECTED.resolve(name + ".response.txt");
-    Path jsonFile = EXPECTED.resolve(name + ".tim.json");
-    Path xmlFile = EXPECTED.resolve(name + ".encoder.xml");
-    if (CAPTURE) {
-      Files.createDirectories(EXPECTED);
-      Files.writeString(responseFile, actual.response() + "\n", StandardCharsets.UTF_8);
-      Files.writeString(jsonFile, actual.timJson(), StandardCharsets.UTF_8);
-      Files.writeString(xmlFile, actual.encoderXml(), StandardCharsets.UTF_8);
-      return;
-    }
-
-    assertEquals(Files.readString(responseFile, StandardCharsets.UTF_8).trim(), actual.response(),
-        "REST response");
-    assertTimJson(Files.readString(jsonFile, StandardCharsets.UTF_8), actual.timJson());
-    assertEncoderXml(Files.readString(xmlFile, StandardCharsets.UTF_8), actual.encoderXml());
+  @MethodSource("caseNames")
+  @DisabledIfSystemProperty(named = RECORD_PROPERTY, matches = "true")
+  @DisplayName("returns the recorded HTTP status and body")
+  void postTimReturnsRecordedResponse(String caseName) throws IOException {
+    String expected = readExpected(caseName, ".response.txt").trim();
+    assertEquals(expected, depositResult(caseName).response(), "HTTP response from postTim");
   }
 
-  @SuppressWarnings("unchecked")
-  private static Outputs deposit(String body) {
-    Asn1CoderTopics asn1CoderTopics = new Asn1CoderTopics();
-    asn1CoderTopics.setEncoderInput(ENCODER_INPUT_TOPIC);
-    JsonTopics jsonTopics = new JsonTopics();
-    jsonTopics.setTim(TIM_JSON_TOPIC);
-    KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
-    TimDepositController controller = new TimDepositController(asn1CoderTopics, jsonTopics,
-        new TimIngestTrackerProperties(), new SecurityServicesProperties(), kafkaTemplate,
-        new XmlMapper());
-
-    String response;
-    try {
-      ResponseEntity<String> r = controller.postTim(body);
-      response = r.getStatusCode().value() + " " + r.getBody();
-    } catch (RuntimeException e) {
-      response = "EXCEPTION " + e.getClass().getName();
-    }
-
-    String timJson = "";
-    String encoderXml = "";
-    for (Invocation invocation : mockingDetails(kafkaTemplate).getInvocations()) {
-      if (invocation.getMethod().getName().equals("send") && invocation.getArguments().length == 3) {
-        String topic = (String) invocation.getArguments()[0];
-        String value = normalizeStreamId((String) invocation.getArguments()[2]);
-        if (topic.equals(TIM_JSON_TOPIC)) {
-          timJson = value;
-        } else if (topic.equals(ENCODER_INPUT_TOPIC)) {
-          encoderXml = value;
-        }
-      }
-    }
-    return new Outputs(response, timJson, encoderXml);
-  }
-
-  private static String normalizeStreamId(String value) {
-    return value.replaceAll("\"streamId\":\"[^\"]*\"", "\"streamId\":\"STREAM\"")
-        .replaceAll("<streamId>[^<]*</streamId>", "<streamId>STREAM</streamId>");
-  }
-
-  private static void assertTimJson(String expected, String actual) {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("caseNames")
+  @DisabledIfSystemProperty(named = RECORD_PROPERTY, matches = "true")
+  @DisplayName("publishes the recorded message to the OdeTimJson topic")
+  void postTimPublishesRecordedOdeTimJsonMessage(String caseName) throws IOException {
+    String expected = readExpected(caseName, ".OdeTimJson.json");
+    String actual = depositResult(caseName).odeTimJsonMessage();
     if (expected.isBlank() || actual.isBlank()) {
-      assertEquals(expected.strip(), actual.strip(), "OdeTimJson message");
+      assertEquals(expected.strip(), actual.strip(), "OdeTimJson message (empty = not published)");
       return;
     }
     assertJsonEquals(expected, actual);
   }
 
-  private static void assertEncoderXml(String expected, String actual) {
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("caseNames")
+  @DisabledIfSystemProperty(named = RECORD_PROPERTY, matches = "true")
+  @DisplayName("publishes the recorded message to the Asn1EncoderInput topic")
+  void postTimPublishesRecordedAsn1EncoderInputMessage(String caseName) throws IOException {
+    String expected = readExpected(caseName, ".Asn1EncoderInput.xml");
+    String actual = depositResult(caseName).asn1EncoderInputMessage();
     if (expected.isBlank() || actual.isBlank()) {
-      assertEquals(expected.strip(), actual.strip(), "Asn1EncoderInput message");
+      assertEquals(expected.strip(), actual.strip(),
+          "Asn1EncoderInput message (empty = not published)");
       return;
     }
     Diff diff = DiffBuilder.compare(expected)
@@ -174,5 +185,79 @@ class TimGoldenMasterTest {
         .checkForSimilar()
         .build();
     assertFalse(diff.hasDifferences(), () -> "Asn1EncoderInput message differs: " + diff);
+  }
+
+  /** Not a test: writes the current outputs to {@code expected/}. See the class Javadoc. */
+  @ParameterizedTest(name = "{0}")
+  @MethodSource("caseNames")
+  @EnabledIfSystemProperty(named = RECORD_PROPERTY, matches = "true")
+  @DisplayName("records the current outputs as the expected files")
+  void recordExpectedFiles(String caseName) throws IOException {
+    DepositResult result = depositResult(caseName);
+    Files.createDirectories(EXPECTED);
+    Files.writeString(EXPECTED.resolve(caseName + ".response.txt"), result.response() + "\n",
+        StandardCharsets.UTF_8);
+    Files.writeString(EXPECTED.resolve(caseName + ".OdeTimJson.json"), result.odeTimJsonMessage(),
+        StandardCharsets.UTF_8);
+    Files.writeString(EXPECTED.resolve(caseName + ".Asn1EncoderInput.xml"),
+        result.asn1EncoderInputMessage(), StandardCharsets.UTF_8);
+  }
+
+  private static String readExpected(String caseName, String suffix) throws IOException {
+    return Files.readString(EXPECTED.resolve(caseName + suffix), StandardCharsets.UTF_8);
+  }
+
+  private static DepositResult depositResult(String caseName) throws IOException {
+    DepositResult result = RESULTS.get(caseName);
+    if (result == null) {
+      String requestBody = Files.readString(REQUESTS.resolve(caseName + ".json"), StandardCharsets.UTF_8);
+      result = deposit(requestBody);
+      RESULTS.put(caseName, result);
+    }
+    return result;
+  }
+
+  /** Posts the request body to a new controller and collects what it returns and publishes. */
+  @SuppressWarnings("unchecked")
+  private static DepositResult deposit(String requestBody) {
+    Asn1CoderTopics asn1CoderTopics = new Asn1CoderTopics();
+    asn1CoderTopics.setEncoderInput(ASN1_ENCODER_INPUT_TOPIC);
+    JsonTopics jsonTopics = new JsonTopics();
+    jsonTopics.setTim(ODE_TIM_JSON_TOPIC);
+    KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
+    TimDepositController controller = new TimDepositController(asn1CoderTopics, jsonTopics,
+        new TimIngestTrackerProperties(), new SecurityServicesProperties(), kafkaTemplate,
+        new XmlMapper());
+
+    String response;
+    try {
+      ResponseEntity<String> entity = controller.postTim(requestBody);
+      response = entity.getStatusCode().value() + " " + entity.getBody();
+    } catch (RuntimeException e) {
+      response = "EXCEPTION " + e.getClass().getName();
+    }
+    return new DepositResult(response,
+        messagePublishedTo(kafkaTemplate, ODE_TIM_JSON_TOPIC),
+        messagePublishedTo(kafkaTemplate, ASN1_ENCODER_INPUT_TOPIC));
+  }
+
+  /**
+   * The value of the last {@code kafkaTemplate.send(topic, key, value)} call for the topic, with the
+   * random streamId replaced; "" if nothing was sent to it.
+   */
+  private static String messagePublishedTo(KafkaTemplate<String, String> kafkaTemplate, String topic) {
+    return mockingDetails(kafkaTemplate).getInvocations().stream()
+        .filter(call -> call.getMethod().getName().equals("send")
+            && call.getArguments().length == 3
+            && topic.equals(call.getArgument(0)))
+        .map(call -> (String) call.getArgument(2))
+        .reduce((earlier, later) -> later)
+        .map(TimDepositControllerRegressionTest::replaceStreamId)
+        .orElse("");
+  }
+
+  private static String replaceStreamId(String message) {
+    return message.replaceAll("\"streamId\":\"[^\"]*\"", "\"streamId\":\"STREAM\"")
+        .replaceAll("<streamId>[^<]*</streamId>", "<streamId>STREAM</streamId>");
   }
 }
