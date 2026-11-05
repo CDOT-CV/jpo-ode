@@ -16,7 +16,6 @@
 package us.dot.its.jpo.ode.model;
 
 import java.io.Serializable;
-
 import tools.jackson.core.JacksonException;
 
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -35,7 +34,7 @@ public class OdeObject implements Serializable {
    }
 
    public String toXml() throws XmlUtilsException, JacksonException {
-      return XmlUtils.toXmlStatic(this);
+     return XmlUtils.toXmlStatic(this);
    }
 
    @Override
