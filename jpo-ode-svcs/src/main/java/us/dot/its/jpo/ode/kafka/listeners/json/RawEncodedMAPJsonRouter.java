@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.kafka.listeners.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,12 +49,12 @@ public class RawEncodedMAPJsonRouter {
    *                       includes the raw ASN.1 encoded JSON MAP data to be processed.
    * @throws StartFlagNotFoundException If the start flag for the MAP message type is not found
    *                                    during payload processing.
-   * @throws JsonProcessingException    If there's an error while processing or deserializing JSON
+   * @throws JacksonException    If there's an error while processing or deserializing JSON
    *                                    data.
    */
   @KafkaListener(id = "RawEncodedMAPJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.map}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws JsonProcessingException, StartFlagNotFoundException {
+      throws JacksonException, StartFlagNotFoundException {
     var messageToPublish = rawEncodedJsonService.addEncodingAndMutateBytes(
         consumerRecord.value(),
         SupportedMessageType.MAP, OdeMessageFrameMetadata.class);

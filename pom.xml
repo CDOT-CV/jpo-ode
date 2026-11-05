@@ -49,6 +49,11 @@
     <sonar.language>java</sonar.language>
     <!-- Allow override of github organization when publishing artifacts to github -->
     <github_organization>usdot-jpo-ode</github_organization>
+    <!-- Jackson 3 version used by the ASN.1 pojo library.  Jackson 3.1 also requires
+         jackson-annotations 2.21, which Spring Boot manages through the Jackson 2 BOM.
+         These override properties defined by Spring Boot -->
+    <jackson-bom.version>3.1.8</jackson-bom.version>
+    <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
   </properties>
 
   <dependencies>

@@ -1,8 +1,8 @@
 package us.dot.its.jpo.ode.kafka.producer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.observation.Observation;
@@ -77,7 +77,7 @@ public class InterceptingKafkaTemplate<K, V> extends KafkaTemplate<K, V> {
             originIp = metadataNode.get("originIp").asText();
           }
         }
-      } catch (JsonProcessingException e) {
+      } catch (JacksonException e) {
         log.info("Produced message is not JSON or originIp is not present");
       }
     }

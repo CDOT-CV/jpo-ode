@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.kafka.listeners.json;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import tools.jackson.core.JacksonException;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -46,12 +46,12 @@ public class RawEncodedSRMJsonRouter {
    *                       includes the raw ASN.1 encoded JSON SRM data to be processed.
    * @throws StartFlagNotFoundException If the start flag for the SRM message type is not found
    *                                    during payload processing.
-   * @throws JsonProcessingException    If there's an error while processing or deserializing JSON
+   * @throws JacksonException    If there's an error while processing or deserializing JSON
    *                                    data.
    */
   @KafkaListener(id = "RawEncodedSRMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.srm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws JsonProcessingException, StartFlagNotFoundException {
+      throws JacksonException, StartFlagNotFoundException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.SRM,

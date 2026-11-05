@@ -1,6 +1,6 @@
 package us.dot.its.jpo.ode.model;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import lombok.val;
 import org.junit.jupiter.api.Assertions;

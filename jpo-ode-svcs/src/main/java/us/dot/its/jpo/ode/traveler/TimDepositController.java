@@ -20,8 +20,8 @@
 
 package us.dot.its.jpo.ode.traveler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.core.JacksonException;
+import tools.jackson.dataformat.xml.XmlMapper;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.format.DateTimeParseException;
@@ -131,7 +131,7 @@ public class TimDepositController {
    * @param verb The HTTP verb being requested
    *
    * @return The request completion status
-   * @throws JsonProcessingException if there is an error processing the JSON
+   * @throws JacksonException if there is an error processing the JSON
    */
   public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) {
     if (null == jsonString || jsonString.isEmpty()) {
@@ -259,7 +259,7 @@ public class TimDepositController {
       kafkaTemplate.send(jsonTopics.getTim(), serialIdJ2735.getStreamId(), obfuscatedJ2735Tim);
       // Publish TIM XML to the Asn1EncoderInput topic to be encoded by the ASN.1 Encoder module
       kafkaTemplate.send(asn1CoderTopics.getEncoderInput(), serialIdJ2735.getStreamId(), xmlMsg);
-    } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException | JsonProcessingException e) {
+    } catch (JsonUtils.JsonUtilsException | XmlUtils.XmlUtilsException | JacksonException e) {
       String errMsg = "Error sending data to ASN.1 Encoder module: " + e.getMessage();
       log.error(errMsg, e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -276,7 +276,7 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
-   * @throws JsonProcessingException if there is an error processing the JSON
+   * @throws JacksonException if there is an error processing the JSON
    */
   @PutMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
@@ -291,7 +291,7 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
-   * @throws JsonProcessingException if there is an error processing the JSON
+   * @throws JacksonException if there is an error processing the JSON
    */
   @PostMapping(value = "/tim", produces = "application/json")
   @CrossOrigin

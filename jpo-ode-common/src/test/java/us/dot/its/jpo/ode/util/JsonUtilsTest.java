@@ -17,7 +17,8 @@ package us.dot.its.jpo.ode.util;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.jupiter.api.Test;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import tools.jackson.databind.node.ObjectNode;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
 public class JsonUtilsTest {
