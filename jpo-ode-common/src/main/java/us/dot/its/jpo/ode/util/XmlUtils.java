@@ -16,7 +16,6 @@
 
 package us.dot.its.jpo.ode.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,7 +45,6 @@ public class XmlUtils {
 
   }
 
-  private XmlMapper xmlMapper = new XmlMapper();
   private static XmlMapper staticXmlMapper = new XmlMapper();
 
   static {
@@ -57,45 +55,9 @@ public class XmlUtils {
   }
 
   /**
-   * Instantiates the XML utility as an object instead of using static methods.
+   * Use static methods, don't instantiate
    */
-  public XmlUtils() {
-    super();
-    var builder = new Builder(xmlMapper);
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    builder.defaultUseWrapper(true);
-    xmlMapper = builder.build();
-  }
-
-  public String toXml(Object o) throws JsonProcessingException {
-    String xml = xmlMapper.writeValueAsString(o);
-    return xml;
-  }
-
-  // public static String toXml(Object o) throws XmlUtilsException {
-  // try {
-  // JSONObject root = new JSONObject();
-  // JSONObject object = new JSONObject(o);
-  // root.put(o.getClass().getSimpleName(), object);
-  // return XML.toString(root);
-  // } catch (JSONException e) {
-  // throw new XmlUtilsException("Error encoding object to XML", e);
-  // }
-  // }
-
-  /**
-   * Attempt to convert an XML String into the specified class type.
-   *
-   * @param xml The XML String value
-   * @param clazz The class type
-   * @return The deserialized object that is of type clazz
-   */
-  public Object fromXml(String xml, Class<?> clazz) throws XmlUtilsException {
-    try {
-      return xmlMapper.readValue(xml, clazz);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error decoding " + xml + " to " + clazz.getName(), e);
-    }
+  private XmlUtils() {
   }
 
   /**
@@ -171,48 +133,6 @@ public class XmlUtils {
   }
 
   /**
-   * Static method to attempt to deserialize an XML String into a specified object type.
-   *
-   * @param xml The xml String to be deserialized
-   * @param clazz The class type
-   * @return The deserialized object of class type clazz
-   * @throws XmlUtilsException Throws an exception when failing to deserialize the XML String
-   */
-  public static Object fromXmlS(String xml, Class<?> clazz) throws XmlUtilsException {
-    try {
-      return staticXmlMapper.readValue(xml, clazz);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error decoding " + xml + " to " + clazz.getName(), e);
-    }
-  }
-
-  /**
-   * Static method to attempt to transform an XML String into an ObjectNode.
-   *
-   * @param xml The xml String to be transformed
-   * @return An ObjectNode representing the XML
-   * @throws XmlUtilsException Throws an exception when failing to transform into an ObjectNode
-   */
-  public static ObjectNode toObjectNode(String xml) throws XmlUtilsException {
-    try {
-      JSONObject jsonObject = XML.toJSONObject(xml, true);
-      String jsonString = jsonObject.toString();
-      return JsonUtils.toObjectNode(jsonString);
-
-      /*
-       * Due to issues with XmlMapper converting "xml arrays" to a valid DOM
-       * collection we could not use it in this context. Hence the above workaround
-       * was adopted. See:
-       * https://github.com/FasterXML/jackson-dataformat-xml/issues/187
-       * https://github.com/FasterXML/jackson-dataformat-xml/issues/205
-       */
-      // return (ObjectNode) staticXmlMapper.readTree(xml);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error decoding " + xml + "to ObjectNode", e);
-    }
-  }
-
-  /**
    * Static method to attempt to transform an XML String into a JSONObject.
    *
    * @param xml The xml String to be transformed
@@ -225,32 +145,6 @@ public class XmlUtils {
     } catch (Exception e) {
       throw new XmlUtilsException("Error decoding " + xml + "to JSONObject", e);
     }
-  }
-
-  /**
-   * Get a specific JSON node from an XML String based on a field name.
-   *
-   * @param tree The xml String to be parsed
-   * @param fieldName The field name to be parsed for
-   * @return The JsonNode for the specified field name
-   * @throws XmlUtilsException Throws an exception when failing to parse the XML String
-   */
-  public static JsonNode getJsonNode(String tree, String fieldName) throws XmlUtilsException {
-    JsonNode jsonNode;
-    try {
-      jsonNode = staticXmlMapper.readTree(tree);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error getting field name " + fieldName + " from " + tree, e);
-    }
-    return jsonNode.get(fieldName);
-  }
-
-  public XmlMapper getXmlMapper() {
-    return xmlMapper;
-  }
-
-  public static XmlMapper getStaticXmlMapper() {
-    return staticXmlMapper;
   }
 
 }

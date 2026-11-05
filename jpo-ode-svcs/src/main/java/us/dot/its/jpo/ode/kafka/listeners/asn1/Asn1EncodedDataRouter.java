@@ -48,7 +48,7 @@ import us.dot.its.jpo.ode.model.SDXDeposit;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.SituationDataWarehouse.SDW;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
-import us.dot.its.jpo.ode.plugin.j2735.builders.GeoRegionBuilder;
+import us.dot.its.jpo.ode.plugin.j2735.DdsGeoRegion;
 import us.dot.its.jpo.ode.rsu.RsuDepositor;
 import us.dot.its.jpo.ode.security.SecurityServicesClient;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
@@ -320,7 +320,7 @@ public class Asn1EncodedDataRouter {
     byte distroType = (byte) (DdsAdvisorySituationData.IP | sendToRsu);
 
     asd = new DdsAdvisorySituationData()
-        .setServiceRegion(GeoRegionBuilder.ddsGeoRegion(sdw.getServiceRegion()))
+        .setServiceRegion(new DdsGeoRegion(sdw.getServiceRegion()))
         .setTimeToLive(sdw.getTtl()).setGroupID(sdw.getGroupID()).setRecordID(sdw.getRecordId())
         .setAsdmDetails(sdw.getDeliverystart(), sdw.getDeliverystop(), distroType, null);
 

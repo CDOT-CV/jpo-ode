@@ -34,8 +34,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.snmp4j.ScopedPDU;
 
-import us.dot.its.jpo.ode.plugin.j2735.J2735ProbeDataManagment;
-import us.dot.its.jpo.ode.plugin.j2735.J2735VehicleStatusRequest;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)

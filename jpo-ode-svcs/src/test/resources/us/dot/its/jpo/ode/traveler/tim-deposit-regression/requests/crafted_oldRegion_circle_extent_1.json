@@ -1,0 +1,95 @@
+{
+  "request": {
+    "rsus": [
+      {
+        "rsuIndex": "10",
+        "rsuTarget": "127.0.0.2",
+        "rsuUsername": "v3user",
+        "rsuPassword": "password",
+        "rsuRetries": "1",
+        "rsuTimeout": "1000"
+      }
+    ],
+    "snmp": {
+      "rsuid": "00000083",
+      "msgid": "31",
+      "mode": "1",
+      "channel": "178",
+      "interval": "2",
+      "deliverystart": "2017-06-01T17:47:11-05:00",
+      "deliverystop": "2018-01-01T17:47:11-05:15",
+      "enable": "1",
+      "status": "4"
+    }
+  },
+  "tim": {
+    "msgCnt": "1",
+    "timeStamp": "2017-08-03T22:25:36.297Z",
+    "urlB": "null",
+    "packetID": "EC9C236B0000000000",
+    "dataframes": [
+      {
+        "startDateTime": "2017-08-02T22:25:00.000Z",
+        "durationTime": 1,
+        "doNotUse1": 0,
+        "frameType": "advisory",
+        "msgId": {
+          "roadSignID": {
+            "position": {
+              "latitude": "41.678473",
+              "longitude": "-108.782775",
+              "elevation": "917.1432"
+            },
+            "viewAngle": "1010101010101010",
+            "mutcdCode": "warning",
+            "crc": "0000"
+          }
+        },
+        "priority": "0",
+        "doNotUse2": 0,
+        "regions": [
+          {
+            "name": "Testing TIM",
+            "regulatorID": "0",
+            "segmentID": "33",
+            "anchorPosition": {
+              "latitude": "41.2500807",
+              "longitude": "-111.0093847",
+              "elevation": "2020.6969900289998"
+            },
+            "laneWidth": "7",
+            "directionality": "3",
+            "closedPath": "false",
+            "description": "oldRegion",
+            "direction": "0000000000001010",
+            "oldRegion": {
+              "direction": "1010101010101010",
+              "extent": "1",
+              "area": {
+                "circle": {
+                  "center": {
+                    "latitude": "41.153593",
+                    "longitude": "-104.655785",
+                    "elevation": "1824"
+                  },
+                  "radius": "25",
+                  "units": "7"
+                }
+              }
+            }
+          }
+        ],
+        "doNotUse4": 0,
+        "doNotUse3": 0,
+        "content": "advisory",
+        "items": [
+          "125",
+          "some text",
+          "250",
+          "'98765"
+        ],
+        "url": "null"
+      }
+    ]
+  }
+}
