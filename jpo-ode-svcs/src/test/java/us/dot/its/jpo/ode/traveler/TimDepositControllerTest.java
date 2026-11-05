@@ -16,7 +16,6 @@
 
  package us.dot.its.jpo.ode.traveler;
 
- import tools.jackson.databind.node.ObjectNode;
  import tools.jackson.dataformat.xml.XmlMapper;
  import java.io.IOException;
  import java.nio.file.Files;

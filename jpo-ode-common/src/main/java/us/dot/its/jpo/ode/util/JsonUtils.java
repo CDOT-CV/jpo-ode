@@ -239,39 +239,6 @@ public class JsonUtils {
   }
 
   /**
-   * Validates if a string is valid JSON.
-   *
-   * @param tree the string to validate
-   * @return true if valid JSON, false otherwise
-   * @throws IOException if an I/O error occurs
-   */
-  public static boolean isValid(String tree) throws IOException {
-    try {
-      ObjectNode jsonNode = (ObjectNode) mapper.readTree(tree);
-      return jsonNode != null;
-    } catch (JacksonException jpe) {
-      return false;
-    }
-  }
-
-  /**
-   * Converts a JsonNode to a HashMap.
-   *
-   * @param jsonNode the JsonNode to convert
-   * @return HashMap containing the JsonNode's fields
-   */
-  public static HashMap<String, JsonNode> jsonNodeToHashMap(JsonNode jsonNode) {
-    HashMap<String, JsonNode> nodeProps = new HashMap<String, JsonNode>();
-    Iterator<Entry<String, JsonNode>> iter = jsonNode.properties().iterator();
-
-    while (iter.hasNext()) {
-      Entry<String, JsonNode> element = iter.next();
-      nodeProps.put(element.getKey(), element.getValue());
-    }
-    return nodeProps;
-  }
-
-  /**
    * Creates a JSON string with a single key-value pair.
    *
    * @param key   the key

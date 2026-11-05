@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.util;
 import static org.junit.Assert.assertEquals;
 import org.junit.jupiter.api.Test;
 
-import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 

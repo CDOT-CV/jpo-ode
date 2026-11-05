@@ -63,22 +63,6 @@ public class XmlUtils {
   private XmlUtils() {
   }
 
-  public String toXml(Object o) throws JacksonException {
-    String xml = xmlMapper.writeValueAsString(o);
-    return xml;
-  }
-
-  // public static String toXml(Object o) throws XmlUtilsException {
-  // try {
-  // JSONObject root = new JSONObject();
-  // JSONObject object = new JSONObject(o);
-  // root.put(o.getClass().getSimpleName(), object);
-  // return XML.toString(root);
-  // } catch (JSONException e) {
-  // throw new XmlUtilsException("Error encoding object to XML", e);
-  // }
-  // }
-
   /**
    * Embeds the arrayNode into an ObjectNode with the given childKey. By default a
    * JSON array such as {"parent":[1, 2, 3,]} will be converted to:

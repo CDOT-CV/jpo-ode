@@ -1,7 +1,6 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.DatabindException;
 import tools.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
@@ -72,8 +71,7 @@ public class Asn1DecodedDataRouter {
    */
   @KafkaListener(id = "Asn1DecodedDataRouter", topics = "${ode.kafka.topics.asn1.decoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws XmlUtilsException, JacksonException, Asn1DecodedDataRouterException,
-      DatabindException, JacksonException, IOException {
+      throws XmlUtilsException, JacksonException, Asn1DecodedDataRouterException, IOException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
