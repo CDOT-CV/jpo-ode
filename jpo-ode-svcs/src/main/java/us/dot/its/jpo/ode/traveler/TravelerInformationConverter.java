@@ -58,8 +58,8 @@ import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.ITIStextPhrase;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.MUTCDCode;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.MinutesDuration;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.MsgCRC;
-import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeListLL;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeLL;
+import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeListLL;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeOffsetPointLL;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.NodeSetLL;
 import us.dot.its.jpo.asn.j2735.r2024.TravelerInformation.Node_LL_24B;
@@ -101,20 +101,73 @@ import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.DistanceUni
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.ExtentEnum;
 import us.dot.its.jpo.ode.util.DateTimeUtils;
 
+/**
+ * Converts the TIM in a TIM deposit request into a J2735 r2024 {@link TravelerInformation}.
+ *
+ * <h2>Purpose</h2>
+ * <p>{@code POST}/{@code PUT /tim} ({@link TimDepositController}) accepts a TIM written for
+ * people: an {@link OdeTravelerInformationMessage}. It uses decimal degrees and metres, ISO 8601
+ * timestamps, enum values given by name or by number, and a flat list of content items. This class
+ * turns it into the ASN.1 form. The depositor then wraps the result in a MessageFrame
+ * ({@link TimTransmogrifier#convertToXml}) and publishes it as encoder XML and OdeTimJson.</p>
+ *
+ * <p>It replaces the legacy {@code TravelerMessageFromHumanToAsnConverter}. That class rewrote
+ * the request JSON in place, then reordered it through the {@code timstorage} classes. The output
+ * is meant to be identical to the legacy output, except for the corrections listed in
+ * {@code TimDepositControllerRegressionTest}, which checks it. A few helpers below exist only to
+ * keep that output the same; their comments say so.</p>
+ *
+ * <h2>How it works</h2>
+ * <p>{@link #convert} walks the request top-down and builds the matching r2024 object at each
+ * level:</p>
+ * <pre>
+ * OdeTravelerInformationMessage          -&gt; TravelerInformation
+ *   DataFrame (dataframes[])             -&gt; TravelerDataFrame
+ *     MsgId                              -&gt; MsgIdChoice (roadSignID or furtherInfoID)
+ *     startDateTime                      -&gt; startYear + startTime
+ *     Region (regions[])                 -&gt; GeographicalPath
+ *       description "path"               -&gt;   OffsetSystem with node-LL or node-XY nodes
+ *       description "geometry"           -&gt;   GeometricProjection (circle)
+ *       description "oldRegion"          -&gt;   ValidRegion (circle area only)
+ *     content + items[]                  -&gt; ContentChoice (advisory, workZone, ...)
+ * </pre>
+ * <p>Conversion rules used throughout:</p>
+ * <ul>
+ *   <li><b>Units.</b> Latitude, longitude and node-LL offsets in degrees become units of
+ *       10^-7 degree. Elevation in metres becomes decimetres. Lane width and node-XY offsets in
+ *       metres become centimetres. Values are rounded half up.</li>
+ *   <li><b>Times.</b> An ISO 8601 timestamp becomes the minute of its year. One that cannot be
+ *       parsed gives {@value #UNKNOWN_MINUTE_OF_THE_YEAR}, the ASN.1 "unknown" value, and is
+ *       logged.</li>
+ *   <li><b>Enumerations.</b> Where the request may give a number (directionality, oldRegion
+ *       extent, circle units), the number is an index into the request enum, e.g. directionality
+ *       {@code "3"} is {@code both}. The name is then looked up in the r2024 enum.</li>
+ *   <li><b>Node offsets.</b> For a {@code node-LL} or {@code node-XY} delta without a size digit,
+ *       the smallest size that fits the offset is chosen.</li>
+ * </ul>
+ * <p>Requests that cannot be converted throw {@link InvalidNodeLatLonOffsetException} or
+ * {@link UnsupportedRegionException}. The depositor turns either one into a 400 response.</p>
+ */
 @Slf4j
 public class TravelerInformationConverter {
 
   private static final String NODE_LL = "node-LL";
   private static final String NODE_XY = "node-XY";
   private static final String NODE_LAT_LON = "node-LatLon";
+  /** MinuteOfTheYear value meaning "unknown". */
   private static final long UNKNOWN_MINUTE_OF_THE_YEAR = 527040;
 
+  /** A path node's lat/long offset is too large for any node-LL size (more than ±0.8388607°). */
   public static class InvalidNodeLatLonOffsetException extends Exception {
     public InvalidNodeLatLonOffsetException(String message) {
       super(message);
     }
   }
 
+  /**
+   * A region uses a description this converter does not support: anything other than path,
+   * geometry or oldRegion, or an oldRegion area other than a circle.
+   */
   public static class UnsupportedRegionException extends Exception {
     public UnsupportedRegionException(String message) {
       super(message);
@@ -125,6 +178,14 @@ public class TravelerInformationConverter {
     throw new UnsupportedOperationException();
   }
 
+  /**
+   * Converts a deposit-request TIM into a J2735 r2024 TravelerInformation.
+   *
+   * @param tim the {@code tim} part of a TIM deposit request
+   * @return the TravelerInformation; it has an empty data frame list if the request has none
+   * @throws InvalidNodeLatLonOffsetException if a node-LL offset is too large
+   * @throws UnsupportedRegionException if a region description is not supported
+   */
   public static TravelerInformation convert(OdeTravelerInformationMessage tim)
       throws InvalidNodeLatLonOffsetException, UnsupportedRegionException {
     TravelerInformation travelerInformation = new TravelerInformation();
@@ -149,6 +210,13 @@ public class TravelerInformationConverter {
     return travelerInformation;
   }
 
+  /**
+   * The minute of the year of an ISO 8601 timestamp, counted from January 1 00:00 UTC of the
+   * timestamp's year. For example, {@code 2018-06-11T16:00:00.000Z} and
+   * {@code 2018-06-11T10:00-06:00} are both minute 232800.
+   *
+   * @return the minute of the year, or {@value #UNKNOWN_MINUTE_OF_THE_YEAR} if it cannot be parsed
+   */
   public static long translateIsoTimeStampToMinuteOfYear(String isoTime) {
     long minuteOfYear = UNKNOWN_MINUTE_OF_THE_YEAR;
     try {
@@ -172,6 +240,8 @@ public class TravelerInformationConverter {
       travelerDataFrame.setMsgId(convertMsgId(dataFrame.getMsgId()));
     }
 
+    // startDateTime becomes the year plus the minute of that year. An unparseable value gives
+    // year 0 and the "unknown" minute.
     int startYear = 0;
     long startMinute = UNKNOWN_MINUTE_OF_THE_YEAR;
     try {
@@ -180,7 +250,7 @@ public class TravelerInformationConverter {
       startMinute = (int) ChronoUnit.MINUTES.between(
           DateTimeUtils.isoDateTime(startYear, 1, 1, 0, 0, 0, 0), zonedDateTime);
     } catch (Exception e) {
-      log.error("Failed to startDateTime {}, defaulting to unknown value {}.",
+      log.error("Failed to parse startDateTime {}, defaulting to unknown value {}.",
           dataFrame.getStartDateTime(), startMinute);
     }
     travelerDataFrame.setStartYear(new DYear(startYear));
@@ -226,107 +296,138 @@ public class TravelerInformationConverter {
     return msgIdChoice;
   }
 
+  /**
+   * Converts the frame's {@code content} name and {@code items} into the matching content choice.
+   * Each content type has its own generated list class, but they share one shape: a list whose
+   * entries hold an item that is either an ITIS code or text. An unknown content name is logged
+   * and gives empty content, as in the legacy converter.
+   */
   private static TravelerDataFrame.ContentChoice convertContent(String content, String[] items) {
     TravelerDataFrame.ContentChoice contentChoice = new TravelerDataFrame.ContentChoice();
     switch (content) {
-      case "advisory", "Advisory" -> {
-        ITIScodesAndText advisory = new ITIScodesAndText();
-        for (String item : items) {
-          ITIScodesAndTextSequence.ItemChoice itemChoice = new ITIScodesAndTextSequence.ItemChoice();
-          Integer itis = itisCode(item);
-          if (itis != null) {
-            itemChoice.setItis(new ITIScodes(itis));
-          } else {
-            itemChoice.setText(new ITIStext(itemText(item)));
-          }
-          ITIScodesAndTextSequence sequence = new ITIScodesAndTextSequence();
-          sequence.setItem(itemChoice);
-          advisory.add(sequence);
-        }
-        contentChoice.setAdvisory(advisory);
-      }
-      case "workZone" -> {
-        WorkZone workZone = new WorkZone();
-        for (String item : items) {
-          WorkZoneSequence.ItemChoice itemChoice = new WorkZoneSequence.ItemChoice();
-          Integer itis = itisCode(item);
-          if (itis != null) {
-            itemChoice.setItis(new ITIScodes(itis));
-          } else {
-            itemChoice.setText(new ITIStextPhrase(itemText(item)));
-          }
-          WorkZoneSequence sequence = new WorkZoneSequence();
-          sequence.setItem(itemChoice);
-          workZone.add(sequence);
-        }
-        contentChoice.setWorkZone(workZone);
-      }
-      case "genericSign" -> {
-        GenericSignage genericSign = new GenericSignage();
-        for (String item : items) {
-          GenericSignageSequence.ItemChoice itemChoice = new GenericSignageSequence.ItemChoice();
-          Integer itis = itisCode(item);
-          if (itis != null) {
-            itemChoice.setItis(new ITIScodes(itis));
-          } else {
-            itemChoice.setText(new ITIStextPhrase(itemText(item)));
-          }
-          GenericSignageSequence sequence = new GenericSignageSequence();
-          sequence.setItem(itemChoice);
-          genericSign.add(sequence);
-        }
-        contentChoice.setGenericSign(genericSign);
-      }
-      case "speedLimit" -> {
-        SpeedLimit speedLimit = new SpeedLimit();
-        for (String item : items) {
-          SpeedLimitSequence.ItemChoice itemChoice = new SpeedLimitSequence.ItemChoice();
-          Integer itis = itisCode(item);
-          if (itis != null) {
-            itemChoice.setItis(new ITIScodes(itis));
-          } else {
-            itemChoice.setText(new ITIStextPhrase(itemText(item)));
-          }
-          SpeedLimitSequence sequence = new SpeedLimitSequence();
-          sequence.setItem(itemChoice);
-          speedLimit.add(sequence);
-        }
-        contentChoice.setSpeedLimit(speedLimit);
-      }
-      case "exitService" -> {
-        ExitService exitService = new ExitService();
-        for (String item : items) {
-          ExitServiceSequence.ItemChoice itemChoice = new ExitServiceSequence.ItemChoice();
-          Integer itis = itisCode(item);
-          if (itis != null) {
-            itemChoice.setItis(new ITIScodes(itis));
-          } else {
-            itemChoice.setText(new ITIStextPhrase(itemText(item)));
-          }
-          ExitServiceSequence sequence = new ExitServiceSequence();
-          sequence.setItem(itemChoice);
-          exitService.add(sequence);
-        }
-        contentChoice.setExitService(exitService);
-      }
+      case "advisory", "Advisory" -> contentChoice.setAdvisory(advisory(items));
+      case "workZone" -> contentChoice.setWorkZone(workZone(items));
+      case "genericSign" -> contentChoice.setGenericSign(genericSign(items));
+      case "speedLimit" -> contentChoice.setSpeedLimit(speedLimit(items));
+      case "exitService" -> contentChoice.setExitService(exitService(items));
       default -> log.warn("Unsupported TIM content type: {}", content);
     }
     return contentChoice;
   }
 
-  private static Integer itisCode(String item) {
-    try {
-      return Integer.valueOf(String.valueOf(item));
-    } catch (NumberFormatException e) {
-      return null;
+  /**
+   * One content item from the request. An item that parses as an integer is an ITIS code.
+   * Anything else is text, and a leading {@code '} forces text, so {@code "'123"} is the text
+   * {@code 123}.
+   */
+  private record ContentItem(Integer itisCode, String text) {
+
+    static ContentItem parse(String item) {
+      String value = String.valueOf(item);
+      try {
+        return new ContentItem(Integer.valueOf(value), null);
+      } catch (NumberFormatException e) {
+        return new ContentItem(null, value.startsWith("'") ? value.substring(1) : value);
+      }
+    }
+
+    boolean isItisCode() {
+      return itisCode != null;
     }
   }
 
-  private static String itemText(String item) {
-    String text = String.valueOf(item);
-    return text.startsWith("'") ? text.substring(1) : text;
+  // The five methods below differ only in the generated classes they use. Advisory text is
+  // ITIStext (up to 500 characters); the others use ITIStextPhrase (up to 16).
+
+  private static ITIScodesAndText advisory(String[] items) {
+    ITIScodesAndText advisory = new ITIScodesAndText();
+    for (String item : items) {
+      ContentItem contentItem = ContentItem.parse(item);
+      ITIScodesAndTextSequence.ItemChoice choice = new ITIScodesAndTextSequence.ItemChoice();
+      if (contentItem.isItisCode()) {
+        choice.setItis(new ITIScodes(contentItem.itisCode()));
+      } else {
+        choice.setText(new ITIStext(contentItem.text()));
+      }
+      ITIScodesAndTextSequence entry = new ITIScodesAndTextSequence();
+      entry.setItem(choice);
+      advisory.add(entry);
+    }
+    return advisory;
   }
 
+  private static WorkZone workZone(String[] items) {
+    WorkZone workZone = new WorkZone();
+    for (String item : items) {
+      ContentItem contentItem = ContentItem.parse(item);
+      WorkZoneSequence.ItemChoice choice = new WorkZoneSequence.ItemChoice();
+      if (contentItem.isItisCode()) {
+        choice.setItis(new ITIScodes(contentItem.itisCode()));
+      } else {
+        choice.setText(new ITIStextPhrase(contentItem.text()));
+      }
+      WorkZoneSequence entry = new WorkZoneSequence();
+      entry.setItem(choice);
+      workZone.add(entry);
+    }
+    return workZone;
+  }
+
+  private static GenericSignage genericSign(String[] items) {
+    GenericSignage genericSign = new GenericSignage();
+    for (String item : items) {
+      ContentItem contentItem = ContentItem.parse(item);
+      GenericSignageSequence.ItemChoice choice = new GenericSignageSequence.ItemChoice();
+      if (contentItem.isItisCode()) {
+        choice.setItis(new ITIScodes(contentItem.itisCode()));
+      } else {
+        choice.setText(new ITIStextPhrase(contentItem.text()));
+      }
+      GenericSignageSequence entry = new GenericSignageSequence();
+      entry.setItem(choice);
+      genericSign.add(entry);
+    }
+    return genericSign;
+  }
+
+  private static SpeedLimit speedLimit(String[] items) {
+    SpeedLimit speedLimit = new SpeedLimit();
+    for (String item : items) {
+      ContentItem contentItem = ContentItem.parse(item);
+      SpeedLimitSequence.ItemChoice choice = new SpeedLimitSequence.ItemChoice();
+      if (contentItem.isItisCode()) {
+        choice.setItis(new ITIScodes(contentItem.itisCode()));
+      } else {
+        choice.setText(new ITIStextPhrase(contentItem.text()));
+      }
+      SpeedLimitSequence entry = new SpeedLimitSequence();
+      entry.setItem(choice);
+      speedLimit.add(entry);
+    }
+    return speedLimit;
+  }
+
+  private static ExitService exitService(String[] items) {
+    ExitService exitService = new ExitService();
+    for (String item : items) {
+      ContentItem contentItem = ContentItem.parse(item);
+      ExitServiceSequence.ItemChoice choice = new ExitServiceSequence.ItemChoice();
+      if (contentItem.isItisCode()) {
+        choice.setItis(new ITIScodes(contentItem.itisCode()));
+      } else {
+        choice.setText(new ITIStextPhrase(contentItem.text()));
+      }
+      ExitServiceSequence entry = new ExitServiceSequence();
+      entry.setItem(choice);
+      exitService.add(entry);
+    }
+    return exitService;
+  }
+
+  /**
+   * Converts one region. Its description must be {@code path}, {@code geometry} or
+   * {@code oldRegion}; a region without a description is converted without one.
+   */
   private static GeographicalPath convertRegion(Region region)
       throws InvalidNodeLatLonOffsetException, UnsupportedRegionException {
     GeographicalPath geographicalPath = new GeographicalPath();
@@ -373,6 +474,10 @@ public class TravelerInformationConverter {
     return geographicalPath;
   }
 
+  /**
+   * Converts a path. Path type {@code ll} gives lat/long offset nodes and {@code xy} gives x/y
+   * offset nodes. Any other type gives an OffsetSystem with only the scale.
+   */
   private static OffsetSystem convertPath(Region.Path path) throws InvalidNodeLatLonOffsetException {
     OffsetSystem offsetSystem = new OffsetSystem();
     offsetSystem.setScale(new Zoom(path.getScale()));
@@ -399,6 +504,15 @@ public class TravelerInformationConverter {
     return offsetSystem;
   }
 
+  /**
+   * Converts a node of an {@code ll} path. The delta picks the form:
+   * <ul>
+   *   <li>{@code node-LL1} .. {@code node-LL6}: an offset of that size;</li>
+   *   <li>{@code node-LL}: an offset of the smallest size that fits;</li>
+   *   <li>{@code node-LatLon}: an absolute position, not an offset.</li>
+   * </ul>
+   * Any other delta gives a node with an empty offset; an unknown node-LL size is also logged.
+   */
   private static NodeLL convertNodeLL(OdeTravelerInformationMessage.NodeXY node)
       throws InvalidNodeLatLonOffsetException {
     BigDecimal latOffset = jsonDecimal(node.getNodeLat());
@@ -458,6 +572,10 @@ public class TravelerInformationConverter {
     return nodeLL;
   }
 
+  /**
+   * The smallest node-LL size whose range holds both offsets (units of 10^-7 degree). LL1 holds
+   * ±2047, LL2 ±8191, LL3 ±32767, LL4 ±131071, LL5 ±2097151 and LL6 ±8388607.
+   */
   private static String nodeOffsetPointLLType(long latDelta, long lonDelta)
       throws InvalidNodeLatLonOffsetException {
     long absLatDelta = Math.abs(latDelta);
@@ -480,6 +598,12 @@ public class TravelerInformationConverter {
     }
   }
 
+  /**
+   * Converts a node of an {@code xy} path. The delta works as for {@link #convertNodeLL}: a size
+   * from {@code node-XY1} to {@code node-XY6}, {@code node-XY} for the smallest that fits, or
+   * {@code node-LatLon}. Attribute values are not converted: if the node has any attributes, an
+   * empty NodeAttributeSetXY is written, as the legacy converter did.
+   */
   private static NodeXY convertNodeXY(OdeTravelerInformationMessage.NodeXY node) {
     String delta = node.getDelta();
     NodeOffsetPointXY offsetPoint = new NodeOffsetPointXY();
@@ -540,6 +664,14 @@ public class TravelerInformationConverter {
     return nodeXY;
   }
 
+  /**
+   * The node-XY size for the offsets in centimetres, chosen by bit length: under 2^10 is XY1,
+   * under 2^11 XY2, and so on up to under 2^16 for XY6.
+   *
+   * <p>This is the legacy rule, kept so the output does not change. It allows twice the ASN.1
+   * range of each size. For example, XY1's Offset-B10 holds -512..511, yet offsets up to 1023 are
+   * put in XY1.</p>
+   */
   private static String nodeOffsetPointXYType(long x, long y) {
     long transformed = Math.abs(x) | Math.abs(y);
     if ((transformed & (-1 << 10)) == 0) {
@@ -567,6 +699,7 @@ public class TravelerInformationConverter {
     return point;
   }
 
+  /** Converts a geometry. Its extent is a number, the index of the r2024 Extent value. */
   private static GeometricProjection convertGeometry(Region.Geometry geometry) {
     GeometricProjection geometricProjection = new GeometricProjection();
     if (geometry.getDirection() != null) {
@@ -580,6 +713,10 @@ public class TravelerInformationConverter {
     return geometricProjection;
   }
 
+  /**
+   * Converts an oldRegion. Its extent may be a name or an index. Only a circle area is supported;
+   * a shapepoint or regionPoint area throws.
+   */
   private static ValidRegion convertOldRegion(Region.OldRegion oldRegion)
       throws UnsupportedRegionException {
     ValidRegion validRegion = new ValidRegion();
@@ -598,6 +735,11 @@ public class TravelerInformationConverter {
     return validRegion;
   }
 
+  /**
+   * Converts a circle. The request may give the center as {@code position} or {@code center}.
+   * Units may be a name or an index: {@code "1"}, {@code "cm2_5"} and {@code "cm2-5"} all
+   * become {@code cm2-5}.
+   */
   private static Circle convertCircle(Region.Circle circle) {
     Circle result = new Circle();
     result.setCenter(position3D(circle.getPosition() != null ? circle.getPosition() : circle.getCenter()));
@@ -609,6 +751,7 @@ public class TravelerInformationConverter {
     return result;
   }
 
+  /** Degrees become units of 10^-7 degree; metres of elevation become decimetres. */
   private static Position3D position3D(OdePosition3D position) {
     Position3D position3D = new Position3D();
     if (position.getLatitude() != null) {
@@ -623,16 +766,24 @@ public class TravelerInformationConverter {
     return position3D;
   }
 
+  /** Metres become centimetres. */
   private static LaneWidth laneWidth(BigDecimal laneWidth) {
     return new LaneWidth(scaleToInt(jsonDecimal(laneWidth), 2));
   }
 
+  /** A 16-bit HeadingSlice from its bits as a string of 0s and 1s. */
   private static HeadingSlice headingSlice(String bits) {
     HeadingSlice headingSlice = new HeadingSlice();
     headingSlice.fromBinaryString(bits);
     return headingSlice;
   }
 
+  /**
+   * Kept so the output matches the legacy converter. In the legacy path, a decimal from the
+   * request went through JSON and was read back as a double. For long decimals, such as
+   * elevation {@code 2020.6969900289998}, that changes the last digits, which can change the
+   * rounded result. This repeats that step for any value with a fraction or an exponent.
+   */
   private static BigDecimal jsonDecimal(BigDecimal value) {
     if (value.scale() > 0 || value.toString().contains("E")) {
       return BigDecimal.valueOf(value.doubleValue());
@@ -640,14 +791,20 @@ public class TravelerInformationConverter {
     return value;
   }
 
+  /** value × 10^power, rounded half up. */
   private static int scaleToInt(BigDecimal value, int power) {
     return value.scaleByPowerOfTen(power).setScale(0, RoundingMode.HALF_UP).intValue();
   }
 
+  /** value × 10^power, rounded half up. */
   private static long scaleToLong(BigDecimal value, int power) {
     return value.scaleByPowerOfTen(power).setScale(0, RoundingMode.HALF_UP).longValue();
   }
 
+  /**
+   * The constant name for a request enum value given as a name or as an index. For an index this
+   * is the request enum's constant at that position; a name is returned unchanged.
+   */
   private static <E extends Enum<?>> String enumName(Class<E> clazz, String nameOrOrdinal) {
     try {
       return clazz.getEnumConstants()[Integer.parseInt(nameOrOrdinal)].toString();
@@ -656,6 +813,7 @@ public class TravelerInformationConverter {
     }
   }
 
+  /** The r2024 enum value with this ASN.1 name, or null if there is none. */
   private static <E extends Enum<E> & Asn1Enumerated> E byName(Class<E> clazz, String name) {
     for (E value : clazz.getEnumConstants()) {
       if (value.getName().equals(name)) {
@@ -665,6 +823,7 @@ public class TravelerInformationConverter {
     return null;
   }
 
+  /** The r2024 enum value with this ASN.1 index, or null if there is none. */
   private static <E extends Enum<E> & Asn1Enumerated> E byIndex(Class<E> clazz, int index) {
     for (E value : clazz.getEnumConstants()) {
       if (value.getIndex() == index) {

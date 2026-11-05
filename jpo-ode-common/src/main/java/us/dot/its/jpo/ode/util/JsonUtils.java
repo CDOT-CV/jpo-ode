@@ -144,17 +144,6 @@ public class JsonUtils {
   }
 
   /**
-   * Creates a new JSON string with a single key-value pair.
-   *
-   * @param key   the key
-   * @param value the value
-   * @return JSON string containing the key-value pair
-   */
-  public static String newJson(String key, Object value) {
-    return newObjectNode(key, value).toString();
-  }
-
-  /**
    * Creates a new ObjectNode with a single key-value pair.
    *
    * @param key   the key
@@ -291,23 +280,6 @@ public class JsonUtils {
    */
   public static String jsonKeyValue(String key, String value) {
     return "{\"" + key + "\":\"" + value + "\"}";
-  }
-
-  /**
-   * Converts a JsonNode to a BigDecimal, handling both numeric and text
-   * representations.
-   *
-   * @param v the JsonNode to convert
-   * @return the BigDecimal value
-   */
-  public static BigDecimal decimalValue(JsonNode v) {
-    BigDecimal result;
-    if (v.isTextual()) {
-      result = new BigDecimal(v.textValue());
-    } else {
-      result = v.decimalValue();
-    }
-    return result;
   }
 
   /**

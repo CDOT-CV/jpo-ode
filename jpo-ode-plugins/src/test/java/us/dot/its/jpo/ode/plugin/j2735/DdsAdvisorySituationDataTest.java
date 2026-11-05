@@ -26,7 +26,6 @@ import java.text.ParseException;
 import org.junit.jupiter.api.Test;
 
 import us.dot.its.jpo.ode.plugin.SituationDataWarehouse;
-import us.dot.its.jpo.ode.plugin.ieee1609dot2.Ieee1609Dot2DataTag;
 
 public class DdsAdvisorySituationDataTest {
 
@@ -51,10 +50,11 @@ public class DdsAdvisorySituationDataTest {
 
       String isoStartTime = "2008-09-15T15:53:00+00:00";
       String isoStopTime = "2012-05-15T15:53:00+00:00";
+      String advisoryMessage = "001F8084";
 
       byte distroType = (byte) (DdsAdvisorySituationData.IP | DdsAdvisorySituationData.RSU);
       DdsAdvisorySituationData testDdsAdvisorySituationData = new DdsAdvisorySituationData()
-          .setAsdmDetails(isoStartTime, isoStopTime, distroType, new Ieee1609Dot2DataTag())
+          .setAsdmDetails(isoStartTime, isoStopTime, distroType, advisoryMessage)
           .setServiceRegion(new DdsGeoRegion())
           .setTimeToLive(SituationDataWarehouse.SDW.TimeToLive.onemonth)
           .setGroupID("1234")
@@ -81,9 +81,11 @@ public class DdsAdvisorySituationDataTest {
       // Null TTL should default to thirty minutes
       // Null group ID should default to 00 00 00 00
 
+      String advisoryMessage = "001F8084";
+
       byte distroType = (byte) (DdsAdvisorySituationData.IP | DdsAdvisorySituationData.RSU);
       DdsAdvisorySituationData testDdsAdvisorySituationData = new DdsAdvisorySituationData()
-          .setAsdmDetails(null, null, distroType, new Ieee1609Dot2DataTag())
+          .setAsdmDetails(null, null, distroType, advisoryMessage)
           .setServiceRegion(new DdsGeoRegion())
           .setTimeToLive(null)
           .setGroupID(null)
@@ -105,12 +107,13 @@ public class DdsAdvisorySituationDataTest {
    public void testHashCodeAndEquals() throws ParseException {
       String isoStartTime = "2008-09-15T15:53:00+00:00";
       String isoStopTime = "2012-05-15T15:53:00+00:00";
+      String advisoryMessage = "001F8084";
       byte distroType = (byte) (DdsAdvisorySituationData.IP | DdsAdvisorySituationData.RSU);
 
       DdsAdvisorySituationData ddsasd1 = new DdsAdvisorySituationData();
       DdsAdvisorySituationData ddsasd2 = new DdsAdvisorySituationData();
       DdsAdvisorySituationData ddsasd3 = new DdsAdvisorySituationData()
-          .setAsdmDetails(isoStartTime, isoStopTime, distroType, new Ieee1609Dot2DataTag())
+          .setAsdmDetails(isoStartTime, isoStopTime, distroType, advisoryMessage)
           .setServiceRegion(new DdsGeoRegion())
           .setTimeToLive(SituationDataWarehouse.SDW.TimeToLive.onemonth)
           .setGroupID("1234")

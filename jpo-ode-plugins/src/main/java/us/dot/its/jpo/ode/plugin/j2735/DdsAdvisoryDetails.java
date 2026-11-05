@@ -16,7 +16,6 @@
 package us.dot.its.jpo.ode.plugin.j2735;
 
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
-import us.dot.its.jpo.ode.plugin.ieee1609dot2.Ieee1609Dot2DataTag;
 
 public class DdsAdvisoryDetails extends Asn1Object {
    private static final long serialVersionUID = 8964772115424427026L;
@@ -34,7 +33,7 @@ public class DdsAdvisoryDetails extends Asn1Object {
    J2735DFullTime startTime;        //OPTIONAL,
    J2735DFullTime stopTime;         //OPTIONAL,
    String advisoryMessageBytes;          //  OCTET STRING (SIZE(0..1400))  -- Encoded advisory message
-   Ieee1609Dot2DataTag advisoryMessage;
+   String advisoryMessage;
 
 
    public DdsAdvisoryDetails() {
@@ -47,7 +46,7 @@ public class DdsAdvisoryDetails extends Asn1Object {
    }
    
    public DdsAdvisoryDetails(String asdmID, AdvisoryBroadcastType asdmType, String distType, J2735DFullTime startTime,
-         J2735DFullTime stopTime, Ieee1609Dot2DataTag advisoryMessage2) {
+         J2735DFullTime stopTime, String advisoryMessage2) {
       super();
       this.asdmID = asdmID;
       this.asdmType = asdmType.ordinal();
@@ -90,10 +89,10 @@ public class DdsAdvisoryDetails extends Asn1Object {
    public void setAdvisoryMessageBytes(String advisoryMessageBytes) {
       this.advisoryMessageBytes = advisoryMessageBytes;
    }
-   public Ieee1609Dot2DataTag getAdvisoryMessage() {
+   public String getAdvisoryMessage() {
       return advisoryMessage;
    }
-   public void setAdvisoryMessage(Ieee1609Dot2DataTag advisoryMessage) {
+   public void setAdvisoryMessage(String advisoryMessage) {
       this.advisoryMessage = advisoryMessage;
    }
 
