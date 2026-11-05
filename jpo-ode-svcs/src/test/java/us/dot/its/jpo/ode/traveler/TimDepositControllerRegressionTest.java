@@ -1,6 +1,7 @@
 package us.dot.its.jpo.ode.traveler;
 
 import static net.javacrumbs.jsonunit.JsonAssert.assertJsonEquals;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
@@ -57,7 +58,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  * outputs are repeatable.</p>
  *
  * <h2>Where the expected files come from</h2>
- * <p>They were recorded from the legacy implementation on {@code cdot_develop}, before the legacy
+ * <p>They were recorded from the legacy implementation on {@code cdot/develop}, before the legacy
  * J2735 POJOs were removed, and re-recorded only for the intended differences listed below. A
  * passing run shows that the depositor accepts the same requests and produces the same outputs as
  * before the refactor.</p>
@@ -74,7 +75,7 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  *       enum given by name or by number, or a node offset at a size boundary.</li>
  * </ul>
  *
- * <h2>Intended differences from cdot_develop</h2>
+ * <h2>Intended differences from cdot/develop</h2>
  * <ul>
  *   <li>Empty elements: the encoder XML now writes {@code <advisory/>} instead of
  *       {@code <advisory></advisory>}.</li>
@@ -201,6 +202,11 @@ class TimDepositControllerRegressionTest {
         StandardCharsets.UTF_8);
     Files.writeString(EXPECTED.resolve(caseName + ".Asn1EncoderInput.xml"),
         result.asn1EncoderInputMessage(), StandardCharsets.UTF_8);
+    assertAll("recorded files read back unchanged",
+        () -> assertEquals(result.response() + "\n", readExpected(caseName, ".response.txt")),
+        () -> assertEquals(result.odeTimJsonMessage(), readExpected(caseName, ".OdeTimJson.json")),
+        () -> assertEquals(result.asn1EncoderInputMessage(),
+            readExpected(caseName, ".Asn1EncoderInput.xml")));
   }
 
   private static String readExpected(String caseName, String suffix) throws IOException {
