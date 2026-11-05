@@ -79,9 +79,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>${asn.pojos.group.id}</groupId>
+      <groupId>usdot.jpo.asn</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>${asn.pojos.version}</version>
+      <version>1.2.0</version>
     </dependency>
   </dependencies>
 
