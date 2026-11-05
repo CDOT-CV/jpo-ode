@@ -33,8 +33,8 @@ public class OdeObject implements Serializable {
       return JsonUtils.toJson(this, verbose);
    }
 
-   public String toXml() throws XmlUtilsException, JacksonException {
-     return XmlUtils.toXmlStatic(this);
+  public String toXml() throws XmlUtilsException, JacksonException {
+    return XmlUtils.toXmlStatic(this);
    }
 
    @Override
