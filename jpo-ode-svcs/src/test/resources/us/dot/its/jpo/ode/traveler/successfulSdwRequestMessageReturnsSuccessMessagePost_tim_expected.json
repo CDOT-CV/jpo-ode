@@ -22,7 +22,7 @@
       }
     },
     "recordGeneratedBy": "TMC",
-    "schemaVersion": 9,
+    "schemaVersion": 10,
     "payloadType": "us.dot.its.jpo.ode.model.OdeMessageFramePayload",
     "odePacketID": "67AEF692F8BB63067D",
     "serialId": {

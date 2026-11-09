@@ -1,6 +1,7 @@
 [submodule "asn1_codec"]
 	path = asn1_codec
-	url = https://github.com/usdot-jpo-ode/asn1_codec.git
+	url = https://github.com/CDOT-CV/asn1_codec.git
+	branch = develop
 [submodule "jpo-cvdp"]
 	path = jpo-cvdp
 	url = https://github.com/usdot-jpo-ode/jpo-cvdp.git
