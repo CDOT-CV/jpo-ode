@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode.kafka.listeners.json;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
@@ -29,9 +30,10 @@ public class RawEncodedJsonService {
 
   /**
    * Processes the given JSON string and constructs an OdeAsn1Data object by extracting and encoding
-   * metadata and payload information. The metadata is mutated by adding an Asn1Encoding. Converts
-   * the payload bytes from hexadecimal string format after stripping transport headers. Signed IEEE
-   * 1609.2 envelopes are retained so ACM can decode certificate validity metadata.
+   * metadata and payload information. The metadata's encodings are replaced with the ones that
+   * describe the returned payload, so any declared upstream are neither repeated nor left stale.
+   * Converts the payload bytes from hexadecimal string format after stripping transport headers.
+   * Signed IEEE 1609.2 envelopes are retained so ACM can decode certificate validity metadata.
    *
    * @param json          the JSON string containing the metadata and payload information
    * @param messageType   the type of message to determine the start flag for processing the
@@ -49,6 +51,7 @@ public class RawEncodedJsonService {
 
     String jsonStringMetadata = rawJsonObject.get("metadata").toString();
     var metadata = mapper.readValue(jsonStringMetadata, metadataClass);
+    metadata.setEncodings(new ArrayList<>());
 
     String payloadHexString =
         ((JSONObject) ((JSONObject) rawJsonObject.get("payload")).get("data")).getString(

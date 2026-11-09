@@ -5,15 +5,20 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Locale;
+import org.apache.tomcat.util.buf.HexUtils;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.model.Asn1Encoding;
 import us.dot.its.jpo.ode.model.OdeAsn1Data;
 import us.dot.its.jpo.ode.model.OdeHexByteArray;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
+import us.dot.its.jpo.ode.udp.UdpHexDecoder;
 import us.dot.its.jpo.ode.uper.SupportedMessageType;
 
 class RawEncodedJsonServiceTest {
@@ -93,6 +98,73 @@ class RawEncodedJsonServiceTest {
 
     assertEquals(signedTim, ((OdeHexByteArray) asn1Data.getPayload().getData()).getBytes());
     assertEquals("Ieee1609Dot2Data", asn1Data.getMetadata().getEncodings().get(0).getElementType());
+  }
+
+  @Test
+  void signedUdpMessageDeclaresEachEncodingOnce() throws Exception {
+    byte[] received = HexUtils.fromHexString("0001" + loadSignedTim());
+    DatagramPacket packet = new DatagramPacket(
+        received, received.length, InetAddress.getLoopbackAddress(), 1);
+    String udpJson = UdpHexDecoder.buildJsonTimFromPacket(packet);
+
+    OdeAsn1Data asn1Data = new RawEncodedJsonService(new ObjectMapper())
+        .addEncodingAndMutateBytes(udpJson, SupportedMessageType.TIM,
+            OdeMessageFrameMetadata.class);
+
+    assertEquals(List.of("Ieee1609Dot2Data", "MessageFrame"), encodingTypes(asn1Data));
+  }
+
+  @Test
+  void unsignedUdpMessageDeclaresEachEncodingOnce() throws Exception {
+    String unsignedBsm = Files.readString(Path.of(
+        "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt")).trim();
+    byte[] received = HexUtils.fromHexString(unsignedBsm);
+    DatagramPacket packet = new DatagramPacket(
+        received, received.length, InetAddress.getLoopbackAddress(), 1);
+    String udpJson = UdpHexDecoder.buildJsonBsmFromPacket(packet);
+
+    OdeAsn1Data asn1Data = new RawEncodedJsonService(new ObjectMapper())
+        .addEncodingAndMutateBytes(udpJson, SupportedMessageType.BSM,
+            OdeMessageFrameMetadata.class);
+
+    assertEquals(List.of("MessageFrame"), encodingTypes(asn1Data));
+  }
+
+  @Test
+  void encodingsAlreadyInMetadataAreNotDuplicated() throws Exception {
+    OdeAsn1Data asn1Data = new RawEncodedJsonService(new ObjectMapper())
+        .addEncodingAndMutateBytes(
+            rawMessageWithEncoding("MessageFrame", "UPER", "0001" + loadSignedTim()),
+            SupportedMessageType.TIM, OdeMessageFrameMetadata.class);
+
+    assertEquals(List.of("Ieee1609Dot2Data", "MessageFrame"), encodingTypes(asn1Data));
+  }
+
+  @Test
+  void staleSignedEncodingIsDroppedWhenPayloadIsUnsigned() throws Exception {
+    String unsignedBsm = Files.readString(Path.of(
+        "src/test/resources/us/dot/its/jpo/ode/udp/bsm/BsmReceiverTest_ValidBSM.txt")).trim();
+
+    OdeAsn1Data asn1Data = new RawEncodedJsonService(new ObjectMapper())
+        .addEncodingAndMutateBytes(
+            rawMessageWithEncoding("Ieee1609Dot2Data", "COER", unsignedBsm),
+            SupportedMessageType.BSM, OdeMessageFrameMetadata.class);
+
+    assertEquals(List.of("MessageFrame"), encodingTypes(asn1Data));
+  }
+
+  private List<String> encodingTypes(OdeAsn1Data asn1Data) {
+    return asn1Data.getMetadata().getEncodings().stream()
+        .map(Asn1Encoding::getElementType).toList();
+  }
+
+  /** Metadata using the nested {@code encodings} form that {@code EncodingsDeserializer} reads. */
+  private String rawMessageWithEncoding(String elementType, String rule, String payloadHex) {
+    return """
+        {"metadata":{"schemaVersion":10,"encodings":{"encodings":
+        {"elementName":"%s","elementType":"%s","encodingRule":"%s"}}},
+        "payload":{"data":{"bytes":"%s"}}}
+        """.formatted(elementType, elementType, rule, payloadHex);
   }
 
   private String rawMessage(String payloadHex) {
