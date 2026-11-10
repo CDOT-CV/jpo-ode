@@ -24,15 +24,20 @@ import org.springframework.context.annotation.Primary;
 public class SerializationConfig {
 
   /**
-   * Configures and returns an {@link ObjectMapper} instance customized for specific serialization
+   * Configures and returns a {@link JsonMapper} instance customized for specific serialization
    * and deserialization behavior.
    *
-   * @return a customized {@link ObjectMapper} instance supporting specific serialization and
+   * <p>The return type must be {@link JsonMapper} rather than {@link ObjectMapper}: Spring Boot's
+   * {@code JacksonAutoConfiguration} registers its own {@code @Primary} {@code JsonMapper} unless a
+   * bean of type {@code JsonMapper} already exists, and it decides that from the declared return
+   * type of this method.
+   *
+   * @return a customized {@link JsonMapper} instance supporting specific serialization and
    *         deserialization configurations.
    */
   @Bean
   @Primary
-  public ObjectMapper objectMapper() {
+  public JsonMapper objectMapper() {
     return JsonMapper.builderWithJackson2Defaults()
         .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
         .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
