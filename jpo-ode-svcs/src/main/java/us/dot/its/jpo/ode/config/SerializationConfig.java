@@ -40,6 +40,11 @@ public class SerializationConfig {
   public JsonMapper objectMapper() {
     return JsonMapper.builderWithJackson2Defaults()
         .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        // Ignore JSON properties our models don't declare instead of failing. Input comes from
+        // external sources (e.g. jpo-security-svcs responses, Kafka messages from other services)
+        // that may include extra fields, now or after they add them. Failing would turn that
+        // into an error, e.g. breaking TIM signing. Matches xmlMapper() below.
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
         .withCoercionConfig(LogicalType.Enum,
             cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))

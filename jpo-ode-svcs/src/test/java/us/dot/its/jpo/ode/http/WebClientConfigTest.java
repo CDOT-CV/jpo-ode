@@ -14,14 +14,15 @@ import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.test.web.client.ExpectedCount;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
-import tools.jackson.databind.ObjectMapper;
 import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.security.models.SignatureRequestModel;
+import us.dot.its.jpo.ode.security.models.SignatureResultModel;
 
 /**
  * Verifies that the {@link RestTemplate} from {@link WebClientConfig} serializes JSON with the
- * application's configured {@link ObjectMapper} (from {@link SerializationConfig}) rather than
- * the default Jackson converter that {@code new RestTemplate()} registers on its own.
+ * application's configured mapper (from {@link SerializationConfig}) rather than the default
+ * Jackson converter that {@code new RestTemplate()} registers on its own, while still accepting
+ * responses that contain properties we don't model.
  */
 @SpringBootTest(classes = {SerializationConfig.class, WebClientConfig.class})
 class WebClientConfigTest {
@@ -31,18 +32,35 @@ class WebClientConfigTest {
   @Autowired
   private RestTemplate restTemplate;
 
-  @Autowired
-  private ObjectMapper objectMapper;
-
   @Test
-  void jsonConverterSelectedForRequestsUsesConfiguredObjectMapper() {
+  void defaultJsonConverterIsReplacedNotSupplemented() {
+    var jsonConverters = restTemplate.getMessageConverters().stream()
+        .filter(JacksonJsonHttpMessageConverter.class::isInstance)
+        .toList();
     HttpMessageConverter<?> selected = restTemplate.getMessageConverters().stream()
         .filter(c -> c.canWrite(SignatureRequestModel.class, MediaType.APPLICATION_JSON))
         .findFirst()
         .orElseThrow();
 
-    assertThat(selected).isInstanceOf(JacksonJsonHttpMessageConverter.class);
-    assertThat(((JacksonJsonHttpMessageConverter) selected).getMapper()).isSameAs(objectMapper);
+    assertThat(jsonConverters).hasSize(1);
+    assertThat(selected).isSameAs(jsonConverters.getFirst());
+  }
+
+  @Test
+  void responseWithUnknownPropertiesIsAccepted() {
+    var mockServer = MockRestServiceServer.createServer(restTemplate);
+    mockServer.expect(ExpectedCount.once(), requestTo(URL))
+        .andRespond(withSuccess(
+            "{\"messageSigned\":\"abc\",\"messageExpiry\":1,\"notInModel\":\"x\"}",
+            MediaType.APPLICATION_JSON));
+
+    var response = restTemplate.postForEntity(URL, new SignatureRequestModel(),
+        SignatureResultModel.class);
+
+    mockServer.verify();
+    assertThat(response.getBody()).isNotNull();
+    assertThat(response.getBody().getMessageSigned()).isEqualTo("abc");
+    assertThat(response.getBody().getMessageExpiry()).isEqualTo(1L);
   }
 
   @Test

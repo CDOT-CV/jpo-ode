@@ -1,7 +1,6 @@
 package us.dot.its.jpo.ode.http;
 
 import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -25,18 +24,23 @@ public class WebClientConfig {
   /**
    * Creates and configures a {@link RestTemplate} bean with a custom
    * {@link JacksonJsonHttpMessageConverter} to use the provided
-   * {@link ObjectMapper} for JSON serialization and deserialization.
+   * {@link JsonMapper} for JSON serialization and deserialization.
    *
-   * @param mapper the {@link ObjectMapper} to be used for configuring
+   * @param mapper the {@link JsonMapper} to be used for configuring
    *               JSON message conversion.
    * @return a configured {@link RestTemplate} instance that includes
    *         the custom JSON message converter.
    */
   @Bean
-  public RestTemplate restTemplate(ObjectMapper mapper) {
+  public RestTemplate restTemplate(JsonMapper mapper) {
     var template = new RestTemplate();
-    var customConverter = new JacksonJsonHttpMessageConverter((JsonMapper) mapper);
-    template.getMessageConverters().add(customConverter);
+    final var customConverter = new JacksonJsonHttpMessageConverter(mapper);
+    // Replace the default Jackson converter in place, so the String, byte[] and resource
+    // converters that precede it still take priority for those types.
+    template.getMessageConverters().replaceAll(converter ->
+            converter instanceof JacksonJsonHttpMessageConverter
+              ? customConverter
+              : converter);
     return template;
   }
 }
