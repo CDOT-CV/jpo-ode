@@ -2,6 +2,7 @@ package us.dot.its.jpo.ode;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import java.util.Properties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Serdes;
@@ -88,7 +89,7 @@ public class OdeTimJsonTopology {
    */
   public Topology buildTopology() {
     StreamsBuilder builder = new StreamsBuilder();
-    ObjectMapper objectMapper = new ObjectMapper();
+    ObjectMapper objectMapper = JsonMapper.builderWithJackson2Defaults().build();
 
     // Read as KStream, filter to only include TMC generated messages, then write to
     // new topic
