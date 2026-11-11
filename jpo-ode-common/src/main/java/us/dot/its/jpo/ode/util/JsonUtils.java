@@ -47,24 +47,32 @@ public class JsonUtils {
   private static final ObjectMapper mapper_noNulls;
 
   static {
-    mapper = JsonMapper.builderWithJackson2Defaults()
+    mapper = baseMapperBuilder().build();
+
+    mapper_noNulls = baseMapperBuilder()
+        .changeDefaultPropertyInclusion(
+            incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
+        .build();
+  }
+
+  /**
+   * Returns a new {@link JsonMapper.Builder} preconfigured with the JSON settings shared by the
+   * ODE's mappers. Callers can add further settings (e.g. property inclusion) before building.
+   *
+   * <p>Used for the mappers in this class and for the Spring {@code objectMapper} bean in
+   * jpo-ode-svcs, so that they serialize and deserialize consistently.
+   *
+   * @return a new builder with the shared settings applied
+   */
+  public static JsonMapper.Builder baseMapperBuilder() {
+    return JsonMapper.builderWithJackson2Defaults()
         .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
         .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
         .withCoercionConfig(LogicalType.Enum,
             cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
         // Ensure BigDecimals are serialized consistently as numbers not strings
         .withConfigOverride(BigDecimal.class,
-            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
-        .build();
-
-    mapper_noNulls = JsonMapper.builderWithJackson2Defaults()
-        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-        .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
-        .changeDefaultPropertyInclusion(
-            incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
-        .withConfigOverride(BigDecimal.class,
-            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
-        .build();
+            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)));
   }
 
   private JsonUtils() {
