@@ -16,7 +16,6 @@
 
 package us.dot.its.jpo.ode.util;
 
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.MapperFeature;
@@ -46,7 +45,6 @@ public class XmlUtils {
 
   }
 
-  private XmlMapper xmlMapper;
   private static XmlMapper staticXmlMapper;
 
   static {
