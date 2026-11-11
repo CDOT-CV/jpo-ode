@@ -217,14 +217,14 @@ public class OdeLogMetadata extends OdeMsgMetadata {
         // Create an Asn1Encoding object manually from the nested structure
         Asn1Encoding encoding = new Asn1Encoding();
         if (encodingsNode.has("elementName")) {
-          encoding.setElementName(encodingsNode.get("elementName").asText());
+          encoding.setElementName(encodingsNode.get("elementName").asString());
         }
         if (encodingsNode.has("elementType")) {
-          encoding.setElementType(encodingsNode.get("elementType").asText());
+          encoding.setElementType(encodingsNode.get("elementType").asString());
         }
         if (encodingsNode.has("encodingRule")) {
           encoding.setEncodingRule(
-              Asn1Encoding.EncodingRule.valueOf(encodingsNode.get("encodingRule").asText()));
+              Asn1Encoding.EncodingRule.valueOf(encodingsNode.get("encodingRule").asString()));
         }
 
         result.add(encoding);

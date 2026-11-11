@@ -41,7 +41,7 @@ public class Asn1Encoding extends OdeObject {
    }
 
    public Asn1Encoding (JsonNode encoding) {
-      this(encoding.get("elementName").asText(), encoding.get("elementType").asText(), EncodingRule.valueOf(encoding.get("encodingRule").asText()));
+      this(encoding.get("elementName").asString(), encoding.get("elementType").asString(), EncodingRule.valueOf(encoding.get("encodingRule").asString()));
    }
 
    public String getElementName() {

@@ -111,7 +111,7 @@ public class SerialId {
    * @param jsonNode the JsonNode containing the serial id fields
    */
   public SerialId(JsonNode jsonNode) {
-    this(jsonNode.get("streamId").asText(), jsonNode.get("bundleSize").asInt(0),
+    this(jsonNode.get("streamId").asString(), jsonNode.get("bundleSize").asInt(0),
         jsonNode.get("bundleId").asLong(0), jsonNode.get("recordId").asInt(0),
         jsonNode.get("serialNumber").asLong(0));
   }
