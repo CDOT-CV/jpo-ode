@@ -51,7 +51,7 @@ public class RawEncodedTIMJsonRouter {
    */
   @KafkaListener(id = "RawEncodedTIMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.tim}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws StartFlagNotFoundException, JacksonException {
+      throws StartFlagNotFoundException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.TIM,

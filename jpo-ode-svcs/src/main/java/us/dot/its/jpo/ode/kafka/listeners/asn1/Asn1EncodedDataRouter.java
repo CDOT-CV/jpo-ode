@@ -16,7 +16,6 @@
 
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
@@ -140,7 +139,7 @@ public class Asn1EncodedDataRouter {
    */
   @KafkaListener(id = "Asn1EncodedDataRouter", topics = "${ode.kafka.topics.asn1.encoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws XmlUtilsException, JacksonException, Asn1EncodedDataRouterException {
+      throws XmlUtilsException, Asn1EncodedDataRouterException {
     JSONObject consumedObj = XmlUtils.toJSONObject(consumerRecord.value())
         .getJSONObject(OdeAsn1Data.class.getSimpleName());
 
@@ -177,7 +176,7 @@ public class Asn1EncodedDataRouter {
     }
   }
 
-  private ServiceRequest getServiceRequest(JSONObject metadataJson) throws JacksonException {
+  private ServiceRequest getServiceRequest(JSONObject metadataJson) {
     if (metadataJson.has(TimTransmogrifier.REQUEST_STRING)) {
       JSONObject request = metadataJson.getJSONObject(TimTransmogrifier.REQUEST_STRING);
       processRsusIfPresent(request);
@@ -234,8 +233,7 @@ public class Asn1EncodedDataRouter {
   }
 
   // If SDW in metadata and ASD in body (double encoding complete) -> send to SDX
-  private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj)
-      throws JacksonException {
+  private void processDoubleEncodedMessage(ServiceRequest request, JSONObject dataObj) {
     depositToSdx(request, dataObj.getJSONObject(ADVISORY_SITUATION_DATA_STRING).getString(BYTES));
   }
 
@@ -289,8 +287,7 @@ public class Asn1EncodedDataRouter {
     kafkaTemplate.send(jsonTopics.getTimCertExpiration(), timWithExpiration.toString());
   }
 
-  private void depositToSdx(ServiceRequest request, String asdBytes)
-      throws JacksonException {
+  private void depositToSdx(ServiceRequest request, String asdBytes) {
     SDXDeposit sdxDeposit = new SDXDeposit(request.getSdw().getEstimatedRemovalDate(), asdBytes);
     kafkaTemplate.send(this.sdxDepositTopic, mapper.writeValueAsString(sdxDeposit));
   }
@@ -312,7 +309,7 @@ public class Asn1EncodedDataRouter {
    *         exceptions.
    */
   private String packageSignedTimIntoAsd(ServiceRequest request, String signedMsg)
-      throws JacksonException, ParseException {
+      throws ParseException {
     SDW sdw = request.getSdw();
     DdsAdvisorySituationData asd;
 
@@ -363,7 +360,7 @@ public class Asn1EncodedDataRouter {
     return outputXml;
   }
 
-  private ArrayNode buildEncodings() throws JacksonException {
+  private ArrayNode buildEncodings() {
     ArrayNode encodings = mapper.createArrayNode();
     var encoding = new Asn1Encoding(ADVISORY_SITUATION_DATA_STRING, ADVISORY_SITUATION_DATA_STRING,
         EncodingRule.UPER);

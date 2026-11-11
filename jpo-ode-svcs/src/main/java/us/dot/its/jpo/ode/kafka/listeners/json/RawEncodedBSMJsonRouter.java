@@ -51,7 +51,7 @@ public class RawEncodedBSMJsonRouter {
    */
   @KafkaListener(id = "RawEncodedBSMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.bsm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws StartFlagNotFoundException, JacksonException {
+      throws StartFlagNotFoundException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.BSM,

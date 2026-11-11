@@ -29,7 +29,6 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.type.LogicalType;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -191,7 +190,7 @@ public class JsonUtils {
       node = jsonNode.get(fieldName);
 
     } catch (JacksonException e) {
-      log.error("IOException", e);
+      log.error("Error parsing JSON to get field {}", fieldName, e);
     }
     return node;
   }

@@ -32,7 +32,7 @@ public class OdeMessageFrameDataCreatorHelper {
    * @throws JacksonException if there is an error processing the JSON data
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
-      XmlMapper simpleXmlMapper) throws JacksonException {
+      XmlMapper simpleXmlMapper) {
     // Parse the XML into a tree structure first
     JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
     

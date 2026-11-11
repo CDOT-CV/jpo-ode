@@ -50,7 +50,7 @@ public class RawEncodedSPATJsonRouter {
    */
   @KafkaListener(id = "RawEncodedSPATJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.spat}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws StartFlagNotFoundException, JacksonException {
+      throws StartFlagNotFoundException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.SPAT,

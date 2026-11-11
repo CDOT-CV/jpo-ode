@@ -51,7 +51,7 @@ public class RawEncodedRTCMJsonRouter {
    */
   @KafkaListener(id = "RawEncodedRTCMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.rtcm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws StartFlagNotFoundException, JacksonException {
+      throws StartFlagNotFoundException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.RTCM,

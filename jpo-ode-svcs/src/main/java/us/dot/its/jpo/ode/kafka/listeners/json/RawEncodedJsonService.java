@@ -43,7 +43,7 @@ public class RawEncodedJsonService {
    */
   public OdeAsn1Data addEncodingAndMutateBytes(String json, SupportedMessageType messageType,
       Class<? extends OdeLogMetadata> metadataClass)
-      throws JacksonException, StartFlagNotFoundException {
+      throws StartFlagNotFoundException {
     JSONObject rawJsonObject = new JSONObject(json);
 
     String jsonStringMetadata = rawJsonObject.get("metadata").toString();

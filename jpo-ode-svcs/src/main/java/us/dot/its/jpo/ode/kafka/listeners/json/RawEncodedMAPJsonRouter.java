@@ -54,7 +54,7 @@ public class RawEncodedMAPJsonRouter {
    */
   @KafkaListener(id = "RawEncodedMAPJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.map}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws JacksonException, StartFlagNotFoundException {
+      throws StartFlagNotFoundException {
     var messageToPublish = rawEncodedJsonService.addEncodingAndMutateBytes(
         consumerRecord.value(),
         SupportedMessageType.MAP, OdeMessageFrameMetadata.class);

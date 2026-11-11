@@ -51,7 +51,7 @@ public class RawEncodedSRMJsonRouter {
    */
   @KafkaListener(id = "RawEncodedSRMJsonRouter", topics = "${ode.kafka.topics.raw-encoded-json.srm}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws JacksonException, StartFlagNotFoundException {
+      throws StartFlagNotFoundException {
     var messageToPublish =
         rawEncodedJsonService.addEncodingAndMutateBytes(consumerRecord.value(),
             SupportedMessageType.SRM,
