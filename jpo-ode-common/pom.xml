@@ -10,6 +10,7 @@
     <version>7.0.0-alpha1</version>
   </parent>
 
+  <groupId>${publish.groupId}</groupId>
   <artifactId>jpo-ode-common</artifactId>
   <name>jpo-ode-common</name>
   <description>JPO ODE Common Components</description>

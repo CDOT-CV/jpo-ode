@@ -13,8 +13,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverPropertie
  * packets containing SDSM (Sensor Data Sharing Message) data, decoding them from their hex
  * representation to JSON format, and then publishing the JSON data to a Kafka topic.
  *
- * </p>
- * The class utilizes a KafkaTemplate for publishing messages and a configurable topic name where
+ * <p>The class utilizes a KafkaTemplate for publishing messages and a configurable topic name where
  * the decoded SDSM JSON messages are sent.
  */
 @Slf4j

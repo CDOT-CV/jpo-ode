@@ -51,7 +51,7 @@ public class CodecUtils {
 
    /**
     * Converts a single short to a byte array length 2. See
-    * {@link #shortsToBytes(short[])}
+    * {@link #shortsToBytes(short[], ByteOrder)}
     * 
     * @param number a 16 bit integer to be converted to byte array
     * @param bo Byte order ByteOrder.BIG_ENDIAN or ByteOrder.LITTLE_ENDIAN
@@ -64,7 +64,7 @@ public class CodecUtils {
 
    /**
     * Converts an array of bytes to an array of shorts and returns the first
-    * element. See {@link #bytesToShorts(byte[])}
+    * element. See {@link #bytesToShorts(byte[], int, int, ByteOrder)}
     * 
     * @param bytes
     * @return array of shorts
@@ -134,7 +134,7 @@ public class CodecUtils {
 
    /**
     * Converts a single int to a byte array length 4. See
-    * {@link #shortsToBytes(short[])}
+    * {@link #shortsToBytes(short[], ByteOrder)}
     * 
     * @param number a 32 bit integer to be converted to byte array
     * @param bo Byte order ByteOrder.BIG_ENDIAN or ByteOrder.LITTLE_ENDIAN
@@ -184,7 +184,7 @@ public class CodecUtils {
 
    /**
     * Converts a single long to a byte array length 8 in a 64 bit machine. See
-    * {@link #shortsToBytes(short[])}
+    * {@link #shortsToBytes(short[], ByteOrder)}
     * 
     * @param number a 64 bit integer to be converted to byte array
     * @param bo Byte order ByteOrder.BIG_ENDIAN or ByteOrder.LITTLE_ENDIAN

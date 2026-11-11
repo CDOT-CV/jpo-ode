@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+  child.project.url.inherit.append.path="false">
+  <!-- child.*.inherit.append.path="false": the modules inherit url and scm unchanged, without
+       Maven appending their artifactIds -->
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
@@ -11,15 +14,39 @@
     <relativePath /> <!-- lookup parent from repository -->
   </parent>
 
-  <scm>
-    <developerConnection>scm:git:https://github.com/usdot-jpo-ode/jpo-ode.git</developerConnection>
-    <tag>jpo-ode-7.0.0-alpha1</tag>
-  </scm>
-
+  <!-- Parent pom of the ODE modules. It is not published: the modules are published with
+       flattened poms that don't refer to it, under the groupId ${publish.groupId} -->
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
   <version>7.0.0-alpha1</version>
   <packaging>pom</packaging>
+
+  <name>jpo-ode</name>
+  <description>Operational Data Environment (ODE) for connected vehicle data</description>
+  <url>https://github.com/${publish.githubRepository}</url>
+
+  <licenses>
+    <license>
+      <name>Apache 2.0 License</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.html</url>
+    </license>
+  </licenses>
+
+  <!-- TODO: list the ODE developers (Maven Central requires at least one) -->
+  <developers>
+    <developer>
+      <name>TODO</name>
+    </developer>
+  </developers>
+
+  <scm child.scm.connection.inherit.append.path="false"
+    child.scm.developerConnection.inherit.append.path="false"
+    child.scm.url.inherit.append.path="false">
+    <connection>scm:git:https://github.com/${publish.githubRepository}.git</connection>
+    <developerConnection>scm:git:https://github.com/${publish.githubRepository}.git</developerConnection>
+    <url>https://github.com/${publish.githubRepository}.git</url>
+    <tag>jpo-ode-7.0.0-alpha1</tag>
+  </scm>
   <modules>
     <module>jpo-ode-common</module>
     <module>jpo-ode-plugins</module>
@@ -32,11 +59,15 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>21</java.version>
 
+    <!-- Publishing coordinates of the modules. Each fork's publish workflow overrides these
+         with -D; see "Maven Central" in the README -->
+    <publish.groupId>io.github.usdot-jpo-ode</publish.groupId>
+    <publish.githubRepository>usdot-jpo-ode/jpo-ode</publish.githubRepository>
+
     <!-- Generic properties -->
     <finalLocation>${project.build.directory}/${project.artifactId}-${project.version}</finalLocation>
     <timestamp>${maven.build.timestamp}</timestamp>
     <maven.build.timestamp.format>yyyy-MM-dd'T'HH:mm:ss.SSSZ</maven.build.timestamp.format>
-    <java.version>21</java.version>
     <sonar.organization>usdot-jpo-ode</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <checkstyle-maven-plugin.version>3.6.0</checkstyle-maven-plugin.version>
@@ -46,8 +77,6 @@
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <sonar.language>java</sonar.language>
-    <!-- Allow override of github organization when publishing artifacts to github -->
-    <github_organization>usdot-jpo-ode</github_organization>
     <asn.pojos.group.id>com.neaeraconsulting</asn.pojos.group.id>
     <asn.pojos.version>2.0.0-beta2-SNAPSHOT</asn.pojos.version>
     <!-- Jackson 3 version used by the ASN.1 pojo library.  Jackson 3.1 also requires
@@ -214,6 +243,36 @@
       </plugins>
     </pluginManagement>
     <plugins>
+      <!-- Write literal coordinates (groupId, url, scm) and resolved dependencies into the
+           installed and deployed poms, which then don't refer to this parent pom -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <version>1.8.0</version>
+        <configuration>
+          <flattenMode>ossrh</flattenMode>
+          <updatePomFile>true</updatePomFile>
+          <pomElements>
+            <contributors>keep</contributors>
+          </pomElements>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten-clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
@@ -248,11 +307,110 @@
       </plugin>
     </plugins>
   </reporting>
-  <distributionManagement>
-    <repository>
-      <id>github</id>
-      <name>GitHub Packages</name>
-      <url>https://maven.pkg.github.com/${github_organization}/jpo-ode</url>
-    </repository>
-  </distributionManagement>
+
+  <profiles>
+    <!-- Builds, signs and publishes the modules to Maven Central. Used by the
+         maven-publish-release and maven-publish-snapshot workflows -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-enforcer-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>enforce-release-dependencies</id>
+                <goals>
+                  <goal>enforce</goal>
+                </goals>
+                <configuration>
+                  <rules>
+                    <!-- A release can't depend on snapshots, such as a jpo-asn-pojos snapshot.
+                         Snapshot versions of the ODE skip this check. -->
+                    <requireReleaseDeps>
+                      <onlyWhenRelease>true</onlyWhenRelease>
+                      <message>A release can't depend on SNAPSHOT versions</message>
+                    </requireReleaseDeps>
+                  </rules>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.4.0</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.12.0</version>
+            <configuration>
+              <!-- Skip the "missing" checks ("no comment", "no @param", ...), which only produce
+                   warnings. The other doclint checks still run, and their errors fail the build. -->
+              <doclint>all,-missing</doclint>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadoc</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>3.2.8</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <bestPractices>true</bestPractices>
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <plugin>
+            <groupId>org.sonatype.central</groupId>
+            <artifactId>central-publishing-maven-plugin</artifactId>
+            <version>0.10.0</version>
+            <extensions>true</extensions>
+            <configuration>
+              <publishingServerId>central</publishingServerId>
+              <!-- Releases are approved in the GitHub maven-central-release environment, so publish
+                   without a second manual step in the Central Portal -->
+              <autoPublish>true</autoPublish>
+              <!-- Wait until the artifacts are live so a publishing failure fails the workflow -->
+              <waitUntil>published</waitUntil>
+              <!-- Seconds; publishing can be slow, so allow double the default of 1800 -->
+              <waitMaxTime>3600</waitMaxTime>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
