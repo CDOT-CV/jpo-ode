@@ -923,7 +923,7 @@ Don't promote a pre-release to a release. Its tag points at a commit whose versi
 `-SNAPSHOT`, tag that commit, and publish a new release from the new tag.
 
 GitHub releases and their tags also trigger the other release workflows, such as the DockerHub
-image build.
+image build, which only runs in the usdot-jpo-ode repository.
 
 #### Variables and Secrets
 
