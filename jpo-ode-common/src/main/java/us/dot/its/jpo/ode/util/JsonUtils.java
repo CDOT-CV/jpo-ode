@@ -17,6 +17,9 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
+import java.math.BigDecimal;
+import lombok.extern.slf4j.Slf4j;
+import org.json.JSONObject;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
@@ -29,13 +32,6 @@ import tools.jackson.databind.json.JsonMapper;
 import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.type.LogicalType;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
-import lombok.extern.slf4j.Slf4j;
-import org.json.JSONObject;
 
 /**
  * Utility class for JSON operations using Jackson ObjectMapper.
@@ -47,24 +43,39 @@ public class JsonUtils {
   private static final ObjectMapper mapper_noNulls;
 
   static {
-    mapper = JsonMapper.builderWithJackson2Defaults()
+    mapper = baseMapperBuilder().build();
+
+    mapper_noNulls = baseMapperBuilder()
+        .changeDefaultPropertyInclusion(
+            incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
+        .build();
+  }
+
+  /**
+   * Returns a new {@link JsonMapper.Builder} preconfigured with the JSON settings shared by the
+   * ODE's mappers. Callers can add further settings (e.g. property inclusion) before building.
+   *
+   * <p>Used for the mappers in this class and for the Spring {@code objectMapper} bean in
+   * jpo-ode-svcs, so that they serialize and deserialize consistently.
+   *
+   * @return a new builder with the shared settings applied
+   */
+  public static JsonMapper.Builder baseMapperBuilder() {
+    return JsonMapper.builderWithJackson2Defaults()
         .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        // Ignore JSON properties our models don't declare instead of failing. Input comes from
+        // external sources (e.g. REST request bodies, jpo-security-svcs responses, Kafka messages
+        // from other services) that may include extra fields, now or after they add them.
+        // Failing would turn that into an error, e.g. breaking TIM signing. Matches the XML
+        // mappers in XmlUtils.baseXmlMapperBuilder(). Use jacksonFromJson(s, clazz, false) to
+        // read strictly.
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
         .withCoercionConfig(LogicalType.Enum,
             cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
         // Ensure BigDecimals are serialized consistently as numbers not strings
         .withConfigOverride(BigDecimal.class,
-            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
-        .build();
-
-    mapper_noNulls = JsonMapper.builderWithJackson2Defaults()
-        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-        .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
-        .changeDefaultPropertyInclusion(
-            incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
-        .withConfigOverride(BigDecimal.class,
-            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
-        .build();
+            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)));
   }
 
   private JsonUtils() {
@@ -183,7 +194,7 @@ public class JsonUtils {
       node = jsonNode.get(fieldName);
 
     } catch (JacksonException e) {
-      log.error("IOException", e);
+      log.error("Error parsing JSON to get field {}", fieldName, e);
     }
     return node;
   }

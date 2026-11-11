@@ -49,7 +49,7 @@ public class OdeMessageFrameDataTest {
     JsonNode sdsm = data.get("value").get("SensorDataSharingMessage");
     assertNotNull(sdsm);
     assertEquals(10, sdsm.get("msgCnt").asInt());
-    assertEquals("010C0C0A", sdsm.get("sourceID").asText());
+    assertEquals("010C0C0A", sdsm.get("sourceID").asString());
   }
 
 }

@@ -1,8 +1,5 @@
 package us.dot.its.jpo.ode.kafka.listeners.asn1;
 
-import tools.jackson.core.JacksonException;
-import tools.jackson.dataformat.xml.XmlMapper;
-import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.json.JSONObject;
@@ -10,6 +7,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
+import tools.jackson.dataformat.xml.XmlMapper;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.DSRCmsgID;
 import us.dot.its.jpo.ode.coder.OdeMessageFrameDataCreatorHelper;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
@@ -71,7 +69,7 @@ public class Asn1DecodedDataRouter {
    */
   @KafkaListener(id = "Asn1DecodedDataRouter", topics = "${ode.kafka.topics.asn1.decoder-output}")
   public void listen(ConsumerRecord<String, String> consumerRecord)
-      throws XmlUtilsException, JacksonException, Asn1DecodedDataRouterException, IOException {
+      throws XmlUtilsException, Asn1DecodedDataRouterException {
     log.debug("Key: {} payload: {}", consumerRecord.key(), consumerRecord.value());
 
     JSONObject consumed = XmlUtils.toJSONObject(consumerRecord.value())
@@ -107,7 +105,7 @@ public class Asn1DecodedDataRouter {
   }
 
   private void routeMessageFrame(ConsumerRecord<String, String> consumerRecord, String... topics)
-      throws XmlUtils.XmlUtilsException, IOException {
+      throws XmlUtils.XmlUtilsException {
     log.debug("routeMessageFrame to topics: {}", String.join(", ", topics));
     OdeMessageFrameData odeMessageFrameData =
         OdeMessageFrameDataCreatorHelper.createOdeMessageFrameData(

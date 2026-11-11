@@ -20,8 +20,8 @@
 
 package us.dot.its.jpo.ode.model;
 
-import tools.jackson.databind.JsonNode;
 import java.util.UUID;
+import tools.jackson.databind.JsonNode;
 
 /**
  * SerialId represents a unique identifier for a data stream, includes stream ID, bundle ID, bundle
@@ -111,7 +111,7 @@ public class SerialId {
    * @param jsonNode the JsonNode containing the serial id fields
    */
   public SerialId(JsonNode jsonNode) {
-    this(jsonNode.get("streamId").asText(), jsonNode.get("bundleSize").asInt(0),
+    this(jsonNode.get("streamId").asString(), jsonNode.get("bundleSize").asInt(0),
         jsonNode.get("bundleId").asLong(0), jsonNode.get("recordId").asInt(0),
         jsonNode.get("serialNumber").asLong(0));
   }

@@ -3,8 +3,8 @@ package us.dot.its.jpo.ode.kafka.producer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.jspecify.annotations.Nullable;
 import org.springframework.kafka.support.ProducerListener;
-import org.springframework.lang.Nullable;
 
 /**
  * The LoggingProducerListener is a Kafka ProducerListener implementation that handles logging for

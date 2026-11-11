@@ -16,14 +16,13 @@
 
 package us.dot.its.jpo.ode.util;
 
-import tools.jackson.core.JacksonException;
+import org.json.JSONObject;
+import org.json.XML;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.dataformat.xml.XmlMapper;
-import org.json.JSONObject;
-import org.json.XML;
 
 /**
  * Utility class for XML manipulation.
@@ -46,15 +45,25 @@ public class XmlUtils {
 
   }
 
-  private XmlMapper xmlMapper;
-  private static XmlMapper staticXmlMapper;
+  private static final XmlMapper staticXmlMapper = baseXmlMapperBuilder().build();
 
-  static {
+  /**
+   * Returns a new {@link XmlMapper.Builder} preconfigured with the XML settings shared by the
+   * ODE's XML mappers: Jackson 2 defaults, unknown properties ignored, wrappers used for lists by
+   * default, and properties not sorted alphabetically. Callers can add further settings before
+   * building.
+   *
+   * <p>Used for the mapper in this class and for the Spring {@code xmlMapper} bean in
+   * jpo-ode-svcs, so that they produce and read XML consistently.
+   *
+   * @return a new builder with the shared settings applied
+   */
+  public static XmlMapper.Builder baseXmlMapperBuilder() {
     var builder = XmlMapper.builderWithJackson2Defaults();
     builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     builder.defaultUseWrapper(true);
     builder.disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
-    staticXmlMapper = builder.build();
+    return builder;
   }
 
   /**

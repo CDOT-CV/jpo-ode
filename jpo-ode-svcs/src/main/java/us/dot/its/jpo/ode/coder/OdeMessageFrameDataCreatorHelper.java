@@ -1,10 +1,10 @@
 package us.dot.its.jpo.ode.coder;
 
+import lombok.extern.slf4j.Slf4j;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.dataformat.xml.XmlMapper;
-import lombok.extern.slf4j.Slf4j;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
@@ -32,7 +32,7 @@ public class OdeMessageFrameDataCreatorHelper {
    * @throws JacksonException if there is an error processing the JSON data
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
-      XmlMapper simpleXmlMapper) throws JacksonException {
+      XmlMapper simpleXmlMapper) {
     // Parse the XML into a tree structure first
     JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
     

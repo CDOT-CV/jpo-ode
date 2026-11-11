@@ -1,9 +1,9 @@
 package us.dot.its.jpo.ode.model;
 
-import tools.jackson.databind.annotation.JsonSerialize;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Represents an entity submitted to and consumed by the Situation Data Exchange (SDX) Deposit.

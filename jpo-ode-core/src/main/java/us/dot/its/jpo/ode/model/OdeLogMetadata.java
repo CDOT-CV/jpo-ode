@@ -21,13 +21,13 @@
 package us.dot.its.jpo.ode.model;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.util.ArrayList;
+import java.util.List;
 import tools.jackson.core.JsonParser;
 import tools.jackson.databind.DeserializationContext;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ValueDeserializer;
 import tools.jackson.databind.annotation.JsonDeserialize;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * OdeLogMetadata is a class that extends OdeMsgMetadata and represents the metadata fields in a
@@ -217,14 +217,14 @@ public class OdeLogMetadata extends OdeMsgMetadata {
         // Create an Asn1Encoding object manually from the nested structure
         Asn1Encoding encoding = new Asn1Encoding();
         if (encodingsNode.has("elementName")) {
-          encoding.setElementName(encodingsNode.get("elementName").asText());
+          encoding.setElementName(encodingsNode.get("elementName").asString());
         }
         if (encodingsNode.has("elementType")) {
-          encoding.setElementType(encodingsNode.get("elementType").asText());
+          encoding.setElementType(encodingsNode.get("elementType").asString());
         }
         if (encodingsNode.has("encodingRule")) {
           encoding.setEncodingRule(
-              Asn1Encoding.EncodingRule.valueOf(encodingsNode.get("encodingRule").asText()));
+              Asn1Encoding.EncodingRule.valueOf(encodingsNode.get("encodingRule").asString()));
         }
 
         result.add(encoding);

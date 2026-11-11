@@ -1,21 +1,15 @@
 package us.dot.its.jpo.ode.config;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.MapperFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.cfg.CoercionAction;
-import tools.jackson.databind.cfg.CoercionInputShape;
-import tools.jackson.databind.json.JsonMapper;
-import tools.jackson.databind.type.LogicalType;
-import tools.jackson.dataformat.xml.XmlMapper;
-import java.math.BigDecimal;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
+import us.dot.its.jpo.ode.util.JsonUtils;
+import us.dot.its.jpo.ode.util.XmlUtils;
 
 /**
  * Configuration class for customizing serialization settings using JSON and XML serialization.
@@ -24,23 +18,23 @@ import org.springframework.context.annotation.Primary;
 public class SerializationConfig {
 
   /**
-   * Configures and returns an {@link ObjectMapper} instance customized for specific serialization
+   * Configures and returns a {@link JsonMapper} instance customized for specific serialization
    * and deserialization behavior.
    *
-   * @return a customized {@link ObjectMapper} instance supporting specific serialization and
+   * <p>The return type must be {@link JsonMapper} rather than {@link ObjectMapper}: Spring Boot's
+   * {@code JacksonAutoConfiguration} registers its own {@code @Primary} {@code JsonMapper} unless a
+   * bean of type {@code JsonMapper} already exists, and it decides that from the declared return
+   * type of this method.
+   *
+   * @return a customized {@link JsonMapper} instance supporting specific serialization and
    *         deserialization configurations.
    */
   @Bean
   @Primary
-  public ObjectMapper objectMapper() {
-    return JsonMapper.builderWithJackson2Defaults()
-        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-        .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
-        .withCoercionConfig(LogicalType.Enum,
-            cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))
-        // Ensure BigDecimals are serialized consistently as numbers not strings
-        .withConfigOverride(BigDecimal.class,
-            o -> o.setFormat(JsonFormat.Value.forShape(JsonFormat.Shape.NUMBER)))
+  public JsonMapper objectMapper() {
+    // Shared settings (Jackson 2 defaults, field visibility, ignore unknown properties, enum and
+    // BigDecimal handling)
+    return JsonUtils.baseMapperBuilder()
         // Only serialize non-null fields
         .changeDefaultPropertyInclusion(
             incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
@@ -56,19 +50,8 @@ public class SerializationConfig {
    */
   @Bean
   public XmlMapper xmlMapper() {
-    var builder = XmlMapper.builderWithJackson2Defaults();
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    builder.defaultUseWrapper(true);
-    builder.disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
-    return builder.build();
-  }
-
-
-  @Bean("simpleObjectMapper")
-  public ObjectMapper simpleObjectMapper() {
-    return JsonMapper.builderWithJackson2Defaults()
-        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-        .build();
+    // Same settings as XmlUtils' mapper, so all ODE XML is produced consistently
+    return XmlUtils.baseXmlMapperBuilder().build();
   }
 
   @Bean("simpleXmlMapper")
