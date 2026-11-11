@@ -54,14 +54,6 @@ public class SerializationConfig {
     return XmlUtils.baseXmlMapperBuilder().build();
   }
 
-
-  @Bean("simpleObjectMapper")
-  public ObjectMapper simpleObjectMapper() {
-    return JsonMapper.builderWithJackson2Defaults()
-        .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
-        .build();
-  }
-
   @Bean("simpleXmlMapper")
   public XmlMapper simpleXmlMapper() {
     return XmlMapper.builderWithJackson2Defaults()
