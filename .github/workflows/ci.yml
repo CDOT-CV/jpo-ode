@@ -23,9 +23,8 @@ jobs:
 
   # Run the same Maven build as the publish workflows, minus GPG signing and the upload, so
   # publishing failures (javadoc doclint, flatten, sources) show up on the PR instead of at
-  # release time. The enforcer check that a release has no SNAPSHOT dependencies is skipped
-  # here, because between releases a release version may depend on a jpo-asn-pojos snapshot;
-  # the release workflow still enforces it.
+  # release time. This includes the enforcer check that a release version has no SNAPSHOT
+  # dependencies (such as a jpo-asn-pojos snapshot), which snapshot versions skip.
   maven-verify:
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +37,7 @@ jobs:
           cache: "maven"
       - name: Verify release build
         run: |
-          mvn -P release,package-jar --batch-mode verify -Dgpg.skip -Denforcer.skip -DskipTests \
+          mvn -P release,package-jar --batch-mode verify -Dgpg.skip -DskipTests \
             --projects :jpo-ode-common,:jpo-ode-plugins,:jpo-ode-core,:jpo-ode-svcs
 
   sonar:
