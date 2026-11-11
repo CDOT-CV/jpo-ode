@@ -13,7 +13,7 @@ The first step in the standalone hotfix release process is to create a new branc
 
 ### Acceptance Criteria
     - [ ] A new branch `hotfix/(year)-(month)-(day)` is created from `master` for the project requiring the hotfix
-    - [ ] Patch version number is updated in the `pom.xml` file of the project requiring the hotfix
+    - [ ] Patch version number is updated in the `pom.xml` files of the project requiring the hotfix (for jpo-ode, the root `pom.xml` and the `<parent>` element of each module's `pom.xml`)
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
     - [ ] Code changes for hotfix are merged into `hotfix/(year)-(month)-(day)`
 
@@ -26,10 +26,12 @@ After the hotfix branch is created and the code changes are merged, project refe
 1. Merge `hotfix/(year)-(month)-(day)` branch into `master/main` branch for the project requiring the hotfix.
 2. Tag the master/main branch of the project with a git tag that includes the version number of the hotfix.
 3. Update git submodule references & pom.xml references for dependent projects to point to tagged commits in projects with updated `master/main` branches.
+    - jpo-asn-pojos and jpo-ode are Maven Central dependencies, not submodules: dependent projects get them from Maven Central, so they can only update to the hotfix version after its release is published there (see step 1 under "Create Releases & Docker Images"). For a jpo-asn-pojos hotfix, update `asn.pojos.version` in the jpo-ode root `pom.xml`. For a jpo-ode hotfix, update the version of the jpo-ode-* dependencies in the dependent projects.
 4. Merge `hotfix/(year)-(month)-(day)` branch into `master/main` branch for the dependent projects, and add a git tag with the version number of the hotfix.
 
 #### Create Releases & Docker Images
 1. Within the github CI/CD release process, use the release tags for each affected application to produce releases and docker images with the same tag name, containing the version number of each app.
+    - For projects that publish jars to Maven Central (jpo-asn-pojos and jpo-ode), publishing the GitHub release runs the Maven Central release workflow. The tag must match the version in the poms, and the version and its dependencies can't be `-SNAPSHOT` versions. Approve the deployment to the `maven-central-release` environment and verify that the jars were published.
 2. Upload docker images to [DockerHub](https://hub.docker.com/u/usdotjpoode).
 3. Tag docker images with the version number of each app. (e.g. 1.0.0)
 4. Tag docker images with year, month, and day of hotfix. (e.g. 2024-04-01)
