@@ -1,10 +1,10 @@
 package us.dot.its.jpo.ode.http;
 
-import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
-import tools.jackson.databind.json.JsonMapper;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.json.JacksonJsonHttpMessageConverter;
 import org.springframework.web.client.RestTemplate;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * This class provides a configuration for creating and managing

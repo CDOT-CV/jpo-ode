@@ -16,7 +16,6 @@
 package us.dot.its.jpo.ode.model;
 
 import tools.jackson.databind.node.ObjectNode;
-
 import us.dot.its.jpo.ode.util.JsonUtils;
 
 public class OdeException extends Exception {

@@ -16,13 +16,13 @@
 
 package us.dot.its.jpo.ode.util;
 
+import org.json.JSONObject;
+import org.json.XML;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.dataformat.xml.XmlMapper;
-import org.json.JSONObject;
-import org.json.XML;
 
 /**
  * Utility class for XML manipulation.

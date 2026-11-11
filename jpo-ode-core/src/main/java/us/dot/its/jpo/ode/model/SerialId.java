@@ -20,8 +20,8 @@
 
 package us.dot.its.jpo.ode.model;
 
-import tools.jackson.databind.JsonNode;
 import java.util.UUID;
+import tools.jackson.databind.JsonNode;
 
 /**
  * SerialId represents a unique identifier for a data stream, includes stream ID, bundle ID, bundle
