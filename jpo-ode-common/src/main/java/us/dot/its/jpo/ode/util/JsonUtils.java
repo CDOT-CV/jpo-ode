@@ -30,9 +30,6 @@ import tools.jackson.databind.node.ArrayNode;
 import tools.jackson.databind.node.ObjectNode;
 import tools.jackson.databind.type.LogicalType;
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 
@@ -66,6 +63,13 @@ public class JsonUtils {
   public static JsonMapper.Builder baseMapperBuilder() {
     return JsonMapper.builderWithJackson2Defaults()
         .disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+        // Ignore JSON properties our models don't declare instead of failing. Input comes from
+        // external sources (e.g. REST request bodies, jpo-security-svcs responses, Kafka messages
+        // from other services) that may include extra fields, now or after they add them.
+        // Failing would turn that into an error, e.g. breaking TIM signing. Matches the XML
+        // mappers in XmlUtils.baseXmlMapperBuilder(). Use jacksonFromJson(s, clazz, false) to
+        // read strictly.
+        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
         .withCoercionConfig(LogicalType.Enum,
             cfg -> cfg.setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull))

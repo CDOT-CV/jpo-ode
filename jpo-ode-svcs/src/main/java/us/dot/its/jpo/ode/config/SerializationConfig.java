@@ -1,7 +1,6 @@
 package us.dot.its.jpo.ode.config;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
@@ -10,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import us.dot.its.jpo.ode.util.JsonUtils;
+import us.dot.its.jpo.ode.util.XmlUtils;
 
 /**
  * Configuration class for customizing serialization settings using JSON and XML serialization.
@@ -32,13 +32,9 @@ public class SerializationConfig {
   @Bean
   @Primary
   public JsonMapper objectMapper() {
-    // Shared settings (Jackson 2 defaults, field visibility, enum and BigDecimal handling)
+    // Shared settings (Jackson 2 defaults, field visibility, ignore unknown properties, enum and
+    // BigDecimal handling)
     return JsonUtils.baseMapperBuilder()
-        // Ignore JSON properties our models don't declare instead of failing. Input comes from
-        // external sources (e.g. jpo-security-svcs responses, Kafka messages from other services)
-        // that may include extra fields, now or after they add them. Failing would turn that
-        // into an error, e.g. breaking TIM signing. Matches xmlMapper() below.
-        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         // Only serialize non-null fields
         .changeDefaultPropertyInclusion(
             incl -> incl.withValueInclusion(Include.NON_NULL).withContentInclusion(Include.NON_NULL))
@@ -54,11 +50,8 @@ public class SerializationConfig {
    */
   @Bean
   public XmlMapper xmlMapper() {
-    var builder = XmlMapper.builderWithJackson2Defaults();
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    builder.defaultUseWrapper(true);
-    builder.disable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
-    return builder.build();
+    // Same settings as XmlUtils' mapper, so all ODE XML is produced consistently
+    return XmlUtils.baseXmlMapperBuilder().build();
   }
 
 
