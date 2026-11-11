@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockingDetails;
 
-import tools.jackson.dataformat.xml.XmlMapper;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,6 +29,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.xmlunit.builder.DiffBuilder;
 import org.xmlunit.diff.Diff;
+import us.dot.its.jpo.ode.config.SerializationConfig;
 import us.dot.its.jpo.ode.kafka.topics.Asn1CoderTopics;
 import us.dot.its.jpo.ode.kafka.topics.JsonTopics;
 import us.dot.its.jpo.ode.security.SecurityServicesProperties;
@@ -233,7 +233,7 @@ class TimDepositControllerRegressionTest {
     KafkaTemplate<String, String> kafkaTemplate = mock(KafkaTemplate.class);
     TimDepositController controller = new TimDepositController(asn1CoderTopics, jsonTopics,
         new TimIngestTrackerProperties(), new SecurityServicesProperties(), kafkaTemplate,
-        new XmlMapper());
+        new SerializationConfig().simpleXmlMapper());
 
     String response;
     try {
