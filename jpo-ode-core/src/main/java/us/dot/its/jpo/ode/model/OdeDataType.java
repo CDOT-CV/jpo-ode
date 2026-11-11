@@ -93,15 +93,4 @@ public enum OdeDataType {
       return shortNames;
    }
 
-   public static OdeDataType getFromJsonNode(JsonNode data, String name) throws IOException {
-      OdeDataType odeDataType = null;
-      if (data != null) {
-         JsonNode dataType = data.get(name);
-         if (dataType != null) { 
-            odeDataType = OdeDataType.getByShortName(dataType.textValue());
-         }
-      }
-      return odeDataType;
-   }
-
 }
