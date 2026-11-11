@@ -71,11 +71,12 @@ public class InterceptingKafkaTemplate<K, V> extends KafkaTemplate<K, V> {
     if (producerRecord.value() instanceof String stringValue) {
       try {
         JsonNode rootNode = objectMapper.readTree(stringValue);
-        if (rootNode.has("metadata")) {
-          JsonNode metadataNode = rootNode.get("metadata");
-          if (metadataNode.has("originIp")) {
-            originIp = metadataNode.get("originIp").asText();
-          }
+        // Only use originIp if it is a non-blank string. Jackson 3 changed asText(): it returns ""
+        // for JSON null (Jackson 2 returned "null") and throws for objects/arrays, so null or
+        // non-string values must be skipped explicitly to avoid a bogus rsu_ip tag.
+        JsonNode originIpNode = rootNode.path("metadata").path("originIp");
+        if (originIpNode.isString() && !originIpNode.stringValue().isBlank()) {
+          originIp = originIpNode.stringValue();
         }
       } catch (JacksonException e) {
         log.info("Produced message is not JSON or originIp is not present");
