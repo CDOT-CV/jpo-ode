@@ -876,6 +876,41 @@ When built from source, the libraries use the groupId `io.github.usdot-jpo-ode` 
 which fork the source comes from. The published poms are flattened: they list their dependencies
 with resolved versions and don't refer to the `jpo-ode` parent pom, which is not published.
 
+#### Jackson versions in Spring Boot applications
+
+The libraries are built with newer Jackson versions than the ones Spring Boot 4.0 manages. The
+ASN.1 POJO library needs Jackson 3.1, and Jackson 3.1 needs `jackson-annotations` 2.21. A Spring
+Boot application's dependency management takes precedence over the versions in the published
+poms, so the application has to raise Spring Boot's Jackson versions to match. Use the
+`jackson-bom.version` and `jackson-2-bom.version` values from this repository's root `pom.xml`
+for the release you consume.
+
+If the application's parent is `spring-boot-starter-parent`, override the properties:
+
+```xml
+<properties>
+  <jackson-bom.version>3.1.8</jackson-bom.version>
+  <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+</properties>
+```
+
+If the application imports `spring-boot-dependencies` instead, import the Jackson BOM before it:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>tools.jackson</groupId>
+      <artifactId>jackson-bom</artifactId>
+      <version>3.1.8</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+    <!-- spring-boot-dependencies import follows -->
+  </dependencies>
+</dependencyManagement>
+```
+
 ### Publishing to Maven Central
 
 The `Publish JARs to the Maven Central Repository` workflows publish the four libraries when a
