@@ -180,4 +180,6 @@ jobs:
           path: |
             jpo-ode-*/target/central-*/
             jpo-ode-*/.flattened-pom.xml
+          # upload-artifact leaves out hidden files such as .flattened-pom.xml unless this is set
+          include-hidden-files: true
           retention-days: 7
