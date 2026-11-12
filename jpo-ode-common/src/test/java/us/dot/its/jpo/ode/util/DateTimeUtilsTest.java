@@ -15,6 +15,9 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.text.ParseException;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
@@ -22,9 +25,7 @@ import java.time.format.DateTimeFormatter;
 
 import org.junit.jupiter.api.Test;
 
-import junit.framework.TestCase;
-
-public class DateTimeUtilsTest extends TestCase {
+public class DateTimeUtilsTest {
 
     @Test
    public void testIsoDateTime() throws ParseException {

@@ -15,11 +15,11 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.text.ParseException;
 
@@ -37,11 +37,11 @@ public class DdsAdvisorySituationDataTest {
       testDdsAdvisorySituationData.setRequestID("hello world!");
       testDdsAdvisorySituationData.setRecordID("hi world!");
 
-      assertEquals("00000000", testDdsAdvisorySituationData.getGroupID());
+      assertEquals(testDdsAdvisorySituationData.getGroupID(), "00000000");
       assertEquals(5, testDdsAdvisorySituationData.getDialogID());
       assertEquals(6, testDdsAdvisorySituationData.getSeqID());
-      assertEquals("hello world!", testDdsAdvisorySituationData.getRequestID());
-      assertEquals("hi world!", testDdsAdvisorySituationData.getRecordID());
+      assertEquals(testDdsAdvisorySituationData.getRequestID(), "hello world!");
+      assertEquals(testDdsAdvisorySituationData.getRecordID(), "hi world!");
 
    }
 
@@ -99,7 +99,7 @@ public class DdsAdvisorySituationDataTest {
       assertEquals(Integer.valueOf(60), testDdsAdvisorySituationData.getAsdmDetails().getStartTime().getMinute());
 
       assertEquals(1, testDdsAdvisorySituationData.getTimeToLive());
-      assertEquals("00000000", testDdsAdvisorySituationData.getGroupID());
+      assertEquals(testDdsAdvisorySituationData.getGroupID(), "00000000");
    }
 
    // must be done for parameterless constructor due to random
@@ -119,11 +119,11 @@ public class DdsAdvisorySituationDataTest {
           .setGroupID("1234")
           .setRecordID("ABCDEF");
 
-      assertEquals("Expected identical hashcodes", ddsasd1.hashCode(), ddsasd2.hashCode());
-      assertNotEquals("Expected different hashcodes", ddsasd2.hashCode(), ddsasd3.hashCode());
+      assertEquals(ddsasd1.hashCode(), ddsasd2.hashCode(), "Expected identical hashcodes");
+      assertNotEquals(ddsasd2.hashCode(), ddsasd3.hashCode(), "Expected different hashcodes");
 
-      assertTrue("Expected objects to be equal", ddsasd1.equals(ddsasd2));
-      assertFalse("Expected objects to not be equal", ddsasd2.equals(ddsasd3));
+      assertTrue(ddsasd1.equals(ddsasd2), "Expected objects to be equal");
+      assertFalse(ddsasd2.equals(ddsasd3), "Expected objects to not be equal");
 
    }
 
