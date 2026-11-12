@@ -248,20 +248,26 @@ None
             - [ ] `jpo-asn-test-generator` subproject builds via gradle
             - [ ] `jpo-asn-jsonschema-generator` subproject builds via gradle
         - maven build:
-            - [ ] `jpo-asn-j2735-2024` subproject builds via maven
+            - [ ] `jpo-asn-runtime` and `jpo-asn-j2735-2024` subprojects build via maven with the release profile, the same build the Maven Central publish workflows run: `./mvnw -P release verify -Dgpg.skip --projects :jpo-asn-runtime,:jpo-asn-j2735-2024` (the `maven-verify` job in the CI workflow runs this too)
     - [ ] unit tests pass
     - [ ] test generator command line tool can generate messages
     - [ ] schema generator command line tool can generate schemas
 
 ### 3. Project Reference Updates & Release Creation
-    - [ ] Update Gradle build version number
-        - [ ] Update version number in 'jpo-asn-pojos/jpo-asn-runtime/gradle.build'
-        - [ ] Update version number in 'jpo-asn-pojos/jpo-asn-j2735-2024/gradle.build'
-    - [ ] Udate Maven build version number
-        - [ ] Update version number in 'jpo-asn-pojos/pom.xml'
-        - [ ] Update version number in 'jpo-asn-pojos/jpo-asn-runtime/pom.xml'
-        - [ ] Update version number in `jpo-asn-pojos/jpo-asn-j2735-2024/pom.xml`
+    - [ ] Update the version number to the release version, without `-SNAPSHOT`. All of these must have the same version, because the publish workflows check that they match.
+        - [ ] Update Gradle build version number
+            - [ ] Update version number in `jpo-asn-pojos/jpo-asn-runtime/build.gradle`
+            - [ ] Update version number in `jpo-asn-pojos/jpo-asn-j2735-2024/build.gradle`
+        - [ ] Update Maven build version number
+            - [ ] Update version number in `jpo-asn-pojos/pom.xml`
+            - [ ] Update version number in `jpo-asn-pojos/jpo-asn-runtime/pom.xml`
+            - [ ] Update version number in `jpo-asn-pojos/jpo-asn-j2735-2024/pom.xml`
     - [ ] Merge the 'release/(year)-(quarter)' branch into the 'master' branch of the 'jpo-asn-pojos' project, and create a release and git tag with the version number of the release. (i.e. jpo-asn-pojos-x.x.x)
+        - [ ] The tag must be the version, optionally after a prefix that doesn't end in a digit or `.`, such as `jpo-asn-pojos-`. The publish workflow fails if the tag doesn't match the version in the poms.
+        - [ ] Publish it as a release, not a pre-release. Pre-releases publish snapshots, and a pre-release can't be promoted to a release.
+    - [ ] Publish the jars to Maven Central
+        - [ ] Publishing the GitHub release runs the `maven-publish-release.yml` workflow. Approve the deployment to the `maven-central-release` environment when asked. (See "Publishing to Maven Central" in the jpo-asn-pojos README)
+        - [ ] Verify that the `jpo-asn-runtime` and `jpo-asn-j2735-2024` jars were published to Maven Central with the release version, under the groupId of the publishing organization (e.g. `io.github.usdot-jpo-ode`). Releases on Maven Central are permanent. jpo-ode, and other projects that use the pojos, can't update to the release until it is published.
     - [ ] Merge 'master' branch into 'develop' branch & verify that CI/CD passes.
 
 ### 4. DockerHub Image Testing
@@ -274,7 +280,7 @@ Not applicable
     - [ ] jpo-security-svcs release completed
     - [ ] jpo-sdw-depositor release completed
     - [ ] jpo-utils release completed
-    - [ ] jpo-asn-pojos release completed
+    - [ ] jpo-asn-pojos release completed and published to Maven Central (the jpo-ode build downloads it from Maven Central, so tagging the release is not enough)
 
 #### Dependency Types
 | Dependency | Type |
@@ -284,7 +290,7 @@ Not applicable
 | jpo-security-svcs | Git Submodule |
 | jpo-sdw-depositor | Git Submodule |
 | jpo-utils | Git Submodule |
-| jp-asn-pojos | Git Submodule |
+| jpo-asn-pojos | Maven Central (`asn.pojos.group.id` and `asn.pojos.version` in the root `pom.xml`) |
 
 ### 1. Code Ready & Release Notes
     - [ ] Release notes drafted & added to `Release_notes.md` file in `docs` directory
@@ -333,8 +339,8 @@ Not applicable
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml files for the 'jpo-ode' project if not already done.
         - [ ] Open the jpo-ode project in an IDE
-        - [ ] Update the version number in the pom.xml files of the jpo-ode-common, jpo-ode-plugins, and jpo-ode-svcs projects to match the version number of the release. (e.g. 1.0.0)
-        - [ ] Update the dependencies in pom.xml files of the jpo-ode-common, jpo-ode-plugins, and jpo-ode-svcs projects to the version number set in the previous step. The `jpo-ode-plugins` depends on the `jpo-ode-common` project, and the `jpo-ode-svcs` project depends on the `jpo-ode-core` and `jpo-ode-plugins` projects. These should all be referencing the same version number. (e.g. 1.0.0)
+        - [ ] Update the version number in the root pom.xml, and in the `<parent>` element of the pom.xml files of the jpo-ode-common, jpo-ode-plugins, jpo-ode-core, and jpo-ode-svcs projects, to match the version number of the release, without `-SNAPSHOT`. (e.g. 1.0.0) The dependencies between these projects use `${project.version}`, so they don't need to be updated.
+        - [ ] Update `asn.pojos.version` in the root pom.xml to the released jpo-asn-pojos version, and check that `asn.pojos.group.id` is the groupId of the organization that published that release (e.g. `io.github.usdot-jpo-ode`). A release can't depend on a `-SNAPSHOT` version; the release workflow fails if it does.
     - [ ] Update git submodule references for the ‘jpo-ode’ project to point to tagged commits in projects with updated `master` branches.
         - [ ] Open the jpo-ode project in an IDE.
         - [ ] Navigate to the asn1_codec directory and run `git checkout tags/asn1_codec-x.x.x` to update the submodule reference.
@@ -342,10 +348,12 @@ Not applicable
         - [ ] Navigate to the jpo-security-svcs directory and run `git checkout tags/jpo-security-svcs-x.x.x` to update the submodule reference.
         - [ ] Navigate to the jpo-sdw-depositor directory and run `git checkout tags/jpo-sdw-depositor-x.x.x` to update the submodule reference.
         - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference. 
-        - [ ] Navigate to the jpo-asn-pojos directory and run 'git checkout 'jpo-asn-pojos-x.x.x' to update the submodule reference.
         - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
         - [ ] Ensure these changes pass CI/CD checks before continuing.
     - [ ] Merge `release/(year)-(quarter)` branch into `master` branch for the jpo-ode project, and create a release with the version number of the release. (e.g. jpo-ode-x.x.x)
+    - [ ] Publish the jars to Maven Central
+        - [ ] Publishing the GitHub release runs the `maven-publish-release.yml` workflow. Approve the deployment to the `maven-central-release` environment when asked. (See "Maven Central" in the README)
+        - [ ] Verify that the jpo-ode-common, jpo-ode-plugins, jpo-ode-core, and jpo-ode-svcs jars were published to Maven Central with the release version. They are published under the groupId of the publishing organization (e.g. `io.github.usdot-jpo-ode`), not the `usdot.jpo.ode` groupId used for the earlier GitHub Packages releases. Projects that depend on jpo-ode can't update to the release until it is published.
     - [ ] Create docker image
         - [ ] Use the release for the jpo-ode to produce docker image with the same tag name, containing the version number.
         - [ ] Upload docker image to [DockerHub](https://hub.docker.com/u/usdotjpoode)
@@ -438,13 +446,13 @@ Not applicable
 
 ## jpo-geojsonconverter
 ### Prerequisites
-    - [ ] jpo-ode release completed
+    - [ ] jpo-ode release completed and published to Maven Central
     - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
-| jpo-ode | Maven, DockerHub |
+| jpo-ode | Maven Central, DockerHub |
 | jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
@@ -480,6 +488,8 @@ Not applicable
         - [ ] Open the jpo-geojsonconverter project in an IDE.
         - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
         - [ ] Update the version number in the pom.xml for the jpo-ode-core and jpo-ode-plugins dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
+            - [ ] The jpo-ode jars are published to Maven Central under the groupId of the publishing organization (e.g. `io.github.usdot-jpo-ode`). If the pom.xml still uses the `usdot.jpo.ode` groupId from GitHub Packages for the jpo-ode-* dependencies, update the groupId too. No GitHub Packages repository or credentials are needed for the jpo-ode jars.
+            - [ ] The jpo-ode jars bring in the jpo-asn-pojos jars they were built with. If the project also depends on jpo-asn-pojos directly, use the same groupId and version as the jpo-ode release, so that two copies of the pojos aren't on the classpath.
         - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
         - [ ] Ensure these changes pass CI/CD checks before continuing.
     - [ ] Merge `release/(year)-(quarter)` branch into `master` branch for the jpo-geojsonconverter project, and create a release with the version number of the release. (e.g. jpo-geojsonconverter-x.x.x)
@@ -513,13 +523,13 @@ Not applicable
 
 ## jpo-mec-deposit
 ### Prerequisites
-    - [ ] jpo-ode release completed
+    - [ ] jpo-ode release completed and published to Maven Central
     - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
-| jpo-ode | Maven, DockerHub |
+| jpo-ode | Maven Central, DockerHub |
 | jpo-utils | Git Submodule |
 
 ### 1. Code Ready & Release Notes
@@ -547,6 +557,8 @@ Not applicable
         - [ ] Open the jpo-mec-deposit project in an IDE.
         - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
         - [ ] Update the version number in the pom.xml for the jpo-ode-core and jpo-ode-plugins dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
+            - [ ] The jpo-ode jars are published to Maven Central under the groupId of the publishing organization (e.g. `io.github.usdot-jpo-ode`). If the pom.xml still uses the `usdot.jpo.ode` groupId from GitHub Packages for the jpo-ode-* dependencies, update the groupId too. No GitHub Packages repository or credentials are needed for the jpo-ode jars.
+            - [ ] The jpo-ode jars bring in the jpo-asn-pojos jars they were built with. If the project also depends on jpo-asn-pojos directly, use the same groupId and version as the jpo-ode release, so that two copies of the pojos aren't on the classpath.
         - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
         - [ ] Ensure these changes pass CI/CD checks before continuing.
     - [ ] Merge `release/(year)-(quarter)` branch into `master` branch for the jpo-mec-deposit project, and create a release with the version number of the release. (e.g. jpo-mec-deposit-x.x.x)
@@ -572,14 +584,14 @@ Not applicable
 
 ## jpo-conflictmonitor
 ### Prerequisites
-    - [ ] jpo-ode release completed
+    - [ ] jpo-ode release completed and published to Maven Central
     - [ ] jpo-geojsonconverter release completed
     - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
-| jpo-ode | Maven, DockerHub |
+| jpo-ode | Maven Central, DockerHub |
 | jpo-geojsonconverter | Maven, DockerHub |
 | jpo-utils | Git Submodule |
 
@@ -613,6 +625,8 @@ Not applicable
         - [ ] Open the jpo-conflictmonitor project in an IDE.
         - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
         - [ ] Update the version number in the pom.xml files for the jpo-geojsonconverter and jpo-ode-* dependencies to match the version number of the corresponding releases. (e.g. 1.0.0)
+            - [ ] The jpo-ode jars are published to Maven Central under the groupId of the publishing organization (e.g. `io.github.usdot-jpo-ode`). If the pom.xml still uses the `usdot.jpo.ode` groupId from GitHub Packages for the jpo-ode-* dependencies, update the groupId too. No GitHub Packages repository or credentials are needed for the jpo-ode jars.
+            - [ ] The jpo-ode jars bring in the jpo-asn-pojos jars they were built with. If the project also depends on jpo-asn-pojos directly, use the same groupId and version as the jpo-ode release, so that two copies of the pojos aren't on the classpath.
             - [ ] Update the jpo-conflictmonitor/pom.xml
             - [ ] Update the message-sender/pom.xml
         - [ ] Commit these changes to the `release/(year)-(quarter)` branch & push the changes to the remote repository.
@@ -646,14 +660,14 @@ Not applicable
 
 ## jpo-deduplicator
 ### Prerequisites
-    - [ ] jpo-ode release completed
+    - [ ] jpo-ode release completed and published to Maven Central
     - [ ] jpo-geojsonconverter release completed
     - [ ] jpo-utils release completed
 
 #### Dependency Types
 | Dependency | Type |
 | --- | --- |
-| jpo-ode | Maven |
+| jpo-ode | Maven Central |
 | jpo-geojsonconverter | Maven |
 | jpo-utils | Git Submodule |
 
@@ -673,6 +687,8 @@ Not applicable
 ### 3. Project Reference Updates & Release Creation
     - [ ] Update version number in pom.xml file for the `jpo-deduplicator` project if not already done.
     - [ ] Update the corresponding version number for the jpo-geojsonconverter and jpo-ode-* dependencies in the pom.xml files of the jpo-deduplicator project. This change will be necessary in the jpo-deduplicator/pom.xml file.
+        - [ ] The jpo-ode jars are published to Maven Central under the groupId of the publishing organization (e.g. `io.github.usdot-jpo-ode`). If the pom.xml still uses the `usdot.jpo.ode` groupId from GitHub Packages for the jpo-ode-* dependencies, update the groupId too. No GitHub Packages repository or credentials are needed for the jpo-ode jars.
+        - [ ] The jpo-ode jars bring in the jpo-asn-pojos jars they were built with. If the project also depends on jpo-asn-pojos directly, use the same groupId and version as the jpo-ode release, so that two copies of the pojos aren't on the classpath.
     - [ ] Update git submodule references for the ‘jpo-ode’ project to point to tagged commits in projects with updated `master` branches.
         - [ ] Open the jpo-ode project in an IDE.
         - [ ] Navigate to the jpo-utils directory and run `git checkout tags/jpo-utils-x.x.x` to update the submodule reference.
@@ -693,7 +709,7 @@ Not applicable
 
 ## jpo-cvmanager
 ### Prerequisites
-    - [ ] jpo-ode release completed
+    - [ ] jpo-ode release completed and published to Maven Central
     - [ ] jpo-conflictmonitor release completed
     - [ ] jpo-geojsonconverter release completed
     - [ ] asn1_codec release completed
@@ -702,7 +718,7 @@ Not applicable
 #### Dependency Types
 | Dependency           | Type |
 |----------------------| --- |
-| jpo-ode              | Maven |
+| jpo-ode              | Maven Central |
 | jpo-geojsonconverter | Maven |
 | jpo-conflictmonitor  | Maven |
 | jpo-utils            | Git Submodule |
