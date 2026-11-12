@@ -18,7 +18,7 @@
        flattened poms that don't refer to it, under the groupId ${publish.groupId} -->
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>7.0.0-alpha1</version>
+  <version>7.0.0-alpha2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>jpo-ode</name>
@@ -32,10 +32,136 @@
     </license>
   </licenses>
 
-  <!-- TODO: list the ODE developers (Maven Central requires at least one) -->
   <developers>
     <developer>
-      <name>TODO</name>
+      <id>SaikrishnaBairamoni</id>
+      <name>Saikrishna Bairamoni</name>
+      <organization>Leidos</organization>
+    </developer>
+    <developer>
+      <id>mcook42</id>
+      <name>Matt Cook</name>
+    </developer>
+    <developer>
+      <id>dan-du-car</id>
+      <name>Dan Du</name>
+      <organization>Leidos</organization>
+    </developer>
+    <developer>
+      <id>Michael7371</id>
+      <name>Michael English</name>
+      <organization>Neaera Consulting</organization>
+    </developer>
+    <developer>
+      <id>TonyEnglish</id>
+      <name>Tony English</name>
+      <organization>Neaera Consulting</organization>
+    </developer>
+    <developer>
+      <id>drewjj</id>
+      <name>Drew Johnston</name>
+      <organization>Neaera Consulting</organization>
+    </developer>
+    <developer>
+      <id>pmonington</id>
+      <name>Paige Monington</name>
+      <organization>Trihydro</organization>
+    </developer>
+    <developer>
+      <id>radishco</id>
+      <name>Satish Natarajan</name>
+    </developer>
+    <developer>
+      <id>payneBrandon</id>
+      <name>Brandon Payne</name>
+      <organization>Trihydro</organization>
+    </developer>
+    <developer>
+      <id>dmccoystephenson</id>
+      <name>Daniel McCoy Stephenson</name>
+    </developer>
+    <developer>
+      <id>John-Wiens</id>
+      <name>John Wiens</name>
+      <organization>Neaera Consulting</organization>
+    </developer>
+    <developer>
+      <id>mwodahl</id>
+      <name>Marc Wodahl</name>
+    </developer>
+    <developer>
+      <id>iyourshaw</id>
+      <name>Ivan Yourshaw</name>
+      <email>39739503+iyourshaw@users.noreply.github.com</email>
+      <organization>Neaera Consulting</organization>
+    </developer>
+    <developer>
+      <id>Schwartz-Matthew-bah</id>
+      <name>Matthew Schwartz</name>
+    </developer>
+    <developer>
+      <id>hmusavi</id>
+      <name>Hamid Musavi</name>
+    </developer>
+    <developer>
+      <id>mgarramo</id>
+      <name>Michael Garramone Jr</name>
+    </developer>
+    <developer>
+      <id>0111sandesh</id>
+    </developer>
+    <developer>
+      <id>mvs5465</id>
+      <name>Matt S</name>
+    </developer>
+    <developer>
+      <id>tonychen091</id>
+      <name>Tony Chen</name>
+    </developer>
+    <developer>
+      <id>jtbaird</id>
+      <name>John Baird</name>
+    </developer>
+    <developer>
+      <id>snallamothu</id>
+      <name>Sudhakar Nallamothu</name>
+    </developer>
+    <developer>
+      <id>Ryan-Roan</id>
+      <name>Ryan Roan</name>
+    </developer>
+    <developer>
+      <id>alexsobledotgov</id>
+      <name>Alex Soble</name>
+    </developer>
+    <developer>
+      <id>bbrotsos</id>
+      <name>Brian Brotsos</name>
+    </developer>
+    <developer>
+      <id>abey-yoseph</id>
+      <name>Abey Yoseph</name>
+    </developer>
+    <developer>
+      <id>codygarver</id>
+      <name>Cody Garver</name>
+    </developer>
+    <developer>
+      <id>danrasband</id>
+      <name>Dan Rasband</name>
+    </developer>
+    <developer>
+      <id>ToryB1</id>
+    </developer>
+    <developer>
+      <id>trevor-trou</id>
+      <name>Trevor Trouchon</name>
+    </developer>
+    <developer>
+      <id>paulbourelly999</id>
+    </developer>
+    <developer>
+      <id>southernsun</id>
     </developer>
   </developers>
 
@@ -45,7 +171,7 @@
     <connection>scm:git:https://github.com/${publish.githubRepository}.git</connection>
     <developerConnection>scm:git:https://github.com/${publish.githubRepository}.git</developerConnection>
     <url>https://github.com/${publish.githubRepository}.git</url>
-    <tag>jpo-ode-7.0.0-alpha1</tag>
+    <tag>HEAD</tag>
   </scm>
   <modules>
     <module>jpo-ode-common</module>
@@ -100,27 +226,13 @@
     </repository>
   </repositories>
 
+  <!-- Every module inherits these, so they are also dependencies of each published module.
+       Keep them to test and provided scope, which don't pass to consumers -->
   <dependencies>
-
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-webmvc</artifactId>
-    </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
-    </dependency>
-    <!-- https://mvnrepository.com/artifact/org.codehaus.groovy/groovy-all -->
-    <dependency>
-      <groupId>org.codehaus.groovy</groupId>
-      <artifactId>groovy-all</artifactId>
-      <version>3.0.8</version>
-      <type>pom</type>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -138,16 +250,6 @@
          to use the newly generated getters and setters.
       -->
       <version>1.18.30</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-configuration-processor</artifactId>
       <scope>provided</scope>
     </dependency>
   </dependencies>
