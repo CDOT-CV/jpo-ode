@@ -926,6 +926,9 @@ the same in every fork; each fork configures publishing through its GitHub setti
 | `maven-publish-release.yml`  | A release is published     | `maven-central-release`  | Must not end `-SNAPSHOT` | Maven Central (permanent) |
 | `maven-publish-snapshot.yml` | A pre-release is published | `maven-central-snapshot` | Must end `-SNAPSHOT`     | Central Portal snapshots  |
 
+Both workflows call the reusable `maven-publish.yml` workflow, which has the shared checks and
+publish steps.
+
 The release event runs the workflow from the tagged commit, so tag a commit that contains the
 current workflow files. Set the version in the root `pom.xml` and in the `<parent>` of each module's
 `pom.xml` before tagging: remove `-SNAPSHOT` for a release and keep it for a snapshot. A release
