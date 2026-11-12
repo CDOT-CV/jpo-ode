@@ -353,7 +353,6 @@
         <version>1.8.0</version>
         <configuration>
           <flattenMode>ossrh</flattenMode>
-          <updatePomFile>true</updatePomFile>
           <pomElements>
             <contributors>keep</contributors>
           </pomElements>
