@@ -13,3 +13,6 @@ jobs:
     uses: ./.github/workflows/maven-publish.yml
     with:
       snapshot: false
+    # The called workflow only sees secrets the caller passes, including the secrets of the
+    # environment it runs in
+    secrets: inherit
