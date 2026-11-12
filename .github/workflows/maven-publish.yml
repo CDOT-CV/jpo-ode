@@ -52,8 +52,9 @@ jobs:
           gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
 
       # The modules don't declare their own <version>, so each one's version is the version in its
-      # <parent>.  Get the root pom's version and check that every module's <parent> names it.
-      # Each module's directory has the same name as its artifactId
+      # <parent>.  Get the root pom's version, then check that no module sets its own <version> and
+      # that every module's <parent> names the root version.  The poms are read with yq, which is
+      # preinstalled on the runner.  Each module's directory has the same name as its artifactId
       - name: Get Maven version
         id: get_version
         run: |
@@ -61,7 +62,13 @@ jobs:
           echo "Root pom version is ${version}"
           for module in ${PUBLISH_MODULES//,/ }; do
             dir="${module#:}"
-            parent_version=$(sed -n '/<parent>/,/<\/parent>/s:.*<version>\(.*\)</version>.*:\1:p' "${dir}/pom.xml")
+            own_version=$(yq -p xml -oy '.project.version // ""' "${dir}/pom.xml")
+            if [ -n "$own_version" ]; then
+              echo "::error::Module ${dir} sets its own <version> '${own_version}';" \
+                "remove it so it uses the <parent> version"
+              exit 1
+            fi
+            parent_version=$(yq -p xml -oy '.project.parent.version' "${dir}/pom.xml")
             if [ "$parent_version" != "$version" ]; then
               echo "::error::Module ${dir} <parent> version '${parent_version}' doesn't match '${version}'"
               exit 1
