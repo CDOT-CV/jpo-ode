@@ -17,6 +17,8 @@ package us.dot.its.jpo.ode.plugin.j2735;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 
@@ -36,6 +38,23 @@ public class DsrcPosition3D extends Asn1Object {
       this.latitude = latitude;
       this.longitude = longitude;
       this.elevation = elevation;
+   }
+
+   public DsrcPosition3D(OdePosition3D position) {
+      super();
+      if (position.getLatitude() != null) {
+         this.latitude = (long) scale(position.getLatitude(), 7);
+      }
+      if (position.getLongitude() != null) {
+         this.longitude = (long) scale(position.getLongitude(), 7);
+      }
+      if (position.getElevation() != null) {
+         this.elevation = (long) scale(position.getElevation(), 1);
+      }
+   }
+
+   private static int scale(BigDecimal value, int power) {
+      return value.scaleByPowerOfTen(power).setScale(0, RoundingMode.HALF_UP).intValue();
    }
 
    @JsonProperty("lat")

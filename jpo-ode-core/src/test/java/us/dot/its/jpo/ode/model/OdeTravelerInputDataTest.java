@@ -11,8 +11,6 @@ import us.dot.its.jpo.ode.plugin.ServiceRequest;
 import us.dot.its.jpo.ode.plugin.SnmpProtocol;
 import us.dot.its.jpo.ode.plugin.j2735.OdePosition3D;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.FrameType;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.MutcdCode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -123,7 +121,7 @@ class OdeTravelerInputDataTest {
     var dataframes = new OdeTravelerInformationMessage.DataFrame[1];
     var df = new OdeTravelerInformationMessage.DataFrame();
     df.setDoNotUse1((short) 0);
-    df.setFrameType(FrameType.TravelerInfoType.valueOf("advisory"));
+    df.setFrameType(OdeTravelerInformationMessage.TravelerInfoType.valueOf("advisory"));
     var msgId = new OdeTravelerInformationMessage.DataFrame.MsgId();
     var roadSignID = new OdeTravelerInformationMessage.DataFrame.RoadSignID();
     var position = new OdePosition3D();
@@ -132,7 +130,7 @@ class OdeTravelerInputDataTest {
     position.setElevation(new BigDecimal("917.1432"));
     roadSignID.setPosition(position);
     roadSignID.setViewAngle("1010101010101010");
-    roadSignID.setMutcdCode(MutcdCode.MutcdCodeEnum.valueOf("warning"));
+    roadSignID.setMutcdCode(OdeTravelerInformationMessage.MutcdCodeEnum.valueOf("warning"));
     roadSignID.setCrc("0000");
     msgId.setRoadSignID(roadSignID);
     df.setMsgId(msgId);

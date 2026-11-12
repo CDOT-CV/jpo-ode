@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.pdm;
 import us.dot.its.jpo.ode.model.OdeObject;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
-import us.dot.its.jpo.ode.plugin.j2735.J2735ProbeDataManagment;
 
 public class J2735PdmRequest extends OdeObject {
 

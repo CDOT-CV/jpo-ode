@@ -134,17 +134,6 @@ public class JsonUtils {
   }
 
   /**
-   * Creates a new JSON string with a single key-value pair.
-   *
-   * @param key   the key
-   * @param value the value
-   * @return JSON string containing the key-value pair
-   */
-  public static String newJson(String key, Object value) {
-    return newObjectNode(key, value).toString();
-  }
-
-  /**
    * Creates a new ObjectNode with a single key-value pair.
    *
    * @param key   the key
@@ -240,39 +229,6 @@ public class JsonUtils {
   }
 
   /**
-   * Validates if a string is valid JSON.
-   *
-   * @param tree the string to validate
-   * @return true if valid JSON, false otherwise
-   * @throws IOException if an I/O error occurs
-   */
-  public static boolean isValid(String tree) throws IOException {
-    try {
-      ObjectNode jsonNode = (ObjectNode) mapper.readTree(tree);
-      return jsonNode != null;
-    } catch (JsonProcessingException jpe) {
-      return false;
-    }
-  }
-
-  /**
-   * Converts a JsonNode to a HashMap.
-   *
-   * @param jsonNode the JsonNode to convert
-   * @return HashMap containing the JsonNode's fields
-   */
-  public static HashMap<String, JsonNode> jsonNodeToHashMap(JsonNode jsonNode) {
-    HashMap<String, JsonNode> nodeProps = new HashMap<String, JsonNode>();
-    Iterator<Entry<String, JsonNode>> iter = jsonNode.fields();
-
-    while (iter.hasNext()) {
-      Entry<String, JsonNode> element = iter.next();
-      nodeProps.put(element.getKey(), element.getValue());
-    }
-    return nodeProps;
-  }
-
-  /**
    * Creates a JSON string with a single key-value pair.
    *
    * @param key   the key
@@ -281,23 +237,6 @@ public class JsonUtils {
    */
   public static String jsonKeyValue(String key, String value) {
     return "{\"" + key + "\":\"" + value + "\"}";
-  }
-
-  /**
-   * Converts a JsonNode to a BigDecimal, handling both numeric and text
-   * representations.
-   *
-   * @param v the JsonNode to convert
-   * @return the BigDecimal value
-   */
-  public static BigDecimal decimalValue(JsonNode v) {
-    BigDecimal result;
-    if (v.isTextual()) {
-      result = new BigDecimal(v.textValue());
-    } else {
-      result = v.decimalValue();
-    }
-    return result;
   }
 
   /**
