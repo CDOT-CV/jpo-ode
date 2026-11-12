@@ -35,12 +35,12 @@ public class DdsAdvisoryDetailsTest {
       testDdsAdvisoryDetails.setAdvisoryMessageBytes("testAdvisoryMessageBytes");
       testDdsAdvisoryDetails.setAdvisoryMessage("001F8084");
       
-      assertEquals(testDdsAdvisoryDetails.getAsdmID(), "testAsdmID");
+      assertEquals("testAsdmID", testDdsAdvisoryDetails.getAsdmID());
       assertEquals(1, testDdsAdvisoryDetails.getAsdmType());
-      assertEquals(testDdsAdvisoryDetails.getDistType(), "02");
+      assertEquals("02", testDdsAdvisoryDetails.getDistType());
       assertNotNull(testDdsAdvisoryDetails.getStartTime());
       assertNotNull(testDdsAdvisoryDetails.getStopTime());
-      assertEquals(testDdsAdvisoryDetails.getAdvisoryMessageBytes(), "testAdvisoryMessageBytes");
+      assertEquals("testAdvisoryMessageBytes", testDdsAdvisoryDetails.getAdvisoryMessageBytes());
       assertNotNull(testDdsAdvisoryDetails.getAdvisoryMessage());
    }
 

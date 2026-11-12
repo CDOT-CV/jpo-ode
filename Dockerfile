@@ -3,7 +3,8 @@ LABEL org.opencontainers.image.authors="583114@bah.com"
 
 WORKDIR /home
 
-COPY ./pom.xml ./
+# lombok.config sets how lombok generates code, so it must be copied with the sources
+COPY ./pom.xml ./lombok.config ./
 COPY ./jpo-ode-common/pom.xml ./jpo-ode-common/
 COPY ./jpo-ode-common/src ./jpo-ode-common/src
 COPY ./jpo-ode-plugins/pom.xml ./jpo-ode-plugins/

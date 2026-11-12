@@ -82,6 +82,10 @@
       <artifactId>spring-boot-starter-kafka</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.apache.kafka</groupId>
+      <artifactId>kafka-streams</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-restclient</artifactId>
     </dependency>
@@ -170,12 +174,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>com.networknt</groupId>
-      <artifactId>json-schema-validator</artifactId>
-      <version>1.0.88</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>${asn.pojos.group.id}</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
       <version>${asn.pojos.version}</version>
@@ -195,14 +193,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-lang3</artifactId>
-      <version>3.18.0</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-text</artifactId>
-      <version>1.14.0</version>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.15.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
@@ -220,7 +214,19 @@
           </execution>
         </executions>
       </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <!-- appended after the root's lombok path; lombok must run first -->
+          <annotationProcessorPaths combine.children="append">
+            <path>
+              <groupId>org.springframework.boot</groupId>
+              <artifactId>spring-boot-configuration-processor</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <!-- profile to output only source code and not include any spring boot dependencies in published

@@ -37,11 +37,11 @@ public class DdsAdvisorySituationDataTest {
       testDdsAdvisorySituationData.setRequestID("hello world!");
       testDdsAdvisorySituationData.setRecordID("hi world!");
 
-      assertEquals(testDdsAdvisorySituationData.getGroupID(), "00000000");
+      assertEquals("00000000", testDdsAdvisorySituationData.getGroupID());
       assertEquals(5, testDdsAdvisorySituationData.getDialogID());
       assertEquals(6, testDdsAdvisorySituationData.getSeqID());
-      assertEquals(testDdsAdvisorySituationData.getRequestID(), "hello world!");
-      assertEquals(testDdsAdvisorySituationData.getRecordID(), "hi world!");
+      assertEquals("hello world!", testDdsAdvisorySituationData.getRequestID());
+      assertEquals("hi world!", testDdsAdvisorySituationData.getRecordID());
 
    }
 
@@ -99,7 +99,7 @@ public class DdsAdvisorySituationDataTest {
       assertEquals(Integer.valueOf(60), testDdsAdvisorySituationData.getAsdmDetails().getStartTime().getMinute());
 
       assertEquals(1, testDdsAdvisorySituationData.getTimeToLive());
-      assertEquals(testDdsAdvisorySituationData.getGroupID(), "00000000");
+      assertEquals("00000000", testDdsAdvisorySituationData.getGroupID());
    }
 
    // must be done for parameterless constructor due to random

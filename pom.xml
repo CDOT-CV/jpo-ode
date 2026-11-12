@@ -198,7 +198,7 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <checkstyle-maven-plugin.version>3.6.0</checkstyle-maven-plugin.version>
     <!-- JaCoCo Properties -->
-    <jacoco.version>0.8.11</jacoco.version>
+    <jacoco.version>0.8.14</jacoco.version>
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
@@ -235,21 +235,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <!-- If upgrading, consider one of the following approaches to avoid duplicate field names
-     (differing only by naming convention) in ODE-produced messages:
-       - Explicitly write getters and setters for any class field that violates the
-         JavaBeans naming convention (including in the ASN.1 POJOs), or
-       - Apply the appropriate Lombok configuration change and update this project
-         to use the newly generated getters and setters.
-      -->
-      <version>1.18.30</version>
+      <!-- Version managed by Spring Boot.  See lombok.config for the Jackson annotation setting
+           that keeps ODE-produced messages unchanged -->
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -291,7 +280,6 @@
               <path>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.30</version>
               </path>
             </annotationProcessorPaths>
           </configuration>
