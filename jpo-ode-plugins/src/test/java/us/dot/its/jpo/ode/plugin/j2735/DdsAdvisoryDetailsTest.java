@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisoryDetails.AdvisoryBroadcastType;
@@ -56,11 +56,11 @@ public class DdsAdvisoryDetailsTest {
       DdsAdvisoryDetails ddsad3 = new DdsAdvisoryDetails("asdmID", AdvisoryBroadcastType.map, distType, new J2735DFullTime(),
             new J2735DFullTime(), advisoryMessage);
 
-      assertEquals("Expected identical hashcodes", ddsad1.hashCode(), ddsad2.hashCode());
-      assertNotEquals("Expected different hashcodes", ddsad2.hashCode(), ddsad3.hashCode());
+      assertEquals(ddsad1.hashCode(), ddsad2.hashCode(), "Expected identical hashcodes");
+      assertNotEquals(ddsad2.hashCode(), ddsad3.hashCode(), "Expected different hashcodes");
       
-      assertTrue("Expected objects to be equal", ddsad1.equals(ddsad2));
-      assertFalse("Expected objects to not be equal", ddsad2.equals(ddsad3));
+      assertTrue(ddsad1.equals(ddsad2), "Expected objects to be equal");
+      assertFalse(ddsad2.equals(ddsad3), "Expected objects to not be equal");
    }
 
 }

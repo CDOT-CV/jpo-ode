@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.util;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
