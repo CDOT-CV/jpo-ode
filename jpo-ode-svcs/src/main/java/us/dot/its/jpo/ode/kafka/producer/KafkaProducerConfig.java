@@ -25,15 +25,12 @@ import us.dot.its.jpo.ode.model.OdeObject;
  * necessary producer factories and Kafka templates for producing messages to
  * Kafka topics.
  *
- * </p>
- * It provides configuration for two types of Kafka producer factories and
- * templates:
- * one for producing regular String messages and another for producing
+ * <p>It provides configuration for two types of Kafka producer factories and
+ * templates: one for producing regular String messages and another for producing
  * `OdeObject` messages
  * serialized as XML.
  *
- * </p>
- * This configuration is crucial for integrating with Kafka by providing
+ * <p>This configuration is crucial for integrating with Kafka by providing
  * necessary producer settings and managing producer instances.
  */
 @EnableKafka

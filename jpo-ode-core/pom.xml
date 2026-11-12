@@ -7,9 +7,10 @@
   <parent>
     <groupId>usdot.jpo.ode</groupId>
     <artifactId>jpo-ode</artifactId>
-    <version>7.0.0-alpha1</version>
+    <version>7.0.0-alpha2-SNAPSHOT</version>
   </parent>
 
+  <groupId>${publish.groupId}</groupId>
   <artifactId>jpo-ode-core</artifactId>
   <name>jpo-ode-core</name>
   <description>JPO ODE Core Components</description>
@@ -23,14 +24,14 @@
 
   <dependencies>
     <dependency>
-      <groupId>usdot.jpo.ode</groupId>
+      <groupId>${publish.groupId}</groupId>
       <artifactId>jpo-ode-common</artifactId>
-      <version>7.0.0-alpha1</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>usdot.jpo.ode</groupId>
+      <groupId>${publish.groupId}</groupId>
       <artifactId>jpo-ode-plugins</artifactId>
-      <version>7.0.0-alpha1</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>tools.jackson.core</groupId>
@@ -41,9 +42,17 @@
       <artifactId>slf4j-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>usdot.jpo.asn</groupId>
+      <groupId>${asn.pojos.group.id}</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
-      <version>2.0.0-beta2</version>
+      <version>${asn.pojos.version}</version>
+      <exclusions>
+        <!-- The pojo library declares slf4j-simple at compile scope.  Exclude it so the
+             published poms don't add a second SLF4J provider next to the consumer's own -->
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 

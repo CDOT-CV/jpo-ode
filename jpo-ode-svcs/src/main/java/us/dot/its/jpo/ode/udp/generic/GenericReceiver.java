@@ -17,9 +17,8 @@ import us.dot.its.jpo.ode.uper.UperUtil;
  * determined message type. It extends AbstractUdpReceiverPublisher to take advantage of the
  * runnable interface for running the receiver service in a separate thread.
  *
- * </p>
- * The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType} message
- * types encoded in UDP packets and routes them to the appropriate Kafka topic.
+ * <p>The class is designed to handle all {@link us.dot.its.jpo.ode.uper.SupportedMessageType}
+ * message types encoded in UDP packets and routes them to the appropriate Kafka topic.
  */
 @Slf4j
 public class GenericReceiver extends AbstractUdpReceiverPublisher {

@@ -45,7 +45,7 @@ The current version and release history of the JPO-ODE: [ODE Release Notes](<doc
 1. [Kubernetes](#11-kubernetes)
 1. [Sonar Cloud](#12-sonar-token-configuration) ([Documentation](https://sonarcloud.io/documentation/user-guide/user-token/))
 1. [SNMP](#13-snmp)
-1. [GitHub Artifact Usage](#14-gitHub-artifact-usage)
+1. [Maven Central](#14-maven-central)
 
 <!--
 #########################################
@@ -216,7 +216,11 @@ The ODE software system consists of the following modules hosted in separate Git
 | [asn1_codec](https://github.com/usdot-jpo-ode/asn1_codec)               | public     | ASN.1 Encoder/Decoder module                                                                           |
 | [jpo-security-svcs](https://github.com/usdot-jpo-ode/jpo-security-svcs) | public     | Provides cryptographic services.                                                                       |
 | [jpo-sdw-depositor](https://github.com/usdot-jpo-ode/jpo-sdw-depositor) | public     | SDW depositor service. Optional, can be enabled by using the `COMPOSE_PROFILES` environmental variable |
-| [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos)         | public     | ASN.1 POJOs for J2735 messages.                                                                        |
+
+The ASN.1 POJOs for J2735 messages from [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos)
+are not a submodule. The build downloads them as a Maven dependency from Maven Central, or from the
+Central Portal snapshot repository for a snapshot version. The version is set by
+`asn.pojos.version` in the root `pom.xml`.
 
 You may download the stable, default branch for ALL of these dependencies by using the following recursive git clone command:
 
@@ -803,79 +807,216 @@ This can be changed by setting the value of the DEFAULT_SNMP_PROTOCOL environmen
 
 Additionally, the ODE supports the execution of PDM operations on RSUs. PDM operations are not defined in NTCIP1218, but are defined DSRC 4.1.
 
-<a name="githhub-artifact-usage"></a>
+<a name="maven-central"></a>
 
-## 14. GitHub Artifact Usage
+## 14. Maven Central
 
-To use this library in another application, add the GitHub package URLs to the `repositories` section in `pom.xml` of the consumer application or in your local `~/.m2/settings.xml` file. Here is an example implementation of using the GitHub artifact in a consumer application:
+### Use as a Maven Dependency
 
-```xml
-<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
-                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+The `jpo-ode-common`, `jpo-ode-plugins`, `jpo-ode-core` and `jpo-ode-svcs` libraries are deployed
+to Maven Central. Each organization that maintains this repository publishes under its own
+groupId. The badges show the latest version each publisher has released and the latest snapshot;
+a badge shows "not found" until that publisher has published one.
 
-  <activeProfiles>
-    <activeProfile>github</activeProfile>
-  </activeProfiles>
+| Publisher                                                       | groupId                   | Release | Snapshot |
+|-----------------------------------------------------------------|---------------------------|---------|----------|
+| [USDOT JPO ODE](https://github.com/usdot-jpo-ode/jpo-ode)       | `io.github.usdot-jpo-ode` | [![Maven Central](https://img.shields.io/maven-central/v/io.github.usdot-jpo-ode/jpo-ode-core?label=release)](https://central.sonatype.com/artifact/io.github.usdot-jpo-ode/jpo-ode-core) | ![Snapshot](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fio%2Fgithub%2Fusdot-jpo-ode%2Fjpo-ode-core%2Fmaven-metadata.xml&label=snapshot) |
+| [CDOT](https://github.com/CDOT-CV/jpo-ode)                      | `io.github.cdot-cv`       | [![Maven Central](https://img.shields.io/maven-central/v/io.github.cdot-cv/jpo-ode-core?label=release)](https://central.sonatype.com/artifact/io.github.cdot-cv/jpo-ode-core) | ![Snapshot](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fio%2Fgithub%2Fcdot-cv%2Fjpo-ode-core%2Fmaven-metadata.xml&label=snapshot) |
+| [Neaera Consulting](https://github.com/neaeraconsulting/jpo-ode) | `com.neaeraconsulting`    | [![Maven Central](https://img.shields.io/maven-central/v/com.neaeraconsulting/jpo-ode-core?label=release)](https://central.sonatype.com/artifact/com.neaeraconsulting/jpo-ode-core) | ![Snapshot](https://img.shields.io/maven-metadata/v?metadataUrl=https%3A%2F%2Fcentral.sonatype.com%2Frepository%2Fmaven-snapshots%2Fcom%2Fneaeraconsulting%2Fjpo-ode-core%2Fmaven-metadata.xml&label=snapshot) |
 
-  <profiles>
-    <profile>
-      <id>github</id>
-      <repositories>
-        <repository>
-          <id>central</id>
-          <url>https://repo1.maven.org/maven2</url>
-        </repository>
-        <repository>
-          <id>github</id>
-          <url>https://maven.pkg.github.com/usdot-jpo-ode/jpo-ode</url>
-        </repository>
-      </repositories>
-    </profile>
-  </profiles>
-
-  <servers>
-    <server>
-      <id>github</id>
-      <username>${env.PACKAGE_READ_USERNAME}</username>
-      <password>${env.PACKAGE_READ_TOKEN}</password>
-    </server>
-  </servers>
-
-</settings>
-```
-
-And add the following line to the `dependencies` element in `build.gradle`
+The examples below use `io.github.usdot-jpo-ode`; substitute the groupId of the publisher you want,
+and replace `VERSION` with a version from its badge. Add the libraries you need to the
+`dependencies` element in the consumer's `pom.xml`:
 
 ```xml
 <dependencies>
   <dependency>
-    <groupId>usdot.jpo.ode</groupId>
+    <groupId>io.github.usdot-jpo-ode</groupId>
     <artifactId>jpo-ode-core</artifactId>
-    <version>1.0.0</version>
+    <version>VERSION</version>
   </dependency>
   <dependency>
-    <groupId>usdot.jpo.ode</groupId>
+    <groupId>io.github.usdot-jpo-ode</groupId>
     <artifactId>jpo-ode-plugins</artifactId>
-    <version>1.0.0</version>
+    <version>VERSION</version>
   </dependency>
   <dependency>
-    <groupId>usdot.jpo.ode</groupId>
+    <groupId>io.github.usdot-jpo-ode</groupId>
     <artifactId>jpo-ode-common</artifactId>
-    <version>1.0.0</version>
+    <version>VERSION</version>
   </dependency>
   <dependency>
-    <groupId>usdot.jpo.ode</groupId>
+    <groupId>io.github.usdot-jpo-ode</groupId>
     <artifactId>jpo-ode-svcs</artifactId>
-    <version>1.0.0</version>
+    <version>VERSION</version>
   </dependency>
 </dependencies>
 ```
 
-Finally, set the environment variables:
+No further configuration is needed to consume the releases from Maven Central.
 
-* PACKAGE_READ_USERNAME - User name with read access to the repositories containing the packages.
-* PACKAGE_READ_TOKEN - Personal access token with `read:packages` scope.
+To consume snapshots, also add the Central Portal snapshot repository to `pom.xml`, and use the
+`-SNAPSHOT` version shown in the Snapshot badge:
+
+```xml
+<repositories>
+  <repository>
+    <name>Central Portal Snapshots</name>
+    <id>central-portal-snapshots</id>
+    <url>https://central.sonatype.com/repository/maven-snapshots/</url>
+    <releases>
+      <enabled>false</enabled>
+    </releases>
+    <snapshots>
+      <enabled>true</enabled>
+    </snapshots>
+  </repository>
+</repositories>
+```
+
+Refer to the [Sonatype documentation for Central Portal snapshots](https://central.sonatype.org/publish/publish-portal-snapshots/#consuming-snapshot-releases-for-your-project).
+
+When built from source, the libraries use the groupId `io.github.usdot-jpo-ode` regardless of
+which fork the source comes from. The published poms are flattened: they list their dependencies
+with resolved versions and don't refer to the `jpo-ode` parent pom, which is not published.
+
+#### Jackson versions in Spring Boot applications
+
+The libraries are built with newer Jackson versions than the ones Spring Boot 4.0 manages. The
+ASN.1 POJO library needs Jackson 3.1, and Jackson 3.1 needs `jackson-annotations` 2.21. A Spring
+Boot application's dependency management takes precedence over the versions in the published
+poms, so the application has to raise Spring Boot's Jackson versions to match. Use the
+`jackson-bom.version` and `jackson-2-bom.version` values from this repository's root `pom.xml`
+for the release you consume.
+
+If the application's parent is `spring-boot-starter-parent`, override the properties:
+
+```xml
+<properties>
+  <jackson-bom.version>3.1.8</jackson-bom.version>
+  <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+</properties>
+```
+
+If the application imports `spring-boot-dependencies` instead, import the Jackson BOM before it:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>tools.jackson</groupId>
+      <artifactId>jackson-bom</artifactId>
+      <version>3.1.8</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+    <!-- spring-boot-dependencies import follows -->
+  </dependencies>
+</dependencyManagement>
+```
+
+### Publishing to Maven Central
+
+The `Publish JARs to the Maven Central Repository` workflows publish the four libraries when a
+GitHub release is published (releases) or pre-released (snapshots). The checked-in build files are
+the same in every fork; each fork configures publishing through its GitHub settings.
+
+| Workflow                     | Trigger                    | Environment              | Version                  | Publishes to              |
+|------------------------------|----------------------------|--------------------------|--------------------------|---------------------------|
+| `maven-publish-release.yml`  | A release is published     | `maven-central-release`  | Must not end `-SNAPSHOT` | Maven Central (permanent) |
+| `maven-publish-snapshot.yml` | A pre-release is published | `maven-central-snapshot` | Must end `-SNAPSHOT`     | Central Portal snapshots  |
+
+Both workflows call the reusable `maven-publish.yml` workflow, which has the shared checks and
+publish steps.
+
+The release event runs the workflow from the tagged commit, so tag a commit that contains the
+current workflow files. Set the version in the root `pom.xml` and in the `<parent>` of each module's
+`pom.xml` before tagging: remove `-SNAPSHOT` for a release and keep it for a snapshot. A release
+can't depend on snapshots, so for a release, `asn.pojos.version` in the root `pom.xml` must also be
+a released version of jpo-asn-pojos; the release workflow fails otherwise.
+
+Before publishing, both workflows check that all the modules have the same version, and that the
+tag matches it. The tag must be the version, optionally after a prefix that doesn't end in a digit
+or `.`, such as `jpo-ode-` or `v`. For version `7.0.0`, the tags `7.0.0`, `v7.0.0` and
+`jpo-ode-7.0.0` all match; `jpo-ode-17.0.0` does not.
+
+A pre-release tag must end with `-SNAPSHOT` or a numbered `-SNAPSHOT<n>`. Without the suffix, the
+pre-release would use up the tag the release needs, such as `jpo-ode-7.1.0`, since a tag can't be
+reused. Because a snapshot version can be republished but a tag can't, number successive snapshot
+tags: `jpo-ode-7.1.0-SNAPSHOT1`, `jpo-ode-7.1.0-SNAPSHOT2`, and so on. Each one publishes version
+`7.1.0-SNAPSHOT`, replacing the previous snapshot.
+
+Git tags and Maven versions are separate. The tag's prefix and snapshot number exist only in Git
+and GitHub, and never appear in the published Maven version:
+
+| Git tag                   | Published Maven version                    | Version consumers depend on |
+|---------------------------|--------------------------------------------|-----------------------------|
+| `jpo-ode-7.1.0-SNAPSHOT1` | `7.1.0-SNAPSHOT`                           | `7.1.0-SNAPSHOT`            |
+| `jpo-ode-7.1.0-SNAPSHOT2` | `7.1.0-SNAPSHOT` (replaces the one above)  | `7.1.0-SNAPSHOT`            |
+| `jpo-ode-7.1.0`           | `7.1.0`                                    | `7.1.0`                     |
+
+Consumers can't ask for `SNAPSHOT1` or `SNAPSHOT2`: a dependency on `7.1.0-SNAPSHOT` gets whichever
+snapshot was published most recently. To find which commit that is, look at the latest pre-release
+on GitHub. The tag prefix doesn't set the groupId either; the groupId comes from the publishing
+repository (see [Variables and Secrets](#variables-and-secrets)).
+
+Don't promote a pre-release to a release. Its tag points at a commit whose version still ends in
+`-SNAPSHOT`, which the release workflow rejects. To release, update the version number to remove
+`-SNAPSHOT`, tag that commit, and publish a new release from the new tag.
+
+GitHub releases and their tags also trigger the other release workflows, such as the DockerHub
+image build, which only runs in the usdot-jpo-ode repository.
+
+#### Variables and Secrets
+
+Variables and secrets are set under **Settings > Secrets and variables > Actions**, except the
+publishing credentials, which go in the deployment environments (see below):
+
+| Name                       | Kind     | Where             | Purpose                                                                                       |
+|----------------------------|----------|-------------------|-----------------------------------------------------------------------------------------------|
+| `MAVEN_CENTRAL_PUBLISH`    | Variable | Repository        | Set to `true` to enable publishing. The workflows are skipped in forks that don't set it.     |
+| `MAVEN_GROUP_ID`           | Variable | Repository        | Optional. Overrides the groupId, which otherwise defaults to `io.github.<owner>` (lowercase). |
+| `CENTRAL_TOKEN_USERNAME`   | Secret   | Both environments | Central Portal user token username.                                                           |
+| `CENTRAL_TOKEN_PASSWORD`   | Secret   | Both environments | Central Portal user token password.                                                           |
+| `GPG_SIGNING_KEY`          | Secret   | Both environments | ASCII-armored private key used to sign the artifacts.                                         |
+| `GPG_SIGNING_KEY_PASSWORD` | Secret   | Both environments | Passphrase for the signing key.                                                               |
+
+`MAVEN_CENTRAL_PUBLISH` must be a repository (or organization) variable: it is checked in the
+job's `if:` condition, which GitHub evaluates before the environment is loaded. `MAVEN_GROUP_ID`
+is the same for both environments, so it is kept at the repository level as well.
+
+The four secrets must be environment secrets. The publish job doesn't receive repository or
+organization secrets, so it can only read the secrets after any required reviewers approve it.
+
+The groupId's namespace must be verified for the publishing account in the
+[Central Portal](https://central.sonatype.com/), and snapshots must be enabled for the namespace
+there before the snapshot workflow can publish. The public key of the signing key must be on a
+public keyserver, such as `keyserver.ubuntu.com`, so that Maven Central can verify the signatures.
+
+#### Release Approvals
+
+Each workflow runs in a GitHub deployment environment, configured per repository under
+**Settings > Environments**.
+
+* **`maven-central-release`**: add **Required reviewers**. The release job waits at "Waiting for
+  review" until a reviewer approves it, and has no access to the publishing secrets until then.
+  Rejecting it publishes nothing. Turn on **Prevent self-review** to require someone other than
+  the person who published the GitHub release to approve it.
+* **`maven-central-snapshot`**: reviewers can be added if a fork wants them, or the reviewer list
+  can be left empty to not require reviewers.
+
+Approval is the only manual step: the `release` profile sets `autoPublish` in the
+`central-publishing-maven-plugin`, so once approved, the artifacts are published to Maven Central
+without a separate **Publish** step in the Central Portal.
+
+**Releases on Maven Central are permanent and can't be changed or deleted; snapshots are
+overwritten by later snapshots and cleaned up by Sonatype after 90 days.**
+
+The plugin also sets `waitUntil` to `published` and `waitMaxTime` to one hour, so the workflow
+fails if publishing fails or takes longer than that. All four libraries are uploaded together as a
+single deployment, so a failure in any of them publishes none of them.
+
+The `maven-verify` job in the `ci` workflow runs the same build as the publish workflows, without
+signing or uploading, so that problems such as javadoc errors show up on pull requests.
 
 [Back to top](#table-of-contents)

@@ -1,32 +1,13 @@
 FROM maven:3.8-eclipse-temurin-21-alpine AS builder
-LABEL org.opencontainers.image.authors="583114@bah.com"
 
 WORKDIR /home
 
-COPY ./jpo-asn-pojos/pom.xml ./jpo-asn-pojos/
+# Copy the whole build context, so every build input (such as lombok.config) is included.
+# .dockerignore leaves out build output, secrets and files the build doesn't use
+COPY . .
 
-COPY ./jpo-asn-pojos/jpo-asn-runtime/pom.xml ./jpo-asn-pojos/jpo-asn-runtime/lombok.config ./jpo-asn-pojos/jpo-asn-runtime/
-COPY ./jpo-asn-pojos/jpo-asn-runtime/src ./jpo-asn-pojos/jpo-asn-runtime/src
-
-COPY ./jpo-asn-pojos/jpo-asn-j2735-2024/pom.xml ./jpo-asn-pojos/jpo-asn-j2735-2024/lombok.config ./jpo-asn-pojos/jpo-asn-j2735-2024/
-COPY ./jpo-asn-pojos/jpo-asn-j2735-2024/src ./jpo-asn-pojos/jpo-asn-j2735-2024/src
-
-# First build and install the jpo-asn-pojos modules
-RUN cd jpo-asn-pojos && mvn clean install -DskipTests
-
-# lombok.config sets how lombok generates code, so it must be copied with the sources
-COPY ./pom.xml ./lombok.config ./
-COPY ./jpo-ode-common/pom.xml ./jpo-ode-common/
-COPY ./jpo-ode-common/src ./jpo-ode-common/src
-COPY ./jpo-ode-plugins/pom.xml ./jpo-ode-plugins/
-COPY ./jpo-ode-plugins/src ./jpo-ode-plugins/src
-COPY ./jpo-ode-core/pom.xml ./jpo-ode-core/
-COPY ./jpo-ode-core/src ./jpo-ode-core/src/
-COPY ./jpo-ode-svcs/pom.xml ./jpo-ode-svcs/
-COPY ./jpo-ode-svcs/src ./jpo-ode-svcs/src
-
-# Then build the rest of the project
-RUN mvn -pl jpo-ode-common,jpo-ode-plugins,jpo-ode-core,jpo-ode-svcs -am package -DskipTests
+# Build all the modules (the jpo-asn-pojos library is pulled from Maven Central)
+RUN mvn package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 

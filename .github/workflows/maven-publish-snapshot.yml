@@ -1,0 +1,19 @@
+# Publish a snapshot to Maven Central on prereleases
+# Prerequisite: the version number must end with '-SNAPSHOT' to publish a snapshot
+name: Publish JARs to the Maven Central Repository (Snapshots)
+on:
+  release:
+    types:
+      - prereleased
+
+jobs:
+  publish:
+    # Only publish from forks that opt in with the MAVEN_CENTRAL_PUBLISH repository variable
+    if: ${{ vars.MAVEN_CENTRAL_PUBLISH == 'true' }}
+    # The steps are in maven-publish.yml, which runs in the maven-central-snapshot environment
+    uses: ./.github/workflows/maven-publish.yml
+    with:
+      snapshot: true
+    # The called workflow only sees secrets the caller passes, including the secrets of the
+    # environment it runs in
+    secrets: inherit

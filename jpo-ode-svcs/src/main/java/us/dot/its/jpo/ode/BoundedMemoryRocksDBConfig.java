@@ -20,7 +20,6 @@ import org.rocksdb.RocksDB;
  * "https://docs.confluent.io/platform/current/streams/developer-guide/config-streams.html#rocksdb-config-setter">Confluent:
  * RocksDB Config Setter</a></li>
  * </ul>
- * </p>
  * <p>
  * Configured using environment variables:
  * <dl>
@@ -38,7 +37,6 @@ import org.rocksdb.RocksDB;
  * <dt>ROCKSDB_MEMTABLE_SIZE</dt>
  * <dd>{@link org.rocksdb.Options#writeBufferSize()}, Default 64MB</dd>
  * </dl>
- * </p>
  */
 @Slf4j
 public class BoundedMemoryRocksDBConfig implements RocksDBConfigSetter {
