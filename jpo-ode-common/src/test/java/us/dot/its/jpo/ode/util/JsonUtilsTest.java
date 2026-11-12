@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import tools.jackson.databind.node.ObjectNode;

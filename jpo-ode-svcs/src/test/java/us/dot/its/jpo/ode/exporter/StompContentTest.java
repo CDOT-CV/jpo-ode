@@ -15,7 +15,7 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.exporter;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.Test;
 
