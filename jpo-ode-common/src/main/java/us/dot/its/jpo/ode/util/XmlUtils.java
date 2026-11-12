@@ -21,6 +21,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import java.io.StringReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import org.codehaus.stax2.XMLStreamReader2;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -54,6 +59,10 @@ public class XmlUtils {
     staticXmlMapper = builder.build();
   }
 
+  // The Stax factory under the XML mapper, which reads XML as a stream
+  private static final XMLInputFactory xmlInputFactory =
+      staticXmlMapper.getFactory().getXMLInputFactory();
+
   /**
    * Use static methods, don't instantiate
    */
@@ -84,35 +93,48 @@ public class XmlUtils {
   }
 
   /**
-   * Find a component of an XML string by specifying the tag name.
+   * Find an element of an XML string by its name.  The XML is read as a stream, so the element is
+   * found wherever it is, and its start and end tags may hold whitespace, attributes or a namespace
+   * prefix.  The text of the element is returned exactly as it is in the XML, keeping the order and
+   * structure of its content.  A namespace prefix declared on an ancestor of the element is not
+   * declared in the text returned.
    *
    * @param xml The XML String to be searched
-   * @param tagName The tag name to be identified
-   * @return The XML String only consisting of the tag and its children
+   * @param tagName The local name of the element, without a prefix
+   * @return The text of the first element with the name, from its start tag to its end tag, or null
+   *         if there is none
+   * @throws IllegalArgumentException if the XML is not well formed before the end of the element
    */
   public static String findXmlContentString(String xml, String tagName) {
-    // Construct the start and end tag strings
-    String startTag = "<" + tagName + ">";
-    String endTag = "</" + tagName + ">";
-
-    // Find the start index of the start tag
-    int startIndex = xml.indexOf(startTag);
-    if (startIndex == -1) {
-      // Tag not found
+    XMLStreamReader2 reader = null;
+    try {
+      reader = (XMLStreamReader2) xmlInputFactory.createXMLStreamReader(new StringReader(xml));
+      while (reader.hasNext()) {
+        if (reader.next() == XMLStreamConstants.START_ELEMENT
+            && tagName.equals(reader.getLocalName())) {
+          final int start = (int) reader.getLocationInfo().getStartingCharOffset();
+          // skip element: goes to the matching end element
+          reader.skipElement();
+          final int end = (int) reader.getLocationInfo().getEndingCharOffset();
+          return xml.substring(start, end);
+        }
+      }
       return null;
+    } catch (XMLStreamException e) {
+      throw new IllegalArgumentException("Error reading XML to find element <" + tagName + ">", e);
+    } finally {
+      closeQuietly(reader);
     }
+  }
 
-    // Find the end index of the end tag, after the start tag
-    int endIndex = xml.indexOf(endTag, startIndex);
-    if (endIndex == -1) {
-      // End tag not found
-      return null;
+  private static void closeQuietly(XMLStreamReader2 reader) {
+    if (reader != null) {
+      try {
+        reader.closeCompletely();
+      } catch (XMLStreamException e) {
+        // Nothing to release for a string
+      }
     }
-
-    // Add the length of the end tag to get the complete end index
-    endIndex += endTag.length();
-
-    return xml.substring(startIndex, endIndex);
   }
 
   /**
