@@ -39,13 +39,7 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
-    <!-- TODO open-ode
-    <dependency>
-      <groupId>gov.usdot</groupId>
-      <artifactId>fedgov-cv-security-2016</artifactId>
-      <version>1.0.0-SNAPSHOT</version>
-    </dependency>
-    -->
+
   </dependencies>
 
 
