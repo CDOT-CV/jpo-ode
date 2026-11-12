@@ -985,6 +985,9 @@ publishing credentials, which go in the deployment environments (see below):
 job's `if:` condition, which GitHub evaluates before the environment is loaded. `MAVEN_GROUP_ID`
 is the same for both environments, so it is kept at the repository level as well.
 
+The four secrets must be environment secrets. The publish job doesn't receive repository or
+organization secrets, so it can only read the secrets after any required reviewers approve it.
+
 The groupId's namespace must be verified for the publishing account in the
 [Central Portal](https://central.sonatype.com/), and snapshots must be enabled for the namespace
 there before the snapshot workflow can publish. The public key of the signing key must be on a

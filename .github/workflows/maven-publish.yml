@@ -16,6 +16,12 @@ jobs:
     # environment from releases so they can publish without approval or with a different
     # approval list.  The environment's secrets are available to this job directly
     environment: ${{ inputs.snapshot && 'maven-central-snapshot' || 'maven-central-release' }}
+    # Snapshot runs all publish the same -SNAPSHOT version, so run them one at a time in the
+    # order they start, and their uploads can't mix.  GitHub keeps only the newest waiting run in
+    # a group, which is fine for snapshots.  Each release gets its own group so none is cancelled
+    concurrency:
+      group: maven-central-${{ inputs.snapshot && 'snapshot' || github.event.release.tag_name }}
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     env:
       # The published modules. The root jpo-ode pom is their parent and is not published
