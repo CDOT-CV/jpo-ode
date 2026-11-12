@@ -216,7 +216,11 @@ The ODE software system consists of the following modules hosted in separate Git
 | [asn1_codec](https://github.com/usdot-jpo-ode/asn1_codec)               | public     | ASN.1 Encoder/Decoder module                                                                           |
 | [jpo-security-svcs](https://github.com/usdot-jpo-ode/jpo-security-svcs) | public     | Provides cryptographic services.                                                                       |
 | [jpo-sdw-depositor](https://github.com/usdot-jpo-ode/jpo-sdw-depositor) | public     | SDW depositor service. Optional, can be enabled by using the `COMPOSE_PROFILES` environmental variable |
-| [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos)         | public     | ASN.1 POJOs for J2735 messages.                                                                        |
+
+The ASN.1 POJOs for J2735 messages from [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos)
+are not a submodule. The build downloads them as a Maven dependency from Maven Central, or from the
+Central Portal snapshot repository for a snapshot version. The version is set by
+`asn.pojos.version` in the root `pom.xml`.
 
 You may download the stable, default branch for ALL of these dependencies by using the following recursive git clone command:
 
