@@ -16,8 +16,7 @@
 
  package us.dot.its.jpo.ode.traveler;
 
- import com.fasterxml.jackson.databind.node.ObjectNode;
- import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+ import tools.jackson.dataformat.xml.XmlMapper;
  import java.io.IOException;
  import java.nio.file.Files;
  import java.nio.file.Paths;
@@ -47,6 +46,7 @@
  import org.springframework.test.annotation.DirtiesContext;
  import org.springframework.test.context.ContextConfiguration;
  import org.springframework.test.context.TestPropertySource;
+ import us.dot.its.jpo.ode.config.SerializationConfig;
  import us.dot.its.jpo.ode.kafka.KafkaConsumerConfig;
  import us.dot.its.jpo.ode.kafka.OdeKafkaProperties;
  import us.dot.its.jpo.ode.kafka.TestMetricsConfig;
@@ -65,7 +65,7 @@
  @SpringBootTest(classes = {KafkaProducerConfig.class, KafkaConsumerConfig.class,
      OdeKafkaProperties.class, Asn1CoderTopics.class, JsonTopics.class,
      SecurityServicesProperties.class, KafkaProperties.class, TimIngestTrackerProperties.class,
-     XmlMapper.class, TestMetricsConfig.class, TimDepositController.class}, properties = {"ode.kafka.brokers=localhost:4242"})
+     SerializationConfig.class, TestMetricsConfig.class, TimDepositController.class}, properties = {"ode.kafka.brokers=localhost:4242"})
 @EmbeddedKafka
 @TestPropertySource(properties = {"spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}",
         "ode.kafka.brokers=${spring.embedded.kafka.brokers}"})

@@ -16,9 +16,6 @@
 package us.dot.its.jpo.ode.model;
 
 import java.io.Serializable;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-
 import us.dot.its.jpo.ode.util.JsonUtils;
 import us.dot.its.jpo.ode.util.XmlUtils;
 import us.dot.its.jpo.ode.util.XmlUtils.XmlUtilsException;
@@ -34,8 +31,8 @@ public class OdeObject implements Serializable {
       return JsonUtils.toJson(this, verbose);
    }
 
-   public String toXml() throws XmlUtilsException, JsonProcessingException {
-      return XmlUtils.toXmlStatic(this);
+  public String toXml() throws XmlUtilsException {
+    return XmlUtils.toXmlStatic(this);
    }
 
    @Override

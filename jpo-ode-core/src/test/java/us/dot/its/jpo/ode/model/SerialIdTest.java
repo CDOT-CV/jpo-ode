@@ -24,7 +24,7 @@ import static org.junit.Assert.fail;
 
 import org.junit.jupiter.api.Test;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import tools.jackson.databind.node.ObjectNode;
 
 import us.dot.its.jpo.ode.util.JsonUtils;
 
