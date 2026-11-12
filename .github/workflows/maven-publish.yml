@@ -169,14 +169,15 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_SIGNING_KEY_PASSWORD }}
 
+      # central-publishing-maven-plugin stages the whole signed bundle (jars, flattened poms, .asc
+      # signatures) under the first module's target/central-* directories. The flattened poms are
+      # also kept for a run that fails before anything is staged.
       - name: Upload build artifacts for debugging
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: maven-central-${{ inputs.snapshot && 'snapshot' || 'release' }}-artifacts
           path: |
-            jpo-ode-common/target
-            jpo-ode-plugins/target
-            jpo-ode-core/target
-            jpo-ode-svcs/target
+            jpo-ode-*/target/central-*/
+            jpo-ode-*/.flattened-pom.xml
           retention-days: 7

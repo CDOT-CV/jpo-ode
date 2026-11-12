@@ -3,19 +3,12 @@ LABEL org.opencontainers.image.authors="583114@bah.com"
 
 WORKDIR /home
 
-# lombok.config sets how lombok generates code, so it must be copied with the sources
-COPY ./pom.xml ./lombok.config ./
-COPY ./jpo-ode-common/pom.xml ./jpo-ode-common/
-COPY ./jpo-ode-common/src ./jpo-ode-common/src
-COPY ./jpo-ode-plugins/pom.xml ./jpo-ode-plugins/
-COPY ./jpo-ode-plugins/src ./jpo-ode-plugins/src
-COPY ./jpo-ode-core/pom.xml ./jpo-ode-core/
-COPY ./jpo-ode-core/src ./jpo-ode-core/src/
-COPY ./jpo-ode-svcs/pom.xml ./jpo-ode-svcs/
-COPY ./jpo-ode-svcs/src ./jpo-ode-svcs/src
+# Copy the whole build context, so every build input (such as lombok.config) is included.
+# .dockerignore leaves out build output, secrets and files the build doesn't use
+COPY . .
 
-# Build the project (the jpo-asn-pojos library is pulled from Maven Central)
-RUN mvn -pl jpo-ode-common,jpo-ode-plugins,jpo-ode-core,jpo-ode-svcs -am package -DskipTests
+# Build all the modules (the jpo-asn-pojos library is pulled from Maven Central)
+RUN mvn package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 
