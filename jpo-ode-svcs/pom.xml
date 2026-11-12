@@ -179,6 +179,14 @@
       <groupId>${asn.pojos.group.id}</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
       <version>${asn.pojos.version}</version>
+      <exclusions>
+        <!-- The pojo library declares slf4j-simple at compile scope.  Exclude it so Logback is
+             the only SLF4J provider -->
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>net.javacrumbs.json-unit</groupId>

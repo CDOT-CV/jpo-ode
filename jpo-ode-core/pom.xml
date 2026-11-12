@@ -83,6 +83,14 @@
       <groupId>${asn.pojos.group.id}</groupId>
       <artifactId>jpo-asn-j2735-2024</artifactId>
       <version>${asn.pojos.version}</version>
+      <exclusions>
+        <!-- The pojo library declares slf4j-simple at compile scope.  Exclude it so the
+             published poms don't add a second SLF4J provider next to the consumer's own -->
+        <exclusion>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-simple</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
   </dependencies>
 
