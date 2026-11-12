@@ -78,16 +78,19 @@ jobs:
 
       - name: Verify Release Version
         if: ${{ !inputs.snapshot && endsWith(steps.get_version.outputs.VERSION, '-SNAPSHOT') }}
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
-          echo "::error::Version '${{ steps.get_version.outputs.VERSION }}'" \
-            "must not end with -SNAPSHOT for a release"
+          echo "::error::Version '$VERSION' must not end with -SNAPSHOT for a release"
           exit 1
 
       # Fail the build if the version is not already a SNAPSHOT version
       - name: Verify Snapshot Version
         if: ${{ inputs.snapshot && !endsWith(steps.get_version.outputs.VERSION, '-SNAPSHOT') }}
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
         run: |
-          echo "::error::Version '${{ steps.get_version.outputs.VERSION }}' does not end with -SNAPSHOT"
+          echo "::error::Version '$VERSION' does not end with -SNAPSHOT"
           exit 1
 
       # Verify the release tag is the version, optionally after a prefix such as 'jpo-ode-' or 'v'.
@@ -158,9 +161,10 @@ jobs:
           mvn -P release,package-jar --batch-mode deploy -DskipTests \
             -Dmaven.repository.credentialScope=id \
             --projects "$PUBLISH_MODULES" \
-            -Dpublish.groupId=${{ steps.coords.outputs.group_id }} \
-            -Dpublish.githubRepository=${{ github.repository }}
+            -Dpublish.groupId="$PUBLISH_GROUP_ID" \
+            -Dpublish.githubRepository="$GITHUB_REPOSITORY"
         env:
+          PUBLISH_GROUP_ID: ${{ steps.coords.outputs.group_id }}
           MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_SIGNING_KEY_PASSWORD }}
