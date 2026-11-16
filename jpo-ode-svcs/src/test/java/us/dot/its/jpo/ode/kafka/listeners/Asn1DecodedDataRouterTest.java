@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,7 +68,7 @@ class Asn1DecodedDataRouterTest {
   @Autowired
   private XmlMapper simpleXmlMapper;
 
-  ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
+  ObjectMapper mapper = new ObjectMapper();
 
   @Test
   void testAsn1DecodedDataRouterBSMDataFlow() throws IOException {

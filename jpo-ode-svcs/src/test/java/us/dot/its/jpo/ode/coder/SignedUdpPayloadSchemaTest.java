@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import tools.jackson.dataformat.xml.XmlMapper;
 import com.networknt.schema.JsonSchema;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
@@ -39,6 +39,7 @@ class SignedUdpPayloadSchemaTest {
       .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
       .withZone(ZoneOffset.UTC);
 
+  // Jackson 2 on purpose: json-schema-validator 1.0.x only accepts com.fasterxml JsonNodes.
   private static final ObjectMapper SCHEMA_MAPPER = new ObjectMapper();
 
   @ParameterizedTest

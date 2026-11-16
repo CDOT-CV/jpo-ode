@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,7 +18,7 @@ import org.junit.jupiter.api.Test;
 public class OdeMessageFrameDataTest {
 
   private static final String SAMPLE_SDSM_FILE = "src/test/resources/json/sample-sdsm.json";
-  private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Test proper serialization and deserialization of SDSM data.
