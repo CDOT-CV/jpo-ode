@@ -92,6 +92,12 @@ class SrmReceiverTest {
                 BASE + "SrmReceiverTest_ValidSRM_WithSignature_expected.json");
     }
 
+    @Test
+    void testWithAdditionalSignatureFixture() throws Exception {
+        runTest(BASE + "SrmReceiverTest_ValidData_WithSignature.txt",
+                BASE + "SrmReceiverTest_ExpectedOutput_WithSignature.json");
+    }
+
     @BeforeAll
     void startReceiver() {
         prevClock = DateTimeUtils
@@ -115,7 +121,7 @@ class SrmReceiverTest {
     }
 
     private void runTest(String inputFile, String expectedFile) throws Exception {
-        String fileContent = Files.readString(Paths.get(inputFile));
+        String fileContent = Files.readString(Paths.get(inputFile)).trim();
         String expected = Files.readString(Paths.get(expectedFile));
 
     TestUDPClient udpClient = new TestUDPClient(udpReceiverProperties.getSrm().getReceiverPort());
