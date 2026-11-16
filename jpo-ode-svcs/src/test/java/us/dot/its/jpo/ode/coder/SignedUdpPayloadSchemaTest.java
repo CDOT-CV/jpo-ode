@@ -5,24 +5,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import tools.jackson.dataformat.xml.XmlMapper;
-import com.networknt.schema.JsonSchema;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
-import com.networknt.schema.ValidationMessage;
+import com.networknt.schema.Schema;
+import com.networknt.schema.SchemaRegistry;
+import com.networknt.schema.SpecificationVersion;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Stream;
 import org.json.JSONObject;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.xml.XmlMapper;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.SignedDataMetadata;
 import us.dot.its.jpo.ode.util.JsonUtils;
@@ -39,8 +41,15 @@ class SignedUdpPayloadSchemaTest {
       .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
       .withZone(ZoneOffset.UTC);
 
-  // Jackson 2 on purpose: json-schema-validator 1.0.x only accepts com.fasterxml JsonNodes.
   private static final ObjectMapper SCHEMA_MAPPER = new ObjectMapper();
+
+  // The output schemas $ref the jpo-asn-pojos schemas by their GitHub URL. Load them from the
+  // submodule instead, so the test runs offline against the pinned pojo version.
+  private static final String POJO_SCHEMA_PREFIX = "https://raw.githubusercontent.com/"
+      + "usdot-jpo-ode/jpo-asn-pojos/refs/heads/master/"
+      + "jpo-asn-jsonschema-generator/src/main/resources/schemas/";
+  private static final Path LOCAL_POJO_SCHEMAS =
+      Path.of("../jpo-asn-pojos/jpo-asn-jsonschema-generator/src/main/resources/schemas");
 
   @ParameterizedTest
   @MethodSource("signedUdpPayloads")
@@ -111,15 +120,34 @@ class SignedUdpPayloadSchemaTest {
   }
 
   private static void assertSchemaValid(String schemaResource, String json) throws IOException {
-    JsonNode schemaNode = SCHEMA_MAPPER.readTree(readResource(schemaResource));
-    String dialect = schemaNode.path("$schema").asText("");
-    SpecVersion.VersionFlag version = dialect.contains("2020-12")
-        ? SpecVersion.VersionFlag.V202012
-        : SpecVersion.VersionFlag.V7;
-    JsonSchema schema = JsonSchemaFactory.getInstance(version).getSchema(schemaNode);
-    JsonNode instance = SCHEMA_MAPPER.readTree(json);
-    Set<ValidationMessage> errors = schema.validate(instance);
+    ObjectNode schemaNode = (ObjectNode) SCHEMA_MAPPER.readTree(readResource(schemaResource));
+    // The output schemas omit the '#' from the draft-07 ID, which the validator does not
+    // recognize, so choose the dialect here and stop the validator from reading $schema.
+    String declared = schemaNode.path("$schema").asString("");
+    schemaNode.remove("$schema");
+    SpecificationVersion version = declared.contains("2020-12")
+        ? SpecificationVersion.DRAFT_2020_12
+        : SpecificationVersion.DRAFT_7;
+    SchemaRegistry registry = SchemaRegistry.withDefaultDialect(version,
+        builder -> builder.schemas(SignedUdpPayloadSchemaTest::loadLocalPojoSchema));
+    Schema schema = registry.getSchema(schemaNode);
+    List<com.networknt.schema.Error> errors = schema.validate(SCHEMA_MAPPER.readTree(json));
     assertTrue(errors.isEmpty(), errors::toString);
+  }
+
+  /** Returns the submodule copy of a jpo-asn-pojos schema, or null for any other IRI. */
+  private static String loadLocalPojoSchema(String iri) {
+    if (!iri.startsWith(POJO_SCHEMA_PREFIX)) {
+      return null;
+    }
+    Path file = LOCAL_POJO_SCHEMAS.resolve(iri.substring(POJO_SCHEMA_PREFIX.length()));
+    try {
+      return Files.readString(file, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Cannot read " + file.toAbsolutePath().normalize()
+          + "; is the jpo-asn-pojos submodule checked out? "
+          + "(git submodule update --init jpo-asn-pojos)", e);
+    }
   }
 
   private static String readResource(String resource) throws IOException {
