@@ -16,6 +16,18 @@ import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 @Slf4j
 public class UperUtil {
 
+  /**
+   * COER prefix of an IEEE 1609.2 signed-data header: protocol version 3 ({@code 03}), content
+   * choice {@code signedData} ({@code 81}), and hash algorithm {@code sha256} ({@code 00}).
+   *
+   * <p>Derived from <a href="https://github.com/usdot-jpo-ode/asn1_codec/blob/master/asn1c_combined/scms-asn-files/Ieee1609Dot2.asn">Ieee1609Dot2.asn</a>.
+   * The note on {@code EncryptedData} in that file gives the unsigned encoding {@code 03 80}:
+   * {@code 03} is {@code protocolVersion} and {@code 80} is the {@code unsecuredData} choice.
+   * {@code signedData} is the next {@code Ieee1609Dot2Content} alternative, so its choice octet is
+   * {@code 81}. {@code SignedData.hashId} is then {@code 00} for {@code sha256}.</p>
+   */
+  public static final String SIGNED_DOT2_HEADER_PREFIX = "038100";
+
   private UperUtil() {
     throw new UnsupportedOperationException();
   }
@@ -59,15 +71,12 @@ public class UperUtil {
         continue;
       }
 
-      String headers = hexString.substring(0, payloadStartIndex);
-      String payload = hexString.substring(payloadStartIndex);
-
       // Look for the index of the start flag of a signed 1609.2 header, if one exists
-      int signedDot2StartIndex = headers.indexOf("038100");
+      int signedDot2StartIndex = findSignedDot2HeaderLocation(hexString, payloadStartIndex);
       if (signedDot2StartIndex == -1) {
-        hexPacketParsed = payload;
+        hexPacketParsed = hexString.substring(payloadStartIndex);
       } else {
-        hexPacketParsed = headers.substring(signedDot2StartIndex) + payload;
+        hexPacketParsed = hexString.substring(signedDot2StartIndex);
       }
       break;
     }
@@ -85,15 +94,14 @@ public class UperUtil {
    */
   public static String stripDot3Header(String hexString, String payloadStartFlag) {
     int payloadStartIndex = findValidStartFlagLocation(hexString, payloadStartFlag);
-    String headers = hexString.substring(0, payloadStartIndex);
     String payload = hexString.substring(payloadStartIndex);
     log.debug("Base payload: {}", payload);
     // Look for the index of the start flag of a signed 1609.2 header
-    int signedDot2StartIndex = headers.indexOf("038100");
+    int signedDot2StartIndex = findSignedDot2HeaderLocation(hexString, payloadStartIndex);
     if (signedDot2StartIndex == -1) {
       return payload;
     } else {
-      return headers.substring(signedDot2StartIndex) + payload;
+      return hexString.substring(signedDot2StartIndex);
     }
   }
 
@@ -190,6 +198,30 @@ public class UperUtil {
       index = hexString.indexOf(startFlag, index + 1);
     }
     return index;
+  }
+
+  /**
+   * Searches for the start of a signed IEEE 1609.2 header ({@link #SIGNED_DOT2_HEADER_PREFIX})
+   * within the header region that precedes the payload. Like
+   * {@link #findValidStartFlagLocation(String, String)}, only matches on an even numbered index
+   * (a byte boundary) are accepted, since a string match at an odd index straddles two bytes.
+   *
+   * @param hexString the string representation of the message in hexadecimal format.
+   * @param payloadStartIndex the index where the payload begins; the signed header prefix must
+   *        lie entirely before this index.
+   * @return the index of the signed 1609.2 header prefix if found on a byte boundary before the
+   *         payload; -1 otherwise.
+   */
+  public static int findSignedDot2HeaderLocation(String hexString, int payloadStartIndex) {
+    int lastValidIndex = payloadStartIndex - SIGNED_DOT2_HEADER_PREFIX.length();
+    int index = hexString.indexOf(SIGNED_DOT2_HEADER_PREFIX);
+    while (index != -1 && index <= lastValidIndex) {
+      if (index % 2 == 0) {
+        return index;
+      }
+      index = hexString.indexOf(SIGNED_DOT2_HEADER_PREFIX, index + 1);
+    }
+    return -1;
   }
 
 
