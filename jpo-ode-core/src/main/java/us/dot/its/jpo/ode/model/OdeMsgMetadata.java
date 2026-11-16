@@ -41,7 +41,7 @@ public class OdeMsgMetadata extends OdeObject {
   }
 
   private static final long serialVersionUID = 3979762143291085955L;
-  private static final int staticSchemaVersion = 9;
+  private static final int staticSchemaVersion = 10;
 
   private String payloadType;
   private SerialId serialId;

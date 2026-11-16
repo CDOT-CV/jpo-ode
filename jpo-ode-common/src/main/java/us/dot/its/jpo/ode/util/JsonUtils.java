@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.cfg.CoercionInputShape;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.LogicalType;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -45,11 +46,13 @@ public class JsonUtils {
 
   static {
     mapper = new ObjectMapper();
+    mapper.registerModule(new JavaTimeModule());
     mapper.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
     mapper.coercionConfigFor(LogicalType.Enum)
         .setCoercion(CoercionInputShape.EmptyString, CoercionAction.AsNull);
 
     mapper_noNulls = new ObjectMapper();
+    mapper_noNulls.registerModule(new JavaTimeModule());
     mapper_noNulls.setVisibility(PropertyAccessor.FIELD, Visibility.ANY);
     mapper_noNulls.setSerializationInclusion(Include.NON_NULL);
 
