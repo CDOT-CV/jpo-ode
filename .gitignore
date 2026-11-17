@@ -2,7 +2,6 @@
 ### root         ###
 /.project
 /ode.log
-/jpo-ode-consumer-example/target/
 .idea
 *.iml
 *.DS_Store

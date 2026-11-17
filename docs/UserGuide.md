@@ -1027,9 +1027,6 @@ access Kafka topics:
 -   Kafka API WebSocket Proxy such as:
     <https://github.com/b/kafka-websocket/blob/master/pom.xml>
 
-A sample Java client will be available in the ODE source repository
-under jpo-ode-consumer-example project.
-
 **Kafka Publish/Subscribe Topics**
 
 For a complete list and description of ODE publish/subscribe topics,

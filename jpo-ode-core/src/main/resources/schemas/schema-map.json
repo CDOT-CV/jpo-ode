@@ -1,4 +1,4 @@
-﻿{
+{
     "$schema": "http://json-schema.org/draft-07/schema",
     "properties": {
         "metadata": {
@@ -17,6 +17,30 @@
                         "boolean",
                         "null"
                     ]
+                },
+                "certMetadata": {
+                    "type": "object",
+                    "properties": {
+                        "psid": {
+                            "type": "integer"
+                        },
+                        "generationTime": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "expiryTime": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "certificateValidityStart": {
+                            "type": "string",
+                            "format": "date-time"
+                        },
+                        "certificateValidityEnd": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
                 },
                 "encodings": {
                     "items": {
@@ -156,7 +180,7 @@
                     "type": "boolean"
                 },
                 "schemaVersion": {
-                    "const": 9,
+                    "const": 10,
                     "type": "integer"
                 },
                 "securityResultCode": {

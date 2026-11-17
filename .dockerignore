@@ -1,7 +1,41 @@
-# add git-ignore syntax here of things you don't want copied into docker image
+# The Dockerfile copies the whole build context, so everything not listed here goes into the
+# builder stage.  Leaving a build input out of this file is harmless.  Listing one here breaks the
+# build, so only list files the Maven build doesn't read.
+
+# Git metadata, including the .git files of the git submodules
 .git
+**/.git
+
+# Docker files
 *Dockerfile*
 *docker-compose*
-node_modules
-*target*
-*.class
+
+# Build output, so the image always builds from source
+**/target
+**/*.class
+**/.flattened-pom.xml
+**/node_modules
+
+# Local settings and secrets
+.env
+**/.env
+uploads
+.idea
+.junie
+.vscode
+.devcontainer
+**/*.iml
+
+# Not used by the Maven build: CI config, docs, sample data and the other git submodules
+.github
+.azure
+docs
+data
+images
+qa
+*.md
+asn1_codec
+jpo-cvdp
+jpo-sdw-depositor
+jpo-security-svcs
+jpo-utils

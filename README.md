@@ -216,7 +216,11 @@ The ODE software system consists of the following modules hosted in separate Git
 | [asn1_codec](https://github.com/usdot-jpo-ode/asn1_codec)               | public     | ASN.1 Encoder/Decoder module                                                                           |
 | [jpo-security-svcs](https://github.com/usdot-jpo-ode/jpo-security-svcs) | public     | Provides cryptographic services.                                                                       |
 | [jpo-sdw-depositor](https://github.com/usdot-jpo-ode/jpo-sdw-depositor) | public     | SDW depositor service. Optional, can be enabled by using the `COMPOSE_PROFILES` environmental variable |
-| [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos)         | public     | ASN.1 POJOs for J2735 messages.                                                                        |
+
+The ASN.1 POJOs for J2735 messages from [jpo-asn-pojos](https://github.com/usdot-jpo-ode/jpo-asn-pojos)
+are not a submodule. The build downloads them as a Maven dependency from Maven Central, or from the
+Central Portal snapshot repository for a snapshot version. The version is set by
+`asn.pojos.version` in the root `pom.xml`.
 
 You may download the stable, default branch for ALL of these dependencies by using the following recursive git clone command:
 
@@ -876,6 +880,41 @@ When built from source, the libraries use the groupId `io.github.usdot-jpo-ode` 
 which fork the source comes from. The published poms are flattened: they list their dependencies
 with resolved versions and don't refer to the `jpo-ode` parent pom, which is not published.
 
+#### Jackson versions in Spring Boot applications
+
+The libraries are built with newer Jackson versions than the ones Spring Boot 4.0 manages. The
+ASN.1 POJO library needs Jackson 3.1, and Jackson 3.1 needs `jackson-annotations` 2.21. A Spring
+Boot application's dependency management takes precedence over the versions in the published
+poms, so the application has to raise Spring Boot's Jackson versions to match. Use the
+`jackson-bom.version` and `jackson-2-bom.version` values from this repository's root `pom.xml`
+for the release you consume.
+
+If the application's parent is `spring-boot-starter-parent`, override the properties:
+
+```xml
+<properties>
+  <jackson-bom.version>3.1.8</jackson-bom.version>
+  <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
+</properties>
+```
+
+If the application imports `spring-boot-dependencies` instead, import the Jackson BOM before it:
+
+```xml
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>tools.jackson</groupId>
+      <artifactId>jackson-bom</artifactId>
+      <version>3.1.8</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+    <!-- spring-boot-dependencies import follows -->
+  </dependencies>
+</dependencyManagement>
+```
+
 ### Publishing to Maven Central
 
 The `Publish JARs to the Maven Central Repository` workflows publish the four libraries when a
@@ -886,6 +925,9 @@ the same in every fork; each fork configures publishing through its GitHub setti
 |------------------------------|----------------------------|--------------------------|--------------------------|---------------------------|
 | `maven-publish-release.yml`  | A release is published     | `maven-central-release`  | Must not end `-SNAPSHOT` | Maven Central (permanent) |
 | `maven-publish-snapshot.yml` | A pre-release is published | `maven-central-snapshot` | Must end `-SNAPSHOT`     | Central Portal snapshots  |
+
+Both workflows call the reusable `maven-publish.yml` workflow, which has the shared checks and
+publish steps.
 
 The release event runs the workflow from the tagged commit, so tag a commit that contains the
 current workflow files. Set the version in the root `pom.xml` and in the `<parent>` of each module's
@@ -942,6 +984,9 @@ publishing credentials, which go in the deployment environments (see below):
 `MAVEN_CENTRAL_PUBLISH` must be a repository (or organization) variable: it is checked in the
 job's `if:` condition, which GitHub evaluates before the environment is loaded. `MAVEN_GROUP_ID`
 is the same for both environments, so it is kept at the repository level as well.
+
+The four secrets must be environment secrets. The publish job doesn't receive repository or
+organization secrets, so it can only read the secrets after any required reviewers approve it.
 
 The groupId's namespace must be verified for the publishing account in the
 [Central Portal](https://central.sonatype.com/), and snapshots must be enabled for the namespace

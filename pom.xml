@@ -18,7 +18,7 @@
        flattened poms that don't refer to it, under the groupId ${publish.groupId} -->
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>7.0.0-alpha2-SNAPSHOT</version>
+  <version>7.0.0-alpha3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>jpo-ode</name>
@@ -198,33 +198,19 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <checkstyle-maven-plugin.version>3.6.0</checkstyle-maven-plugin.version>
     <!-- JaCoCo Properties -->
-    <jacoco.version>0.8.11</jacoco.version>
+    <jacoco.version>0.8.14</jacoco.version>
     <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
     <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
     <sonar.coverage.jacoco.xmlReportPaths>${project.basedir}/target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
     <sonar.language>java</sonar.language>
     <asn.pojos.group.id>com.neaeraconsulting</asn.pojos.group.id>
-    <asn.pojos.version>2.0.0-beta2-SNAPSHOT</asn.pojos.version>
+    <asn.pojos.version>2.0.0-beta2</asn.pojos.version>
     <!-- Jackson 3 version used by the ASN.1 pojo library.  Jackson 3.1 also requires
          jackson-annotations 2.21, which Spring Boot manages through the Jackson 2 BOM.
          These override properties defined by Spring Boot -->
     <jackson-bom.version>3.1.8</jackson-bom.version>
     <jackson-2-bom.version>2.21.5</jackson-2-bom.version>
   </properties>
-
-  <repositories>
-    <repository>
-      <name>Central Portal Snapshots</name>
-      <id>central-portal-snapshots</id>
-      <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
 
   <!-- Every module inherits these, so they are also dependencies of each published module.
        Keep them to test and provided scope, which don't pass to consumers -->
@@ -235,21 +221,10 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <!-- If upgrading, consider one of the following approaches to avoid duplicate field names
-     (differing only by naming convention) in ODE-produced messages:
-       - Explicitly write getters and setters for any class field that violates the
-         JavaBeans naming convention (including in the ASN.1 POJOs), or
-       - Apply the appropriate Lombok configuration change and update this project
-         to use the newly generated getters and setters.
-      -->
-      <version>1.18.30</version>
+      <!-- Version managed by Spring Boot.  See lombok.config for the Jackson annotation setting
+           that keeps ODE-produced messages unchanged -->
       <scope>provided</scope>
     </dependency>
   </dependencies>
@@ -291,7 +266,6 @@
               <path>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
-                <version>1.18.30</version>
               </path>
             </annotationProcessorPaths>
           </configuration>
@@ -353,7 +327,6 @@
         <version>1.8.0</version>
         <configuration>
           <flattenMode>ossrh</flattenMode>
-          <updatePomFile>true</updatePomFile>
           <pomElements>
             <contributors>keep</contributors>
           </pomElements>
