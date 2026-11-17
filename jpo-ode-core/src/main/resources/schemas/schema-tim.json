@@ -45,6 +45,9 @@
                         "null"
                     ]
                 },
+                "certMetadata": {
+                    "$ref": "#/$defs/SignedDataMetadata"
+                },
                 "logFileName": {
                     "type": "string"
                 },
@@ -87,7 +90,7 @@
                     "type": "boolean"
                 },
                 "schemaVersion": {
-                    "const": 9,
+                    "const": 10,
                     "type": "integer"
                 },
                 "securityResultCode": {
@@ -344,6 +347,30 @@
                 "latitude",
                 "longitude"
             ]
+        },
+        "SignedDataMetadata": {
+            "type": "object",
+            "properties": {
+                "psid": {
+                    "type": "integer"
+                },
+                "generationTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "expiryTime": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "certificateValidityStart": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "certificateValidityEnd": {
+                    "type": "string",
+                    "format": "date-time"
+                }
+            }
         }
     }
 }

@@ -18,7 +18,7 @@
        flattened poms that don't refer to it, under the groupId ${publish.groupId} -->
   <groupId>usdot.jpo.ode</groupId>
   <artifactId>jpo-ode</artifactId>
-  <version>7.0.0-alpha2-SNAPSHOT</version>
+  <version>7.0.0-alpha3-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>jpo-ode</name>
