@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 import us.dot.its.jpo.ode.plugin.RoadSideUnit.RSU;
 import us.dot.its.jpo.ode.plugin.ServiceRequest;
-import us.dot.its.jpo.ode.plugin.j2735.J2735ProbeDataManagment;
 public class J2735PdmRequestTest {
 
     J2735PdmRequest testJ2735ProbeDataManagement = new J2735PdmRequest();

@@ -8,9 +8,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dbelyaev/action-checkstyle@v1.7.0
+      # v4.5.0 bundles reviewdog v0.21.2, which falls back to a local git diff when the PR is too
+      # large for GitHub's diff API (more than 300 files). v1.7.0's reviewdog v0.17.2 failed instead.
+      - uses: dbelyaev/action-checkstyle@v4.5.0
         with:
           github_token: ${{ secrets.github_token }}
           reporter: github-pr-review
           level: warning
           checkstyle_config: './checkstyle.xml'
+          # Keep the Checkstyle version v1.7.0 used, so the rules do not change with the action.
+          checkstyle_version: '10.14.1'

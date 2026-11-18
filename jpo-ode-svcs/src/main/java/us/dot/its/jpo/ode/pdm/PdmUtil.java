@@ -19,7 +19,6 @@ import org.snmp4j.PDU;
 import org.snmp4j.ScopedPDU;
 import org.snmp4j.smi.VariableBinding;
 
-import us.dot.its.jpo.ode.plugin.j2735.J2735ProbeDataManagment;
 import us.dot.its.jpo.ode.snmp.SnmpFourDot1Protocol;
 
 public class PdmUtil {

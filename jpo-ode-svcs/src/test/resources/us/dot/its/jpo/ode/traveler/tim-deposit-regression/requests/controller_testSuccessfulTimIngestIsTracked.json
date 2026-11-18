@@ -1,0 +1,17 @@
+{
+  "request": {
+    "rsus": [],
+    "snmp": {},
+    "randomProp1": true,
+    "randomProp2": "hello world"
+  },
+  "tim": {
+    "msgCnt": "13",
+    "timeStamp": "2017-03-13T01:07:11-05:00",
+    "randomProp3": 123,
+    "randomProp4": {
+      "nestedProp1": "foo",
+      "nestedProp2": "bar"
+    }
+  }
+}

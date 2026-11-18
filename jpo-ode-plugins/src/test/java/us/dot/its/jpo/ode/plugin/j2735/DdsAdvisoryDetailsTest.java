@@ -18,7 +18,6 @@ package us.dot.its.jpo.ode.plugin.j2735;
 import static org.junit.Assert.*;
 
 import org.junit.jupiter.api.Test;
-import us.dot.its.jpo.ode.plugin.ieee1609dot2.Ieee1609Dot2DataTag;
 import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisoryDetails.AdvisoryBroadcastType;
 import us.dot.its.jpo.ode.util.CodecUtils;
 
@@ -34,7 +33,7 @@ public class DdsAdvisoryDetailsTest {
       testDdsAdvisoryDetails.setStartTime(new J2735DFullTime());
       testDdsAdvisoryDetails.setStopTime(new J2735DFullTime());
       testDdsAdvisoryDetails.setAdvisoryMessageBytes("testAdvisoryMessageBytes");
-      testDdsAdvisoryDetails.setAdvisoryMessage(new Ieee1609Dot2DataTag());
+      testDdsAdvisoryDetails.setAdvisoryMessage("001F8084");
       
       assertEquals("testAsdmID", testDdsAdvisoryDetails.getAsdmID());
       assertEquals(1, testDdsAdvisoryDetails.getAsdmType());
@@ -48,13 +47,14 @@ public class DdsAdvisoryDetailsTest {
    @Test
    public void testHashCodeAndEquals() {
       String distType = CodecUtils.toHex(DdsAdvisorySituationData.RSU);
-      
+      String advisoryMessage = "001F8084";
+
       DdsAdvisoryDetails ddsad1 = new DdsAdvisoryDetails("asdmID", AdvisoryBroadcastType.tim, distType, new J2735DFullTime(),
-            new J2735DFullTime(), new Ieee1609Dot2DataTag());
+            new J2735DFullTime(), advisoryMessage);
       DdsAdvisoryDetails ddsad2 = new DdsAdvisoryDetails("asdmID", AdvisoryBroadcastType.tim, distType, new J2735DFullTime(),
-            new J2735DFullTime(), new Ieee1609Dot2DataTag());
+            new J2735DFullTime(), advisoryMessage);
       DdsAdvisoryDetails ddsad3 = new DdsAdvisoryDetails("asdmID", AdvisoryBroadcastType.map, distType, new J2735DFullTime(),
-            new J2735DFullTime(), new Ieee1609Dot2DataTag());
+            new J2735DFullTime(), advisoryMessage);
 
       assertEquals("Expected identical hashcodes", ddsad1.hashCode(), ddsad2.hashCode());
       assertNotEquals("Expected different hashcodes", ddsad2.hashCode(), ddsad3.hashCode());

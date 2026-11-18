@@ -21,7 +21,17 @@ public class DdsGeoRegion extends Asn1Object {
    private static final long serialVersionUID = -8496515705143160656L;
    private DsrcPosition3D nwCorner;
    private DsrcPosition3D seCorner;
-   
+
+   public DdsGeoRegion() {
+      super();
+   }
+
+   public DdsGeoRegion(OdeGeoRegion serviceRegion) {
+      super();
+      this.nwCorner = new DsrcPosition3D(serviceRegion.getNwCorner());
+      this.seCorner = new DsrcPosition3D(serviceRegion.getSeCorner());
+   }
+
    public DsrcPosition3D getNwCorner() {
       return nwCorner;
    }

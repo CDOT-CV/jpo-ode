@@ -16,12 +16,16 @@
 
 package us.dot.its.jpo.ode.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper.Builder;
+import java.io.StringReader;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamConstants;
+import javax.xml.stream.XMLStreamException;
+import org.codehaus.stax2.XMLStreamReader2;
 import org.json.JSONObject;
 import org.json.XML;
 
@@ -46,7 +50,6 @@ public class XmlUtils {
 
   }
 
-  private XmlMapper xmlMapper = new XmlMapper();
   private static XmlMapper staticXmlMapper = new XmlMapper();
 
   static {
@@ -56,46 +59,14 @@ public class XmlUtils {
     staticXmlMapper = builder.build();
   }
 
-  /**
-   * Instantiates the XML utility as an object instead of using static methods.
-   */
-  public XmlUtils() {
-    super();
-    var builder = new Builder(xmlMapper);
-    builder.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    builder.defaultUseWrapper(true);
-    xmlMapper = builder.build();
-  }
-
-  public String toXml(Object o) throws JsonProcessingException {
-    String xml = xmlMapper.writeValueAsString(o);
-    return xml;
-  }
-
-  // public static String toXml(Object o) throws XmlUtilsException {
-  // try {
-  // JSONObject root = new JSONObject();
-  // JSONObject object = new JSONObject(o);
-  // root.put(o.getClass().getSimpleName(), object);
-  // return XML.toString(root);
-  // } catch (JSONException e) {
-  // throw new XmlUtilsException("Error encoding object to XML", e);
-  // }
-  // }
+  // The Stax factory under the XML mapper, which reads XML as a stream
+  private static final XMLInputFactory xmlInputFactory =
+      staticXmlMapper.getFactory().getXMLInputFactory();
 
   /**
-   * Attempt to convert an XML String into the specified class type.
-   *
-   * @param xml The XML String value
-   * @param clazz The class type
-   * @return The deserialized object that is of type clazz
+   * Use static methods, don't instantiate
    */
-  public Object fromXml(String xml, Class<?> clazz) throws XmlUtilsException {
-    try {
-      return xmlMapper.readValue(xml, clazz);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error decoding " + xml + " to " + clazz.getName(), e);
-    }
+  private XmlUtils() {
   }
 
   /**
@@ -122,35 +93,48 @@ public class XmlUtils {
   }
 
   /**
-   * Find a component of an XML string by specifying the tag name.
+   * Find an element of an XML string by its name.  The XML is read as a stream, so the element is
+   * found wherever it is, and its start and end tags may hold whitespace, attributes or a namespace
+   * prefix.  The text of the element is returned exactly as it is in the XML, keeping the order and
+   * structure of its content.  A namespace prefix declared on an ancestor of the element is not
+   * declared in the text returned.
    *
    * @param xml The XML String to be searched
-   * @param tagName The tag name to be identified
-   * @return The XML String only consisting of the tag and its children
+   * @param tagName The local name of the element, without a prefix
+   * @return The text of the first element with the name, from its start tag to its end tag, or null
+   *         if there is none
+   * @throws IllegalArgumentException if the XML is not well formed before the end of the element
    */
   public static String findXmlContentString(String xml, String tagName) {
-    // Construct the start and end tag strings
-    String startTag = "<" + tagName + ">";
-    String endTag = "</" + tagName + ">";
-
-    // Find the start index of the start tag
-    int startIndex = xml.indexOf(startTag);
-    if (startIndex == -1) {
-      // Tag not found
+    XMLStreamReader2 reader = null;
+    try {
+      reader = (XMLStreamReader2) xmlInputFactory.createXMLStreamReader(new StringReader(xml));
+      while (reader.hasNext()) {
+        if (reader.next() == XMLStreamConstants.START_ELEMENT
+            && tagName.equals(reader.getLocalName())) {
+          final int start = (int) reader.getLocationInfo().getStartingCharOffset();
+          // skip element: goes to the matching end element
+          reader.skipElement();
+          final int end = (int) reader.getLocationInfo().getEndingCharOffset();
+          return xml.substring(start, end);
+        }
+      }
       return null;
+    } catch (XMLStreamException e) {
+      throw new IllegalArgumentException("Error reading XML to find element <" + tagName + ">", e);
+    } finally {
+      closeQuietly(reader);
     }
+  }
 
-    // Find the end index of the end tag, after the start tag
-    int endIndex = xml.indexOf(endTag, startIndex);
-    if (endIndex == -1) {
-      // End tag not found
-      return null;
+  private static void closeQuietly(XMLStreamReader2 reader) {
+    if (reader != null) {
+      try {
+        reader.closeCompletely();
+      } catch (XMLStreamException e) {
+        // Nothing to release for a string
+      }
     }
-
-    // Add the length of the end tag to get the complete end index
-    endIndex += endTag.length();
-
-    return xml.substring(startIndex, endIndex);
   }
 
   /**
@@ -171,48 +155,6 @@ public class XmlUtils {
   }
 
   /**
-   * Static method to attempt to deserialize an XML String into a specified object type.
-   *
-   * @param xml The xml String to be deserialized
-   * @param clazz The class type
-   * @return The deserialized object of class type clazz
-   * @throws XmlUtilsException Throws an exception when failing to deserialize the XML String
-   */
-  public static Object fromXmlS(String xml, Class<?> clazz) throws XmlUtilsException {
-    try {
-      return staticXmlMapper.readValue(xml, clazz);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error decoding " + xml + " to " + clazz.getName(), e);
-    }
-  }
-
-  /**
-   * Static method to attempt to transform an XML String into an ObjectNode.
-   *
-   * @param xml The xml String to be transformed
-   * @return An ObjectNode representing the XML
-   * @throws XmlUtilsException Throws an exception when failing to transform into an ObjectNode
-   */
-  public static ObjectNode toObjectNode(String xml) throws XmlUtilsException {
-    try {
-      JSONObject jsonObject = XML.toJSONObject(xml, true);
-      String jsonString = jsonObject.toString();
-      return JsonUtils.toObjectNode(jsonString);
-
-      /*
-       * Due to issues with XmlMapper converting "xml arrays" to a valid DOM
-       * collection we could not use it in this context. Hence the above workaround
-       * was adopted. See:
-       * https://github.com/FasterXML/jackson-dataformat-xml/issues/187
-       * https://github.com/FasterXML/jackson-dataformat-xml/issues/205
-       */
-      // return (ObjectNode) staticXmlMapper.readTree(xml);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error decoding " + xml + "to ObjectNode", e);
-    }
-  }
-
-  /**
    * Static method to attempt to transform an XML String into a JSONObject.
    *
    * @param xml The xml String to be transformed
@@ -225,32 +167,6 @@ public class XmlUtils {
     } catch (Exception e) {
       throw new XmlUtilsException("Error decoding " + xml + "to JSONObject", e);
     }
-  }
-
-  /**
-   * Get a specific JSON node from an XML String based on a field name.
-   *
-   * @param tree The xml String to be parsed
-   * @param fieldName The field name to be parsed for
-   * @return The JsonNode for the specified field name
-   * @throws XmlUtilsException Throws an exception when failing to parse the XML String
-   */
-  public static JsonNode getJsonNode(String tree, String fieldName) throws XmlUtilsException {
-    JsonNode jsonNode;
-    try {
-      jsonNode = staticXmlMapper.readTree(tree);
-    } catch (Exception e) {
-      throw new XmlUtilsException("Error getting field name " + fieldName + " from " + tree, e);
-    }
-    return jsonNode.get(fieldName);
-  }
-
-  public XmlMapper getXmlMapper() {
-    return xmlMapper;
-  }
-
-  public static XmlMapper getStaticXmlMapper() {
-    return staticXmlMapper;
   }
 
 }

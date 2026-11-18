@@ -1,0 +1,32 @@
+{
+  "request": {
+    "rsus": [
+      {
+        "rsuIndex": "10",
+        "rsuTarget": "127.0.0.2",
+        "rsuUsername": "v3user",
+        "rsuPassword": "password",
+        "rsuRetries": "1",
+        "rsuTimeout": "1000"
+      }
+    ],
+    "snmp": {
+      "rsuid": "00000083",
+      "msgid": "31",
+      "mode": "1",
+      "channel": "178",
+      "interval": "2",
+      "deliverystart": "2017-06-01T17:47:11-05:00",
+      "deliverystop": "2018-01-01T17:47:11-05:15",
+      "enable": "1",
+      "status": "4"
+    }
+  },
+  "tim": {
+    "msgCnt": "1",
+    "timeStamp": "2017-08-03T22:25:36.297Z",
+    "urlB": "null",
+    "packetID": "EC9C236B0000000000",
+    "dataframes": []
+  }
+}
