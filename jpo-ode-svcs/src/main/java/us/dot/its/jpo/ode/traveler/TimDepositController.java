@@ -235,7 +235,7 @@ public class TimDepositController {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     } catch (TravelerInformationConverter.UnsupportedRegionException e) {
-      String errMsg = "Error sending data to ASN.1 Encoder module: " + e.getMessage();
+      String errMsg = "Unsupported region in TIM: " + e.getMessage();
       log.error(errMsg, e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
