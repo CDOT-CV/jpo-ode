@@ -40,5 +40,6 @@ After the hotfix branch is created and the code changes are merged, project refe
 
 #### Housekeeping
 1. Merge master branches into develop branches for each affected project & verify that CI/CD passes.
+    - For jpo-asn-pojos and jpo-ode, keep the `-SNAPSHOT` version on `develop` when merging.
 
 At this point the standalone hotfix release process is complete.
