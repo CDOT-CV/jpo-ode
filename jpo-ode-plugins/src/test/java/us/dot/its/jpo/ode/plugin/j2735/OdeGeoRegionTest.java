@@ -189,7 +189,6 @@ public class OdeGeoRegionTest {
       assertEquals(region2.hashCode(), region4.hashCode());
       assertEquals(new OdeGeoRegion().hashCode(), region1.hashCode());
       assertEquals(region2.hashCode(), new OdeGeoRegion("44.44,-55.55 22.22,-33.33").hashCode());
-      assertEquals(region2.hashCode(), region2.hashCode());
    }
 
    /**
