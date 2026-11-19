@@ -137,7 +137,7 @@ public class OdeMessageFrameDataCreatorHelper {
     if (field == null || field.isNull() || !field.isValueNode()) {
       return null;
     }
-    String text = field.asText().trim();
+    String text = field.asString().trim();
     if (text.isEmpty()) {
       return null;
     }

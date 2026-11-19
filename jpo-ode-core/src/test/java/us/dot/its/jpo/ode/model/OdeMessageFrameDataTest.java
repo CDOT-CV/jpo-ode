@@ -88,13 +88,13 @@ public class OdeMessageFrameDataTest {
     JsonNode serializedCertMetadata = objectMapper.valueToTree(metadata).get("certMetadata");
     assertEquals(32, serializedCertMetadata.get("psid").asInt());
     assertEquals("2026-05-07T18:26:51.000Z",
-        serializedCertMetadata.get("generationTime").asText());
+        serializedCertMetadata.get("generationTime").asString());
     assertEquals("2026-05-12T10:00:05.000Z",
-        serializedCertMetadata.get("expiryTime").asText());
+        serializedCertMetadata.get("expiryTime").asString());
     assertEquals("2026-05-05T09:00:05.000Z",
-        serializedCertMetadata.get("certificateValidityStart").asText());
+        serializedCertMetadata.get("certificateValidityStart").asString());
     assertEquals("2026-05-12T10:00:05.000Z",
-        serializedCertMetadata.get("certificateValidityEnd").asText());
+        serializedCertMetadata.get("certificateValidityEnd").asString());
   }
 
 }

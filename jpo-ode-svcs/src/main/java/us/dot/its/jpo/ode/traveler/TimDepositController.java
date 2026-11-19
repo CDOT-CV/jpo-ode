@@ -131,7 +131,6 @@ public class TimDepositController {
    * @param verb The HTTP verb being requested
    *
    * @return The request completion status
-   * @throws JacksonException if there is an error processing the JSON
    */
   public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) {
     if (null == jsonString || jsonString.isEmpty()) {
@@ -276,7 +275,6 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
-   * @throws JacksonException if there is an error processing the JSON
    */
   @PutMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
@@ -291,7 +289,6 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
-   * @throws JacksonException if there is an error processing the JSON
    */
   @PostMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
