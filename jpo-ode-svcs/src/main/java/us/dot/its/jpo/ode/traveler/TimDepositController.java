@@ -275,7 +275,6 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
-   * @throws JacksonException if there is an error processing the JSON
    */
   @PutMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
@@ -290,7 +289,6 @@ public class TimDepositController {
    * @param jsonString TIM in JSON
    *
    * @return list of success/failures
-   * @throws JacksonException if there is an error processing the JSON
    */
   @PostMapping(value = "/tim", produces = "application/json")
   @CrossOrigin
