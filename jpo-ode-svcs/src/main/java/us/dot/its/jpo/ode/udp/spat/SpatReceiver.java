@@ -13,9 +13,8 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverPropertie
  * Timing) data, decoding these packets, and publishing the resulting JSON string to a specified
  * Kafka topic.
  *
- * </p>
- * This class extends the AbstractUdpReceiverPublisher, allowing it to run as a separate thread and
- * handle incoming UDP packets. It utilizes a Kafka template to publish decoded data.
+ * <p>This class extends the AbstractUdpReceiverPublisher, allowing it to run as a separate thread
+ * and handle incoming UDP packets. It utilizes a Kafka template to publish decoded data.
  */
 @Slf4j
 public class SpatReceiver extends AbstractUdpReceiverPublisher {
