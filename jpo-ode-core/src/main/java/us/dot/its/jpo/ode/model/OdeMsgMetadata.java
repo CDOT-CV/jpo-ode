@@ -220,7 +220,7 @@ public class OdeMsgMetadata extends OdeObject {
   public void setAsn1(OdeMsgPayload payload) {
     if (payload != null && payload.getData() != null) {
       if (JsonUtils.getJsonNode(payload.getData().toString(), "bytes") != null) {
-        this.asn1 = JsonUtils.getJsonNode(payload.getData().toString(), "bytes").asText();
+        this.asn1 = JsonUtils.getJsonNode(payload.getData().toString(), "bytes").asString();
       }
     }
   }

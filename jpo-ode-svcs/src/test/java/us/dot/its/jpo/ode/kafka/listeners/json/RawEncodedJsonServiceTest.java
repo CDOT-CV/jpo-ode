@@ -3,7 +3,7 @@ package us.dot.its.jpo.ode.kafka.listeners.json;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
