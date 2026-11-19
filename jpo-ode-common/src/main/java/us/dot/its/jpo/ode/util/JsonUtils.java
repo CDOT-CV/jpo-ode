@@ -67,8 +67,9 @@ public class JsonUtils {
         // external sources (e.g. REST request bodies, jpo-security-svcs responses, Kafka messages
         // from other services) that may include extra fields, now or after they add them.
         // Failing would turn that into an error, e.g. breaking TIM signing. Matches the XML
-        // mappers in XmlUtils.baseXmlMapperBuilder(). Use jacksonFromJson(s, clazz, false) to
-        // read strictly.
+        // mappers in XmlUtils.baseXmlMapperBuilder(). Note that fromJson(s, clazz) and
+        // jacksonFromJson(s, clazz) still read strictly; pass true to
+        // jacksonFromJson(s, clazz, allowUnknownProperties) to ignore unknown properties.
         .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
         .changeDefaultVisibility(vc -> vc.withVisibility(PropertyAccessor.FIELD, Visibility.ANY))
         .withCoercionConfig(LogicalType.Enum,
@@ -101,7 +102,7 @@ public class JsonUtils {
   }
 
   /**
-   * Converts a JSON string to an object of the specified class.
+   * Converts a JSON string to an object of the specified class. Fails on unknown properties.
    *
    * @param s     the JSON string
    * @param clazz the target class
@@ -117,7 +118,9 @@ public class JsonUtils {
   }
 
   /**
-   * Converts a JSON string to an object using Jackson's ObjectMapper.
+   * Converts a JSON string to an object using Jackson's ObjectMapper. Fails on unknown
+   * properties, unlike the shared mapper's default, so that REST request bodies with misspelled
+   * or unexpected fields are rejected.
    *
    * @param s     the JSON string
    * @param clazz the target class
@@ -125,11 +128,7 @@ public class JsonUtils {
    * @throws JsonUtilsException if deserialization fails
    */
   public static Object jacksonFromJson(String s, Class<?> clazz) throws JsonUtilsException {
-    try {
-      return mapper.readValue(s, clazz);
-    } catch (JacksonException e) {
-      throw new JsonUtilsException("Error deserializing JSON tree to " + clazz.getName(), e);
-    }
+    return jacksonFromJson(s, clazz, false);
   }
 
   /**
