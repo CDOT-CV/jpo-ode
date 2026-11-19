@@ -34,9 +34,6 @@ import us.dot.its.jpo.ode.plugin.j2735.OdeGeoRegion.GeoRegionException;
  * The class <code>OdeGeoRegionTest</code> contains tests for the class {@link
  * <code>OdeGeoRegion</code>}
  *
- * @pattern JUnit Test Case
- *
- * @generatedBy CodePro at 10/2/16 10:03 AM
  *
  * @author 572682
  *
@@ -48,7 +45,6 @@ public class OdeGeoRegionTest {
    private OdeGeoRegion region2;
    private OdeGeoRegion region3;
    private OdeGeoRegion region4;
-
    private OdeGeoRegion testRegion;
 
    @BeforeEach
@@ -61,15 +57,18 @@ public class OdeGeoRegionTest {
                   BigDecimal.valueOf(44.44), BigDecimal.valueOf(-55.55), null), 
             new OdePosition3D (
                   BigDecimal.valueOf(22.22), BigDecimal.valueOf(-33.33), null));
+
+      // A known geo region (roughly Pennsylvania)
+      testRegion = new OdeGeoRegion(
+            new OdePosition3D(BigDecimal.valueOf(42.0), BigDecimal.valueOf(-80.4), BigDecimal.ZERO),
+            new OdePosition3D(BigDecimal.valueOf(39.9), BigDecimal.valueOf(-75.2), BigDecimal.ZERO));
    }
    
    /**
     * Run the conversion constructor test
-    * @throws GeoRegionException 
     */
-   
    @Test
-   public void testConstructorString() throws GeoRegionException {
+   public void testConstructorString() {
       assertAll();
    }
 
@@ -195,17 +194,16 @@ public class OdeGeoRegionTest {
 
    /**
     * Run the J2735Position3D getCenterPosition() method test
-    * @throws GeoRegionException 
     */
    @Test
-   public void testGetCenterPosition() throws GeoRegionException {
+   public void testGetCenterPosition() {
       OdePosition3D result = region2.getCenterPosition();
       assertEquals(BigDecimal.valueOf(33.33), result.getLatitude());
       assertEquals(BigDecimal.valueOf(-44.44), result.getLongitude());
    }
 
    @Test
-   public void testContainsPosition3DNull() throws GeoRegionException {
+   public void testContainsPosition3DNull() {
       assertFalse(region1.contains((OdePosition3D)null));
    }
 
@@ -263,28 +261,7 @@ public class OdeGeoRegionTest {
    }
 
    /**
-    * Create a known geo region (roughly Pennsylvania)
-    */
-   @BeforeEach
-   public void setupOdeGeoRegion() {
-
-       BigDecimal nwLat = BigDecimal.valueOf(42.0);
-       BigDecimal nwLon = BigDecimal.valueOf(-80.4);
-
-       BigDecimal seLat = BigDecimal.valueOf(39.9);
-       BigDecimal seLon = BigDecimal.valueOf(-75.2);
-
-       BigDecimal elev = BigDecimal.ZERO;
-
-       OdePosition3D nwPoint = new OdePosition3D(nwLat, nwLon, elev);
-       OdePosition3D sePoint = new OdePosition3D(seLat, seLon, elev);
-
-       testRegion = new OdeGeoRegion(nwPoint, sePoint);
-
-   }
-
-   /**
-    * Test a point outside of that region (Denver, CO)
+    * Test a point outside of testRegion (Denver, CO)
     */
    @Test
    public void shouldReturnInRegionFalse() {
@@ -301,7 +278,7 @@ public class OdeGeoRegionTest {
    }
 
    /**
-    * Test a point inside of that region (Harrisburg, PA)
+    * Test a point inside of testRegion (Harrisburg, PA)
     */
    @Test
    public void shouldReturnInRegionTrue() {
