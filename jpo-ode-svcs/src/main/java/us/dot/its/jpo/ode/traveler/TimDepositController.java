@@ -131,7 +131,6 @@ public class TimDepositController {
    * @param verb The HTTP verb being requested
    *
    * @return The request completion status
-   * @throws JacksonException if there is an error processing the JSON
    */
   public synchronized ResponseEntity<String> depositTim(String jsonString, RequestVerb verb) {
     if (null == jsonString || jsonString.isEmpty()) {
