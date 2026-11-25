@@ -1,0 +1,216 @@
+{
+  "request": {
+    "rsus": [
+      {
+        "rsuIndex": "10",
+        "rsuTarget": "127.0.0.3",
+        "rsuUsername": "v3user",
+        "rsuPassword": "password",
+        "rsuRetries": "1",
+        "rsuTimeout": "1000"
+      }
+    ],
+    "snmp": {
+      "rsuid": "00000083",
+      "msgid": "31",
+      "mode": "1",
+      "channel": "178",
+      "interval": "2",
+      "deliverystart": "2017-06-01T17:47:11-05:00",
+      "deliverystop": "2018-01-01T17:47:11-05:15",
+      "enable": "1",
+      "status": "4"
+    },
+    "sdw": {
+      "ttl": "oneweek",
+      "serviceRegion": {
+        "nwCorner": {
+          "latitude": "44.998459",
+          "longitude": "-111.040817"
+        },
+        "seCorner": {
+          "latitude": "41.104674",
+          "longitude": "-104.111312"
+        }
+      }
+    }
+  },
+  "tim": {
+    "msgCnt": "1",
+    "timeStamp": "2017-10-27T18:04:43.045Z",
+    "packetID": "3",
+    "urlB": "null",
+    "dataframes": [
+      {
+        "startDateTime": "2017-10-20T05:22:33.985Z",
+        "durationTime": 100,
+        "frameType": "1",
+        "doNotUse1": 0,
+        "msgId": "roadSignID",
+        "position": {
+          "latitude": "40.573068",
+          "longitude": "-105.049016",
+          "elevation": "1500.8999999999999"
+        },
+        "viewAngle": "1111111111111111",
+        "mutcd": "2",
+        "crc": "0000",
+        "priority": "5",
+        "doNotUse2": 0,
+        "regions": [
+          {
+            "name": "Testing TIM",
+            "regulatorID": "0",
+            "segmentID": "33",
+            "anchorPosition": {
+              "latitude": "40.573068",
+              "longitude": "-105.049016",
+              "elevation": "1500.8999999999999"
+            },
+            "laneWidth": "327",
+            "directionality": "3",
+            "closedPath": "false",
+            "description": "path",
+            "path": {
+              "scale": "0",
+              "type": "xy",
+              "nodes": [
+                {
+                  "nodeLong": "-105.047355",
+                  "nodeLat": "40.572429",
+                  "delta": "node-LatLon",
+                  "attributes": {
+                    "localNode": [
+                      "stopLine",
+                      "roundedCapStyleA",
+                      "roundedCapStyleB",
+                      "mergePoint",
+                      "divergePoint",
+                      "downstreamStopLine",
+                      "downstreamStartNode",
+                      "closedToTraffic",
+                      "safeIsland",
+                      "curbPresentAtStepOff",
+                      "hydrantPresent",
+                      "reserved"
+                    ],
+                    "disabled": [
+                      "reserved",
+                      "doNotBlock",
+                      "whiteLine",
+                      "mergingLaneLeft",
+                      "mergingLaneRight",
+                      "curbOnLeft",
+                      "curbOnRight",
+                      "loadingzoneOnLeft",
+                      "loadingzoneOnRight",
+                      "turnOutPointOnLeft",
+                      "turnOutPointOnRight"
+                    ],
+                    "enabled": [
+                      "adjacentParkingOnLeft",
+                      "adjacentParkingOnRight",
+                      "adjacentBikeLaneOnLeft"
+                    ],
+                    "data": [
+                      {
+                        "pathEndPointAngle": 123
+                      },
+                      {
+                        "laneCrownPointCenter": 12.3
+                      },
+                      {
+                        "laneCrownPointLeft": "23.4"
+                      },
+                      {
+                        "laneCrownPointRight": 34.5
+                      },
+                      {
+                        "laneAngle": "1.23"
+                      },
+                      {
+                        "speedLimits": [
+                          {
+                            "type": "2",
+                            "speed": "12.3"
+                          },
+                          {
+                            "type": "maxSpeedInSchoolZone",
+                            "speed": "23.4"
+                          },
+                          {
+                            "type": 3,
+                            "speed": 12.3
+                          },
+                          {
+                            "type": "vehicleMinSpeed",
+                            "speed": 23.4
+                          }
+                        ]
+                      }
+                    ],
+                    "dWidth": "1.23",
+                    "dElevation": "2.34"
+                  }
+                },
+                {
+                  "nodeLong": "-105.046844",
+                  "nodeLat": "40.572228",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.04659",
+                  "nodeLat": "40.572113",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.046243",
+                  "nodeLat": "40.57191",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.045936",
+                  "nodeLat": "40.571675",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.045674",
+                  "nodeLat": "40.571422",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.04545",
+                  "nodeLat": "40.571131",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.045235",
+                  "nodeLat": "40.570724",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.045113",
+                  "nodeLat": "40.570293",
+                  "delta": "node-LatLon"
+                },
+                {
+                  "nodeLong": "-105.045087",
+                  "nodeLat": "40.569848",
+                  "delta": "node-LatLon"
+                }
+              ]
+            },
+            "direction": "1111111111111111"
+          }
+        ],
+        "doNotUse4": 0,
+        "doNotUse3": 0,
+        "content": "workZone",
+        "items": [
+          "7425"
+        ],
+        "url": "null"
+      }
+    ]
+  }
+}

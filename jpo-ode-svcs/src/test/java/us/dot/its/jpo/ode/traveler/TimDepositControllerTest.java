@@ -16,7 +16,6 @@
 
  package us.dot.its.jpo.ode.traveler;
 
- import com.fasterxml.jackson.databind.JsonNode;
  import com.fasterxml.jackson.databind.node.ObjectNode;
  import com.fasterxml.jackson.dataformat.xml.XmlMapper;
  import java.io.IOException;
@@ -57,7 +56,6 @@
  import us.dot.its.jpo.ode.model.OdeMsgMetadata;
  import us.dot.its.jpo.ode.model.SerialId;
  import us.dot.its.jpo.ode.plugin.j2735.DdsAdvisorySituationData;
- import us.dot.its.jpo.ode.plugin.j2735.builders.TravelerMessageFromHumanToAsnConverter;
  import us.dot.its.jpo.ode.security.SecurityServicesProperties;
  import us.dot.its.jpo.ode.util.DateTimeUtils;
  import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
@@ -172,39 +170,6 @@
      String expectedResponseBody =
          "{\"warning\":\"Warning: TIM contains no RSU, SNMP, or SDW fields.\"}";
      Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
-   }
- 
-   @Test
-   void failedObjectNodeConversionShouldReturnConvertingError()
-       throws JsonUtilsException, TravelerMessageFromHumanToAsnConverter.NoncompliantFieldsException,
-       IOException, TravelerMessageFromHumanToAsnConverter.InvalidNodeLatLonOffsetException {
-     // prepare
-     odeKafkaProperties.setDisabledTopics(Set.of());
-     final Clock prevClock = DateTimeUtils.setClock(
-         Clock.fixed(Instant.parse("2018-03-13T01:07:11.120Z"), ZoneId.of("UTC")));
-     TimDepositController testTimDepositController =
-         new TimDepositController(asn1CoderTopics, jsonTopics,
-             timIngestTrackerProperties, securityServicesProperties, kafkaTemplate,
-             simpleXmlMapper);
-     try (MockedStatic<TravelerMessageFromHumanToAsnConverter> converterStatic =
-              mockStatic(TravelerMessageFromHumanToAsnConverter.class)) {
-       converterStatic.when(() ->
-           TravelerMessageFromHumanToAsnConverter.convertTravelerInputDataToEncodableTim(any(JsonNode.class)))
-           .thenThrow(new JsonUtilsException("testException123", null));
-
-       String requestBody =
-           "{\"request\":{\"rsus\":[],\"snmp\":{}},\"tim\":{\"msgCnt\":\"13\",\"timeStamp\":\"2017-03-13T01:07:11-05:00\"}}";
-
-       // execute
-       ResponseEntity<String> actualResponse = testTimDepositController.postTim(requestBody);
-
-       // verify
-       String expectedResponseBody =
-           "{\"error\":\"Error converting to encodable TravelerInputData.\"}";
-       Assertions.assertEquals(expectedResponseBody, actualResponse.getBody());
-     } finally {
-       DateTimeUtils.setClock(prevClock);
-     }
    }
  
    @Test

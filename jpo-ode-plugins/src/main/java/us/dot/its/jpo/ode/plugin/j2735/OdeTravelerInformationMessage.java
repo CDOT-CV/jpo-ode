@@ -26,11 +26,6 @@ import us.dot.its.jpo.ode.plugin.asn1.Asn1Object;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.DataFrame.Region.Circle;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.DataFrame.Region.OldRegion.RegionPointSet;
 import us.dot.its.jpo.ode.plugin.j2735.OdeTravelerInformationMessage.DataFrame.Region.OldRegion.ShapePointSet;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.DirectionOfUse.DirectionOfUseEnum;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.DistanceUnits.DistanceUnitsEnum;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.Extent.ExtentEnum;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.FrameType;
-import us.dot.its.jpo.ode.plugin.j2735.timstorage.MutcdCode;
 
 /**
  * OdeTravelerInformationMessage.
@@ -93,6 +88,60 @@ public class OdeTravelerInformationMessage extends OdeObject {
 
   public void setAsnDataFrames(JsonNode stringDataFrames) {
     this.asnDataFrames = stringDataFrames;
+  }
+
+  public enum TravelerInfoType {
+    unknown,
+    advisory,
+    roadSignage,
+    commercialSignage
+  }
+
+  public enum MutcdCodeEnum {
+    none,
+    regulatory,
+    warning,
+    maintenance,
+    motoristService,
+    guide,
+    rec
+  }
+
+  public enum DirectionOfUseEnum {
+    unavailable,
+    forward,
+    reverse,
+    both
+  }
+
+  public enum ExtentEnum {
+    useInstantlyOnly,
+    useFor3meters,
+    useFor10meters,
+    useFor50meters,
+    useFor100meters,
+    useFor500meters,
+    useFor1000meters,
+    useFor5000meters,
+    useFor10000meters,
+    useFor50000meters,
+    useFor100000meters,
+    useFor500000meters,
+    useFor1000000meters,
+    useFor5000000meters,
+    useFor10000000meters,
+    forever
+  }
+
+  public enum DistanceUnitsEnum {
+    centimeter,
+    cm2_5,
+    decimeter,
+    meter,
+    kilometer,
+    foot,
+    yard,
+    mile
   }
 
   /**
@@ -502,7 +551,7 @@ public class OdeTravelerInformationMessage extends OdeObject {
     private static final long serialVersionUID = 537503046055742396L;
     @JsonAlias({"sspTimRights", "notUsed"})
     private short doNotUse1; // Start Header Information
-    private FrameType.TravelerInfoType frameType;
+    private TravelerInfoType frameType;
     private MsgId msgId;
     private String startDateTime;
     @JsonAlias("duratonTime")
@@ -949,7 +998,7 @@ public class OdeTravelerInformationMessage extends OdeObject {
 
       private OdePosition3D position;
       private String viewAngle;
-      private MutcdCode.MutcdCodeEnum mutcdCode;
+      private MutcdCodeEnum mutcdCode;
       private String crc;
 
       public OdePosition3D getPosition() {
@@ -968,11 +1017,11 @@ public class OdeTravelerInformationMessage extends OdeObject {
         this.viewAngle = viewAngle;
       }
 
-      public MutcdCode.MutcdCodeEnum getMutcdCode() {
+      public MutcdCodeEnum getMutcdCode() {
         return mutcdCode;
       }
 
-      public void setMutcdCode(MutcdCode.MutcdCodeEnum mutcdCode) {
+      public void setMutcdCode(MutcdCodeEnum mutcdCode) {
         this.mutcdCode = mutcdCode;
       }
 
@@ -1076,11 +1125,11 @@ public class OdeTravelerInformationMessage extends OdeObject {
       this.startDateTime = startDateTime;
     }
 
-    public FrameType.TravelerInfoType getFrameType() {
+    public TravelerInfoType getFrameType() {
       return frameType;
     }
 
-    public void setFrameType(FrameType.TravelerInfoType frameType) {
+    public void setFrameType(TravelerInfoType frameType) {
       this.frameType = frameType;
     }
 

@@ -1,0 +1,1 @@
+400 {"error":"Invalid node lat/lon offset in TIM: Invalid node lat/long offset: -8388608/8388607. Values must be within a range of -0.8388607/+0.8388607 degrees."}

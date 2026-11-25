@@ -67,7 +67,7 @@
                             <TravelerDataFrame>
                                 <doNotUse1>0</doNotUse1>
                                 <frameType>
-                                    <advisory></advisory>
+                                    <advisory/>
                                 </frameType>
                                 <msgId>
                                     <roadSignID>
@@ -77,7 +77,7 @@
                                         </position>
                                         <viewAngle>1111111111111111</viewAngle>
                                         <mutcdCode>
-                                            <warning></warning>
+                                            <warning/>
                                         </mutcdCode>
                                     </roadSignID>
                                 </msgId>
@@ -98,16 +98,16 @@
                                             <long>-1046557850</long>
                                         </anchor>
                                         <directionality>
-                                            <both></both>
+                                            <both/>
                                         </directionality>
                                         <closedPath>
-                                            <false />
+                                            <false/>
                                         </closedPath>
                                         <direction>1111000011110000</direction>
                                         <description>
                                             <geometry>
                                                 <direction>1111000011110000</direction>
-                                                <extent>0</extent>
+                                                <extent><useInstantlyOnly/></extent>
                                                 <circle>
                                                     <center>
                                                         <lat>411535930</lat>
@@ -116,7 +116,7 @@
                                                     </center>
                                                     <radius>50</radius>
                                                     <units>
-                                                        <meter></meter>
+                                                        <meter/>
                                                     </units>
                                                 </circle>
                                             </geometry>

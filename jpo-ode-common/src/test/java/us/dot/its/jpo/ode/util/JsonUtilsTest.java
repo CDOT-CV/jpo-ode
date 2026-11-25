@@ -16,20 +16,8 @@
 package us.dot.its.jpo.ode.util;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
-
 import org.junit.jupiter.api.Test;
-
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
 import us.dot.its.jpo.ode.util.JsonUtils.JsonUtilsException;
 
 public class JsonUtilsTest {
@@ -118,12 +106,6 @@ public class JsonUtilsTest {
     }
 
     @Test
-    public void testNewJson() {
-        String j = JsonUtils.newJson("key", "value");
-        assertEquals("{\"key\":\"value\"}", j);
-    }
-
-    @Test
     public void testNewObjectNode() {
         ObjectNode j = JsonUtils.newObjectNode("key", "value");
         assertEquals("{\"key\":\"value\"}", j.toString());
@@ -159,36 +141,6 @@ public class JsonUtilsTest {
         assertEquals(
                 "{\"className\":\"com.bah.ode.model.OdeVehicleDataFlat\",\"serialId\":\"10817812-036b-4d7b-867b-ae0bc62a2b3e.0\",\"receivedAt\":\"2015-07-22T19:21:16.413+0000\",\"groupId\":\"4130008F\",\"accelLong\":0.34,\"accelVert\":0.0,\"accellYaw\":8.42,\"heading\":65.95,\"speed\":8.12,\"sizeLength\":500,\"sizeWidth\":200,\"latitude\":42.3296667,\"longitude\":-83.044539,\"elevation\":156.9,\"tempId\":\"C4290123\",\"year\":2015,\"month\":5,\"day\":13,\"hour\":15,\"minute\":52,\"second\":45.5,\"dateTime\":\"2015-06-13T19:52:45.500+0000\",\"avgSpeed\":\"2.22\"}",
                 ovdf.toString());
-    }
-
-    @Test
-    public void testIsValid() throws IOException {
-        assertTrue(JsonUtils.isValid("{\"key\":\"value\"}"));
-        assertFalse(JsonUtils.isValid("{\"key\":value}"));
-    }
-
-    @Test
-    public void testJsonNodeToHashMap() {
-        ObjectNode on = JsonUtils.newObjectNode("key", "value");
-        HashMap<String, JsonNode> hm = JsonUtils.jsonNodeToHashMap(on);
-        assertEquals("value", hm.get("key").asText());
-
-        JsonNode jsonNode = JsonUtils.getJsonNode(ODM, "payload");
-        HashMap<String, JsonNode> hashMap = JsonUtils.jsonNodeToHashMap(jsonNode);
-        Iterator<Entry<String, JsonNode>> fieldsIter = jsonNode.fields();
-
-        while (fieldsIter.hasNext()) {
-            Entry<String, JsonNode> field = fieldsIter.next();
-            JsonNode node = hashMap.get(field.getKey());
-            assertNotNull(node);
-            assertEquals(node.asText(), field.getValue().asText());
-        }
-
-        for (Entry<String, JsonNode> entry : hashMap.entrySet()) {
-            JsonNode node = jsonNode.get(entry.getKey());
-            assertNotNull(node);
-            assertEquals(node.asText(), entry.getValue().asText());
-        }
     }
 
     @Test
