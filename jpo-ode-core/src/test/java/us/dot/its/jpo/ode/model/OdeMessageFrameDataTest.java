@@ -5,9 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,7 +18,7 @@ import org.junit.jupiter.api.Test;
 public class OdeMessageFrameDataTest {
 
   private static final String SAMPLE_SDSM_FILE = "src/test/resources/json/sample-sdsm.json";
-  private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+  private final ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Test proper serialization and deserialization of SDSM data.
@@ -52,7 +51,7 @@ public class OdeMessageFrameDataTest {
     JsonNode sdsm = data.get("value").get("SensorDataSharingMessage");
     assertNotNull(sdsm);
     assertEquals(10, sdsm.get("msgCnt").asInt());
-    assertEquals("010C0C0A", sdsm.get("sourceID").asText());
+    assertEquals("010C0C0A", sdsm.get("sourceID").asString());
   }
 
   @Test
@@ -89,13 +88,13 @@ public class OdeMessageFrameDataTest {
     JsonNode serializedCertMetadata = objectMapper.valueToTree(metadata).get("certMetadata");
     assertEquals(32, serializedCertMetadata.get("psid").asInt());
     assertEquals("2026-05-07T18:26:51.000Z",
-        serializedCertMetadata.get("generationTime").asText());
+        serializedCertMetadata.get("generationTime").asString());
     assertEquals("2026-05-12T10:00:05.000Z",
-        serializedCertMetadata.get("expiryTime").asText());
+        serializedCertMetadata.get("expiryTime").asString());
     assertEquals("2026-05-05T09:00:05.000Z",
-        serializedCertMetadata.get("certificateValidityStart").asText());
+        serializedCertMetadata.get("certificateValidityStart").asString());
     assertEquals("2026-05-12T10:00:05.000Z",
-        serializedCertMetadata.get("certificateValidityEnd").asText());
+        serializedCertMetadata.get("certificateValidityEnd").asString());
   }
 
 }

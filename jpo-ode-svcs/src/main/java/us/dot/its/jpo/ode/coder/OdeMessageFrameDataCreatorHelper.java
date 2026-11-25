@@ -1,12 +1,12 @@
 package us.dot.its.jpo.ode.coder;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.node.ObjectNode;
+import tools.jackson.dataformat.xml.XmlMapper;
 import us.dot.its.jpo.asn.j2735.r2024.MessageFrame.MessageFrame;
 import us.dot.its.jpo.ode.model.OdeMessageFrameData;
 import us.dot.its.jpo.ode.model.OdeMessageFrameMetadata;
@@ -47,10 +47,10 @@ public class OdeMessageFrameDataCreatorHelper {
    * @param consumedData The XML data string to be processed
    * @param simpleXmlMapper The XmlMapper for XML operations
    * @return OdeMessageFrameData object containing the processed data
-   * @throws JsonProcessingException if there is an error processing the JSON data
+   * @throws JacksonException if there is an error processing the JSON data
    */
   public static OdeMessageFrameData createOdeMessageFrameData(String consumedData, 
-      XmlMapper simpleXmlMapper) throws JsonProcessingException {
+      XmlMapper simpleXmlMapper) {
     // Parse the XML into a tree structure first
     JsonNode rootNode = simpleXmlMapper.readTree(consumedData);
 
@@ -137,7 +137,7 @@ public class OdeMessageFrameDataCreatorHelper {
     if (field == null || field.isNull() || !field.isValueNode()) {
       return null;
     }
-    String text = field.asText().trim();
+    String text = field.asString().trim();
     if (text.isEmpty()) {
       return null;
     }
