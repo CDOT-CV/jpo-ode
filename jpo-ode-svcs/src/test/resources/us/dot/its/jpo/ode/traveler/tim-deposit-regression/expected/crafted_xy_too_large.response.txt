@@ -1,0 +1,1 @@
+400 {"error":"Invalid value in TIM: Invalid node X/Y offset: 32768/0 for node-XY6. Values must be within 327.67 meters of the last node."}

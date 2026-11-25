@@ -599,64 +599,27 @@ public class TravelerInformationConverter {
   }
 
   /**
-   * Converts a node of an {@code xy} path. The delta works as for {@link #convertNodeLL}: a size
-   * from {@code node-XY1} to {@code node-XY6}, {@code node-XY} for the smallest that fits, or
-   * {@code node-LatLon}. Attribute values are not converted: if the node has any attributes, an
-   * empty NodeAttributeSetXY is written, as the legacy converter did.
+   * Converts a node of an {@code xy} path. The delta is a size from {@code node-XY1} to
+   * {@code node-XY6}, {@code node-XY} for the smallest that fits (see
+   * {@link #nodeOffsetPointXY}), or {@code node-LatLon}. Attribute values are not converted: if
+   * the node has any attributes, an empty NodeAttributeSetXY is written, as the legacy converter
+   * did.
    */
   private static NodeXY convertNodeXY(OdeTravelerInformationMessage.NodeXY node) {
     String delta = node.getDelta();
-    NodeOffsetPointXY offsetPoint = new NodeOffsetPointXY();
+    NodeOffsetPointXY offsetPoint;
     if (delta.startsWith(NODE_XY)) {
-      long x = scaleToLong(jsonDecimal(node.getXpos()), 2);
-      long y = scaleToLong(jsonDecimal(node.getYpos()), 2);
-      if (delta.equals(NODE_XY)) {
-        delta = nodeOffsetPointXYType(x, y);
+      offsetPoint = nodeOffsetPointXY(delta,
+          scaleToLong(jsonDecimal(node.getXpos()), 2),
+          scaleToLong(jsonDecimal(node.getYpos()), 2));
+    } else {
+      offsetPoint = new NodeOffsetPointXY();
+      if (NODE_LAT_LON.equals(delta)) {
+        offsetPoint.setNode_LatLon(
+            nodeLatLon(jsonDecimal(node.getNodeLat()), jsonDecimal(node.getNodeLong())));
       }
-      switch (delta) {
-        case "node-XY1" -> {
-          Node_XY_20b point = new Node_XY_20b();
-          point.setX(new Offset_B10(x));
-          point.setY(new Offset_B10(y));
-          offsetPoint.setNode_XY1(point);
-        }
-        case "node-XY2" -> {
-          Node_XY_22b point = new Node_XY_22b();
-          point.setX(new Offset_B11(x));
-          point.setY(new Offset_B11(y));
-          offsetPoint.setNode_XY2(point);
-        }
-        case "node-XY3" -> {
-          Node_XY_24b point = new Node_XY_24b();
-          point.setX(new Offset_B12(x));
-          point.setY(new Offset_B12(y));
-          offsetPoint.setNode_XY3(point);
-        }
-        case "node-XY4" -> {
-          Node_XY_26b point = new Node_XY_26b();
-          point.setX(new Offset_B13(x));
-          point.setY(new Offset_B13(y));
-          offsetPoint.setNode_XY4(point);
-        }
-        case "node-XY5" -> {
-          Node_XY_28b point = new Node_XY_28b();
-          point.setX(new Offset_B14(x));
-          point.setY(new Offset_B14(y));
-          offsetPoint.setNode_XY5(point);
-        }
-        case "node-XY6" -> {
-          Node_XY_32b point = new Node_XY_32b();
-          point.setX(new Offset_B16(x));
-          point.setY(new Offset_B16(y));
-          offsetPoint.setNode_XY6(point);
-        }
-        default -> log.warn("Unsupported node-XY delta: {}", delta);
-      }
-    } else if (NODE_LAT_LON.equals(delta)) {
-      offsetPoint.setNode_LatLon(
-          nodeLatLon(jsonDecimal(node.getNodeLat()), jsonDecimal(node.getNodeLong())));
     }
-    NodeXY nodeXY = new NodeXY();
+    var nodeXY = new NodeXY();
     nodeXY.setDelta(offsetPoint);
     if (node.getAttributes() != null) {
       nodeXY.setAttributes(new NodeAttributeSetXY());
@@ -665,31 +628,93 @@ public class TravelerInformationConverter {
   }
 
   /**
-   * The node-XY size for the offsets in centimetres, chosen by bit length: under 2^10 is XY1,
-   * under 2^11 XY2, and so on up to under 2^16 for XY6.
+   * Builds the node-XY offset point for offsets in centimetres. Each size holds offsets within a
+   * distance of the last node, per J2735 NodeOffsetPointXY: node-XY1 5.11 m, node-XY2 10.23 m,
+   * node-XY3 20.47 m, node-XY4 40.95 m, node-XY5 81.91 m and node-XY6 327.67 m. (J2735 says
+   * 40.96 m for node-XY4, but its Offset-B13 tops out at 40.95 m.)
    *
-   * <p>This is the legacy rule, kept so the output does not change. It allows twice the ASN.1
-   * range of each size. For example, XY1's Offset-B10 holds -512..511, yet offsets up to 1023 are
-   * put in XY1.</p>
+   * <p>For {@code node-XY}, the smallest size that holds both x and y is used. For an explicit
+   * size, the offsets must fit it. An unsupported delta is logged and gives an empty offset
+   * point.</p>
+   *
+   * @throws IllegalArgumentException if the offsets are too large for the size, or for
+   *     {@code node-XY}, for any size
    */
-  private static String nodeOffsetPointXYType(long x, long y) {
-    long transformed = Math.abs(x) | Math.abs(y);
-    if ((transformed & (-1 << 10)) == 0) {
-      return "node-XY1";
-    } else if ((transformed & (-1 << 11)) == 0) {
-      return "node-XY2";
-    } else if ((transformed & (-1 << 12)) == 0) {
-      return "node-XY3";
-    } else if ((transformed & (-1 << 13)) == 0) {
-      return "node-XY4";
-    } else if ((transformed & (-1 << 14)) == 0) {
-      return "node-XY5";
-    } else if ((transformed & (-1 << 16)) == 0) {
-      return "node-XY6";
-    } else {
-      throw new IllegalArgumentException("Invalid node X/Y offset: " + x + "/" + y
-          + ". Values must be between a range of -327.68/+327.67 meters.");
+  static NodeOffsetPointXY nodeOffsetPointXY(String delta, long x, long y) {
+    long offset = Math.max(Math.abs(x), Math.abs(y));
+    String size = delta;
+    if (NODE_XY.equals(delta)) {
+      if (offset <= 511) {
+        size = "node-XY1";
+      } else if (offset <= 1023) {
+        size = "node-XY2";
+      } else if (offset <= 2047) {
+        size = "node-XY3";
+      } else if (offset <= 4095) {
+        size = "node-XY4";
+      } else if (offset <= 8191) {
+        size = "node-XY5";
+      } else {
+        // Possibly too large for node-XY6 too: the bounds check below rejects it.
+        size = "node-XY6";
+      }
     }
+    var offsetPoint = new NodeOffsetPointXY();
+    long maxOffset;
+    switch (size) {
+      case "node-XY1" -> {
+        maxOffset = 511;
+        var point = new Node_XY_20b();
+        point.setX(new Offset_B10(x));
+        point.setY(new Offset_B10(y));
+        offsetPoint.setNode_XY1(point);
+      }
+      case "node-XY2" -> {
+        maxOffset = 1023;
+        var point = new Node_XY_22b();
+        point.setX(new Offset_B11(x));
+        point.setY(new Offset_B11(y));
+        offsetPoint.setNode_XY2(point);
+      }
+      case "node-XY3" -> {
+        maxOffset = 2047;
+        var point = new Node_XY_24b();
+        point.setX(new Offset_B12(x));
+        point.setY(new Offset_B12(y));
+        offsetPoint.setNode_XY3(point);
+      }
+      case "node-XY4" -> {
+        maxOffset = 4095;
+        var point = new Node_XY_26b();
+        point.setX(new Offset_B13(x));
+        point.setY(new Offset_B13(y));
+        offsetPoint.setNode_XY4(point);
+      }
+      case "node-XY5" -> {
+        maxOffset = 8191;
+        var point = new Node_XY_28b();
+        point.setX(new Offset_B14(x));
+        point.setY(new Offset_B14(y));
+        offsetPoint.setNode_XY5(point);
+      }
+      case "node-XY6" -> {
+        maxOffset = 32767;
+        var point = new Node_XY_32b();
+        point.setX(new Offset_B16(x));
+        point.setY(new Offset_B16(y));
+        offsetPoint.setNode_XY6(point);
+      }
+      default -> {
+        log.warn("Unsupported node-XY delta: {}", delta);
+        return offsetPoint;
+      }
+    }
+    if (offset > maxOffset) {
+      throw new IllegalArgumentException("Invalid node X/Y offset: " + x + "/" + y + " for "
+          + size + ". Values must be within " + BigDecimal.valueOf(maxOffset, 2)
+          + " meters of the last node.");
+    }
+    return offsetPoint;
   }
 
   private static Node_LLmD_64b nodeLatLon(BigDecimal latitude, BigDecimal longitude) {

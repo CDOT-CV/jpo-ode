@@ -478,20 +478,19 @@ class TravelerInformationConverterTest {
   /**
    * x and y offsets in metres, the node-XY type expected for them, and the x offset in centimetres.
    *
-   * <p>The type comes from the bit length of the larger offset in cm: under 2^10 is XY1, under
-   * 2^11 XY2, and so on up to under 2^16 for XY6. This is the legacy rule, kept unchanged. It allows
-   * twice the ASN.1 range of each type: XY1's Offset-B10 is -512..511 cm, yet 10.23 m becomes
-   * node-XY1 with x = 1023.</p>
+   * <p>The type is the smallest that holds the larger offset: XY1 up to 5.11 m, XY2 up to
+   * 10.23 m, XY3 up to 20.47 m, XY4 up to 40.95 m, XY5 up to 81.91 m and XY6 up to 327.67 m. Each
+   * case past a limit gets the next size.</p>
    */
   static Stream<Arguments> xyOffsetsAndExpectedType() {
     return Stream.of(
         Arguments.of("5.11", "0", "node-XY1", 511L),
-        Arguments.of("10.23", "-10.23", "node-XY1", 1023L),
-        Arguments.of("10.24", "0", "node-XY2", 1024L),
-        Arguments.of("20.48", "0", "node-XY3", 2048L),
-        Arguments.of("40.96", "0", "node-XY4", 4096L),
-        Arguments.of("81.92", "0", "node-XY5", 8192L),
-        Arguments.of("163.84", "0", "node-XY6", 16384L),
+        Arguments.of("5.12", "0", "node-XY2", 512L),
+        Arguments.of("10.23", "-10.23", "node-XY2", 1023L),
+        Arguments.of("10.24", "0", "node-XY3", 1024L),
+        Arguments.of("20.48", "0", "node-XY4", 2048L),
+        Arguments.of("40.96", "0", "node-XY5", 4096L),
+        Arguments.of("81.92", "0", "node-XY6", 8192L),
         Arguments.of("327.67", "-327.67", "node-XY6", 32767L));
   }
 
@@ -518,9 +517,28 @@ class TravelerInformationConverterTest {
   @Test
   void xyNodeOffsetTooLargeThrows() {
     ObjectNode tim = baseTim();
-    setPathNode(region(tim), "xy", xyNode("node-XY", "655.36", "0"));
+    setPathNode(region(tim), "xy", xyNode("node-XY", "327.68", "0"));
 
     assertThrows(IllegalArgumentException.class, () -> convertedRegion(tim));
+  }
+
+  @Test
+  void xyNodeOffsetTooLargeForExplicitTypeThrows() {
+    assertThrows(IllegalArgumentException.class,
+        () -> TravelerInformationConverter.nodeOffsetPointXY("node-XY1", 0, -512));
+  }
+
+  @Test
+  void xyNodeWithUnsupportedTypeGivesEmptyOffset() {
+    var offset = TravelerInformationConverter.nodeOffsetPointXY("node-XY7", 150, -250);
+
+    assertNull(offset.getNode_XY1());
+    assertNull(offset.getNode_XY2());
+    assertNull(offset.getNode_XY3());
+    assertNull(offset.getNode_XY4());
+    assertNull(offset.getNode_XY5());
+    assertNull(offset.getNode_XY6());
+    assertNull(offset.getNode_LatLon());
   }
 
   @Test
