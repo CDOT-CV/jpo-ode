@@ -5,16 +5,17 @@ WORKDIR /home
 
 COPY ./jpo-asn-pojos/pom.xml ./jpo-asn-pojos/
 
-COPY ./jpo-asn-pojos/jpo-asn-runtime/pom.xml ./jpo-asn-pojos/jpo-asn-runtime/
+COPY ./jpo-asn-pojos/jpo-asn-runtime/pom.xml ./jpo-asn-pojos/jpo-asn-runtime/lombok.config ./jpo-asn-pojos/jpo-asn-runtime/
 COPY ./jpo-asn-pojos/jpo-asn-runtime/src ./jpo-asn-pojos/jpo-asn-runtime/src
 
-COPY ./jpo-asn-pojos/jpo-asn-j2735-2024/pom.xml ./jpo-asn-pojos/jpo-asn-j2735-2024/
+COPY ./jpo-asn-pojos/jpo-asn-j2735-2024/pom.xml ./jpo-asn-pojos/jpo-asn-j2735-2024/lombok.config ./jpo-asn-pojos/jpo-asn-j2735-2024/
 COPY ./jpo-asn-pojos/jpo-asn-j2735-2024/src ./jpo-asn-pojos/jpo-asn-j2735-2024/src
 
 # First build and install the jpo-asn-pojos modules
 RUN cd jpo-asn-pojos && mvn clean install -DskipTests
 
-COPY ./pom.xml ./
+# lombok.config sets how lombok generates code, so it must be copied with the sources
+COPY ./pom.xml ./lombok.config ./
 COPY ./jpo-ode-common/pom.xml ./jpo-ode-common/
 COPY ./jpo-ode-common/src ./jpo-ode-common/src
 COPY ./jpo-ode-plugins/pom.xml ./jpo-ode-plugins/

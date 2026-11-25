@@ -15,11 +15,13 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.plugin.j2735;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 
@@ -32,9 +34,6 @@ import us.dot.its.jpo.ode.plugin.j2735.OdeGeoRegion.GeoRegionException;
  * The class <code>OdeGeoRegionTest</code> contains tests for the class {@link
  * <code>OdeGeoRegion</code>}
  *
- * @pattern JUnit Test Case
- *
- * @generatedBy CodePro at 10/2/16 10:03 AM
  *
  * @author 572682
  *
@@ -46,7 +45,6 @@ public class OdeGeoRegionTest {
    private OdeGeoRegion region2;
    private OdeGeoRegion region3;
    private OdeGeoRegion region4;
-
    private OdeGeoRegion testRegion;
 
    @BeforeEach
@@ -59,15 +57,18 @@ public class OdeGeoRegionTest {
                   BigDecimal.valueOf(44.44), BigDecimal.valueOf(-55.55), null), 
             new OdePosition3D (
                   BigDecimal.valueOf(22.22), BigDecimal.valueOf(-33.33), null));
+
+      // A known geo region (roughly Pennsylvania)
+      testRegion = new OdeGeoRegion(
+            new OdePosition3D(BigDecimal.valueOf(42.0), BigDecimal.valueOf(-80.4), BigDecimal.ZERO),
+            new OdePosition3D(BigDecimal.valueOf(39.9), BigDecimal.valueOf(-75.2), BigDecimal.ZERO));
    }
    
    /**
     * Run the conversion constructor test
-    * @throws GeoRegionException 
     */
-   
    @Test
-   public void testConstructorString() throws GeoRegionException {
+   public void testConstructorString() {
       assertAll();
    }
 
@@ -121,11 +122,13 @@ public class OdeGeoRegionTest {
     */
    @Test
    public void testSetNwCorner() {
-      region1.setNwCorner(new OdePosition3D(
-            BigDecimal.valueOf(44.44), BigDecimal.valueOf(-55.55), null));
-      
-      assertEquals(BigDecimal.valueOf(44.44), region2.getNwCorner().getLatitude());
-      assertEquals(BigDecimal.valueOf(-55.55), region2.getNwCorner().getLongitude());
+      OdePosition3D nwCorner = new OdePosition3D(
+            BigDecimal.valueOf(44.44), BigDecimal.valueOf(-55.55), null);
+
+      OdeGeoRegion result = region1.setNwCorner(nwCorner);
+
+      assertSame(region1, result);
+      assertEquals(nwCorner, region1.getNwCorner());
    }
 
    /**
@@ -152,25 +155,54 @@ public class OdeGeoRegionTest {
     */
    @Test
    public void testSetSeCorner() {
-      region1.setSeCorner(new OdePosition3D (
-            BigDecimal.valueOf(22.22), BigDecimal.valueOf(-33.33), null));
-      assertEquals(BigDecimal.valueOf(22.22), region2.getSeCorner().getLatitude());
-      assertEquals(BigDecimal.valueOf(-33.33), region2.getSeCorner().getLongitude());
+      OdePosition3D seCorner = new OdePosition3D(
+            BigDecimal.valueOf(22.22), BigDecimal.valueOf(-33.33), null);
+
+      OdeGeoRegion result = region1.setSeCorner(seCorner);
+
+      assertSame(region1, result);
+      assertEquals(seCorner, region1.getSeCorner());
+   }
+
+   /**
+    * region2 (String constructor) and region4 (OdePosition3D constructor) describe the same
+    * corners, so they must be equal.
+    */
+   @Test
+   public void testEquals() {
+      assertEquals(region2, region4);
+      assertEquals(region4, region2);
+      assertEquals(new OdeGeoRegion(), region1);
+
+      assertNotEquals(region2, testRegion);
+      assertNotEquals(region1, region2);
+      assertNotEquals(null, region2);
+      assertNotEquals("not a region", region2);
+   }
+
+   /**
+    * Checks the equals/hashCode contract rather than a specific hash value, so a change to how
+    * the hash is computed does not break the test.
+    */
+   @Test
+   public void testHashCodeConsistentWithEquals() throws GeoRegionException {
+      assertEquals(region2.hashCode(), region4.hashCode());
+      assertEquals(new OdeGeoRegion().hashCode(), region1.hashCode());
+      assertEquals(region2.hashCode(), new OdeGeoRegion("44.44,-55.55 22.22,-33.33").hashCode());
    }
 
    /**
     * Run the J2735Position3D getCenterPosition() method test
-    * @throws GeoRegionException 
     */
    @Test
-   public void testGetCenterPosition() throws GeoRegionException {
+   public void testGetCenterPosition() {
       OdePosition3D result = region2.getCenterPosition();
       assertEquals(BigDecimal.valueOf(33.33), result.getLatitude());
       assertEquals(BigDecimal.valueOf(-44.44), result.getLongitude());
    }
 
    @Test
-   public void testContainsPosition3DNull() throws GeoRegionException {
+   public void testContainsPosition3DNull() {
       assertFalse(region1.contains((OdePosition3D)null));
    }
 
@@ -228,28 +260,7 @@ public class OdeGeoRegionTest {
    }
 
    /**
-    * Create a known geo region (roughly Pennsylvania)
-    */
-   @BeforeEach
-   public void setupOdeGeoRegion() {
-
-       BigDecimal nwLat = BigDecimal.valueOf(42.0);
-       BigDecimal nwLon = BigDecimal.valueOf(-80.4);
-
-       BigDecimal seLat = BigDecimal.valueOf(39.9);
-       BigDecimal seLon = BigDecimal.valueOf(-75.2);
-
-       BigDecimal elev = BigDecimal.ZERO;
-
-       OdePosition3D nwPoint = new OdePosition3D(nwLat, nwLon, elev);
-       OdePosition3D sePoint = new OdePosition3D(seLat, seLon, elev);
-
-       testRegion = new OdeGeoRegion(nwPoint, sePoint);
-
-   }
-
-   /**
-    * Test a point outside of that region (Denver, CO)
+    * Test a point outside of testRegion (Denver, CO)
     */
    @Test
    public void shouldReturnInRegionFalse() {
@@ -266,7 +277,7 @@ public class OdeGeoRegionTest {
    }
 
    /**
-    * Test a point inside of that region (Harrisburg, PA)
+    * Test a point inside of testRegion (Harrisburg, PA)
     */
    @Test
    public void shouldReturnInRegionTrue() {
@@ -282,22 +293,3 @@ public class OdeGeoRegionTest {
 
    }
 }
-
-/*$CPS$ This comment was generated by CodePro. Do not edit it.
- * patternId = com.instantiations.assist.eclipse.pattern.testCasePattern
- * strategyId = com.instantiations.assist.eclipse.pattern.testCasePattern.junitTestCase
- * additionalTestNames = 
- * assertTrue = true
- * callTestMethod = true
- * createMain = false
- * createSetUp = false
- * createTearDown = false
- * createTestFixture = false
- * createTestStubs = true
- * methods = getCenterPosition()
- * package = com.bah.ode.model
- * package.sourceFolder = ode-core/src/test/java
- * superclassType = junit.framework.TestCase
- * testCase = OdeGeoRegionTest
- * testClassType = com.bah.ode.asn.OdeGeoRegion
- */

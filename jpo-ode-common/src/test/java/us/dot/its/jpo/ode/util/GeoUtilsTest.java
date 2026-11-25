@@ -15,6 +15,8 @@
  ******************************************************************************/
 package us.dot.its.jpo.ode.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.stream.Stream;
@@ -24,14 +26,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import junit.framework.TestCase;
 import us.dot.its.jpo.ode.util.GeoUtils;
 import us.dot.its.jpo.ode.util.LengthUtils;
 
-public class GeoUtilsTest extends TestCase {
-
-   public void testNearestPointOnLine() {
-   }
+public class GeoUtilsTest {
 
    @ParameterizedTest
    @MethodSource("provideArgs")
