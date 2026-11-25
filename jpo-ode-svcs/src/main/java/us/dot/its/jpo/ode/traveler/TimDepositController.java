@@ -239,6 +239,13 @@ public class TimDepositController {
       log.error(errMsg, e);
       return ResponseEntity.status(HttpStatus.BAD_REQUEST)
           .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      // A value the J2735 POJOs reject, such as a string of the wrong length, too many items in a
+      // list, or a node-XY offset too large for its size.
+      String errMsg = "Invalid value in TIM: " + e.getMessage();
+      log.error(errMsg, e);
+      return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+          .body(JsonUtils.jsonKeyValue(ERRSTR, errMsg));
     }
 
     // Publish the resulting ASN XML and JSON to the appropriate topics

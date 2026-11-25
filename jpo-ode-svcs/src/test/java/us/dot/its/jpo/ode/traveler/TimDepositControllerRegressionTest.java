@@ -92,6 +92,11 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  *   <li>node-XY size: legacy put offsets in a size up to twice its J2735 range, e.g. 5.12 m in
  *       node-XY1, which only holds up to 5.11 m. Each offset now gets the smallest size that holds
  *       it ({@code crafted_xy_auto_boundaries}).</li>
+ *   <li>Values the J2735 POJOs reject now get a 400 "Invalid value in TIM: ..." instead of
+ *       legacy's 200 and an encoder failure: more than 8 data frames, a string of the wrong length
+ *       such as a url over 15 characters, or a node-XY offset over 327.67 m
+ *       ({@code crafted_too_many_dataframes}, {@code crafted_url_too_long},
+ *       {@code crafted_xy_too_large}).</li>
  *   <li>Two 400 responses no longer exist, because nothing sent through REST could trigger them:
  *       "Error converting to encodable TravelerInputData." and "Non-compliant fields in TIM".</li>
  * </ul>
