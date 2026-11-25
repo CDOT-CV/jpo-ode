@@ -84,12 +84,12 @@ public class XmlUtils {
   /**
    * Embeds the arrayNode into an ObjectNode with the given childKey. By default a
    * JSON array such as {"parent":[1, 2, 3,]} will be converted to:
-   * <ObjectNode><parent>1</parent><parent>2</parent><parent>3</parent></ObjectNode>.
+   * {@code <ObjectNode><parent>1</parent><parent>2</parent><parent>3</parent></ObjectNode>}.
    * This is not often desired as there is no paren object to encompass the array.
    * By calling this method given childKey = "child" and arrayNode = [1, 2, 3,],
    * method will return {"parent":{"child":[1, 2, 3,]}} which as a result will be
    * encoded to
-   * <ObjectNode><parent><child>1</child><child>2</child><child>3</child></parent></ObjectNode>.
+   * {@code <ObjectNode><parent><child>1</child><child>2</child><child>3</child></parent></ObjectNode>}.
    * Which is a more representative of the JSON ObjectNode.
    *
    * @param childKey The key to be given to the child array object

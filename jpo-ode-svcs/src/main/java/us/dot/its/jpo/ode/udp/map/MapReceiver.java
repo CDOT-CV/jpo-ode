@@ -13,7 +13,7 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties;
  * decoded JSON map to a specified Kafka topic. It extends the {@link AbstractUdpReceiverPublisher}
  * class to leverage UDP receiving capabilities.
  *
- * </p>MapReceiver listens on a specified port for incoming UDP packets encapsulating
+ * <p>MapReceiver listens on a specified port for incoming UDP packets encapsulating
  * map data, and decodes these packets. Upon successful decoding, the map data is published to a
  * Kafka topic using KafkaTemplate.
  */

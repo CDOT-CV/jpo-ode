@@ -12,13 +12,11 @@ import us.dot.its.jpo.ode.udp.controller.UDPReceiverProperties.ReceiverPropertie
  * SrmReceiver is responsible for receiving UDP packets containing SRM (Signal Request Message)
  * data, decoding them, and publishing the decoded messages to a specified Kafka topic.
  *
- * </p>
- * This class extends the AbstractUdpReceiverPublisher and overrides its run method to implement the
- * logic for receiving packets, processing them, and sending the result to Kafka.
+ * <p>This class extends the AbstractUdpReceiverPublisher and overrides its run method to implement
+ * the logic for receiving packets, processing them, and sending the result to Kafka.
  *
- * </p>
- * It utilizes a KafkaTemplate for sending messages to Kafka and uses a DatagramSocket to listen for
- * incoming UDP packets on a specified port.
+ * <p>It utilizes a KafkaTemplate for sending messages to Kafka and uses a DatagramSocket to listen
+ * for incoming UDP packets on a specified port.
  */
 @Slf4j
 public class SrmReceiver extends AbstractUdpReceiverPublisher {

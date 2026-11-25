@@ -1,0 +1,185 @@
+# Shared steps for publishing the JARs to Maven Central.  Called by maven-publish-release.yml for
+# releases and by maven-publish-snapshot.yml for snapshots, which have the triggers and the
+# MAVEN_CENTRAL_PUBLISH check
+name: Publish JARs to the Maven Central Repository (shared)
+on:
+  workflow_call:
+    inputs:
+      snapshot:
+        description: Publish a snapshot to the Central Portal snapshot repository instead of a release
+        type: boolean
+        required: true
+
+jobs:
+  publish:
+    # Waits for approval if the environment requires reviewers.  Snapshots use a separate
+    # environment from releases so they can publish without approval or with a different
+    # approval list.  The environment's secrets are available to this job directly
+    environment: ${{ inputs.snapshot && 'maven-central-snapshot' || 'maven-central-release' }}
+    # Snapshot runs all publish the same -SNAPSHOT version, so run them one at a time in the
+    # order they start, and their uploads can't mix.  GitHub keeps only the newest waiting run in
+    # a group, which is fine for snapshots.  Each release gets its own group so none is cancelled
+    concurrency:
+      group: maven-central-${{ inputs.snapshot && 'snapshot' || github.event.release.tag_name }}
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    env:
+      # The published modules. The root jpo-ode pom is their parent and is not published
+      PUBLISH_MODULES: ":jpo-ode-common,:jpo-ode-plugins,:jpo-ode-core,:jpo-ode-svcs"
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Resolve publish coordinates
+        id: coords
+        # groupId defaults to io.github.<owner> (lowercased); set the MAVEN_GROUP_ID repository variable to override
+        env:
+          MAVEN_GROUP_ID: ${{ vars.MAVEN_GROUP_ID }}
+        run: |
+          group_id="${MAVEN_GROUP_ID:-io.github.${GITHUB_REPOSITORY_OWNER,,}}"
+          echo "Publishing with groupId ${group_id} from ${GITHUB_REPOSITORY}"
+          echo "group_id=${group_id}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Maven Central Repository
+        uses: actions/setup-java@v6.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+          server-id: central
+          server-username-env-var: MAVEN_USERNAME
+          server-password-env-var: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.GPG_SIGNING_KEY }}
+          gpg-passphrase-env-var: MAVEN_GPG_PASSPHRASE
+
+      # The modules don't declare their own <version>, so each one's version is the version in its
+      # <parent>.  Get the root pom's version, then check that no module sets its own <version> and
+      # that every module's <parent> names the root version.  The poms are read with yq, which is
+      # preinstalled on the runner.  Each module's directory has the same name as its artifactId
+      - name: Get Maven version
+        id: get_version
+        run: |
+          version=$(mvn -N help:evaluate --batch-mode -Dexpression=project.version -q -DforceStdout)
+          echo "Root pom version is ${version}"
+          for module in ${PUBLISH_MODULES//,/ }; do
+            dir="${module#:}"
+            own_version=$(yq -p xml -oy '.project.version // ""' "${dir}/pom.xml")
+            if [ -n "$own_version" ]; then
+              echo "::error::Module ${dir} sets its own <version> '${own_version}';" \
+                "remove it so it uses the <parent> version"
+              exit 1
+            fi
+            parent_version=$(yq -p xml -oy '.project.parent.version' "${dir}/pom.xml")
+            if [ "$parent_version" != "$version" ]; then
+              echo "::error::Module ${dir} <parent> version '${parent_version}' doesn't match '${version}'"
+              exit 1
+            fi
+          done
+          echo "VERSION=${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Verify Release Version
+        if: ${{ !inputs.snapshot && endsWith(steps.get_version.outputs.VERSION, '-SNAPSHOT') }}
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          echo "::error::Version '$VERSION' must not end with -SNAPSHOT for a release"
+          exit 1
+
+      # Fail the build if the version is not already a SNAPSHOT version
+      - name: Verify Snapshot Version
+        if: ${{ inputs.snapshot && !endsWith(steps.get_version.outputs.VERSION, '-SNAPSHOT') }}
+        env:
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          echo "::error::Version '$VERSION' does not end with -SNAPSHOT"
+          exit 1
+
+      # Verify the release tag is the version, optionally after a prefix such as 'jpo-ode-' or 'v'.
+      # The prefix can't end in a digit or '.', so tag 'jpo-ode-17.0.0' doesn't match version '7.0.0'.
+      - name: Verify Tag Matches Version
+        if: ${{ !inputs.snapshot }}
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          prefix="${TAG%"$VERSION"}"
+          if [ "$prefix" = "$TAG" ]; then
+            echo "::error::Release tag '$TAG' does not end with version '$VERSION'"
+            exit 1
+          fi
+          case "$prefix" in
+            "" | *[!0-9.]) ;;
+            *)
+              echo "::error::Release tag '$TAG' does not match version '$VERSION'" \
+                "(the version must follow a non-numeric prefix such as 'jpo-ode-' or 'v')"
+              exit 1
+              ;;
+          esac
+
+      # Verify the pre-release tag is the version, optionally after a prefix such as 'jpo-ode-' or 'v',
+      # and ends with -SNAPSHOT or a numbered -SNAPSHOT<n>. Tags can't be reused but snapshots can be
+      # republished, so 'jpo-ode-7.1.0-SNAPSHOT1', 'jpo-ode-7.1.0-SNAPSHOT2', ... all publish
+      # version '7.1.0-SNAPSHOT'. The suffix is required so that 'jpo-ode-7.1.0' stays free
+      # for the release. The prefix can't end in a digit or '.', so tag 'jpo-ode-17.1.0-SNAPSHOT1'
+      # doesn't match version '7.1.0-SNAPSHOT'.
+      - name: Verify Snapshot Tag Matches Version
+        if: ${{ inputs.snapshot }}
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          VERSION: ${{ steps.get_version.outputs.VERSION }}
+        run: |
+          version="${VERSION%-SNAPSHOT}"
+          if [[ "$TAG" =~ ^(.*)-SNAPSHOT[0-9]*$ ]]; then
+            tag="${BASH_REMATCH[1]}"
+          else
+            echo "::error::Pre-release tag '$TAG' must end with -SNAPSHOT or -SNAPSHOT<n>," \
+              "such as '${version}-SNAPSHOT1', so the tag without it stays free for the release"
+            exit 1
+          fi
+          prefix="${tag%"$version"}"
+          if [ "$prefix" = "$tag" ]; then
+            echo "::error::Pre-release tag '$TAG' does not match version '$VERSION'"
+            exit 1
+          fi
+          case "$prefix" in
+            "" | *[!0-9.]) ;;
+            *)
+              echo "::error::Pre-release tag '$TAG' does not match version '$VERSION'" \
+                "(the version must follow a non-numeric prefix such as 'jpo-ode-' or 'v')"
+              exit 1
+              ;;
+          esac
+
+      # Publish all the modules in one Maven run so they reach Maven Central as a single deployment.
+      # central-publishing-maven-plugin stages each module's signed artifacts during the build and,
+      # after the last module, uploads them together as one bundle that Central validates and
+      # publishes all or nothing. A failure in any module (javadoc, signing) uploads nothing, so the
+      # release can be re-run with the same version. Tests are skipped here because the ci workflow
+      # runs them. The package-jar profile publishes jpo-ode-svcs as a plain jar rather than a
+      # Spring Boot executable jar.
+      - name: Publish packages
+        run: |
+          mvn -P release,package-jar --batch-mode deploy -DskipTests \
+            -Dmaven.repository.credentialScope=id \
+            --projects "$PUBLISH_MODULES" \
+            -Dpublish.groupId="$PUBLISH_GROUP_ID" \
+            -Dpublish.githubRepository="$GITHUB_REPOSITORY"
+        env:
+          PUBLISH_GROUP_ID: ${{ steps.coords.outputs.group_id }}
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_SIGNING_KEY_PASSWORD }}
+
+      # central-publishing-maven-plugin stages the whole signed bundle (jars, flattened poms, .asc
+      # signatures) under the first module's target/central-* directories. The flattened poms are
+      # also kept for a run that fails before anything is staged.
+      - name: Upload build artifacts for debugging
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: maven-central-${{ inputs.snapshot && 'snapshot' || 'release' }}-artifacts
+          path: |
+            jpo-ode-*/target/central-*/
+            jpo-ode-*/.flattened-pom.xml
+          # upload-artifact leaves out hidden files such as .flattened-pom.xml unless this is set
+          include-hidden-files: true
+          retention-days: 7

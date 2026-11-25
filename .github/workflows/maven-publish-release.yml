@@ -1,0 +1,18 @@
+name: Publish JARs to the Maven Central Repository
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  publish:
+    # Only publish from forks that opt in with the MAVEN_CENTRAL_PUBLISH repository variable, and only on
+    # actual releases, not pre-releases (see the snapshot workflow for pre-releases)
+    if: ${{ vars.MAVEN_CENTRAL_PUBLISH == 'true' && !github.event.release.prerelease }}
+    # The steps are in maven-publish.yml, which runs in the maven-central-release environment
+    uses: ./.github/workflows/maven-publish.yml
+    with:
+      snapshot: false
+    # The called workflow only sees secrets the caller passes, including the secrets of the
+    # environment it runs in
+    secrets: inherit

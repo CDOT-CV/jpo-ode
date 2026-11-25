@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
@@ -43,13 +41,13 @@ class SignedUdpPayloadSchemaTest {
 
   private static final ObjectMapper SCHEMA_MAPPER = new ObjectMapper();
 
-  // The output schemas $ref the jpo-asn-pojos schemas by their GitHub URL. Load them from the
-  // submodule instead, so the test runs offline against the pinned pojo version.
+  // The output schemas $ref the jpo-asn-pojos schemas by their GitHub URL. The jpo-asn-j2735-2024
+  // jar bundles the same schemas under schemas/, so load them from the classpath instead: the test
+  // runs offline and validates against the pojo version the ODE depends on.
   private static final String POJO_SCHEMA_PREFIX = "https://raw.githubusercontent.com/"
       + "usdot-jpo-ode/jpo-asn-pojos/refs/heads/master/"
       + "jpo-asn-jsonschema-generator/src/main/resources/schemas/";
-  private static final Path LOCAL_POJO_SCHEMAS =
-      Path.of("../jpo-asn-pojos/jpo-asn-jsonschema-generator/src/main/resources/schemas");
+  private static final String POJO_SCHEMA_RESOURCES = "/schemas/";
 
   @ParameterizedTest
   @MethodSource("signedUdpPayloads")
@@ -129,24 +127,21 @@ class SignedUdpPayloadSchemaTest {
         ? SpecificationVersion.DRAFT_2020_12
         : SpecificationVersion.DRAFT_7;
     SchemaRegistry registry = SchemaRegistry.withDefaultDialect(version,
-        builder -> builder.schemas(SignedUdpPayloadSchemaTest::loadLocalPojoSchema));
+        builder -> builder.schemas(SignedUdpPayloadSchemaTest::loadPojoSchema));
     Schema schema = registry.getSchema(schemaNode);
     List<com.networknt.schema.Error> errors = schema.validate(SCHEMA_MAPPER.readTree(json));
     assertTrue(errors.isEmpty(), errors::toString);
   }
 
-  /** Returns the submodule copy of a jpo-asn-pojos schema, or null for any other IRI. */
-  private static String loadLocalPojoSchema(String iri) {
+  /** Returns the classpath copy of a jpo-asn-pojos schema, or null for any other IRI. */
+  private static String loadPojoSchema(String iri) {
     if (!iri.startsWith(POJO_SCHEMA_PREFIX)) {
       return null;
     }
-    Path file = LOCAL_POJO_SCHEMAS.resolve(iri.substring(POJO_SCHEMA_PREFIX.length()));
     try {
-      return Files.readString(file, StandardCharsets.UTF_8);
+      return readResource(POJO_SCHEMA_RESOURCES + iri.substring(POJO_SCHEMA_PREFIX.length()));
     } catch (IOException e) {
-      throw new UncheckedIOException("Cannot read " + file.toAbsolutePath().normalize()
-          + "; is the jpo-asn-pojos submodule checked out? "
-          + "(git submodule update --init jpo-asn-pojos)", e);
+      throw new UncheckedIOException(e);
     }
   }
 

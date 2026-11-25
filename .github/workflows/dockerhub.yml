@@ -8,6 +8,8 @@ on:
   
 jobs:
   publish:
+    # Only the usdot-jpo-ode repository publishes the usdotjpoode/jpo-ode image; skip in forks
+    if: github.repository == 'usdot-jpo-ode/jpo-ode'
     uses: usdot-jpo-ode/actions/.github/workflows/dockerhub.yml@main
     with:
       image: usdotjpoode/jpo-ode
