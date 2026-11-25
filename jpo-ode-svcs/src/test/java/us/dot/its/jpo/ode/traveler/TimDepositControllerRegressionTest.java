@@ -89,6 +89,9 @@ import us.dot.its.jpo.ode.util.DateTimeUtils;
  *       shapepoint or regionPoint oldRegion area, now reads "Unsupported region description: ..."
  *       or "Unsupported oldRegion area..."; the old message named a deleted class. An unknown
  *       content value still returns 200.</li>
+ *   <li>node-XY size: legacy put offsets in a size up to twice its J2735 range, e.g. 5.12 m in
+ *       node-XY1, which only holds up to 5.11 m. Each offset now gets the smallest size that holds
+ *       it ({@code crafted_xy_auto_boundaries}).</li>
  *   <li>Two 400 responses no longer exist, because nothing sent through REST could trigger them:
  *       "Error converting to encodable TravelerInputData." and "Non-compliant fields in TIM".</li>
  * </ul>
